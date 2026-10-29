@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { Button, DocLine, Field, Icon, IconButton, LessonRow, Num, ProgressBar, Segmented, Skeleton, Switch, type IconName } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleStatus } from '../../components/console';
+import { ConsoleList, ConsoleCard, ConsoleStatus } from '../../components/console';
+import {
+  CBtn, ConsoleChips, ConsoleGrid, ConsoleNote, ConsoleScreen, ConsoleTabs, ConsoleToolbar, HonestEmpty,
+} from './components/ConsoleParts';
+
+/** Les onglets de `Console-Edu`. Seuls Formations et Témoignages ont un producteur. */
+type EduTab = 'formations' | 'cohorts' | 'lives' | 'certificates' | 'waitlist' | 'testimonials';
 import PublishPanel from './components/PublishPanel';
 import { SiteEyebrow } from '../../components/site';
 import { Modal } from '@/components/dialogs';
@@ -75,6 +81,8 @@ export default function AdminFormations() {
   const f = useFormations();
   /** La formation ouverte dans le panneau des conditions. */
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { t: te } = useTranslation('admin');
+  const [tab, setTab] = useState<EduTab>('formations');
   /*
     ── LE TÉLÉPHONE GARDE EXACTEMENT L'ÉCRAN QU'IL AVAIT ────────────────────────────
     `ConsoleSplit` n'arme sa grille qu'à partir de 1080 px ; en dessous, le panneau
@@ -185,48 +193,35 @@ export default function AdminFormations() {
      fermée. Il a des fiches, des tarifs et des listes d'attente — il n'a rien à vendre. */
   const shopClosed = !f.loading && f.counts.all > 0 && f.counts.published === 0;
 
+  const asOf = f.loadedAt ?? new Date();
+  const k = (s: string, o?: Record<string, unknown>) => te(`p2.edu.${s}`, o);
+
   return (
-    <ConsolePage title={t('formations.pageTitle')} sub={t('formations.console.sub')}>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="m-0 text-meta-2 text-ink-2">
-          <Num
-            value={f.loading ? null : f.counts.all}
-            source="db"
-            asOf={f.loadedAt ?? new Date()}
-            unit={t('formations.console.countUnit')}
-            showAsOf={!f.loading}
-            fallback={t('formations.console.loadingCount')}
-          />
-        </p>
-        <Button size="sm" onClick={f.openNew}>{t('formations.newFormation')}</Button>
-      </div>
+    <ConsoleScreen label={t('formations.pageTitle')}>
+      <ConsoleToolbar>
+        <CBtn tone="ink" icon="plus" onClick={f.openNew}>{t('formations.newFormation')}</CBtn>
+      </ConsoleToolbar>
 
-      <ConsoleSplit
-        detailLabel={t('formations.console.panelEyebrow')}
-        detail={!isWide ? null : (
-          <PublishPanel
-            formation={selected}
-            loading={f.loading}
-            onOpenFull={() => selected && f.openEdit(selected)}
-          />
-        )}
-      >
+      {/* ── Les onglets de la maquette. Formations et Témoignages sont branchés ; les autres
+          n'ont pas de producteur et ouvrent un état vide honnête. ── */}
+      <ConsoleTabs<EduTab>
+        label={k('tabsLabel')}
+        value={tab}
+        onChange={setTab}
+        items={[
+          { id: 'formations', label: k('tabFormations'), count: f.loading ? undefined : <Num value={f.counts.all} source="db" asOf={asOf} /> },
+          { id: 'cohorts', label: k('tabCohorts') },
+          { id: 'lives', label: k('tabLives') },
+          { id: 'certificates', label: k('tabCertificates') },
+          { id: 'waitlist', label: k('tabWaitlist') },
+          { id: 'testimonials', label: k('tabTestimonials'), href: '/admin/temoignages' },
+        ]}
+      />
 
-      {/* ── L'alerte, en tête, et seulement si elle est VRAIE dans les données ─────────── */}
       {shopClosed && (
-        <ConsoleCard
-          padding={18}
-          className="rv mb-3.5"
-          style={{ borderColor: 'color-mix(in srgb, var(--mm-orange) 40%, transparent)' }}
-        >
+        <ConsoleCard as="section" style={{ borderColor: 'color-mix(in srgb, var(--mm-orange) 40%, transparent)' }}>
           <div className="flex items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="grid h-[34px] w-[34px] flex-none place-items-center rounded-[11px]"
-              style={{ background: 'color-mix(in srgb, var(--mm-orange) 22%, transparent)' }}
-            >
-              <Icon name="alert" size={18} color="var(--warn)" strokeWidth={2.6} />
-            </span>
+            <Icon name="alert" size={18} color="var(--warn)" strokeWidth={2.6} />
             <p className="m-0 flex-1 text-meta text-ink-2">
               <b className="text-warn">{t('formations.console.shopClosedTitle')}</b>{' '}
               {t('formations.console.shopClosedBody', { count: f.counts.all })}
@@ -235,98 +230,117 @@ export default function AdminFormations() {
         </ConsoleCard>
       )}
 
-      {/* ── ZONE 1 · le filtre par statut ─────────────────────────────────────────────── */}
-      <ConsoleFilter
-        stages={stageKeys.map((k) => stageLabels[k])}
-        active={stageLabels[f.stage]}
-        onSelect={(label) => {
-          const key = stageKeys.find((k) => stageLabels[k] === label);
-          if (key) f.setStage(key);
-        }}
-        label={t('formations.console.filterLabel')}
-      />
+      {tab !== 'formations' ? (
+        <ConsoleCard as="section" title={k(`${tab}Title`)}>
+          <HonestEmpty icon={tab === 'lives' ? 'video' : tab === 'certificates' ? 'award' : tab === 'waitlist' ? 'list' : 'users'} title={k(`${tab}Empty`)} body={k(`${tab}Body`)} />
+        </ConsoleCard>
+      ) : (
+      <ConsoleGrid side={380}>
+        <ConsoleCard as="section" title={k('formationsTitle')}>
+          <ConsoleChips<FormationStage>
+            label={t('formations.console.filterLabel')}
+            items={stageKeys.map((key) => ({ id: key, label: stageLabels[key] }))}
+            value={f.stage}
+            onChange={f.setStage}
+          />
+          <div className="mb-3 max-w-sm">
+            <Field
+              type="search"
+              label={t('formations.console.searchLabel')}
+              hideLabel
+              placeholder={t('formations.searchPlaceholder')}
+              value={f.search}
+              onChange={f.setSearch}
+            />
+          </div>
 
-      <Field
-        type="search"
-        label={t('formations.console.searchLabel')}
-        hideLabel
-        placeholder={t('formations.searchPlaceholder')}
-        value={f.search}
-        onChange={f.setSearch}
-      />
-
-      {/* ── ZONE 2 · la liste dense, UNE action par ligne : ouvrir la fiche ────────────── */}
-      <div className="mt-4">
-        {f.loading ? (
-          <ConsoleList label={t('formations.console.listLabel')}>
-            {[0, 1, 2].map((i) => (
-              <li key={i} className="border-b border-[color:var(--border-hair)] py-4 last:border-0">
-                <Skeleton height={18} label={i === 0 ? t('formations.loading') : undefined} />
-              </li>
-            ))}
-          </ConsoleList>
-        ) : f.filtered.length === 0 ? (
-          <ConsoleCard padding={24}>
-            <p className="m-0 text-center text-meta-2 text-ink-2">{t('formations.emptyState')}</p>
-          </ConsoleCard>
-        ) : (
-          <>
-            <ConsoleList label={t('formations.console.listLabel')}>
-              {f.paged.map((item, i) => {
-                const st = rowState(item);
-                const mods = item.modules?.length ?? 0;
-                const lessons = item.modules?.reduce((acc, m) => acc + m.lessons.length, 0) ?? 0;
-                return (
-                  <li key={item.id}>
-                    <LessonRow
-                      icon={<Icon name="book" size={14} color={st.ink} />}
-                      iconBackground={`color-mix(in srgb, ${st.ink} 18%, transparent)`}
-                      title={item.title}
-                      duration={{
-                        value: formatPrice(item.promoPrice || item.price),
-                        source: 'db',
-                        asOf: f.loadedAt ?? new Date(),
-                      }}
-                      meta={(
-                        <>
-                          {[item.category, levelLabels[item.level]].filter(Boolean).join(' · ')}
-                          {' · '}
-                          <Num
-                            value={mods}
-                            source="db"
-                            asOf={f.loadedAt ?? new Date()}
-                            unit={t('formations.console.unitModules')}
-                          />
-                          {' · '}
-                          <Num
-                            value={lessons}
-                            source="db"
-                            asOf={f.loadedAt ?? new Date()}
-                            unit={t('formations.console.unitLessons')}
-                          />
-                        </>
-                      )}
-                      trailing={<ConsoleStatus tone={st.tone}>{st.label}</ConsoleStatus>}
-                      /* La ligne SÉLECTIONNE, elle n'ouvre plus l'éditeur : les conditions
-                         de publication s'affichent en face, et c'est ce qu'on vient lire.
-                         L'éditeur s'ouvre depuis le panneau, une fois la raison connue. */
-                      onClick={isWide ? () => setSelectedId(item.id) : () => f.openEdit(item)}
-                      last={i === f.paged.length - 1}
-                    />
-                  </li>
-                );
-              })}
-            </ConsoleList>
-            <div className="mt-4 flex justify-center">
-              <Pagination currentPage={f.page} totalPages={f.totalPages} onPageChange={f.setPage} />
+          {f.loading ? (
+            <div className="flex flex-col gap-2">
+              {[0, 1, 2].map((i) => <Skeleton key={i} height={44} label={i === 0 ? t('formations.loading') : undefined} />)}
             </div>
-          </>
-        )}
-      </div>
+          ) : f.filtered.length === 0 ? (
+            <HonestEmpty icon="book" title={t('formations.emptyState')} />
+          ) : (
+            <>
+              <div className="hidden overflow-x-auto stack:block">
+                <table className="mm-ctable" aria-label={t('formations.console.listLabel')}>
+                  <thead>
+                    <tr>
+                      <th scope="col">{k('colFormation')}</th>
+                      <th scope="col">{k('colStatus')}</th>
+                      <th scope="col">{k('colContent')}</th>
+                      <th scope="col"><span className="sr-only">{k('colAction')}</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {f.paged.map((item) => {
+                      const st = rowState(item);
+                      const lessons = item.modules?.reduce((acc, m) => acc + m.lessons.length, 0) ?? 0;
+                      return (
+                        <tr
+                          key={item.id}
+                          className={isWide && selected?.id === item.id ? 'is-sel cursor-pointer' : isWide ? 'cursor-pointer' : undefined}
+                          onClick={isWide ? () => setSelectedId(item.id) : undefined}
+                        >
+                          <td>
+                            <b>{item.title}</b>
+                            <small>{[item.category, levelLabels[item.level]].filter(Boolean).join(' · ')}</small>
+                          </td>
+                          <td><ConsoleStatus tone={st.tone}>{st.label}</ConsoleStatus></td>
+                          <td className="text-ink-2">
+                            <Num value={lessons} source="db" asOf={asOf} unit={t('formations.console.unitLessons')} />
+                            {' · '}
+                            <Num value={formatPrice(item.promoPrice || item.price)} source="db" asOf={asOf} />
+                          </td>
+                          <td className="text-right">
+                            <CBtn onClick={() => f.openEdit(item)}>{k('open')}</CBtn>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div className="stack:hidden">
+                {f.paged.map((item) => {
+                  const st = rowState(item);
+                  const lessons = item.modules?.reduce((acc, m) => acc + m.lessons.length, 0) ?? 0;
+                  return (
+                    <div key={item.id} className="mm-mrow" style={{ alignItems: 'flex-start' }}>
+                      <div className="min-w-0 flex-1">
+                        <ConsoleStatus tone={st.tone}>{st.label}</ConsoleStatus>
+                        <b className="mt-1 block text-[14px]">{item.title}</b>
+                        <span className="text-[12px] text-ink-3">
+                          <Num value={lessons} source="db" asOf={asOf} unit={t('formations.console.unitLessons')} />
+                          {' · '}
+                          <Num value={formatPrice(item.promoPrice || item.price)} source="db" asOf={asOf} />
+                        </span>
+                      </div>
+                      <CBtn onClick={() => f.openEdit(item)}>{k('open')}</CBtn>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-4 flex justify-center">
+                <Pagination currentPage={f.page} totalPages={f.totalPages} onPageChange={f.setPage} />
+              </div>
+            </>
+          )}
+        </ConsoleCard>
 
-      {/* ── ZONE 3 · ce que l'écran ne couvre pas ─────────────────────────────────────── */}
-      <ConsoleScope>{t('formations.console.scope')}</ConsoleScope>
-      </ConsoleSplit>
+        {isWide && (
+          <div className="wide:sticky wide:top-5">
+            <PublishPanel
+              formation={selected}
+              loading={f.loading}
+              onOpenFull={() => selected && f.openEdit(selected)}
+            />
+          </div>
+        )}
+      </ConsoleGrid>
+      )}
+
+      <ConsoleNote>{k('note')}</ConsoleNote>
 
       {/* ── L'éditeur ─────────────────────────────────────────────────────────────────── */}
       <Modal
@@ -979,6 +993,6 @@ export default function AdminFormations() {
           </div>
         </Modal>
       )}
-    </ConsolePage>
+    </ConsoleScreen>
   );
 }

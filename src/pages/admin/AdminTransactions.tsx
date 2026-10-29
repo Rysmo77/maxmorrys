@@ -2,11 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import type { TagTone } from '@ds';
-import { Button, EmptyState, Field, Icon, LessonRow, Num, Skeleton, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
+import { Field, Num, Skeleton, useToast } from '@ds';
+import { ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import TransactionPanel from './components/TransactionPanel';
-import { SiteEyebrow } from '../../components/site';
 import { ConfirmDialog } from '@/components/dialogs';
+import { agregerRevenu, type LigneBusiness } from '../../lib/admin/revenue';
+import type { AdminSpace } from '../../lib/admin/consoleNav';
+import {
+  CBtn, ConsoleChips, ConsoleGrid, ConsoleScreen, ConsoleStack, ConsoleToolbar, HonestEmpty,
+} from './components/ConsoleParts';
+import { SPACE_TONE, spaceLabels, type SpaceFilterValue } from './components/consoleUtils';
 import { Pagination } from '@/components/dialogs';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
@@ -66,16 +71,20 @@ const STATUS_TONE: Record<Transaction['status'], TagTone> = {
   failed: 'stop',
 };
 
-const STATUS_TINT: Record<Transaction['status'], string> = {
-  pending: '--mm-orange',
-  completed: '--ok',
-  refunded: '--ink-2',
-  failed: '--stop',
+/** L'espace de console d'une ligne de revenu (`Transaction.ligne`). */
+const LIGNE_SPACE: Record<LigneBusiness, AdminSpace> = {
+  formation: 'edu',
+  club: 'club',
+  rysmoSubscription: 'rysmo',
+  rysmoPack: 'rysmo',
 };
 
 export default function AdminTransactions() {
   const { t } = useTranslation('admin');
-  const { formatDate, formatPrice } = useFormat();
+  const { locale } = useFormat();
+  const { t: te } = useTranslation('admin');
+  const k = (s: string, o?: Record<string, unknown>) => te(`p2.tx.${s}`, o);
+  const [space, setSpace] = useState<SpaceFilterValue>('all');
   const { addToast } = useToast();
   const confirm = useConfirmDialog();
 
@@ -193,250 +202,206 @@ export default function AdminTransactions() {
         || (tx.userEmail ?? '').toLowerCase().includes(q)
         || (tx.formationTitle ?? '').toLowerCase().includes(q);
       const matchStage = stage === 'all' || tx.status === stage;
-      return matchSearch && matchStage;
+      const matchSpace = space === 'all' || (tx.ligne ? LIGNE_SPACE[tx.ligne] : null) === space;
+      return matchSearch && matchStage && matchSpace;
     });
-  }, [transactions, search, stage]);
+  }, [transactions, search, stage, space]);
 
   const { paged, page, totalPages, setPage } = usePagination(filtered);
 
   // Les cases de relevé portent sur la TABLE ENTIÈRE, jamais sur ce que le filtre laisse voir.
-  const totalRevenue = transactions.filter((tx) => tx.status === 'completed').reduce((sum, tx) => sum + tx.amount, 0);
-  const totalRefunded = transactions.filter((tx) => tx.status === 'refunded').reduce((sum, tx) => sum + tx.amount, 0);
   const pendingCount = transactions.filter((tx) => tx.status === 'pending').length;
-  const refundedCount = transactions.filter((tx) => tx.status === 'refunded').length;
-  const pendingAmount = transactions.filter((tx) => tx.status === 'pending').reduce((sum, tx) => sum + tx.amount, 0);
-  const failedCount = transactions.filter((tx) => tx.status === 'failed').length;
-  /* LE TAUX D'ÉCHEC PORTE SON DÉNOMINATEUR. Sur une seule tentative, « 0 % » et « 0 sur 1 »
-     ne disent pas la même chose : le premier suggère une série, le second dit la vérité.
-     À zéro tentative, il n'y a pas de taux — <Num> rend alors « non relevé ». */
-  const attempts = transactions.length;
-  const failureRate = attempts > 0 ? `${Math.round((failedCount / attempts) * 100)} %` : null;
 
   /* La sélection suit la LISTE FILTRÉE : un filtre qui masque la ligne ouverte laisserait
      un panneau qui parle d'une transaction devenue invisible. Le repli est la première
      ligne de la page courante — jamais rien, tant qu'il y a quelque chose à montrer. */
   const selected = filtered.find((tx) => tx.id === selectedId) ?? paged[0] ?? null;
 
+  /* ── Les relevés de la maquette, sur 30 jours glissants, lus dans les transactions ── */
+  const since30 = useMemo(() => new Date(asOf.getTime() - 30 * 86_400_000).toISOString(), [asOf]);
+  const bilan30 = useMemo(() => agregerRevenu(transactions, since30), [transactions, since30]);
+  const last30 = transactions.filter((tx) => (tx.createdAt ?? '') >= since30);
+  const refunded30 = last30.filter((tx) => tx.status === 'refunded').length;
+  const codes30 = last30.filter((tx) => tx.status === 'completed' && tx.couponCode).length;
+  const codeUses = useMemo(() => {
+    const m = new Map<string, number>();
+    transactions.forEach((tx) => { if (tx.couponCode && tx.status === 'completed') m.set(tx.couponCode, (m.get(tx.couponCode) ?? 0) + 1); });
+    return [...m].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  }, [transactions]);
+
+  const spaceOf = (tx: Transaction): AdminSpace | null => (tx.ligne ? LIGNE_SPACE[tx.ligne] : null);
+  const shown = paged;
+  const spaceTag = (tx: Transaction) => {
+    const s = spaceOf(tx);
+    return s ? <ConsoleStatus tone={SPACE_TONE[s]}>{t(`console.spaces.${s}`)}</ConsoleStatus> : <span className="text-ink-3">—</span>;
+  };
+  const statusTag = (tx: Transaction) => (
+    <span className="flex flex-wrap items-center gap-1.5">
+      {tx.mailPending && <ConsoleStatus tone="warn">{t('transactions.mailStuckTag')}</ConsoleStatus>}
+      <ConsoleStatus tone={STATUS_TONE[tx.status]}>{STATUS_LABELS[tx.status]}</ConsoleStatus>
+    </span>
+  );
+  const shortDate = (iso: string) => {
+    const d = new Date(iso);
+    return Number.isFinite(d.getTime())
+      ? `${d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' })} ${d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`
+      : null;
+  };
+
   return (
-    // `.play` en dur : voir AdminDashboard.
-    <div className="play">
-      <ConsolePage title={t('transactions.title')} sub={t('transactions.sub')}>
-        <div className="mb-3.5 flex justify-end">
-          <Button size="sm" tone="quiet" onClick={load} disabled={loading}>
-            {t('transactions.refresh')}
-          </Button>
+    <div>
+      <ConsoleScreen label={t('transactions.title')}>
+        <ConsoleToolbar space={space} onSpace={setSpace} labels={spaceLabels(t, 'console')} hideSpacesOnPhone>
+          <CBtn onClick={load} disabled={loading}>{t('transactions.refresh')}</CBtn>
+        </ConsoleToolbar>
+
+        <div className="grid grid-cols-2 gap-2.5 wide:grid-cols-4 wide:gap-3">
+          <ConsoleKpi icon="card" label={k('kpiCashed')} value={loading ? null : bilan30.brut} unit="XOF" source="db" asOf={asOf} sourceLine={k('kpiDaily')} />
+          <ConsoleKpi icon="clock" label={k('kpiPending')} value={loading ? null : pendingCount} source="db" asOf={asOf} sourceLine={k('kpiPendingSrc')} />
+          <ConsoleKpi icon="rotate" label={k('kpiRefunded')} value={loading ? null : refunded30} source="db" asOf={asOf} sourceLine={k('kpiRefundedSrc')} />
+          <ConsoleKpi icon="tag" label={k('kpiCodes')} value={loading ? null : codes30} source="db" asOf={asOf} sourceLine={k('kpiCodesSrc')} />
         </div>
 
-        <ConsoleSplit
-          detailLabel={t('transactions.panelEyebrow')}
-          detail={!isWide ? null : (
-            <TransactionPanel
-              tx={selected}
-              loading={loading}
-              asOf={asOf}
-              onRefund={handleRefund}
-              refunding={refunding === selected?.id}
-              onResend={handleResend}
-              resending={resending === selected?.id}
+        <ConsoleGrid side={360}>
+          <ConsoleCard as="section" title={t('transactions.title')}>
+            <ConsoleChips<Stage>
+              label={t('transactions.pipelineLabel')}
+              items={stages.map((s) => ({ id: s, label: stageLabels[s] }))}
+              value={stage}
+              onChange={(s) => { setStage(s); setPage(1); }}
             />
-          )}
-        >
-        <ConsoleFilter
-          className="rv"
-          stages={stages.map((s) => stageLabels[s])}
-          active={stageLabels[stage]}
-          onSelect={(label) => setStage(stages.find((s) => stageLabels[s] === label) ?? 'all')}
-          label={t('transactions.pipelineLabel')}
-        />
-
-        {/* Les quatre cases de la maquette. `stack:` puis `wide:` — les deux seules ruptures
-            que le système déclare ; à 1080 la troisième colonne prend sa place, donc les
-            cases restent à deux de front plutôt que de passer à quatre et de se réduire. */}
-        <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
-          <ConsoleKpi
-            label={t('transactions.statRevenue')}
-            value={loading ? null : formatPrice(totalRevenue)}
-            source="db"
-            asOf={asOf}
-            foot={<><Num value={pendingCount} source="db" asOf={asOf} /> {t('transactions.footPending', { count: pendingCount })}</>}
-          />
-          <ConsoleKpi
-            label={t('transactions.statPending')}
-            value={loading ? null : formatPrice(pendingAmount)}
-            source="db"
-            asOf={asOf}
-            foot={<><Num value={pendingCount} source="db" asOf={asOf} /> {t('transactions.footPending', { count: pendingCount })}</>}
-          />
-          <ConsoleKpi
-            label={t('transactions.statRefunds')}
-            value={loading ? null : formatPrice(totalRefunded)}
-            source="db"
-            asOf={asOf}
-            foot={<><Num value={refundedCount} source="db" asOf={asOf} /> {t('transactions.footRefunded', { count: refundedCount })}</>}
-          />
-          <ConsoleKpi
-            label={t('transactions.statFailure')}
-            value={loading ? null : failureRate}
-            source="db"
-            asOf={asOf}
-            foot={<><Num value={attempts} source="db" asOf={asOf} /> {t('transactions.footAttempts', { count: attempts })}</>}
-          />
-        </div>
-
-        <div className="mt-3.5 max-w-sm">
-          <Field
-            as="input"
-            type="search"
-            label={t('transactions.searchLabel')}
-            hideLabel
-            value={search}
-            onChange={setSearch}
-            placeholder={t('transactions.searchPlaceholder')}
-            inputMode="search"
-          />
-        </div>
-
-        <SiteEyebrow style={{ marginTop: '22px', marginBottom: '10px' }}>
-          {stageLabels[stage]}
-        </SiteEyebrow>
-
-        {loading ? (
-          <div className="flex flex-col gap-2">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} height={60} radius="var(--r-l)" label={t('transactions.title')} />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <EmptyState
-            glyph={<Icon name="card" size={26} color="var(--mm-bleu)" />}
-            glyphBackground="color-mix(in srgb, var(--mm-bleu) 22%, transparent)"
-            title={t('transactions.emptyTitle')}
-            body={t('transactions.emptyBody')}
-          />
-        ) : (
-          <>
-          {/*
-            ── BUREAU : LA TABLE DU KIT (`mm-ctable`) ────────────────────────────────
-            Mêmes données et même règle que la liste mobile : un état, UNE action. Au-delà
-            de 1080 px l'action est « voir » (le remboursement vit dans la fiche) ; entre
-            700 et 1080 px, sans fiche, le remboursement reprend sa place sur la ligne.
-          */}
-          <ConsoleCard padding="4px 6px" className="rv hidden stack:block">
-            <div className="overflow-x-auto">
-              <table className="mm-ctable" aria-label={t('transactions.listLabel')}>
-                <thead>
-                  <tr>
-                    <th scope="col">{t('transactions.colRef')}</th>
-                    <th scope="col">{t('transactions.colAmount')}</th>
-                    <th scope="col">{t('transactions.colCustomer')}</th>
-                    <th scope="col">{t('transactions.colStatus')}</th>
-                    <th scope="col"><span className="sr-only">{t('transactions.colAction')}</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paged.map((tx) => (
-                    <tr key={tx.id} className={isWide && selected?.id === tx.id ? 'is-sel' : undefined}>
-                      <td>
-                        <b><Num value={tx.transactionRef ?? tx.id.slice(0, 12)} source="db" asOf={asOf} /></b>
-                        <small>{formatDate(tx.createdAt)}</small>
-                      </td>
-                      <td>
-                        <Num value={tx.amount} unit={tx.currency} source="db" asOf={asOf} />
-                        <small>{tx.paymentMethod}</small>
-                      </td>
-                      <td>
-                        {tx.userName || tx.userEmail || '—'}
-                        {tx.formationTitle && <small>{tx.formationTitle}</small>}
-                      </td>
-                      <td>
-                        <span className="flex flex-wrap items-center gap-1.5">
-                          {tx.mailPending && <ConsoleStatus tone="warn">{t('transactions.mailStuckTag')}</ConsoleStatus>}
-                          <ConsoleStatus tone={STATUS_TONE[tx.status]}>{STATUS_LABELS[tx.status]}</ConsoleStatus>
-                        </span>
-                      </td>
-                      <td className="text-right">
-                        {isWide ? (
-                          <Button size="sm" tone="quiet" onClick={() => setSelectedId(tx.id)}>
-                            {t('transactions.actionShow')}
-                          </Button>
-                        ) : tx.status === 'completed' ? (
-                          <Button size="sm" tone="quiet" onClick={() => handleRefund(tx.id)} loading={refunding === tx.id}>
-                            {t('transactions.refundAction')}
-                          </Button>
-                        ) : null}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mb-3 max-w-sm">
+              <Field
+                as="input"
+                type="search"
+                label={t('transactions.searchLabel')}
+                hideLabel
+                value={search}
+                onChange={setSearch}
+                placeholder={t('transactions.searchPlaceholder')}
+                inputMode="search"
+              />
             </div>
-          </ConsoleCard>
-          <ConsoleList label={t('transactions.listLabel')} className="rv stack:hidden">
-            {paged.map((tx, i) => (
-              <li key={tx.id}>
-                <LessonRow
-                  icon={<Icon name="card" size={14} color={`var(${STATUS_TINT[tx.status]})`} />}
-                  iconBackground={`color-mix(in srgb, var(${STATUS_TINT[tx.status]}) 22%, transparent)`}
-                  /* LA RÉFÉRENCE PASSE PAR <Num>, ET C'EST TOUT L'OBJET DE LA CORRECTION :
-                     c'est une valeur lue en base, tabulaire, que l'opérateur rapproche
-                     caractère par caractère avec le relevé du prestataire. */
-                  title={<Num value={tx.transactionRef ?? tx.id.slice(0, 12)} source="db" asOf={asOf} />}
-                  meta={
-                    <>
-                      <Num value={tx.amount} unit={tx.currency} source="db" asOf={asOf} />
-                      {' · '}{tx.paymentMethod}
-                      {' · '}{tx.userName || tx.userEmail || tx.formationTitle || formatDate(tx.createdAt)}
-                    </>
-                  }
-                  /* UNE action par ligne : sélectionner. Le remboursement vit dans le
-                     panneau — un contrôle dans le `trailing` d'un `LessonRow` cliquable
-                     serait un bouton imbriqué, donc inatteignable au clavier. */
-                  trailing={(
-                    <span className="flex items-center gap-2">
-                      {/* Un SIGNAL, pas une action : la relance vit dans la fiche, comme le
-                          remboursement. Sur la ligne, il ne s'agit que de savoir laquelle
-                          ouvrir — sans quoi il faudrait les ouvrir toutes pour trouver. */}
-                      {tx.mailPending && <ConsoleStatus tone="warn">{t('transactions.mailStuckTag')}</ConsoleStatus>}
-                      <ConsoleStatus tone={STATUS_TONE[tx.status]}>{STATUS_LABELS[tx.status]}</ConsoleStatus>
-                      {/* Sous 1080 px il n'y a pas de panneau : le remboursement reprend sa
-                          place sur la ligne, comme avant. Au-delà, il vit dans la fiche et
-                          la ligne ne fait plus que sélectionner. */}
-                      {!isWide && tx.status === 'completed' && (
-                        <Button
-                          size="sm"
-                          tone="quiet"
-                          onClick={() => handleRefund(tx.id)}
-                          loading={refunding === tx.id}
+
+            {loading ? (
+              <div className="flex flex-col gap-2">
+                {[0, 1, 2, 3].map((i) => <Skeleton key={i} height={48} label={i === 0 ? t('transactions.title') : undefined} />)}
+              </div>
+            ) : shown.length === 0 ? (
+              <HonestEmpty icon="card" title={t('transactions.emptyTitle')} body={t('transactions.emptyBody')} />
+            ) : (
+              <>
+                <div className="hidden overflow-x-auto stack:block">
+                  <table className="mm-ctable" aria-label={t('transactions.listLabel')}>
+                    <thead>
+                      <tr>
+                        <th scope="col">{k('colDate')}</th>
+                        <th scope="col">{k('colWho')}</th>
+                        <th scope="col">{k('colSpace')}</th>
+                        <th scope="col" className="text-right">{k('colAmount')}</th>
+                        <th scope="col">{k('colStatus')}</th>
+                        {!isWide && <th scope="col"><span className="sr-only">{t('transactions.colAction')}</span></th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shown.map((tx) => (
+                        <tr
+                          key={tx.id}
+                          className={isWide && selected?.id === tx.id ? 'is-sel cursor-pointer' : isWide ? 'cursor-pointer' : undefined}
+                          onClick={isWide ? () => setSelectedId(tx.id) : undefined}
                         >
-                          {t('transactions.refundAction')}
-                        </Button>
-                      )}
-                    </span>
-                  )}
-                  onClick={isWide ? () => setSelectedId(tx.id) : undefined}
-                  last={i === paged.length - 1}
+                          <td className="whitespace-nowrap text-ink-3"><Num value={shortDate(tx.createdAt)} source="db" asOf={asOf} /></td>
+                          <td>
+                            <b>{tx.userName || tx.userEmail || '—'}</b>
+                            <small>{[tx.formationTitle, tx.couponCode, tx.paymentMethod].filter(Boolean).join(' · ')}</small>
+                          </td>
+                          <td>{spaceTag(tx)}</td>
+                          <td className="whitespace-nowrap text-right font-semibold"><Num value={tx.amount} unit={tx.currency} source="db" asOf={asOf} /></td>
+                          <td>{statusTag(tx)}</td>
+                          {!isWide && (
+                            <td className="text-right">
+                              {tx.status === 'completed' && (
+                                <CBtn onClick={() => handleRefund(tx.id)} disabled={refunding === tx.id}>{t('transactions.refundAction')}</CBtn>
+                              )}
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="stack:hidden">
+                  {shown.map((tx) => (
+                    <div key={tx.id} className="mm-mrow" style={{ alignItems: 'flex-start' }}>
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex flex-wrap items-center gap-1.5">
+                          {spaceTag(tx)}
+                          <Num value={shortDate(tx.createdAt)} source="db" asOf={asOf} className="text-[11px] text-ink-3" />
+                        </div>
+                        <b className="block text-[14px]">{tx.userName || tx.userEmail || '—'}</b>
+                        <span className="text-[12px] text-ink-3">{[tx.formationTitle, tx.paymentMethod].filter(Boolean).join(' · ')}</span>
+                        <div className="mt-1.5">{statusTag(tx)}</div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <b className="whitespace-nowrap"><Num value={tx.amount} unit={tx.currency} source="db" asOf={asOf} /></b>
+                        {tx.status === 'completed' && (
+                          <CBtn onClick={() => handleRefund(tx.id)} disabled={refunding === tx.id}>{t('transactions.refundAction')}</CBtn>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex justify-center">
+                  <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+                </div>
+              </>
+            )}
+          </ConsoleCard>
+
+          <ConsoleStack>
+            <ConsoleCard as="section" title={k('byLine')} aside={k('days30')}>
+              {loading ? <Skeleton height={80} /> : bilan30.lignes.length === 0 ? (
+                <HonestEmpty icon="bars" title={k('byLineEmpty')} />
+              ) : bilan30.lignes.map((l) => {
+                const s = l.ligne ? LIGNE_SPACE[l.ligne] : null;
+                return (
+                  <div key={l.ligne ?? 'none'} className="mm-mrow">
+                    {s ? <ConsoleStatus tone={SPACE_TONE[s]}>{t(`console.spaces.${s}`)}</ConsoleStatus> : <ConsoleStatus tone="mute">—</ConsoleStatus>}
+                    <span className="flex-1 text-[13.5px]">{k(`line.${l.ligne ?? 'none'}`)}</span>
+                    <b><Num value={l.brut} unit="F" source="db" asOf={asOf} /></b>
+                  </div>
+                );
+              })}
+            </ConsoleCard>
+
+            {isWide && (
+              <ConsoleCard as="section" title={k('refundTitle')}>
+                <p className="m-0 mb-3 text-[13px] leading-[1.5] text-ink-2">{t('transactions.refundExplainBody')}</p>
+                <TransactionPanel
+                  tx={selected}
+                  loading={loading}
+                  asOf={asOf}
+                  onRefund={handleRefund}
+                  refunding={refunding === selected?.id}
+                  onResend={handleResend}
+                  resending={resending === selected?.id}
                 />
-              </li>
-            ))}
-          </ConsoleList>
-          </>
-        )}
+              </ConsoleCard>
+            )}
 
-        <div className="mt-4 flex justify-center">
-          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-        </div>
-
-        {/* Ce que le remboursement ne fait PAS. L'encart « pourquoi rejouer est sans risque »
-            de la maquette, lui, a rejoint le panneau : il répond à une question qu'on se
-            pose la fiche sous les yeux, pas en bas de la file. */}
-        <ConsoleCard padding={18} className="rv mt-3.5">
-          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('transactions.refundExplainTitle')}</SiteEyebrow>
-          <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('transactions.refundExplainBody')}</p>
-        </ConsoleCard>
-
-        <ConsoleScope>{t('transactions.scope')}</ConsoleScope>
-        </ConsoleSplit>
-      </ConsolePage>
+            <ConsoleCard as="section" title={k('codesTitle')} aside={<CBtn href="/admin/coupons">{k('codesAll')}</CBtn>}>
+              {codeUses.length === 0 ? (
+                <HonestEmpty icon="tag" title={k('codesEmpty')} />
+              ) : codeUses.map(([code, n]) => (
+                <div key={code} className="mm-mrow">
+                  <code className="flex-1 truncate text-[12.5px] font-semibold">{code}</code>
+                  <span className="text-[11.5px] text-ink-3"><Num value={n} source="db" asOf={asOf} /> {k('uses', { count: n })}</span>
+                </div>
+              ))}
+            </ConsoleCard>
+          </ConsoleStack>
+        </ConsoleGrid>
+      </ConsoleScreen>
 
       <ConfirmDialog
         open={confirm.open}
