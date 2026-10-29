@@ -97,7 +97,19 @@ export function useAgencyEngagement() {
   const { addToast } = useToast();
   const [searchParams] = useSearchParams();
 
-  const [form, setForm] = useState<AgencyLeadForm>(EMPTY);
+  /* Le pré-formulaire de `/conception` (maquette Site-Services, « Décrivez votre projet »)
+     transmet ce qu'il a déjà recueilli par l'adresse : rien n'est ressaisi ici. Seules des
+     valeurs connues sont reprises — une forme d'engagement hors liste est ignorée. */
+  const [form, setForm] = useState<AgencyLeadForm>(() => {
+    const engagement = searchParams.get('engagement') ?? '';
+    return {
+      ...EMPTY,
+      company: (searchParams.get('org') ?? '').slice(0, 200),
+      email: (searchParams.get('email') ?? '').slice(0, 200),
+      description: (searchParams.get('besoin') ?? '').slice(0, DESCRIPTION_MAX),
+      budget: (agencyLeadConfig.budgets as readonly string[]).includes(engagement) ? engagement : '',
+    };
+  });
   const [errors, setErrors] = useState<AgencyLeadErrors>({});
   const [loading, setLoading] = useState(false);
   const [receipt, setReceipt] = useState<AgencyLeadReceipt | null>(null);

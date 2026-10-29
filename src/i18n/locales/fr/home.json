@@ -1,46 +1,87 @@
 {
   "hero": {
-    "eyebrow": "Dakar · Sénégal",
-    "titleLines": [
-      "MAX-MORRYS,",
-      "CONCEPTION [WEB]",
-      "ET FORMATION."
-    ],
-    "lede": "Je conçois des sites et des plateformes web, et je forme au digital — référencement, marketing, intelligence artificielle. Je travaille seul, depuis Dakar, pour le marché ouest-africain. Ce qui s'achète ici se paie en francs CFA, avec Wave, Orange Money ou une carte.",
-    "cta": "Qui je suis, en entier"
+    "titleLines": ["Former.", "Construire.", "[Transmettre.]"],
+    "lede": "Je suis Max-Morrys. J'aide les entrepreneurs et les marques d'Afrique francophone à exister en ligne — en les formant, et en construisant avec eux. Depuis Dakar.",
+    "ctaCall": "Réserver un appel",
+    "ctaStory": "Lire mon parcours",
+    "statsLabel": "Repères"
   },
-  "pistes": {
-    "titleLines": [
-      "Deux pistes,",
-      "et elles ne se ressemblent pas."
-    ],
-    "lede": "L'une se fait pour toi, l'autre se fait par toi. Aucune des deux n'est l'antichambre de l'autre : tu peux n'en emprunter qu'une, et ne jamais croiser la seconde.",
-    "conceptionTitle": "Conception",
-    "conceptionMeta": "Commerces et TPE · Projets sur mesure · Réalisations",
-    "conceptionBody": "La piste des sites et des plateformes web, à deux niveaux d'engagement : une offre au forfait pour les commerces et les TPE, et un cadrage sur mesure pour les projets plus larges. Les réalisations s'y consultent.",
-    "apprendreTitle": "Apprendre",
-    "apprendreMeta": "Formations · Blog · Podcast et vidéos · Club des Digitos",
-    "apprendreBody": "Tu apprends à le faire toi-même : référencement local, marketing, IA appliquée. Le blog, le podcast et les vidéos s'ouvrent sans compte et sans rien payer."
+  "stats": {
+    "companyLabel": "MY ONOMA, créée à Dakar",
+    "companySrc": "RCCM · {{date}}",
+    "projectsLabel": "projets clients livrés",
+    "projectsLabelShort": "projets livrés",
+    "projectsSrc": "listés dans Réalisations",
+    "projectsSrcShort": "Réalisations"
   },
-  "proof": {
-    "titleLines": [
-      "Ce que j'ai publié,",
-      "et à quelle date."
-    ],
-    "lede": "Un seul fait est relevé ici, et il est lu en base au moment où cette page s'affiche : la date de ma dernière publication. Rien sur l'audience, rien que je ne puisse rouvrir devant toi.",
-    "lastLabel": "Dernière publication",
-    "lastNone": "rien encore publié",
-    "truthTitle": "Où sont les chiffres",
-    "truthBody": "Le décompte de ce que j'ai publié — articles, épisodes, vidéos, formations — est relevé en base, avec sa date, sur la page « Je suis Max-Morrys ». L'accueil n'en garde que la date de la dernière parution. Ni abonnés, ni vues, ni nombre d'élèves nulle part : je n'ai rien d'honnête à en dire."
+  "clients": {
+    "eyebrow": "Ils m'ont confié leur projet",
+    "note": "Noms en typographie, sans logo, tant que l'accord écrit n'est pas obtenu."
   },
-  "latest": {
-    "titleLines": [
-      "Les trois dernières",
-      "publications."
-    ],
-    "all": "Tout le blog",
-    "metaArticle": "Article · gratuit",
-    "metaEpisode": "Épisode · gratuit",
-    "empty": "Rien n'est encore publié ici. Le blog ouvre le premier : il se lit sans compte et sans rien payer."
+  "about": {
+    "eyebrow": "À propos",
+    "title": "Douala, Abidjan, [Dakar.]",
+    "p1": "J'ai grandi à Douala, étudié l'économie à Abidjan, puis le management et le digital business à Dakar. J'ai appris le marketing en le faisant : pour des PME, des organisations, des hôpitaux, des églises.",
+    "p2": "Aujourd'hui je forme celles et ceux qui veulent en faire leur métier, et je construis, avec mon studio, la présence en ligne des marques qui veulent compter.",
+    "pShort": "J'ai appris le marketing en le faisant : pour des PME, des organisations, des hôpitaux, des églises. Aujourd'hui je le transmets, et je construis.",
+    "cta": "Mon parcours complet",
+    "ctaShort": "Mon parcours",
+    "signature": "— M.-M.",
+    "podcast": "Le podcast"
+  },
+  "audiences": {
+    "eyebrow": "Pour qui je travaille",
+    "title": "Trois façons de travailler ensemble.",
+    "lede": "Mon parcours n'a pas été une ligne droite.",
+    "ledeStrong": "J'ai appris le digital en le pratiquant, et c'est exactement ce que je transmets.",
+    "tpeTitle": "Commerçants et TPE",
+    "tpeBody": "Être trouvé·e, vendre en ligne, encaisser en Wave.",
+    "proTitle": "Jeunes professionnels",
+    "proBody": "Apprendre un métier du digital, et le prouver.",
+    "brandsTitle": "Marques et organisations",
+    "brandsBody": "Une présence construite, pas improvisée."
+  },
+  "offers": {
+    "eyebrow": "Ce que je propose",
+    "titleLines": ["Apprendre avec moi,", "ou [construire avec moi.]"],
+    "eduTag": "01 · edu.",
+    "eduTitle": "Les formations",
+    "eduBody": "Marketing digital, SEO, IA. Payées en Wave, Orange Money ou carte, à toi pour toujours.",
+    "clubTag": "02 · club.",
+    "clubTitle": "Le Club des Digitos",
+    "clubBody": "Le réseau pour avancer avec d'autres. {{price}} F par an.",
+    "tpeTag": "03 · commerces",
+    "tpeTitle": "Commerces et TPE",
+    "tpeBody": "Ta présence en ligne, en pack, avec un devis immédiat.",
+    "customTag": "04 · sur mesure",
+    "customTitle": "Projets sur mesure",
+    "customBody": "Plateformes, sites, produits. Sur devis, vouvoiement de rigueur."
+  },
+  "method": {
+    "eyebrow": "Comment je travaille",
+    "titleLines": ["Ma méthode,", "[simplement.]"],
+    "s1Title": "Comprendre ton objectif et ton client",
+    "s1Body": "Un appel de 30 minutes, gratuit.",
+    "s2Title": "Choisir le bon format",
+    "s2Body": "Formation, pack commerçant ou projet sur mesure.",
+    "s3Title": "Construire, en te montrant tout",
+    "s3Body": "Chaque étape est visible : tu sais ce qui est fait, ce qui reste, et pourquoi. Tu repars capable de faire vivre ce qu'on a construit.",
+    "s4Title": "Mesurer ce qui a changé",
+    "s4Body": "Trois chiffres, avant et après."
+  },
+  "videos": {
+    "eyebrow": "Je t'informe · gratuit",
+    "title": "Mes dernières vidéos.",
+    "lede": "Ce que j'ai appris, en quelques minutes. La durée de chaque vidéo est affichée : ta data compte.",
+    "play": "Lire : {{title}}"
+  },
+  "articles": {
+    "eyebrow": "Derniers articles",
+    "title": "Maîtrise ta présence en ligne.",
+    "all": "Tout le blog"
+  },
+  "cta": {
+    "titleLines": ["Construisons ta marque,", "et ton business."],
+    "button": "Réserver un appel de 30 min"
   }
 }

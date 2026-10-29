@@ -1,123 +1,80 @@
-import { useMemo, type CSSProperties } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, CheckLine, GlassPanel, Icon, Tag } from '@ds';
+import { useNavigate } from 'react-router-dom';
+import { Icon } from '@ds';
 import SEOHead from '../../components/seo/SEOHead';
 import JsonLd from '../../components/seo/JsonLd';
 import { SITE_URL, buildCanonical } from '../../components/seo/seo-config';
 import DsNavHost from '../../components/layout/DsNavHost';
-import MyOnomaBridge from '../../components/brand/MyOnomaBridge';
-import { ConceptionSubNav } from '../../components/navigation/PisteSubNav';
-import StepList from '../../components/conception/StepList';
-import { ClientWorkCard, VentureWorkCard } from '../../components/conception/WorkCard';
-import { PageSite, SiteDisplay, SiteEyebrow, SiteExit } from '../../components/site';
-import { SiteHero } from '../../components/site/v3/SiteHero';
+import { Eyebrow, Hl, KitButton, KitH2, KitSection, NightHero, Photo, type PhotoTone } from '../../components/site/v3/kit';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
-import {
-  categoryKey,
-  clientProjects,
-  corporateUrl,
-  legalEntity,
-  legalName,
-  practices,
-  ventures,
-} from '../../lib/brand';
-import { Bento } from '../../components/site/v3/Bento';
+import { corporateUrl, legalEntity, legalName, practices } from '../../lib/brand';
+import { agencyLeadConfig } from '../../lib/agency/engagement';
+import { PACKS } from '../../lib/presence/offer';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * /conception — LA PAGE MÈRE DE LA PISTE CONCEPTION.  CDC du 14/09/2026, § 4.2.
+ * SERVICES · CONCEPTION — LA MAQUETTE `Site-Services` (bureau) / `-mobile`, PASSE 2.
  *
- * Elle remplace `/agence`, dont elle absorbe le contenu. Ce n'est pas un renommage
- * d'URL : c'est un changement de ce que la page est censée faire.
+ * ⚠️ DÉCISIONS LEVÉES (29/10/2026) : la structure du CDC du 14/09 (sous-navigation de piste,
+ * garanties, aperçu des réalisations, ventures, bandeau de sortie, pont MY ONOMA) cède à
+ * l'ordre de la planche — dalle, deux niveaux, services, méthode, qualification.
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * CE QUE `/agence` FAISAIT, ET QUI NE PEUT PAS SURVIVRE ICI
- *
- * 1. ELLE PARLAIT À LA PREMIÈRE PERSONNE DU SINGULIER — « je te réponds sous 48 h ».
- *    Le tutoiement est un actif de marque sur la piste APPRENDRE, où quelqu'un vient
- *    se former. Il n'a jamais été le bon registre pour un directeur de système
- *    d'information qui cherche un prestataire de plateforme, et le CDC tranche : la
- *    piste Conception vouvoie, dit « nous / vous », et tient le registre de studio.
- *    ⚠️ `tests/unit/voix-tutoiement.test.ts` porte DEUX règles, pas une exemption : les
- *    catalogues hors piste Conception ne vouvoient jamais, et `conception.json` comme
- *    `realisations.json` ne tutoient jamais. Les deux sens sont gardés.
- *
- * 2. ELLE NE MONTRAIT QU'UN SEUL NIVEAU D'ENGAGEMENT. `/agence` renvoyait vers
- *    Présence Digitale au détour d'une bande, comme une porte de service — « ce n'est
- *    pas un lot de consolation », disait la copie, ce qui est précisément ce qu'on
- *    écrit quand ça en a l'air. Les deux niveaux sont désormais MONTRÉS ENSEMBLE, dans
- *    la même bande, avec la même forme de carte : l'un affiche ses prix, l'autre se
- *    cadre avant d'être chiffré, et aucun des deux n'est caché derrière l'autre.
- *
- * 3. ELLE PORTAIT LE FORMULAIRE DANS SON HÉROS. Une page mère qui demande de qualifier
- *    un besoin avant d'avoir dit ce qu'elle sait faire choisit à la place du visiteur.
- *    Le formulaire descend d'un étage, sur `/conception/projets-sur-mesure`, où il
- *    s'adresse à quelqu'un qui a déjà reconnu son niveau.
- *
- * 4. ELLE MONTAIT L'INDEX COMPLET DES QUATORZE RÉALISATIONS. L'index a désormais sa
- *    propre route (`/conception/realisations`) : ici, un aperçu de trois, et le lien.
- *    Ce n'est pas qu'une question de longueur — `ClientWorkIndex` déclenche une capture
- *    externe par projet sélectionné, et la page mère est la première vue de la piste.
- *    L'aperçu ci-dessous n'appelle aucun service de capture.
- *
- * 5. ELLE PORTAIT LE BLOC DES VENTURES — et c'est la seule chose de `/agence` qui devait
- *    revenir À L'IDENTIQUE. Le bloc « Products built inside MY ONOMA » a failli se perdre
- *    dans la refonte : `VentureCard` s'est retrouvé sans aucun point de montage, et les
- *    trois ventures sont redevenues du code invisible — l'état exact que `/agence` avait
- *    corrigé quelques semaines plus tôt. Il est remonté ici, en bande séparée.
- * ─────────────────────────────────────────────────────────────────────────────
- *
- * CE QUE LA PAGE NE VEND PAS, ET NE VENDRA PAS. Direction marketing, stratégie de
- * marque, acquisition : ces métiers sont portés par MY ONOMA, et le passage se fait par
- * `<MyOnomaBridge variant="panel" />`. On renvoie, on ne vend pas — c'est la règle 6 du
- * contrat d'implémentation, et l'encart de vérité du héros la dit à voix haute plutôt
- * que de la laisser se deviner d'une absence.
- *
- * ⚠️ L'ATTRIBUTION SE FAIT À DEUX ÉTAGES, ET IL FAUT DIRE LEQUEL. Cette page attribuait
- * « acquisition » à My Onoma pendant que la page sœur, À propos et Contact l'attribuaient à
- * Cléa Growth Office : deux étages de la même organisation, nommés chacun sans le dire, donc
- * lus comme une contradiction. La règle est tranchée — ce qui n'est pas vendu ici relève de
- * MY ONOMA, LA SOCIÉTÉ ; le routage opérationnel d'une demande relève de Cléa Growth Office,
- * SA PRACTICE CROISSANCE, et ne se nomme qu'à l'écran d'envoi du formulaire, une fois la
- * demande partie.
- *
- * ⚠️ LE NOM VIENT DE `lib/brand`, PAS DU JSON. Il s'écrit « MY ONOMA » en capitales, et le
- * code fait foi (`lib/brand/company.ts`). Recopié dans un catalogue, il dérivait déjà : les
- * deux langues écrivaient « My Onoma ». Même motif qu'`about:page.treeSentence` — le
- * catalogue porte la phrase, `{{company}}` porte le nom.
- *
- * UNIVERS VISUEL : `agency` (`lib/sectionThemes.ts`) — corail en version TEXTE
- * (`text-corail-txt`, AD-20), et AUCUN maillage. La piste Conception ne se range pas
- * sous les quatre verbes, exactement comme `/agence` avant elle.
+ * Ce qui diffère de la planche :
+ * - LA CARTE « COMMERCES ET TPE » TUTOIE (« Ici on se tutoie ») alors que la piste
+ *   Conception vouvoie. Son texte vit sous `conception.json → levels.shops.*`, sous-arbre
+ *   nommément exempté par `voix-tutoiement.test.ts` : la carte parle avec la voix de
+ *   l'étage qu'elle annonce.
+ * - LES FOURCHETTES « [Fourchette 1…3] » n'existent pas : les puces sont les formes
+ *   d'engagement réelles du formulaire (`agencyLeadConfig.budgets`, sans aucun montant).
+ * - LE FORMULAIRE de la planche ne recueille que trois champs ; la demande qualifiable en
+ *   exige plus (type, échéance, nom). Il TRANSMET donc ce qu'il a recueilli à
+ *   `/conception/projets-sur-mesure#formulaire`, qui le reprend (`useAgencyEngagement`) :
+ *   rien n'est envoyé à moitié, rien n'est ressaisi.
+ * - Les photos d'atelier n'existent pas : dégradé du kit, sans libellé.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-/** Décalage de la cascade d'entrée. Une seule écriture pour toute la page. */
-const rv = (i: number): CSSProperties => ({ ['--i' as string]: i });
+const SERVICES: { n: 1 | 2 | 3 | 4; tone: PhotoTone }[] = [
+  { n: 1, tone: 'studio' },
+  { n: 2, tone: 'informe' },
+  { n: 3, tone: 'club' },
+  { n: 4, tone: 'edu' },
+];
 
-/**
- * L'APERÇU DE RÉALISATIONS — les trois premières de `clientProjects`, dans l'ordre du
- * module.
- *
- * Ce choix est délibérément MÉCANIQUE. Élire « les trois meilleures » demanderait un
- * critère, et le dépôt n'en porte aucun : `clients.ts` interdit nommément les résultats,
- * les métriques et les témoignages, donc il n'existe pas de donnée qui départage deux
- * projets. Un ordre de source se lit, se vérifie, et ne prétend rien.
- *
- * ⚠️ Aucune organisation n'est écrite ici. Les noms, domaines et catégories viennent tous
- * de `src/lib/brand/clients.ts`, seule liste autorisée à en porter.
- */
-const PREVIEW_COUNT = 3;
+/** Sur la dalle teal, le fragment entre crochets prend le teal clair de la planche. */
+function TealLines({ lines }: { lines: string[] }) {
+  return (
+    <>
+      {lines.map((line, i) => (
+        <span key={i}>
+          {i > 0 && <br className="hidden stack:inline" />}
+          {i > 0 && <span className="stack:hidden"> </span>}
+          {line.split(/\[([^\]]+)\]/).map((part, j) =>
+            j % 2 === 1 ? (
+              <span key={j} className="text-[color:var(--mm-teal-t)]">
+                {part}
+              </span>
+            ) : (
+              part
+            ),
+          )}
+        </span>
+      ))}
+    </>
+  );
+}
 
 export default function Conception() {
   const { t } = useTranslation('conception');
-  /* Les appels partagés vivent dans `common`, les sept catégories dans `shared` : deux
-     catalogues de base, chargés partout, donc rien de plus à déclarer sur la route. */
-  const { t: tc } = useTranslation('common');
-  const { t: ts } = useTranslation('shared');
   const path = useLocalizedPath();
-
+  const navigate = useNavigate();
   const build = practices.build;
+
+  const [org, setOrg] = useState('');
+  const [email, setEmail] = useState('');
+  const [need, setNeed] = useState('');
+  const [engagement, setEngagement] = useState<string>(agencyLeadConfig.budgets[0]);
 
   const jsonLd = useMemo(
     () => [
@@ -129,11 +86,6 @@ export default function Conception() {
         description: t('seo.description'),
         url: buildCanonical('/conception'),
         brand: { '@type': 'Brand', name: build.brand },
-        /*
-         * ⚠️ `provider` = MY ONOMA SARL, `brand` = Max-Morrys Agency. Max-Morrys Agency est
-         * une MARQUE, pas une personne morale : il ne doit jamais exister d'`Organization`
-         * autonome portant ce nom. Reconduit tel quel depuis `/agence`.
-         */
         provider: {
           '@type': 'Organization',
           name: legalName,
@@ -158,19 +110,18 @@ export default function Conception() {
     [t, build.brand, build.discipline],
   );
 
-  const studioItems = useMemo(() => t('page.studioItems', { returnObjects: true }) as string[], [t]);
-  const shopsPoints = useMemo(() => t('levels.shops.points', { returnObjects: true }) as string[], [t]);
-  const customPoints = useMemo(() => t('levels.custom.points', { returnObjects: true }) as string[], [t]);
-  const steps = useMemo(
-    () => t('method.steps', { returnObjects: true }) as { n: string; title: string; body: string }[],
-    [t],
-  );
-  const guarantees = useMemo(
-    () => t('guarantees.items', { returnObjects: true }) as { title: string; body: string }[],
-    [t],
-  );
-  /* La liste vient du module de marque, jamais d'un tableau recopié dans la page. */
-  const preview = useMemo(() => clientProjects.slice(0, PREVIEW_COUNT), []);
+  const shopChips = t('levels.shops.chips', { returnObjects: true, count: PACKS.length }) as string[];
+  const customChips = t('levels.custom.chips', { returnObjects: true }) as string[];
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const q = new URLSearchParams();
+    if (org.trim()) q.set('org', org.trim());
+    if (email.trim()) q.set('email', email.trim());
+    if (need.trim()) q.set('besoin', need.trim());
+    q.set('engagement', engagement);
+    navigate(`${path('/conception/projets-sur-mesure')}?${q.toString()}#formulaire`);
+  };
 
   return (
     <DsNavHost>
@@ -183,320 +134,205 @@ export default function Conception() {
       />
       <JsonLd data={jsonLd} />
 
-      {/*
-        ── LE HÉROS — kit v3 (`Site-Services`) ────────────────────────────────────────
-        La dalle de nuit porte la sous-navigation de piste (primitive de PAGE, aux trois
-        largeurs ; `active={null}` : la page mère n'est aucun des trois niveaux), le titre,
-        l'encart de vérité à gauche et ce que fait le studio à droite.
-      */}
-      <SiteHero
-        mesh="nuit"
-        top={<ConceptionSubNav active={null} />}
-        /* La seule marque de couleur de la piste, et sa version TEXTE (AD-20). */
-        eyebrowClassName="text-corail-txt"
-        eyebrow={t('page.eyebrow', { brand: build.brand })}
-        titleLines={t('page.titleLines', { returnObjects: true }) as string[]}
-        size={46}
-        lede={t('page.lede')}
-        actions={
-          <>
-            <Button href="#niveaux" tone="highlight" arrow fullWidth={false}>
-              {t('page.ctaLevels')}
-            </Button>
-            <Button href={path('/conception/realisations')} tone="ghost" fullWidth={false}>
-              {tc('cta.realisations')}
-            </Button>
-          </>
-        }
-        aside={
-          /* ── CE QUE FAIT LE STUDIO — le seul panneau héros de la page ─────── */
-          <GlassPanel level="hero" padding={26} className="rv" style={rv(6)} as="section">
-            <SiteEyebrow style={{ margin: 0 }}>{t('page.studioEyebrow')}</SiteEyebrow>
-            <p className="mt-2 mb-0 text-[15px] leading-[1.6] text-ink-2">{t('page.studioLede')}</p>
-            <div className="mt-4">
-              {studioItems.map((item) => (
-                <CheckLine key={item} tone="neutre">
-                  {item}
-                </CheckLine>
-              ))}
-            </div>
-          </GlassPanel>
+      {/* ── 1 · LA DALLE (teal) ──────────────────────────────────────────────── */}
+      <NightHero
+        mesh="digitalise"
+        backdrop={
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 hidden wide:block"
+            style={{ background: 'linear-gradient(115deg,rgba(10,13,17,1) 35%,rgba(11,59,57,.9) 62%,rgba(2,172,156,.85) 92%)' }}
+          />
         }
       >
-        {/*
-          L'ENCART DE VÉRITÉ — il nomme ce que la page NE vend pas, et où ça se vend.
-          Une absence silencieuse se lit comme une lacune ; une absence motivée se lit
-          comme une frontière, et c'est ce qu'elle est.
-        */}
-        <GlassPanel level="truth" className="rv mt-[26px] max-w-[52ch]" style={rv(7)}>
-          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('page.truthTitle')}</SiteEyebrow>
-          <p className="m-0 text-meta-2 leading-[1.6] text-ink-2">
-            {t('page.truthStart')}
-            <b className="text-ink">{t('page.truthStrong', { company: legalEntity.name })}</b>
-            {t('page.truthEnd')}
-          </p>
-        </GlassPanel>
-      </SiteHero>
+        <div className="relative z-[1] mx-auto box-border w-full max-w-[1360px] px-5 pb-10 pt-6 wide:px-10 wide:pb-16 wide:pt-[120px]">
+          <Eyebrow className="text-[color:var(--mm-teal-t)]">{t('hero.eyebrow')}</Eyebrow>
+          <h1 className="mm-d m-0 mb-[22px] mt-5 text-[46px] leading-[.9] tracking-[-.05em] wide:text-[clamp(60px,8vw,120px)] wide:leading-[.86]">
+            <TealLines lines={t('hero.titleLines', { returnObjects: true }) as string[]} />
+          </h1>
+          <p className="m-0 mb-5 max-w-[50ch] text-[15.5px] leading-[1.55] text-ink-2 stack:hidden">{t('hero.ledeShort')}</p>
+          <p className="m-0 mb-[26px] hidden max-w-[50ch] text-[18px] leading-[1.55] text-ink-2 stack:block">{t('hero.lede')}</p>
+          <div className="hidden flex-wrap gap-[10px] stack:flex">
+            <KitButton href="#niveaux" tone="studio" arrow>{t('hero.ctaLevels')}</KitButton>
+            <KitButton href={path('/conception/realisations')} tone="veil">{t('hero.ctaWork')}</KitButton>
+          </div>
+          <Photo tone="studio" className="h-[200px] stack:hidden" />
+        </div>
+      </NightHero>
 
-      {/*
-        ── LES DEUX NIVEAUX D'ENGAGEMENT ───────────────────────────────────────────────
-        Le point n°2 du CDC, et le seul endroit de la refonte où la mise en page PORTE la
-        décision : deux cartes de même forme, de même taille, dans la même grille. Une
-        carte plus haute que l'autre, ou l'une en pleine largeur et l'autre en encart,
-        rétablirait la hiérarchie que le CDC refuse.
-      */}
-      <PageSite id="niveaux" style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <SiteEyebrow>{t('levels.eyebrow')}</SiteEyebrow>
-        <SiteDisplay as="h2" lines={t('levels.titleLines', { returnObjects: true }) as string[]} size={34} />
-        <p className="rv mt-3 max-w-[60ch] text-[15.5px] leading-[1.6] text-ink-2" style={rv(1)}>
-          {t('levels.lede')}
-        </p>
-
-        <div className="mt-[22px] grid items-stretch gap-[18px] wide:grid-cols-2">
-          {/* Le niveau productisé porte le teal : « Je te digitalise » est un des quatre
-              verbes, et c'est le seul des deux niveaux qui s'y range. */}
-          <Bento
-            padding={26}
-            className="rv flex h-full flex-col"
-            style={{ ...rv(1), borderColor: 'color-mix(in srgb, var(--mm-teal) 24%, transparent)' }}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <p className="m-0 font-display text-[21px] font-black tracking-[-.03em] text-ink">
-                {t('levels.shops.title')}
-              </p>
-              <Tag>{t('levels.shops.tag')}</Tag>
-            </div>
-            <p className="mt-3 mb-0 text-[14.5px] leading-[1.6] text-ink-2">{t('levels.shops.body')}</p>
-            <div className="mt-3">
-              {shopsPoints.map((point) => (
-                <CheckLine key={point} tone="ok">
-                  {point}
-                </CheckLine>
+      {/* ── 2 · DEUX NIVEAUX D'ENGAGEMENT ────────────────────────────────────── */}
+      <KitSection id="niveaux" className="scroll-mt-[var(--header-h)] pt-12 wide:pt-24">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-5 wide:mb-6">
+          <div>
+            <Eyebrow tone="studio">{t('levels.eyebrow')}</Eyebrow>
+            <KitH2 className="mt-3 stack:hidden" size="38px">{t('levels.titleShort')}</KitH2>
+            <KitH2 className="mt-[14px] hidden stack:block">{t('levels.title')}</KitH2>
+          </div>
+          <p className="m-0 hidden max-w-[42ch] text-ink-2 stack:block">{t('levels.lede')}</p>
+        </div>
+        <div className="grid gap-3 wide:grid-cols-2 wide:gap-[18px]">
+          <article className="relative isolate flex flex-col gap-[14px] overflow-hidden rounded-xl bg-[color:var(--mm-teal-c)] p-6 text-[color:var(--ink-fixed)] wide:min-h-[500px] wide:p-8">
+            <div aria-hidden="true" className="mm-mesh m-digitalise" style={{ opacity: 0.5 }}><b /><b /><b /></div>
+            <span className="mm-tag relative self-start bg-[color:var(--paper-fixed)] text-[color:var(--ink-fixed)]">
+              <span className="stack:hidden">{t('levels.shops.tagShort')}</span>
+              <span className="hidden stack:inline">{t('levels.shops.tag')}</span>
+            </span>
+            <h3 className="mm-d relative m-0 text-[30px] wide:text-[48px]">{t('levels.shops.title')}</h3>
+            <p className="relative m-0 max-w-[42ch] text-[color:var(--ink-fixed)] opacity-80">
+              <span className="stack:hidden">{t('levels.shops.bodyShort')}</span>
+              <span className="hidden stack:inline">{t('levels.shops.body')}</span>
+            </p>
+            <div className="relative hidden flex-wrap gap-[10px] stack:flex">
+              {shopChips.map((c) => (
+                <span key={c} className="mm-chip cursor-default">{c}</span>
               ))}
             </div>
-            {/* `ghost` DES DEUX CÔTÉS — c'est ce qui tient la contrainte du CDC : deux
-                niveaux de poids strictement égal. Un ton plein d'un côté et un lien nu de
-                l'autre rétablirait la hiérarchie que la bande existe pour refuser. La
-                distinction teal / corail reste portée par la bordure de la carte.
-                ⚠️ Corollaire : la carte de niveau ne peut PAS devenir un lien pleine carte —
-                un `<a>` dans un `<a>` est invalide. */}
-            <Button
-              href={path('/conception/commerces-et-tpe')}
-              tone="ghost"
-              size="sm"
-              fullWidth={false}
-              className="mt-5"
-            >
-              {t('levels.shops.cta')}
-              <Icon name="forward" size={16} />
-            </Button>
-          </Bento>
-
-          <Bento
-            padding={26}
-            className="rv flex h-full flex-col"
-            style={{ ...rv(2), borderColor: 'color-mix(in srgb, var(--mm-corail) 28%, transparent)' }}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <p className="m-0 font-display text-[21px] font-black tracking-[-.03em] text-ink">
-                {t('levels.custom.title')}
-              </p>
-              <Tag>{t('levels.custom.tag')}</Tag>
-            </div>
-            <p className="mt-3 mb-0 text-[14.5px] leading-[1.6] text-ink-2">{t('levels.custom.body')}</p>
-            <div className="mt-3">
-              {customPoints.map((point) => (
-                <CheckLine key={point} tone="neutre">
-                  {point}
-                </CheckLine>
+            <KitButton href={path('/conception/commerces-et-tpe')} tone="studio" arrow className="relative self-start wide:mt-auto">
+              {t('levels.shops.ctaPacks')}
+            </KitButton>
+          </article>
+          <article className="dk relative isolate flex flex-col gap-[14px] overflow-hidden rounded-xl bg-night p-6 text-ink wide:min-h-[500px] wide:p-8">
+            <div aria-hidden="true" className="mm-mesh m-nuit" style={{ opacity: 0.8 }}><b /><b /><b /></div>
+            <span className="mm-tag relative self-start">
+              <span className="stack:hidden">{t('levels.custom.tagShort')}</span>
+              <span className="hidden stack:inline">{t('levels.custom.tag')}</span>
+            </span>
+            <h3 className="mm-d relative m-0 text-[30px] wide:text-[48px]">{t('levels.custom.title')}</h3>
+            <p className="relative m-0 max-w-[42ch] text-ink-2">
+              <span className="stack:hidden">{t('levels.custom.bodyShort')}</span>
+              <span className="hidden stack:inline">{t('levels.custom.body')}</span>
+            </p>
+            <div className="relative hidden flex-wrap gap-[10px] stack:flex">
+              {customChips.map((c) => (
+                <span key={c} className="mm-chip cursor-default">{c}</span>
               ))}
             </div>
-            <Button
-              href={path('/conception/projets-sur-mesure')}
-              tone="ghost"
-              size="sm"
-              fullWidth={false}
-              className="mt-5"
-            >
+            <a href="#qualif" className="mm-btn has-arrow relative self-start no-underline wide:mt-auto" style={{ ['--bg' as string]: 'var(--paper-fixed)', ['--fg' as string]: 'var(--ink-fixed)' }}>
               {t('levels.custom.cta')}
-              <Icon name="forward" size={16} />
-            </Button>
-          </Bento>
+              <span className="mm-btn__arrow" aria-hidden="true" style={{ background: 'var(--ink-fixed)', color: 'var(--paper-fixed)' }}>
+                <Icon name="arrow-up-right" size={16} />
+              </span>
+            </a>
+          </article>
         </div>
-      </PageSite>
+      </KitSection>
 
-      {/* ── LA MÉTHODE ───────────────────────────────────────────────────────── */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <SiteEyebrow>{t('method.eyebrow')}</SiteEyebrow>
-        <SiteDisplay as="h2" lines={t('method.titleLines', { returnObjects: true }) as string[]} size={34} />
-        <p className="rv mt-3 max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2" style={rv(1)}>
-          {t('method.lede')}
-        </p>
+      {/* ── 3 · CE QUE NOUS FAISONS ──────────────────────────────────────────── */}
+      <section className="relative z-[3] pt-12 wide:pt-24">
+        <KitSection as="div">
+          <Eyebrow>{t('services.eyebrow')}</Eyebrow>
+          <KitH2 className="mb-6 mt-[14px] hidden stack:block">
+            <Hl text={t('services.title')} tone="edu" />
+          </KitH2>
+        </KitSection>
+        <KitSection as="div" className="!px-0 stack:!px-6">
+          <div className="mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[18px] pb-2 stack:mt-0 stack:grid stack:grid-cols-2 stack:overflow-visible stack:px-0 stack:pb-0 wide:grid-cols-4 wide:gap-4">
+            {SERVICES.map(({ n, tone }) => {
+              const accent = n === 1;
+              return (
+                <article
+                  key={n}
+                  className={[
+                    'flex min-h-[300px] flex-none basis-[240px] snap-start flex-col gap-[10px] rounded-xl p-4 stack:basis-auto wide:min-h-[400px] wide:p-[18px]',
+                    accent ? 'bg-[color:var(--mm-teal-t)] text-[color:var(--paper-fixed)]' : 'mm-bento',
+                  ].join(' ')}
+                >
+                  <span className={accent ? 'mm-tag hidden self-start bg-[color:rgb(255_255_255/.18)] text-[color:var(--paper-fixed)] stack:inline-flex' : 'mm-tag hidden self-start stack:inline-flex'}>
+                    {String(n).padStart(2, '0')}
+                  </span>
+                  <b className="font-display text-[22px] font-black leading-none wide:text-[28px]">{t(`services.s${n}Title`)}</b>
+                  <span className={`text-[13px] wide:text-[14px] ${accent ? 'opacity-[.88]' : 'text-ink-2'}`}>
+                    <span className="stack:hidden">{t(`services.s${n}Short`)}</span>
+                    <span className="hidden stack:inline">{t(`services.s${n}Body`)}</span>
+                  </span>
+                  <Photo tone={tone} className="mt-auto h-[150px] !min-h-0 !rounded-card wide:h-[190px]" />
+                </article>
+              );
+            })}
+          </div>
+        </KitSection>
+      </section>
 
-        {/* Le DESSIN de la bande est partagé avec `/conception/projets-sur-mesure` ; son
-            CONTENU ne l'est plus. Ici, la méthode de travail — celle dont `method.lede`
-            affirme qu'elle est la même aux deux niveaux d'engagement, ce qui n'était vrai
-            qu'une fois l'autre bande sortie du registre « méthode ». */}
-        <StepList steps={steps} />
-      </PageSite>
-
-      {/*
-        ── LES GARANTIES TECHNIQUES ────────────────────────────────────────────────────
-        Quatre engagements que le CDC nomme, et qui ont tous la même propriété : ils se
-        vérifient SUR LE LIVRABLE. Aucun d'eux n'est un chiffre — ce serait une promesse
-        qu'on demande de croire, et AD-5 ferme ce chemin de toute façon.
-      */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <SiteEyebrow>{t('guarantees.eyebrow')}</SiteEyebrow>
-        <SiteDisplay as="h2" lines={t('guarantees.titleLines', { returnObjects: true }) as string[]} size={34} />
-        <p className="rv mt-3 max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2" style={rv(1)}>
-          {t('guarantees.lede')}
-        </p>
-
-        <div className="mt-[22px] grid gap-[14px] stack:grid-cols-2 wide:grid-cols-4">
-          {guarantees.map((item, i) => (
-            <Bento key={item.title} padding={20} className="rv h-full" style={rv(i + 1)}>
-              <p className="m-0 font-display text-[17px] font-black tracking-[-.03em] text-ink">{item.title}</p>
-              <p className="mt-[7px] mb-0 text-meta leading-[1.5] text-ink-2">{item.body}</p>
-            </Bento>
-          ))}
+      {/* ── 4 · NOTRE MÉTHODE ────────────────────────────────────────────────── */}
+      <KitSection className="grid items-start gap-8 pt-12 wide:grid-cols-2 wide:pt-24">
+        <div>
+          <Eyebrow className="stack:hidden">{t('method.eyebrowShort')}</Eyebrow>
+          <Eyebrow className="hidden stack:inline-flex">{t('method.eyebrow')}</Eyebrow>
+          <KitH2 className="mb-4 mt-3 stack:hidden" size="38px">{t('method.titleShort')}</KitH2>
+          <KitH2 className="mb-5 mt-[14px] hidden stack:block" size="clamp(40px, 5vw, 60px)">
+            {(t('method.titleLines', { returnObjects: true }) as string[]).map((l, i) => (
+              <span key={i}>
+                {i > 0 && <br />}
+                <Hl text={l} tone="edu" />
+              </span>
+            ))}
+          </KitH2>
+          <div className="mm-acc">
+            {[1, 2, 3, 4].map((n) => (
+              <details key={n} className="mm-acc__item" open={n === 3}>
+                <summary>
+                  <span className="mm-acc__n">{String(n).padStart(2, '0')}</span>
+                  <span className="stack:hidden">{t(`method.s${n}Short`)}</span>
+                  <span className="hidden stack:inline">{t(`method.s${n}Title`)}</span>
+                  <span className="mm-acc__plus" aria-hidden="true">
+                    <Icon name="plus" size={14} />
+                  </span>
+                </summary>
+                <div className="mm-acc__body">{t(`method.s${n}Body`)}</div>
+              </details>
+            ))}
+          </div>
         </div>
-      </PageSite>
+        <Photo tone="studio" className="hidden h-[520px] wide:block" />
+      </KitSection>
 
-      {/*
-        ── L'APERÇU DE RÉALISATIONS ────────────────────────────────────────────────────
-        LA PREMIÈRE DES DEUX GRILLES, et l'ordre des deux compte. `clients.ts` et
-        `ventures.ts` interdisent de les MÉLANGER : un projet client appartient à son
-        client et n'ouvre droit qu'à un rôle revendiqué ; une venture est détenue et
-        opérée par MY ONOMA. Deux sections, deux surfaces, et surtout deux étiquettes de
-        relation écrites à l'écran — `CLIENT_RELATION` ici, `VENTURE_RELATION` plus bas.
-        Sans elles, la distinction ne vivrait que dans le titre de section, c'est-à-dire
-        dans la seule ligne qu'un lecteur pressé saute.
-      */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <SiteEyebrow>{t('work.eyebrow')}</SiteEyebrow>
-        <SiteDisplay as="h2" lines={t('work.titleLines', { returnObjects: true }) as string[]} size={34} />
-        <p className="rv mt-3 max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2" style={rv(1)}>
-          {t('work.lede')}
-        </p>
-
-        <ul aria-label={t('work.listAria')} className="mt-7 grid list-none gap-[14px] p-0 stack:grid-cols-3">
-          {preview.map((project, i) => (
-            <li key={project.slug} className="rv h-full" style={rv(i + 2)}>
-              {/* L'ADAPTATEUR ÉPINGLE LA RELATION. La page ne passe plus « Client product » :
-                  elle choisit une carte CLIENTE, et le mauvais couple n'est pas exprimable.
-                  La règle de `clients.ts` cesse ainsi de dépendre de l'attention du relecteur.
-                  Le domaine, pas une capture — la page mère est la première vue de la piste,
-                  et un aperçu de site est une requête vers un service tiers. */}
-              <ClientWorkCard
-                href={path(`/conception/realisations/${project.slug}`)}
-                name={project.name}
-                category={ts(`realisations.categories.${categoryKey(project.category)}`)}
-                cta={t('work.visit')}
-                domain={project.domain}
-              />
-            </li>
-          ))}
-        </ul>
-
-        {/* `quiet` : ouvrir l'index n'est pas l'action principale de la page — c'est le
-            prolongement d'une grille qui vient d'en montrer trois. Le libellé vient de
-            `common`, partagé avec les autres surfaces qui ouvrent le même index. */}
-        <Button
-          href={path('/conception/realisations')}
-          tone="quiet"
-          size="sm"
-          fullWidth={false}
-          className="rv mt-5"
-          style={rv(6)}
-        >
-          {tc('cta.realisations')}
-          <Icon name="forward" size={16} />
-        </Button>
-      </PageSite>
-
-      {/*
-        ── LES PRODUITS DU STUDIO ──────────────────────────────────────────────────────
-        Le bloc « Products built inside MY ONOMA » vivait sur `/agence` et avait disparu du
-        site avec elle : `VentureCard` n'était plus monté nulle part, et les trois ventures
-        étaient de nouveau dans le code et invisibles à l'écran — exactement l'état que
-        `/agence` avait corrigé.
-
-        ⚠️ LE TITRE EST IMPOSÉ, ET DANS LES DEUX LANGUES. `ventures.ts` l'écrit comme une
-        contrainte, pas comme une suggestion : ces produits « n'apparaissent que dans un bloc
-        explicitement intitulé "Products built inside MY ONOMA" ». Il n'est donc pas traduit,
-        et il ne porte pas d'arc — c'est une mention de rattachement, pas une accroche.
-
-        POURQUOI UNE BANDE, ET NON LA SUITE DU `PageSite` AU-DESSUS. Les deux grilles ne
-        doivent jamais se lire comme une seule. Le changement de surface fait cette
-        séparation sans une ligne de CSS, là où une simple marge la laisserait à
-        l'appréciation du lecteur.
-
-        POURQUOI PAS `components/agency/VentureCard` (supprimé avec ce changement). Il fixait
-        son namespace à « agency » en dur, et `App.tsx` ne charge que `['conception']` sur
-        cette route : les libellés seraient sortis en clés brutes EN PRODUCTION, sans qu'aucune
-        porte le voie — ni le typecheck, ni le lint, ni `i18n-keys.test.ts`, qui ne suit pas
-        les clés construites. Le rendu vit donc ici, dans le namespace de la page.
-
-        ⚠️ La phrase ci-dessus évite d'écrire l'appel `useTranslation` avec ce namespace :
-        `tests/unit/route-namespaces.test.ts` scanne le SOURCE d'un fichier de route sans en
-        retirer les commentaires, et l'expliquer littéralement suffisait à le faire échouer.
-
-        ⚠️ AUCUN CHIFFRE. `ventures.ts` interdit nommément utilisateurs, revenus, traction,
-        levée et partenaires. La carte nomme le produit, sa catégorie et son domaine — rien
-        d'autre —, et n'appelle aucun service de capture, comme l'aperçu client au-dessus.
-      */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <SiteEyebrow>{t('ventures.eyebrow')}</SiteEyebrow>
-        <SiteDisplay as="h2" lines={t('ventures.titleLines', { returnObjects: true }) as string[]} size={34} />
-        <p className="rv mt-3 max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2" style={rv(1)}>
-          {t('ventures.lede')}
-        </p>
-
-        <ul aria-label={t('ventures.listAria')} className="mt-7 grid list-none gap-[14px] p-0 stack:grid-cols-3">
-          {ventures.map((venture, i) => (
-            <li key={venture.slug} className="rv h-full" style={rv(i + 2)}>
-              {/* L'AUTRE ADAPTATEUR. Même coque que l'aperçu client au-dessus, et c'est
-                  précisément pourquoi la relation ne peut pas être une prop de page : les
-                  deux grilles se ressemblent, et une inversion se lirait comme une
-                  revendication de propriété sur le produit d'un tiers. */}
-              <VentureWorkCard
-                href={venture.website}
-                name={venture.name}
-                category={venture.category}
-                cta={t('ventures.visit')}
-                domain={venture.domain}
-              />
-            </li>
-          ))}
-        </ul>
-      </PageSite>
-
-      {/*
-        LE PASSAGE VERS MY ONOMA — fourni par l'orchestrateur, et rendu tel quel.
-        Réécrire ce bloc ici le ferait diverger de sa jumelle de l'accueil au premier
-        changement de positionnement, ce qui est exactement le défaut que le composant
-        partagé existe pour empêcher.
-      */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        {/*
-          LA SORTIE DE PAGE VIENT AVANT LE PONT, ET L'ORDRE EST TOUT.
-
-          La page mère de la piste la plus chère du catalogue se terminait sur `MyOnomaBridge`,
-          c'est-à-dire sur un lien SORTANT du site : la dernière chose offerte à quelqu'un qui
-          venait de lire deux niveaux d'engagement, quatre étapes et quatre garanties était de
-          partir ailleurs. Aucune des trois pages de la piste n'avait de sortie vers `/contact`.
-          Le pont reste — il dit une frontière de marque —, mais il ne ferme plus la page.
-        */}
-        <SiteExit
-          title={t('exit.title')}
-          body={t('exit.body')}
-          cta={t('exit.cta')}
-          href={path('/contact')}
-        />
-
-        <MyOnomaBridge variant="panel" />
-      </PageSite>
+      {/* ── 5 · DÉCRIVEZ VOTRE PROJET ────────────────────────────────────────── */}
+      <KitSection id="qualif" className="scroll-mt-[var(--header-h)] pt-12 wide:pt-24">
+        <div className="grid gap-8 rounded-xl bg-[color:var(--paper-2)] p-5 stack:p-10 wide:grid-cols-2">
+          <div>
+            <Eyebrow className="hidden stack:inline-flex">{t('qualif.eyebrow')}</Eyebrow>
+            <KitH2 className="mb-[14px] stack:mt-[14px]" size="clamp(32px, 5vw, 56px)">{t('qualif.title')}</KitH2>
+            <p className="m-0 max-w-[44ch] text-ink-2">
+              <span className="stack:hidden">{t('qualif.ledeShort')}</span>
+              <span className="hidden stack:inline">{t('qualif.lede')}</span>
+            </p>
+          </div>
+          <form onSubmit={submit} className="grid grid-cols-2 gap-[10px]">
+            <div className="mm-field col-span-2">
+              <div className="mm-field__box">
+                <input id="qualif-org" placeholder=" " value={org} onChange={(e) => setOrg(e.target.value)} autoComplete="organization" />
+                <label htmlFor="qualif-org">{t('qualif.org')}</label>
+              </div>
+            </div>
+            <div className="mm-field col-span-2 hidden stack:block">
+              <div className="mm-field__box">
+                <input id="qualif-mail" type="email" placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+                <label htmlFor="qualif-mail">{t('qualif.email')}</label>
+              </div>
+            </div>
+            <div className="mm-field col-span-2">
+              <div className="mm-field__box">
+                <input id="qualif-need" placeholder=" " value={need} onChange={(e) => setNeed(e.target.value)} />
+                <label htmlFor="qualif-need">{t('qualif.need')}</label>
+              </div>
+            </div>
+            <fieldset className="col-span-2 m-0 border-0 p-0">
+              <legend className="mb-2 text-[13px] text-ink-2">{t('qualif.engagement')}</legend>
+              <div className="mm-chips">
+                {agencyLeadConfig.budgets.map((key) => (
+                  <button key={key} type="button" className="mm-chip" aria-pressed={engagement === key} onClick={() => setEngagement(key)}>
+                    {t(`form.engagements.${key}`)}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <div className="col-span-2 mt-2">
+              <KitButton type="submit" tone="studio">{t('qualif.submit')}</KitButton>
+              <p className="m-0 mt-3 text-[12.5px] text-ink-3">{t('qualif.next')}</p>
+            </div>
+          </form>
+        </div>
+      </KitSection>
     </DsNavHost>
   );
 }

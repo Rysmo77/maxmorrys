@@ -457,5 +457,65 @@
   "details": {
     "title": "Le détail",
     "subtitle": "Ce qui n'est pas dans les packs, et les conditions. Rien d'obligatoire à lire avant de demander un devis."
+  },
+  "v3": {
+    "hero": {
+      "eyebrow": "Services · Commerces et TPE",
+      "eyebrowShort": "Commerces et TPE",
+      "titleLines": [
+        "Ton commerce,",
+        "trouvé sur [Google.]"
+      ],
+      "lede": "Quand un client cherche « boutique près de moi », c'est toi qu'il doit trouver. {{count}} packs, des prix affichés, un devis en une minute.",
+      "ledeShort": "{{count}} packs, des prix affichés, un devis en une minute.",
+      "ctaPacks": "Voir les packs",
+      "ctaDemo": "Faire le test sur Google Maps"
+    },
+    "packs": {
+      "eyebrow": "{{count}} packs, prix publics",
+      "eyebrowShort": "Prix publics HT",
+      "title": "Choisis ton pack.",
+      "lede": "Prix hors taxes, TVA {{rate}} % en plus. Pas de frais cachés : ce qui n'est pas listé n'est pas compris.",
+      "promo": "Promo de lancement",
+      "tax": "+{{rate}} % TVA",
+      "ht": "FCFA HT",
+      "strike": "Ancien prix",
+      "choose": "Choisir ce pack",
+      "selected": "Ce pack · sélectionné",
+      "selectedTag": "Sélectionné",
+      "summary": {
+        "presence": "Ta fiche Google optimisée, une page claire, les boutons WhatsApp et appel.",
+        "visible": "Un site de 5 pages, ton catalogue jusqu'à 40 produits, la mesure complète.",
+        "boutique": "Ta boutique en ligne jusqu'à 50 produits, le panier et tes commandes."
+      }
+    },
+    "quote": {
+      "eyebrow": "Ton devis, tout de suite",
+      "packHt": "Pack {{name}}, HT",
+      "vat": "TVA {{rate}} %",
+      "ttc": "Total TTC",
+      "deposit": "Acompte {{pct}} % à la commande (HT)",
+      "balance": "Solde avant la mise en ligne (HT)",
+      "note": "Devis valable {{days}} jours. Paiement Wave, Orange Money ou carte. Conditions :",
+      "cgv": "CGV",
+      "cta": "Recevoir mon devis",
+      "cite": "grille tarifaire et taux de TVA en vigueur"
+    },
+    "steps": {
+      "eyebrow": "Comment ça se passe",
+      "title": "De la commande à la mise en ligne.",
+      "s1Title": "Tu choisis ton pack",
+      "s1Body": "Devis immédiat, valable {{days}} jours.",
+      "s2Title": "Tu verses l'acompte",
+      "s2Body": "{{pct}} % par Wave, Orange Money ou carte.",
+      "s3Title": "On rassemble tes infos",
+      "s3Body": "Photos, infos, horaires.",
+      "s4Title": "Tu es en ligne",
+      "s4Body": "Puis {{min}} à {{max}} jours de support, selon le pack."
+    },
+    "cta": {
+      "title": "Une question avant de choisir ?",
+      "button": "Réserver un appel"
+    }
   }
 }

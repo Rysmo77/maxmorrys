@@ -1,410 +1,213 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Button, GlassPanel, Icon, LessonRow, MediaCard, Num, Segmented, Skeleton, SubNav, Tag } from '@ds';
+import { Icon, Skeleton } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import DsNavHost from '../components/layout/DsNavHost';
-import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
-import { SiteHero } from '../components/site/v3/SiteHero';
+import { Eyebrow, KitH2, KitSection, NightAccent, NightHero, Photo, type PhotoTone } from '../components/site/v3/kit';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useTranslatedList } from '../hooks/useTranslatedContent';
 import { useFormat } from '../hooks/useFormat';
 import { getPublishedPodcasts, getPublishedVideos } from '../lib/firestore/content';
 import { queryKeys } from '../lib/queryClient';
-import { podcastPlatform, socialLinks } from '../lib/brand';
-import { CLUB_PRICE_XOF } from '../lib/club/pricing';
-import { PriceApprox } from '../components/shared/PriceApprox';
-import { Bento } from '../components/site/v3/Bento';
+import { podcastPlatform } from '../lib/brand';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * LE PÔLE MÉDIA — « Écouter & regarder », sous « Je te transforme ».
+ * PODCAST ET VIDÉOS — LA MAQUETTE `Site-Media` (bureau) / `-mobile` (390 px), PASSE 2.
  *
- * Une seule page pour les deux formats. La distinction que le système fait n'est pas entre
- * l'audio et la vidéo, elle est entre la MÉTHODE et la VOIX : le blog donne des méthodes ;
- * ici, des gens racontent ce qu'ils ont fait.
+ * ⚠️ DÉCISIONS LEVÉES (porteur, 29/10/2026) : la grille mêlée filtrée par segment, le panneau
+ * « écoute où tu veux » et l'encart Club cèdent la place à la planche — le dernier épisode en
+ * lecteur, puis « Tous les épisodes » et « Vidéos » côte à côte, avec l'encart data.
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * LES TROIS GARDE-FOUS DU TERRITOIRE VIOLET
- *
- * Ce territoire mêle du gratuit ouvert et du payant fermé — le pôle média et le Club. Trois
- * choses lèvent l'ambiguïté, et elles sont structurelles, pas rédactionnelles :
- *
- *   1. Une SOUS-NAVIGATION en tête, qui montre les deux étages d'un coup ;
- *   2. Le mot « gratuit » dans le PREMIER écran, pas en bas de page ;
- *   3. Le passage vers le Club EN BAS, jamais devant.
- *
- * Le troisième est le plus facile à perdre : une bande de conversion remonte toujours, sous
- * la pression du taux de clic. Elle est ici parce que quelqu'un qui vient d'écouter a une
- * raison d'y aller — pas avant.
- * ─────────────────────────────────────────────────────────────────────────────
- *
- * ⚠️ LE POIDS DES FICHIERS N'EST PAS AFFICHÉ, et c'est un manque, pas un choix. Le kit le
- * met sur chaque carte parce que c'est l'information qui permet de décider quand le forfait
- * est compté. Les types `Podcast` et `Video` ne portent pas de taille : elle n'est pas
- * relevée à l'enregistrement. L'encart de vérité le dit plutôt que d'afficher un chiffre
- * inventé — c'est la règle 6, appliquée à ce qu'on n'a pas.
+ * Ce qui reste tenu :
+ * - LE POIDS N'EST PAS MESURÉ (`weightNote`) : la planche promet « le poids de chaque fichier »
+ *   et « [N] Mo en 360p » ; le produit n'a que la DURÉE, c'est donc elle qui s'affiche, et
+ *   l'aveu reste écrit (il arme la règle 10 de `proof:check`) ;
+ * - pas de Spotify ni d'Apple Podcasts inventés : la puce de plateforme ne paraît que si
+ *   `podcastPlatform` existe ; « Télécharger » pointe le vrai fichier audio ;
+ * - le lecteur est l'élément `<audio>` natif, sans préchargement (`preload="none"`) ;
+ * - l'encart data ne dit que ce que `VideoDetail` fait réellement : aucune lecture
+ *   automatique, l'intégration ne se charge qu'au clic. Le 360p de la planche n'existe pas ;
+ * - titres traduits en `/en` comme sur les fiches ; chargement = squelette, jamais « vide ».
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-type Filter = 'all' | 'listen' | 'watch';
+
+const VIDEO_TONES: PhotoTone[] = ['informe', 'club', 'studio', 'edu'];
 
 export default function MediaPole() {
   const { t } = useTranslation('media');
   const path = useLocalizedPath();
   const { formatDate } = useFormat();
-  const [filter, setFilter] = useState<Filter>('all');
 
-  /* L'URL vient du module de marque, jamais réécrite ici : elle est déjà la source des
-     profils sociaux du pied de page et des données structurées de la page à propos. */
-  const youtubeUrl = socialLinks.find((l) => l.name === 'YouTube')?.url ?? '';
-
-  /* Le tarif se cadre au mois — jamais l'annuel nu. Recalculé, jamais recopié. */
-  const monthly = Math.round(CLUB_PRICE_XOF / 12);
-  /* Le tarif est une constante de l'offre, pas une mesure : sa « date de relevé » est celle du
-     module qui le porte. `showAsOf` reste à false — un prix n'affiche pas sa date à l'écran. */
-  const asOf = new Date();
-
-  /*
-    `isLoading` EST LU, ce qu'il n'était pas.
-
-    Les deux requêtes se déstructuraient en `data = []` sans jamais regarder leur état. Pendant
-    la récupération, `items` était donc vide — et la page affichait « Rien n'est encore en ligne
-    ici », l'état VIDE, à chaque arrivée. La page d'entrée du territoire violet annonçait un
-    catalogue mort pendant tout le temps du chargement, sur les réseaux où il dure le plus
-    longtemps. Un squelette de la forme attendue le dit correctement : ça arrive.
-  */
   const { data: podcasts = [], isLoading: podcastsLoading } = useQuery({
     queryKey: queryKeys.publishedPodcasts,
     queryFn: () => getPublishedPodcasts(),
   });
   const { data: videos = [], isLoading: videosLoading } = useQuery({
-    /* La clé du module, pas une copie écrite à la main : `VideoDetail` précharge la même
-       liste par `queryKeys.publishedVideos`, et deux orthographes de la même clé sont deux
-       caches — donc deux allers-retours réseau pour une seule donnée. */
     queryKey: queryKeys.publishedVideos,
     queryFn: () => getPublishedVideos(),
   });
   const loading = podcastsLoading || videosLoading;
 
-  const labels: Record<Filter, string> = {
-    all: t('pole.filterAll'),
-    listen: t('pole.filterListen'),
-    watch: t('pole.filterWatch'),
-  };
+  const titresPodcasts = useTranslatedList(podcasts.map((p) => p.title));
+  const titresVideos = useTranslatedList(videos.map((v) => v.title));
+  const episodes = useMemo(() => podcasts.map((p, i) => ({ ...p, title: titresPodcasts[i] || p.title })), [podcasts, titresPodcasts]);
+  const clips = useMemo(() => videos.map((v, i) => ({ ...v, title: titresVideos[i] || v.title })), [videos, titresVideos]);
+  const dernier = episodes[0] ?? null;
 
-  /*
-    LE CATALOGUE COMPLET, TRIÉ UNE FOIS — et surtout INDÉPENDANT DU FILTRE.
-
-    Le tri se faisait deux fois, sur deux tableaux construits séparément : un pour la grille,
-    un pour la vedette, chacun réécrivant la même projection. Le filtre s'applique désormais
-    APRÈS, sur une liste déjà traduite : changer de segment ne redemande pas au serveur de
-    traduire des titres déjà payés.
-
-    L'IMAGE EST PORTÉE ICI. C'est la ligne exacte qui la perdait : `coverImage` et
-    `thumbnailUrl` sont obligatoires sur les deux types, remplis par les imports Spotify et
-    YouTube, et cette projection les laissait au sol.
-  */
-  const catalogue = useMemo(() => [
-    ...podcasts.map((p) => ({
-      key: `p-${p.id}`, format: 'audio' as const, title: p.title, image: p.coverImage,
-      duration: p.duration, to: `/podcasts/${p.slug}`, at: p.publishedAt,
-    })),
-    ...videos.map((v) => ({
-      key: `v-${v.id}`, format: 'video' as const, title: v.title, image: v.thumbnailUrl,
-      duration: v.duration, to: `/videos/${v.slug}`, at: v.publishedAt,
-    })),
-  ].sort((a, b) => (b.at ?? '').localeCompare(a.at ?? '')), [podcasts, videos]);
-
-  /*
-    LES TITRES SE TRADUISENT, comme partout ailleurs.
-
-    Cette page était la SEULE des trois à ne pas le faire : en `/en`, la grille servait le
-    titre français, puis la fiche ouverte servait le même titre traduit. La liste et sa fiche
-    ne parlaient pas la même langue, sur le clic qui les relie.
-  */
-  const titres = useTranslatedList(catalogue.map((e) => e.title));
-  const traduits = useMemo(
-    () => catalogue.map((e, i) => ({ ...e, title: titres[i] || e.title })),
-    [catalogue, titres],
-  );
-
-  const items = useMemo(
-    () => traduits.filter((e) =>
-      filter === 'all' ? true : filter === 'listen' ? e.format === 'audio' : e.format === 'video'),
-    [traduits, filter],
-  );
-
-  /* La carte vedette du héros : le plus récent des deux formats, sans filtre appliqué —
-     elle présente le pôle, elle ne répond pas au sélecteur. */
-  const vedette = traduits[0] ?? null;
-
-  /* La date situe, la durée engage : les deux ensemble répondent à « est-ce récent » et
-     « ai-je le temps », qui sont les deux questions posées devant une liste de médias. */
-  const meta = (e: { at?: string; duration?: string }) =>
-    [e.at ? formatDate(e.at) : null, e.duration].filter(Boolean).join(' · ');
+  const meta = (at?: string, duration?: string) => [at ? formatDate(at) : null, duration].filter(Boolean).join(' · ');
+  const chipNuit = 'mm-chip !border-[color:rgb(255_255_255/.14)] !bg-[color:rgb(255_255_255/.08)] !text-[color:var(--paper-fixed)] no-underline';
 
   return (
     <DsNavHost>
-      <SEOHead
-        title={(t('pole.titleLines', { returnObjects: true }) as string[]).join(' ')}
-        description={t('pole.lede')}
-      />
+      <SEOHead title={t('pole.seoTitle')} description={t('pole.lede')} />
 
-      {/*
-        ── LE HÉROS — kit v3 (`Site-Media`) ───────────────────────────────────────────
-        La dalle de nuit porte les trois garde-fous de la page : la sous-navigation (les deux
-        étages du territoire, montrés ensemble ; `active` = LIBELLÉ de l'entrée), « gratuit »
-        dans le sourcil du premier écran, et la note de rythme. À droite, la carte vedette :
-        le média le plus récent, jamais un choix éditorial (aucun champ « à la une »).
-      */}
-      <SiteHero
-        mesh="club"
-        top={
-          <SubNav
-            label={t('pole.eyebrow')}
-            active={t('pole.subnavFree')}
-            items={[
-              { label: t('pole.subnavFree'), href: path('/podcast-et-videos'), territory: 'transforme' },
-              { label: t('pole.subnavClub'), href: path('/club-des-digitos'), territory: 'transforme' },
-            ]}
-          />
-        }
-        eyebrow={t('pole.eyebrow')}
-        titleLines={t('pole.titleLines', { returnObjects: true }) as string[]}
-        size={52}
-        lede={t('pole.lede')}
-        asideCols="half"
-        aside={
-          loading ? (
-            <Skeleton height={360} radius="var(--r-l)" label={t('pole.eyebrow')} />
-          ) : vedette ? (
-            <div className="rv" style={{ ['--i' as string]: 6 }}>
-              <MediaCard
-                format={vedette.format}
-                image={vedette.image}
-                artRatio="16 / 9"
-                titleSize={25}
-                eyebrow={meta(vedette)}
-                title={vedette.title}
-                playHref={path(vedette.to)}
-                playLabel={`${vedette.format === 'video' ? t('pole.featuredWatch') : t('pole.featuredPlay')} — ${vedette.title}`}
-                actions={
-                  <Button href={path(vedette.to)} tone="highlight" arrow size="sm" fullWidth={false}>
-                    {vedette.format === 'video' ? t('pole.featuredWatch') : t('pole.featuredPlay')}
-                  </Button>
-                }
-              />
-            </div>
-          ) : undefined
-        }
-      >
-        <div className="rv mt-5 flex flex-wrap gap-2" style={{ ['--i' as string]: 6 }}>
-          <Tag tone="ok">{t('pole.tagFree')}</Tag>
-          <Tag>{t('pole.tagTranscript')}</Tag>
-        </div>
-        <p className="rv mt-4 mb-0 max-w-[56ch] text-small leading-[1.5] text-ink-2" style={{ ['--i' as string]: 7 }}>
-          {t('pole.rhythm')}
-        </p>
-      </SiteHero>
-
-      <PageSite>
-        {/* Le titre de la grille et le sélecteur, sur la même ligne. */}
-        <div className="flex flex-wrap items-center justify-between gap-5">
-          <SiteDisplay as="h2" lines={t('pole.gridTitle', { returnObjects: true }) as string[]} size={34} />
-          <div className="w-full max-w-[320px] shrink-0">
-            <Segmented
-              label={t('pole.eyebrow')}
-              options={[labels.all, labels.listen, labels.watch]}
-              value={labels[filter]}
-              onChange={(o) => setFilter(o === labels.listen ? 'listen' : o === labels.watch ? 'watch' : 'all')}
-            />
-          </div>
-        </div>
-
-        {/*
-          TROIS COLONNES EN GRAND, DEUX EN INTERMÉDIAIRE. Deux colonnes de vignettes 16:9 sur
-          un écran de 1440 px donnaient des cartes de 640 px de large : une galerie de médias
-          y ressemblait à deux bannières empilées. Le rapport remplace la hauteur figée —
-          `artHeight` recadrait l'image différemment à chaque largeur de colonne.
-        */}
-        {loading ? (
-          <div className="mt-6 grid gap-4 stack:grid-cols-2 wide:grid-cols-3">
-            {[0, 1, 2].map((i) => <Skeleton key={i} height={268} radius="var(--r-l)" />)}
-          </div>
-        ) : items.length > 0 ? (
-          <div className="mt-6 grid gap-4 stack:grid-cols-2 wide:grid-cols-3">
-            {items.map((item, i) => (
-              <div key={item.key} className="rv" style={{ ['--i' as string]: i + 1 }}>
-                <MediaCard
-                  format={item.format}
-                  image={item.image}
-                  playHref={path(item.to)}
-                  playLabel={`${item.format === 'video' ? t('pole.filterWatch') : t('pole.filterListen')} — ${item.title}`}
-                  title={item.title}
-                  eyebrow={meta(item)}
-                  badge={item.format === 'video' ? t('pole.filterWatch') : t('pole.filterListen')}
-                  artRatio="16 / 9"
-                  titleSize={21}
-                />
-              </div>
+      <NightHero mesh="club" className="pb-[30px] stack:pb-16">
+        <div className="relative z-[1] mx-auto box-border w-full max-w-[1360px] px-5 pt-9 stack:px-10 stack:pt-[110px]">
+          <Eyebrow className="text-[color:var(--mm-violet-c)]">
+            <span className="stack:hidden">{t('pole.eyebrowShort')}</span>
+            <span className="hidden stack:inline">{t('pole.eyebrow')}</span>
+          </Eyebrow>
+          <h1 className="mm-d mb-[14px] mt-[14px] text-[52px] leading-[.9] stack:mb-[22px] stack:mt-5 stack:text-[clamp(56px,7.4vw,112px)] stack:leading-[.88] stack:tracking-[-.05em]">
+            {(t('pole.titleLines', { returnObjects: true }) as string[]).map((l, i) => (
+              <span key={i}>
+                {i > 0 && <br className="hidden stack:inline" />}
+                {i > 0 && ' '}
+                <NightAccent text={l} />
+              </span>
             ))}
-          </div>
-        ) : (
-          /* L'ÉTAT VIDE SAIT CE QU'ON LUI A DEMANDÉ. « Rien n'est encore en ligne ici » était
-             faux dès qu'un filtre était posé : il y a bien quelque chose, ce n'est simplement
-             pas le format demandé — et la sortie est de retirer le filtre, pas de partir. */
-          <p className="mt-6 max-w-prose text-lede text-ink-2">
-            {filter === 'listen' ? t('pole.emptyListen')
-              : filter === 'watch' ? t('pole.emptyWatch')
-              : t('pole.empty')}
-          </p>
-        )}
-
-        {/* L'aveu : le poids manque, et on le dit. */}
-        <GlassPanel level="truth" className="mt-4 max-w-[74ch]">
-          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('pole.truthTitle')}</SiteEyebrow>
-          <p className="m-0 text-meta-2 text-ink-2 leading-[1.55]">{t('pole.truthBody')}</p>
-        </GlassPanel>
-
-        {/*
-          ── « ÉCOUTE OÙ TU VEUX. » ──────────────────────────────────────────────────
-          La section du kit (`ui_kits/site-public/Pages.js:261-272`) n'existait pas : la page
-          d'entrée du territoire violet ne disait nulle part où les épisodes vivent en dehors
-          d'elle. C'est pourtant l'argument qui désamorce la question « faut-il revenir ici
-          pour écouter ».
-
-          DEUX RANGÉES, PAS TROIS. Le kit en dessine trois — Spotify, YouTube, Flux RSS. Le
-          dépôt ne contient AUCUNE URL de show Spotify : `extractSpotifyEpisodeId` sait lire un
-          épisode collé dans une fiche, il n'y a pas de flux à nous. Inventer le lien aurait été
-          exactement ce que l'encart de vérité de cette page reproche au reste du web ; la
-          troisième ligne est donc remplacée par la phrase qui dit ce qui manque.
-
-          AUCUNE COULEUR DE MARQUE dans les puits d'icône, là où le kit pose `#1DB954` et
-          `#FF0000` : c'est la décision déjà prise pour les sept réseaux de `ProfileTab`, et
-          elle vaut ici pour la même raison — deux hexadécimaux hors système, qui ne basculent
-          pas sous `.dk`.
-        */}
-        <div className="mm-section grid items-center gap-[34px] wide:grid-cols-2">
-          <div>
-            <SiteDisplay as="h2" lines={t('pole.elsewhereTitle', { returnObjects: true }) as string[]} size={34} />
-            <p className="rv mt-3 max-w-[42ch] text-prose text-ink-2 leading-[1.6]" style={{ ['--i' as string]: 3 }}>
-              {t('pole.elsewhereBody')}
-            </p>
-            <p className="rv mt-3 max-w-[46ch] text-small leading-[1.5] text-ink-2" style={{ ['--i' as string]: 4 }}>
-              {t('pole.elsewhereNote')}
-            </p>
-          </div>
-          <Bento padding="6px 22px" className="rv" style={{ ['--i' as string]: 5 }}>
-            {/*
-              LA TROISIÈME RANGÉE DU KIT, LE JOUR OÙ ELLE A UNE ADRESSE. Elle est dessinée par
-              `Pages.js:261-272` et n'a jamais été rendue, faute d'URL de show. Elle vient de
-              `podcastPlatform` — la même valeur qui commande l'aveu sous le panneau et
-              l'emplacement déclaré de `/a-propos` : la ligne paraît et les phrases s'en vont
-              dans le même geste, au lieu qu'une des trois survive aux autres.
-            */}
-            {podcastPlatform !== null && (
-              <LessonRow
-                state="plain"
-                icon={<Icon name="mic" size={16} />}
-                title={podcastPlatform.name}
-                trailing={
-                  <Button href={podcastPlatform.url} target="_blank" tone="quiet" size="sm" fullWidth={false}>
-                    {t('pole.elsewherePlatformCta')}
-                  </Button>
-                }
-              />
-            )}
-            <LessonRow
-              state="plain"
-              icon={<Icon name="play" size={16} />}
-              title={t('pole.elsewhereYoutube')}
-              trailing={
-                <Button href={youtubeUrl} target="_blank" tone="quiet" size="sm" fullWidth={false}>
-                  {t('pole.elsewhereYoutubeCta')}
-                </Button>
-              }
-            />
-            <LessonRow
-              state="plain"
-              icon={<Icon name="doc" size={16} />}
-              title={t('pole.elsewhereRss')}
-              last
-              /* `/podcast.xml` et NON `/rss.xml` : ce dernier n'interroge que le blog, et
-                 cette ligne annonçait donc un flux d'écoute qui livrait des articles. */
-              trailing={
-                <Button href="/podcast.xml" tone="quiet" size="sm" fullWidth={false}>
-                  {t('pole.elsewhereRssCta')}
-                </Button>
-              }
-            />
-          </Bento>
+          </h1>
+          <p className="m-0 text-[15.5px] leading-[1.55] text-ink-2 stack:hidden">{t('pole.ledeShort')}</p>
+          <p className="m-0 mb-[26px] hidden max-w-[52ch] text-[18px] leading-[1.55] text-ink-2 stack:block">{t('pole.lede')}</p>
+          <nav aria-label={t('pole.tabsAria')} className="mm-seg mt-[6px] hidden bg-[color:rgb(255_255_255/.1)] stack:inline-flex">
+            <a href={path('/blog')} className="flex items-center px-[13px] text-[12.5px] font-semibold text-ink-2 no-underline">
+              {t('pole.tabArticles')}
+            </a>
+            <span aria-current="page" className="flex items-center rounded-pill bg-[color:rgb(255_255_255/.9)] px-[13px] text-[12.5px] font-semibold text-[color:var(--ink-fixed)]">
+              {t('pole.tabMedia')}
+            </span>
+          </nav>
         </div>
+      </NightHero>
 
-        {/* L'aveu ne se rend que tant qu'il est vrai — voir `podcastPlatform`. */}
-        {podcastPlatform === null && (
-          <p className="mt-3 max-w-[74ch] text-small leading-[1.55] text-ink-2">{t('pole.elsewhereMissing')}</p>
-        )}
-
-        {/* Garde-fou 3 : le Club, EN BAS. Jamais devant. */}
-        <div
-          className="rv-s mm-section rounded-xl p-[34px] text-white"
-          style={{
-            background: 'linear-gradient(140deg,var(--mm-violet),var(--mm-bleu) 72%,var(--mm-teal))',
-            boxShadow: 'var(--sh-violet)',
-          }}
-        >
-          {/* Gouttière 34, pas 32 — `Pages.js:276`. */}
-          <div className="grid items-center gap-[34px] wide:grid-cols-[1.25fr_.75fr]">
-            <div>
-              {/* Le sourcil du kit — « L'étage au-dessus » (`Pages.js:277`). Il situe le Club
-                  par rapport à ce qu'on vient d'écouter, au lieu de l'annoncer à froid. */}
-              <SiteEyebrow style={{ color: 'rgba(255,255,255,.72)', marginBottom: '8px' }}>
-                {t('pole.clubEyebrow')}
-              </SiteEyebrow>
-              <SiteDisplay
-                as="h2"
-                lines={t('pole.clubTitle', { returnObjects: true }) as string[]}
-                size={31}
-                style={{ lineHeight: 1.06 }}
-              />
-              <p className="mt-3 mb-0 max-w-[48ch] text-[14px] leading-[1.6]" style={{ color: 'rgba(255,255,255,.86)' }}>
-                {t('pole.clubBody')}
-              </p>
-            </div>
-            {/*
-              LE PRIX EST SUR LE BOUTON, et la mention annuelle dessous — c'est la règle de
-              cadrage du système : un tarif annuel s'écrit au MOIS, avec la mention annuelle
-              en dessous. Le bouton disait seulement « Voir le Club des Digitos » : la personne
-              ne savait pas si elle cliquait vers une page à deux mille ou à deux cent mille.
-
-              Aucun montant n'est écrit ici, pas même en commentaire : `club-pricing.test.ts`
-              l'interdit sur tout le fichier, et il a raison — un chiffre recopié dans une
-              explication ment le jour où la grille bouge, sans que personne ne relise.
-
-              Les deux montants sont recalculés depuis `lib/club/pricing`, jamais recopiés.
-            */}
-            <div>
-              {/* Le montant sort de la chaîne traduite : c'est un <Num>. Il porte donc sa
-                  source, sa monospace tabulaire, et le séparateur de milliers de LA LANGUE —
-                  espace insécable en français, virgule en anglais. Interpolé dans la chaîne,
-                  il aurait été figé sur une seule des deux. */}
-              <Button href={path('/club-des-digitos')} tone="ghost" focusInvert fullWidth={false}>
-                {t('pole.clubCtaPriced')}{' '}
-                <Num value={monthly} unit="F/mois" source="server" asOf={asOf} showAsOf={false} />
-              </Button>
-              <p className="mt-2 mb-0 text-small" style={{ color: 'rgba(255,255,255,.72)' }}>
-                {t('pole.clubBilled')}{' '}
-                <Num value={CLUB_PRICE_XOF} unit="F" source="server" asOf={asOf} showAsOf={false} />{' '}
-                {t('pole.clubBilledSuffix')}
-                {' · '}
-                {/* Le `<p>` porte déjà l'encre de la surface nuit — `text-ink` y serait faux,
-                    cette surface ne suit pas `.dk`. La contrevaleur hérite, elle ne repeint pas. */}
-                <PriceApprox xof={CLUB_PRICE_XOF} />
-              </p>
-            </div>
+      {loading ? (
+        <KitSection className="pt-11 stack:pt-[72px]">
+          <Skeleton height={276} radius="var(--r-l)" label={t('pole.loading')} />
+          <div className="mt-[72px] grid gap-8 wide:grid-cols-[1fr_1.4fr]">
+            <Skeleton height={240} radius="var(--r-l)" />
+            <Skeleton height={240} radius="var(--r-l)" />
           </div>
-        </div>
-      </PageSite>
+        </KitSection>
+      ) : (
+        <>
+          {/* ── LE DERNIER ÉPISODE ───────────────────────────────────────────── */}
+          {dernier && (
+            <KitSection className="pt-11 stack:pt-[72px]">
+              <div className="dk grid items-center gap-[26px] rounded-xl bg-[color:var(--surface-ink)] p-[18px] text-ink stack:grid-cols-[220px_1fr] stack:p-7">
+                <Photo
+                  tone="club"
+                  className="h-[180px] !min-h-0 !rounded-card stack:h-[220px]"
+                  img={dernier.coverImage ? { src: dernier.coverImage, alt: '' } : undefined}
+                />
+                <div className="min-w-0">
+                  <Eyebrow className="text-[color:var(--mm-violet-c)]">{t('pole.latestEyebrow')}</Eyebrow>
+                  <a href={path(`/podcasts/${dernier.slug}`)} className="mb-4 mt-[10px] block font-display text-[26px] font-black leading-[1.02] text-ink no-underline stack:text-[36px]">
+                    {dernier.title}
+                  </a>
+                  {dernier.audioUrl && (
+                    <audio controls preload="none" src={dernier.audioUrl} className="w-full">
+                      {t('pole.audioUnsupported')}
+                    </audio>
+                  )}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {podcastPlatform !== null && (
+                      <a className={chipNuit} href={podcastPlatform.url} target="_blank" rel="noopener noreferrer">
+                        {podcastPlatform.name}
+                      </a>
+                    )}
+                    {dernier.audioUrl && (
+                      <a className={chipNuit} href={dernier.audioUrl} download>
+                        {t('pole.download')}
+                      </a>
+                    )}
+                    {dernier.duration && <span className={chipNuit}><span className="mm-n">{dernier.duration}</span></span>}
+                  </div>
+                </div>
+              </div>
+              <p className="m-0 mt-[10px] text-[13px] text-ink-2">{t('pole.weightNote')}</p>
+            </KitSection>
+          )}
+
+          {/* ── ÉPISODES | VIDÉOS ────────────────────────────────────────────── */}
+          <KitSection className="grid items-start gap-11 pt-11 stack:pt-[72px] wide:grid-cols-[1fr_1.4fr] wide:gap-8">
+            <div>
+              <KitH2 className="m-0 mb-3 stack:mb-4" size="clamp(28px, 3.2vw, 44px)">
+                <span className="stack:hidden">{t('pole.episodesTitleShort')}</span>
+                <span className="hidden stack:inline">{t('pole.episodesTitle')}</span>
+              </KitH2>
+              {episodes.length === 0 ? (
+                <p className="m-0 text-ink-2">{t('pole.emptyEpisodes')}</p>
+              ) : (
+                <ul className="m-0 flex list-none flex-col gap-2 p-0 stack:gap-[10px]">
+                  {episodes.map((e) => (
+                    <li key={e.id} className="flex items-center gap-[14px] rounded-card border border-solid border-[color:var(--line)] bg-bento p-[14px]">
+                      <a
+                        className="mm-iconbtn h-12 w-12 flex-none !border-0 bg-[color:var(--mm-violet)] text-[color:var(--paper-fixed)]"
+                        href={path(`/podcasts/${e.slug}`)}
+                        aria-label={t('pole.listen', { title: e.title })}
+                      >
+                        <Icon name="play" size={16} />
+                      </a>
+                      <div className="min-w-0 flex-1">
+                        <b className="block text-[15.5px]">{e.title}</b>
+                        <span className="mm-n text-[12.5px] text-ink-2">{meta(e.publishedAt, e.duration)}</span>
+                      </div>
+                      {e.audioUrl && (
+                        <a className="mm-chip flex-none no-underline" href={e.audioUrl} download>
+                          {t('pole.download')}
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div>
+              <KitH2 className="m-0 mb-3 stack:mb-4" size="clamp(28px, 3.2vw, 44px)">{t('pole.videosTitle')}</KitH2>
+              <div className="grid gap-4 stack:grid-cols-2">
+                {clips.length === 0 && <p className="m-0 text-ink-2">{t('pole.emptyVideos')}</p>}
+                {clips.map((v, i) => (
+                  <a key={v.id} href={path(`/videos/${v.slug}`)} className="flex flex-col gap-[10px] text-ink no-underline">
+                    <Photo
+                      tone={VIDEO_TONES[i % VIDEO_TONES.length]}
+                      className="relative grid h-[190px] !min-h-0 place-items-center !rounded-card stack:h-[230px]"
+                      img={v.thumbnailUrl ? { src: v.thumbnailUrl, alt: '' } : undefined}
+                    >
+                      <span aria-hidden="true" className="absolute left-1/2 top-1/2 grid h-[62px] w-[62px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-pill bg-[color:rgb(255_255_255/.9)] text-[color:var(--ink-fixed)]">
+                        <Icon name="play" size={18} />
+                      </span>
+                      {v.duration && (
+                        <span className="mm-tag absolute bottom-[10px] right-[10px] bg-[color:rgb(10_13_17/.8)] text-[color:var(--paper-fixed)]">
+                          <span className="mm-n">{v.duration}</span>
+                        </span>
+                      )}
+                    </Photo>
+                    <b className="font-display text-[21px] font-black leading-[1.1]">
+                      {v.title}
+                    </b>
+                  </a>
+                ))}
+                <div className="flex flex-col justify-center gap-[10px] rounded-card bg-[color:var(--paper-2)] p-[14px] stack:p-5">
+                  <b className="font-display text-[18px] font-black leading-[1.1] stack:text-[22px]">{t('pole.dataTitle')}</b>
+                  <span className="text-[14px] text-ink-2">{t('pole.dataBody')}</span>
+                </div>
+              </div>
+            </div>
+          </KitSection>
+        </>
+      )}
     </DsNavHost>
   );
 }

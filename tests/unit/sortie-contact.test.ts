@@ -25,15 +25,23 @@ import { describe, expect, it } from 'vitest';
 
 /** Les pages qui doivent proposer une sortie — et celles qui ne doivent pas. */
 const AVEC_SORTIE = [
-  'src/pages/conception/Conception.tsx',
-  'src/pages/conception/Realisations.tsx',
   'src/pages/conception/RealisationDetail.tsx',
   'src/pages/Apprendre.tsx',
 ];
 
+/*
+ * Passe 2 (29/10/2026) : `/conception/realisations` suit la maquette `Site-Realisations`,
+ * qui remplace le bandeau partagé par sa dalle d'appel. La sortie reste OBLIGATOIRE — elle
+ * mène toujours à `/contact`, c'est ce que ce test garde désormais pour elle.
+ */
+const SORTIE_MAQUETTE = ['src/pages/conception/Realisations.tsx'];
+
 const SANS_SORTIE = [
   // Elle porte le formulaire lui-même.
   'src/pages/conception/ProjetsSurMesure.tsx',
+  /* Passe 2 (maquette Site-Services, 29/10/2026) : la page mère se termine sur sa propre
+     section « Décrivez votre projet » — un bandeau de sortie y doublerait la demande. */
+  'src/pages/conception/Conception.tsx',
 ];
 
 const lire = (p: string) => readFileSync(p, 'utf8');
@@ -41,6 +49,10 @@ const lire = (p: string) => readFileSync(p, 'utf8');
 describe('les pages mères ont une porte de sortie', () => {
   it.each(AVEC_SORTIE)('%s monte le bandeau partagé', (fichier) => {
     expect(lire(fichier)).toMatch(/<SiteExit/);
+  });
+
+  it.each(SORTIE_MAQUETTE)('%s mène à /contact par sa dalle de maquette', (fichier) => {
+    expect(lire(fichier)).toMatch(/path\('\/contact/);
   });
 
   it.each(SANS_SORTIE)('%s n’en monte pas, et c’est voulu', (fichier) => {

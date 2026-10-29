@@ -1,62 +1,97 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Button, ChipRow, GlassPanel, Icon, LessonRow, SearchPill, Skeleton } from '@ds';
+import { Icon, Skeleton } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import DsNavHost from '../components/layout/DsNavHost';
-import { PageSite, SiteEyebrow } from '../components/site';
-import { SiteHero } from '../components/site/v3/SiteHero';
+import { Eyebrow, KitButton, KitSection, NightHero } from '../components/site/v3/kit';
 import TranslatedText from '../components/shared/TranslatedText';
 import { useLocalizedPath } from '../contexts/LanguageContext';
+import { useTranslatedText } from '../hooks/useTranslatedContent';
 import { getAllFAQ } from '../lib/firestore';
 import { faqSlug } from '../lib/faq/slug';
 import { queryKeys } from '../lib/queryClient';
 import type { FAQ as FAQItem } from '../types';
-import { Bento } from '../components/site/v3/Bento';
 
 /**
- * /faq — LE MOTIF « INDEX » appliqué aux questions.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * LA FAQ — maquettes `Site-FAQ` (bureau) / `Site-FAQ-mobile` (390 px), passe 2.
  *
- * Les blocs du kit : sourcil → titre → chapô → recherche → filtres → deux colonnes de listes
- * groupées par catégorie → panneau de contact → encart de vérité.
+ * Dalle de nuit (titre, chapô, recherche), puis deux colonnes : à gauche les filtres par
+ * catégorie et la liste des questions, à droite l'aperçu de la page réponse de la première
+ * question retenue. Au mobile, la liste puis l'aperçu dans une carte.
  *
- * CHAQUE LIGNE EST UN LIEN, PLUS UN ACCORDÉON — et c'est le kit qui tranche : le chevron
- * `forward` de sa maquette dit « ça mène ailleurs », pas « ça se déplie ». L'accordéon était
- * un pis-aller tant que `/faq/:slug` n'existait pas ; il rendait la réponse consultable et
- * rien d'autre — impossible d'envoyer à quelqu'un LA question qui le concerne, aucune
- * position propre en recherche, et un moteur qui voit toutes les réponses sur une seule adresse.
+ * Les questions viennent de la base (`getAllFAQ`), les catégories en sont DÉRIVÉES : aucune
+ * des étiquettes de la planche (« Démarrer », « Paiement »…) n'est écrite ici.
  *
- * Le `FAQPage` en données structurées reste ici, et il garde son sens : il décrit l'index.
- * Chaque page de question en déclare une seule, la sienne.
+ * Écarts volontaires à la planche :
+ * - « Cette réponse t'a aidé ? » n'est pas rendu : aucun vote n'est enregistré ni lu nulle
+ *   part (voir `FAQQuestion.tsx`). Un bouton qui ne compte rien serait une fausse donnée.
+ * - « Mis à jour le [DATE] » : le type `FAQ` ne porte aucune date de révision — absent.
+ * ═══════════════════════════════════════════════════════════════════════════════
  */
+
+/** Sur la dalle, le fragment entre crochets prend le bleu clair de la planche. */
+function BlueAccent({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/\[([^\]]+)\]/).map((part, i) =>
+        i % 2 === 1 ? (
+          <span key={i} className="text-[color:var(--mm-bleu-n)]">
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
+
+function Preview({ item, framed }: { item: FAQItem; framed: boolean }) {
+  const { t } = useTranslation('faq');
+  const path = useLocalizedPath();
+  const question = useTranslatedText(item.question);
+  const answer = useTranslatedText(item.answer);
+  const paragraphs = answer.split(/\n{2,}/).filter(Boolean);
+
+  return (
+    <article className={framed ? 'rounded-xl bg-[color:var(--paper-2)] p-5' : ''}>
+      <Eyebrow>{framed ? t('index.previewEyebrow') : t('index.articleEyebrow', { category: item.category })}</Eyebrow>
+      <h2 className={`mm-d mb-[18px] mt-[14px] ${framed ? 'text-[30px]' : 'text-[52px]'}`}>{question}</h2>
+      {paragraphs.map((p, i) => (
+        <p key={i} className={`m-0 mb-4 max-w-[62ch] whitespace-pre-line leading-[1.7] ${framed ? 'text-[16px]' : 'text-[18px]'}`}>
+          {p}
+        </p>
+      ))}
+      <div className={`mt-[22px] flex gap-[10px] ${framed ? 'flex-col' : 'flex-wrap'}`}>
+        <KitButton href={path('/formations')} tone="edu">{t('index.ctaCourses')}</KitButton>
+        <KitButton href={path('/conception')} tone="studio">{t('index.ctaServices')}</KitButton>
+        <KitButton href={path('/contact?rdv=1')} tone="ghost">{t('index.ctaCall')}</KitButton>
+      </div>
+      <div className="mt-[34px] flex items-center gap-3 border-0 border-t border-solid border-[color:var(--line)] pt-5 text-[14px] text-ink-2">
+        <a href={path(`/faq/${faqSlug(item)}`)} className="inline-flex items-center gap-2 font-semibold text-ink">
+          {t('index.openPage')}
+          <Icon name="forward" size={14} />
+        </a>
+      </div>
+    </article>
+  );
+}
+
 export default function FAQPage() {
   const { t } = useTranslation('faq');
   const path = useLocalizedPath();
   const [category, setCategory] = useState('');
   const [search, setSearch] = useState('');
 
-  /*
-   * Même clé que la page d'une question, DONC MÊME REQUÊTE — la nuance n'est pas cosmétique :
-   * deux `queryFn` différentes derrière une clé unique font que le contenu du cache dépend de
-   * l'écran ouvert en premier. Le tri par `order` vient de la requête Firestore elle-même
-   * (`getAllFAQ` porte son `orderBy`), il n'a rien à faire ici.
-   */
   const { data: faqs = null } = useQuery({
     queryKey: queryKeys.faq,
     queryFn: () => getAllFAQ(),
   });
 
-  const categories = useMemo(() => {
-    const tally = new Map<string, number>();
-    for (const item of faqs ?? []) tally.set(item.category, (tally.get(item.category) ?? 0) + 1);
-    return [...tally.entries()];
-  }, [faqs]);
-
-  const chips = useMemo(
-    () => [`${t('index.filterAll')} · ${faqs?.length ?? 0}`, ...categories.map(([c, n]) => `${c} · ${n}`)],
-    [categories, faqs, t],
-  );
+  const categories = useMemo(() => [...new Set((faqs ?? []).map((f) => f.category).filter(Boolean))], [faqs]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -67,18 +102,21 @@ export default function FAQPage() {
     });
   }, [faqs, category, search]);
 
-  /* Les questions sont groupées par catégorie, comme dans le kit — deux colonnes de blocs. */
-  const grouped = useMemo(() => {
-    const map = new Map<string, FAQItem[]>();
-    for (const item of filtered) map.set(item.category, [...(map.get(item.category) ?? []), item]);
-    return [...map.entries()];
-  }, [filtered]);
+  const featured = filtered[0];
+  const titleLines = t('index.titleLines', { returnObjects: true }) as string[];
+
+  const chips = (
+    <div className="mm-chips mb-2 flex-nowrap overflow-x-auto wide:flex-wrap" role="group" aria-label={t('index.filtersLabel')}>
+      {['', ...categories].map((c) => (
+        <button key={c || 'all'} type="button" className="mm-chip flex-none" aria-pressed={category === c} onClick={() => setCategory(c)}>
+          {c || t('index.filterAll')}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <DsNavHost>
-      {/* `seoTitle` / `seoDescription`, à la racine du namespace — et non `seo.title`, qui
-          n'existe pas : i18next rendait alors la CLÉ, et l'onglet du navigateur affichait
-          « seo.title » sur la page publique la plus liée du site. */}
       <SEOHead title={t('seoTitle')} description={t('seoDescription')} />
       {faqs && faqs.length > 0 && (
         <JsonLd data={{
@@ -92,108 +130,83 @@ export default function FAQPage() {
         }} />
       )}
 
-      {/*
-        LE HÉROS — kit v3 (`Site-FAQ`) : la dalle de nuit, le titre, le chapô et la RECHERCHE
-        dans le premier écran. Ni sourcil ni territoire : le titre est aussi le libellé du
-        lien de pied de page, et la page dit la même chose que le lien qui y mène. Le libellé
-        de la pilule reste visible (« Cherche » en gras, « une question » en gris).
-      */}
-      <SiteHero
-        mesh="edu"
-        titleLines={t('index.titleLines', { returnObjects: true }) as string[]}
-        size={50}
-        lede={t('index.lede')}
-      >
-        <div className="rv mt-7 max-w-[520px]" style={{ ['--i' as string]: 6 }}>
-          <SearchPill
-            label={t('index.searchLabel')}
-            hint={t('index.searchHint')}
-            icon={<Icon name="search" size={16} strokeWidth={2.4} />}
-            value={search}
-            onChange={setSearch}
-          />
-        </div>
-      </SiteHero>
-
-      <PageSite>
-        {categories.length > 0 && (
-          <div className="rv max-w-[620px]" style={{ ['--i' as string]: 1 }}>
-            <ChipRow
-              label={t('index.eyebrow')}
-              options={chips}
-              value={category ? chips.find((c) => c.startsWith(category)) : chips[0]}
-              onChange={(o) => setCategory(o.startsWith(t('index.filterAll')) ? '' : o.split(' · ')[0])}
-            />
-          </div>
-        )}
-
-        {faqs === null ? (
-          <div className="mt-6 grid gap-3">
-            {[0, 1, 2, 3].map((i) => <Skeleton key={i} height={54} radius="var(--r-m)" />)}
-          </div>
-        ) : filtered.length === 0 ? (
-          <p className="mt-6 max-w-prose text-lede text-ink-2">{t('index.empty')}</p>
-        ) : (
-          /*
-            DEUX COLONNES EXPLICITES, ET LE PANNEAU DE CONTACT AU PIED DE LA DROITE.
-            Le kit répartit les blocs entre deux colonnes et ferme la seconde par « Pose-la-moi
-            directement » (`PagesUtiles.js:28-40`) : les deux colonnes se terminent alors à la
-            même hauteur. En flux libre, les groupes se répartissaient tout seuls et le panneau
-            passait pleine largeur sous la grille — la colonne de droite s'arrêtait court.
-          */
-          <div className="mt-[10px] grid gap-5 wide:grid-cols-2 wide:items-start">
-            {[grouped.slice(0, Math.ceil(grouped.length / 2)), grouped.slice(Math.ceil(grouped.length / 2))].map((colonne, ci) => (
-              <div key={ci}>
-                {colonne.map(([name, items], g) => (
-              <div key={name}>
-                <SiteEyebrow style={{ marginTop: '22px' }}>{name}</SiteEyebrow>
-                {/* `"6px 22px"` — le contenant canonique d'une liste de `LessonRow`. */}
-                <Bento padding="6px 22px" className="rv" style={{ ['--i' as string]: 7 + g }}>
-                  {items.map((item, i) => (
-                    <LessonRow
-                      key={item.id}
-                      state="plain"
-                      href={path(`/faq/${faqSlug(item)}`)}
-                      title={<TranslatedText text={item.question} as="b" className="font-semibold" />}
-                      trailing={<Icon name="forward" size={15} color="var(--ink-2)" strokeWidth={2.4} />}
-                      last={i === items.length - 1}
-                    />
-                  ))}
-                </Bento>
-              </div>
-                ))}
-
-                {/*
-                  Le panneau ferme la SECONDE colonne.
-
-                  LES DEUX TEXTES ÉTAIENT AUSSI INTERVERTIS. Le chapô de la page portait « Si la
-                  question revient, elle finit ici » — qui est, dans le kit, le CORPS de ce
-                  panneau (`PagesUtiles.js:36`) — pendant que le panneau affichait en gros titre
-                  « Tu ne trouves pas ? », qui en est le SOURCIL. L'argument de la page, lui, ne
-                  s'affichait nulle part.
-                */}
-                {ci === 1 && (
-                  <GlassPanel level="hero" padding={24} className="rv mt-[22px]" style={{ ['--i' as string]: 8 }}>
-                    <SiteEyebrow style={{ margin: 0 }}>{t('index.contactEyebrow')}</SiteEyebrow>
-                    <p className="m-0 mt-[7px] font-display text-[19px] font-black tracking-[-.03em] text-ink">
-                      {t('index.contactTitle')}
-                    </p>
-                    <p className="mt-2 mb-4 max-w-[52ch] text-meta leading-[1.55] text-ink-2">{t('index.contactBody')}</p>
-                    <Button href={path('/contact')} tone="primary" size="sm" fullWidth={false}>
-                      {t('index.contactCta')}
-                    </Button>
-                  </GlassPanel>
-                )}
-              </div>
+      <NightHero mesh="edu">
+        <div className="relative z-[1] mx-auto box-border max-w-[1360px] px-5 pb-[30px] pt-9 wide:px-10 wide:pb-16 wide:pt-[110px]">
+          <span className="mm-eyebrow text-[color:var(--mm-bleu-c)]">{t('index.eyebrow')}</span>
+          <h1 className="mm-d mb-[14px] mt-[14px] text-[52px] leading-[.9] wide:mb-[22px] wide:mt-5 wide:text-[clamp(56px,7.4vw,112px)] wide:leading-[.88] wide:tracking-[-.05em]">
+            {titleLines.map((l, i) => (
+              <span key={i}>
+                {i > 0 && <br className="hidden wide:inline" />}
+                {i > 0 && <span className="wide:hidden"> </span>}
+                <BlueAccent text={l} />
+              </span>
             ))}
+          </h1>
+          <p className="m-0 mb-[22px] max-w-[52ch] text-[15.5px] leading-[1.55] text-ink-2 wide:mb-[26px] wide:text-[18px]">{t('index.lede')}</p>
+          <div className="mm-field max-w-[560px]">
+            <div className="mm-field__box">
+              <input
+                id="faq-search"
+                type="search"
+                placeholder=" "
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="!border-transparent !bg-[color:rgb(255_255_255/.95)] !text-[color:var(--ink-fixed)]"
+              />
+              <label htmlFor="faq-search" className="!text-[color:var(--ink-fixed)] opacity-70">{t('index.searchLabel')}</label>
+            </div>
+          </div>
+        </div>
+      </NightHero>
+
+      <KitSection className="pt-11 wide:pt-[72px]">
+        {faqs === null ? (
+          <div className="grid gap-2">
+            {[0, 1, 2, 3].map((i) => <Skeleton key={i} height={50} radius="var(--r-m)" />)}
+          </div>
+        ) : (
+          <div className="grid items-start gap-10 wide:grid-cols-[380px_minmax(0,1fr)]">
+            <nav aria-label={t('index.listLabel')} className="flex flex-col gap-2 wide:sticky wide:top-[calc(var(--header-h)+24px)]">
+              {chips}
+              {filtered.length === 0 ? (
+                <p className="m-0 text-[15px] text-ink-2">{t('index.empty')}</p>
+              ) : (
+                filtered.map((item) => {
+                  const current = item.id === featured?.id;
+                  return (
+                    <a
+                      key={item.id}
+                      href={path(`/faq/${faqSlug(item)}`)}
+                      aria-current={current ? 'page' : undefined}
+                      className={[
+                        'flex items-center justify-between gap-[10px] rounded-card px-4 py-[14px] text-[15px] font-semibold no-underline',
+                        current
+                          ? 'wide:bg-[color:var(--surface-ink)] wide:text-[color:var(--paper-fixed)] border border-solid border-[color:var(--line)] bg-bento text-ink wide:border-transparent'
+                          : 'border border-solid border-[color:var(--line)] bg-bento text-ink',
+                      ].join(' ')}
+                    >
+                      <TranslatedText text={item.question} />
+                    </a>
+                  );
+                })
+              )}
+              <a href={path('/contact')} className="mt-3 text-[14px] font-semibold text-ink-2">
+                {t('index.contactLink')}
+              </a>
+            </nav>
+            {featured && (
+              <>
+                <div className="hidden wide:block">
+                  <Preview item={featured} framed={false} />
+                </div>
+                <div className="wide:hidden">
+                  <Preview item={featured} framed />
+                </div>
+              </>
+            )}
           </div>
         )}
-
-        <GlassPanel level="truth" className="mt-[22px] max-w-[76ch]">
-          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('index.truthTitle')}</SiteEyebrow>
-          <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('index.truthBody')}</p>
-        </GlassPanel>
-      </PageSite>
+      </KitSection>
     </DsNavHost>
   );
 }

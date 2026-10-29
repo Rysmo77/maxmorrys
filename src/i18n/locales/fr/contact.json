@@ -1,17 +1,61 @@
 {
   "seoTitle": "Contact",
   "seoDescription": "Écris à Max-Morrys : une formation et la communauté, ou un projet de site et de plateforme. Les missions de direction marketing sont contractées par MY ONOMA. Dakar, Sénégal.",
-  "eyebrow": "CONTACT",
-  "heroTitle1": "Parlons de",
-  "heroTitle2": "ta stratégie",
-  "heroSubtitle": "Tu as un projet, une question, ou besoin d'une consultation ? Je suis là pour t'aider à atteindre tes objectifs de marketing digital !",
-  "info": {
-    "email": "Email",
-    "phone": "Téléphone",
-    "location": "Localisation",
-    "locationValue": "Dakar, Sénégal",
-    "whatsapp": "WhatsApp",
-    "whatsappValue": "Discutons sur WhatsApp"
+  "site": {
+    "hero": {
+      "eyebrow": "Contact",
+      "titleLines": [
+        "Parlons de",
+        "ton [projet.]"
+      ],
+      "lede": "Dis-moi ce que tu cherches : je t'envoie au bon endroit, sans formulaire inutile.",
+      "ledeShort": "Dis-moi ce que tu cherches, je t'envoie au bon endroit.",
+      "whatsapp": "WhatsApp"
+    },
+    "route": {
+      "eyebrow": "Qu'est-ce qui t'amène ?",
+      "learnEyebrow": "Formations et accompagnement",
+      "learnTitle": "Je veux apprendre",
+      "learnBody": "Le catalogue, les sessions et les inscriptions sont sur Edu.",
+      "learnCta": "Voir les formations",
+      "buildEyebrow": "Commerces, organisations",
+      "buildTitle": "Je veux un site ou de la visibilité",
+      "buildBody": "Pack Commerces ou projet sur mesure : devis en ligne ou qualification.",
+      "buildCta": "Voir les services",
+      "talkEyebrow": "Collaboration, intervention, média",
+      "talkTitle": "Je veux échanger avec Max",
+      "talkBody": "Réserve un créneau de 30 minutes en visio ou par téléphone.",
+      "talkCta": "Choisir un créneau"
+    },
+    "booking": {
+      "eyebrow": "Réserver · 30 min · gratuit",
+      "title": "Choisis ton créneau.",
+      "tz": "Heure de Dakar (GMT). Le créneau est une demande : je le confirme moi-même.",
+      "name": "Ton nom",
+      "phone": "Numéro WhatsApp",
+      "email": "Ton e-mail",
+      "topic": "L'objet de l'appel, en une phrase",
+      "formatLabel": "Format",
+      "format": {
+        "visio": "Visio",
+        "phone": "Téléphone",
+        "whatsapp": "WhatsApp"
+      },
+      "submit": "Confirmer le rendez-vous",
+      "note": "Ta demande est enregistrée tout de suite ; je reviens vers toi pour confirmer le créneau."
+    },
+    "facts": {
+      "basedLabel": "Basé à",
+      "basedValue": "Dakar, Sénégal",
+      "replyLabel": "Délai de réponse",
+      "replyValue": "≤ 48 h ouvrées",
+      "faqLabel": "Avant d'écrire",
+      "faqValue": "Lire la FAQ →"
+    },
+    "write": {
+      "title": "Plutôt écrire ? Envoie-moi un message",
+      "note": "C'est moi qui lis, et c'est moi qui réponds — à l'adresse laissée ici."
+    }
   },
   "subjects": {
     "formationInfo": "Informations sur une formation",
@@ -51,94 +95,10 @@
     "appointmentError": "Erreur lors de la prise de rendez-vous. Réessaie."
   },
   "booking": {
-    "cardTitle": "Prendre rendez-vous",
-    "cardText": "Réserve un créneau pour un échange personnalisé.",
-    "cardButton": "Planifier un appel",
-    "modalTitle": "Planifier un appel",
     "successTitle": "Demande envoyée !",
-    "successTextLine1": "Ta demande de rendez-vous a bien été reçue.",
-    "successTextLine2": "Je te confirmerai le créneau par email très prochainement.",
-    "close": "Fermer",
+    "successBody": "Ta demande est enregistrée. Je regarde le créneau et je reviens vers toi : rien n'est confirmé tant que je ne l'ai pas fait, et le produit n'envoie aucun e-mail automatique.",
     "dateLabel": "Date *",
     "timeLabel": "Heure *",
-    "subjectLabel": "Objet de l'appel *",
-    "nameLabel": "Nom complet *",
-    "namePlaceholder": "Ton nom",
-    "phoneLabel": "Téléphone (optionnel)",
-    "phonePlaceholder": "+221 77...",
-    "emailLabel": "Email *",
-    "emailPlaceholder": "ton@email.com",
-    "notesLabel": "Notes (optionnel)",
-    "notesPlaceholder": "Précise ton besoin pour préparer l'appel...",
-    "cancel": "Annuler",
-    "submitting": "Envoi...",
-    "submit": "Confirmer la demande",
-    "successBody": "Ta demande est enregistrée. Je regarde le créneau et je reviens vers toi : rien n'est confirmé tant que je ne l'ai pas fait, et le produit n'envoie aucun e-mail automatique."
-  },
-  "faqEyebrow": "FAQ",
-  "faqTitle": "Questions fréquentes",
-  "page": {
-    "titleLines": [
-      "Écris-moi.",
-      "[Je réponds.]"
-    ],
-    "lede": "Une question sur une formation, un commerce à mettre en ligne, une idée d'épisode. C'est moi qui lis, et c'est moi qui réponds — compte deux jours ouvrés.",
-    "route": {
-      "eyebrow": "Première question",
-      "question": "De quoi s'agit-il ?",
-      "learnTitle": "Une formation, ou la communauté",
-      "learnBody": "Un cours, un accès, le Club des Digitos, le blog, un épisode.",
-      "buildTitle": "Un site, ou une plateforme",
-      "buildBody": "Un commerce à mettre en ligne, un projet sur mesure à cadrer.",
-      "growTitle": "Une direction marketing",
-      "growBody": "De l'acquisition, du revenu, une stratégie de marque à piloter."
-    },
-    "myonoma": {
-      "eyebrow": "Ce n'est pas ici",
-      "title": "Cette demande part chez MY ONOMA.",
-      "body": "La direction marketing, l'acquisition et le revenu ne sont pas portés par Max-Morrys : c'est MY ONOMA qui les contracte, avec sa propre practice. Je ne recueille donc pas ta demande ici pour la recopier à la main là-bas — tu l'écris directement au bon endroit, et tu gardes une seule conversation.",
-      "cta": "Ouvrir le formulaire MY ONOMA",
-      "note": "Lien sortant : tu quittes maxmorrys.me."
-    },
-    "triage": {
-      "title": "Avant d'écrire",
-      "paymentBefore": "Un paiement qui n'apparaît pas ? Regarde d'abord",
-      "paymentLink": "Mes formations",
-      "paymentAfter": "dans ton espace : l'accès s'y ouvre dès que le paiement est confirmé.",
-      "faqBefore": "Une question générale ? Elle est peut-être déjà dans la",
-      "faqLink": "FAQ",
-      "faqAfter": "et sa réponse y est en entier."
-    },
-    "channels": {
-      "title": "Me joindre autrement",
-      "bookingBody": "Tu préfères parler de vive voix ? Réserve un créneau du soir, heure de Dakar."
-    },
-    "account": {
-      "title": "Tu écris depuis ton compte",
-      "body": "Ma réponse arrivera dans ton espace, et ce message restera dans ta boîte.",
-      "signedIn": "Compte connecté"
-    },
-    "form": {
-      "subjectLabel": "De quoi veux-tu parler ?",
-      "subjectPlaceholder": "Choisis un sujet",
-      "messagePlaceholderLearn": "Dis-moi où tu en es et ce que tu cherches à faire…",
-      "messagePlaceholderBuild": "Décris le commerce ou le projet, et ce qui existe déjà en ligne…",
-      "note": "Tu peux aussi écrire sans compte — mais je ne pourrai pas te répondre dans l'application."
-    },
-    "truth": {
-      "title": "Ce qui arrive à ton message",
-      "body": "Depuis un compte connecté, le message est rattaché à ce compte : il reste dans ta boîte, et ma réponse arrive au même endroit. Sans compte, il reste anonyme dans l'application — je réponds alors à la main, à l'adresse laissée dans le formulaire."
-    },
-    "facts": {
-      "replyLabel": "Réponse",
-      "replyValue": "≤ 48 h",
-      "replyNote": "Jours ouvrés, heure de Dakar",
-      "readerLabel": "Qui lit",
-      "readerValue": "Moi",
-      "readerNote": "Il n'y a pas de service client",
-      "langsLabel": "Langues",
-      "langsValue": "FR · EN",
-      "langsNote": "Écris dans celle que tu préfères"
-    }
+    "submitting": "Envoi..."
   }
 }

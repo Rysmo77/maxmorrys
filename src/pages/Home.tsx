@@ -1,100 +1,69 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Button, GlassPanel, Icon, Num } from '@ds';
+import { Icon, Num } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SOCIAL_URLS } from '../components/seo/seo-config';
 import DsNavHost from '../components/layout/DsNavHost';
-import MyOnomaBridge from '../components/brand/MyOnomaBridge';
-import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
-import { SiteHero } from '../components/site/v3/SiteHero';
+import { Eyebrow, Hl, KitButton, KitH2, KitSection, Lines, NightHero, Photo, type PhotoTone } from '../components/site/v3/kit';
 import { useLanguage, useLocalizedPath } from '../contexts/LanguageContext';
 import { portrait } from '../lib/author';
+import { clientProjects } from '../lib/brand/clients';
+import { legalEntity } from '../lib/brand/company';
+import { CLUB_PRICE_XOF } from '../lib/club/pricing';
 import { contentPath } from '../lib/contentPath';
 import { queryKeys } from '../lib/queryClient';
-import type { BlogPost, Podcast } from '../types';
+import type { BlogPost, Podcast, Video } from '../types';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * L'ACCUEIL — IL PRÉSENTE ET IL AIGUILLE. IL NE VEND RIEN.
+ * L'ACCUEIL — LA MAQUETTE `Main` (bureau) / `Hub-Accueil-mobile` (390 px), PASSE 2.
  *
- * Le CDC du 14/09/2026 § 4.1 tranche ce que sept versions successives de cette page n'avaient
- * jamais tranché : « L'accueil ne vend rien directement. Il présente la personne et aiguille.
- * C'est sa seule fonction, et il doit y renoncer à toute autre. » Cinq blocs, dans cet ordre —
- * présentation, les deux pistes, preuve d'audience, dernières publications, lien My Onoma.
+ * ⚠️ DÉCISIONS LEVÉES PAR LE PORTEUR (29/10/2026) : « maquettes + DS + PRD rév. 6 font foi ».
+ * L'accueil « cinq blocs » du CDC du 14/09 et l'accueil « sept sections » du 01/09 sont
+ * abandonnés : la page suit l'ordre de la planche — dalle de nuit, clients, à propos,
+ * publics, offres, méthode, vidéos, articles, appel final.
  *
- * ⚠️ CETTE DÉCISION EN ANNULE UNE PLUS ANCIENNE, ET C'EST VOULU. Une note de mémoire du dépôt
- * dit « l'accueil est repassé à 7 sections le 01/09/2026 — ne pas le réduire en croyant
- * réparer ». Le CDC est postérieur et dit l'inverse. Ce qui reste vrai de l'ancienne note,
- * c'est son motif : rien ne doit DISPARAÎTRE du site en quittant l'accueil. Chaque section
- * retirée a donc une destination, et l'accueil y mène par la carte de sa piste :
+ * Ce qui reste tenu, et pourquoi la page diffère de la planche à ces endroits-là :
+ * - CHIFFRES DÉRIVÉS OU MASQUÉS. « 2022 » vient de l'immatriculation (`legalEntity`),
+ *   « 11 » du compte des réalisations publiées (`clientProjects`). « 20+ formés » et
+ *   « 3 pays » n'ont aucune source : ils ne s'affichent pas. La pastille « Disponible pour
+ *   [N] projets en [MOIS] » n'a pas de donnée : absente.
+ * - CLIENTS : seulement les vrais noms de `clientProjects`, jamais de `[Client 4]`.
+ * - TÉMOIGNAGES : aucun témoignage avec accord écrit n'existe en base — la section de la
+ *   planche (marquée « exemple ») n'est pas rendue.
+ * - VIDÉOS, ARTICLES, ÉPISODE : lus en base ; une section sans contenu publié disparaît
+ *   au lieu d'afficher les titres d'exemple de la planche.
+ * - PHOTOS : seul le portrait existe (`portrait`). Les autres emplacements gardent le
+ *   dégradé du kit, sans libellé « à faire ».
  *
- *   · « Tout ce que tu peux faire ici » (six portes)     → /apprendre et /conception
- *   · « Pourquoi ici, et pas ailleurs » (paiement, …)    → /apprendre
- *   · « Tu as un commerce ? » (offre TPE développée)     → /conception (commerces-et-tpe)
- *   · « Par où tu commences » (double appel final)       → remplacé par les deux pistes
- *
- * ── LES DEUX PISTES SONT DE POIDS STRICTEMENT ÉGAL ────────────────────────────────────
- * Même primitive, même `layout`, même `padding`, même `titleSize`, même structure de contenu
- * et `fill` pour que les deux pieds se posent sur la même ligne. Aucune des deux ne porte de
- * chiffre que l'autre n'aurait pas : un compte d'un seul côté suffirait à faire de l'autre la
- * piste secondaire, ce que le CDC refuse explicitement.
- *
- * ── LES COMPTEURS ONT QUITTÉ L'ACCUEIL, ET IL N'EN RESTE QU'UN SEUL FAIT DATÉ ─────────
- * ⚠️ ÉCART ASSUMÉ AU CDC § 4.1, décidé le 18/09/2026 après mesure. L'accueil et `/a-propos`
- * affichaient LES MÊMES QUATRE COMPTES, issus du même `getPublicCounts()` : deux relevés du
- * même fait, à deux dates de lecture potentiellement différentes, sur deux pages qui se
- * suivent. Le décompte reste sur `/a-propos`, dont c'est le métier — la page qui doit
- * inspirer confiance —, et l'accueil garde la seule chose que l'autre ne dit pas : la DATE
- * de la dernière parution.
- *
- * RIEN NE DISPARAÎT SANS DESTINATION, ici non plus : `proof.truthBody` RENVOIE au décompte
- * de `/a-propos` au lieu de le répéter. C'est ce qui distingue un retrait d'une perte.
- *
- * AD-5 tient inchangé : le seul chemin vers un nombre reste `<Num source asOf>`.
- *
- * ⚠️ `asOf` VENAIT DE `counts.asOf`, ET CETTE SOURCE N'EXISTE PLUS ICI. La requête de
- * comptes est partie avec la grille. La date de relevé est désormais celle du RENDU — le
- * moment où les deux lectures de publications (articles, épisodes) ont été servies à cette
- * page —, et c'est bien ce qu'elle date : `derniere` sort de `latest`, pas d'un compteur.
- *
- * ── CE QUE CETTE PAGE COÛTE AU PREMIER OCTET ──────────────────────────────────────────
- * `Home` est la SEULE page montée sans `lazy()` dans `App.tsx` : tout import statique ici pèse
- * sur l'entrée de chaque visiteur anonyme. Les deux lectures passent donc par un `import()`
- * dans leur `queryFn` — `tests/unit/first-view-graph.test.ts` refuse `firebase/firestore` dans
- * le graphe statique de l'entrée, et le barillet `lib/firestore` l'y ferait entrer d'une ligne.
+ * `Home` est la SEULE page montée sans `lazy()` : les lectures Firestore passent par un
+ * `import()` dans leur `queryFn` (`tests/unit/first-view-graph.test.ts`).
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-/**
- * LES DEUX PISTES, dans l'ordre du CDC — et leur teinte n'est pas un choix de mise en page.
- *
- * ⚠️ CONCEPTION N'EST PAS UN TERRITOIRE. La piste vit HORS des quatre verbes : c'est ce que
- * `sectionThemes.universeFromPath` câble (`/conception` → univers `agency`, corail) et ce que
- * `tests/unit/og-territory-sync.test.ts` exige — seul l'étage productisé
- * `/conception/commerces-et-tpe` garde le teal de « Je te digitalise ». D'où `rose`, la
- * CINQUIÈME carte du système, déclarée par `TerritoryCard` comme « corail, hors des quatre
- * verbes ». Lui donner `digitalise` ici aurait mis la couleur d'une grille tarifaire publique
- * sur la porte d'une piste qui n'en affiche aucune.
- *
- * APPRENDRE prend `forme` : le verbe qui l'ouvre, et ce que le pré-rendu annonce déjà.
- *
- * Deux teintes différentes, donc — mais AUCUNE hiérarchie : même primitive, même géométrie,
- * même structure de contenu, et `fill` pour que les deux pieds tombent sur la même ligne.
- */
-const PISTES = [
-  { key: 'conception', territory: 'rose', art: 'is-club', to: '/conception', cta: 'cta.pisteConception' },
-  { key: 'apprendre', territory: 'forme', art: 'is-edu', to: '/apprendre', cta: 'cta.pisteApprendre' },
-] as const;
+const AUDIENCES: { key: 'tpe' | 'pro' | 'brands'; to: string; tone: PhotoTone }[] = [
+  { key: 'tpe', to: '/conception/commerces-et-tpe', tone: 'studio' },
+  { key: 'pro', to: '/apprendre', tone: 'edu' },
+  { key: 'brands', to: '/conception', tone: 'informe' },
+];
+
+const OFFERS: { key: 'edu' | 'club' | 'tpe' | 'custom'; to: string; tone: PhotoTone }[] = [
+  { key: 'edu', to: '/apprendre', tone: 'edu' },
+  { key: 'club', to: '/club-des-digitos', tone: 'club' },
+  { key: 'tpe', to: '/conception/commerces-et-tpe', tone: 'studio' },
+  { key: 'custom', to: '/conception', tone: 'informe' },
+];
+
+const ARTICLE_TONES: PhotoTone[] = ['informe', 'studio', 'edu', 'club'];
+const VIDEO_TONES: PhotoTone[] = ['club', 'edu', 'informe', 'studio', 'edu'];
 
 export default function Home() {
   const { t } = useTranslation('home');
-  /* Les six libellés de destination sont partagés : ils étaient écrits au caractère près dans
-     `home.json` ET `about.json`, deux cartes pour la même porte. */
-  const { t: tc } = useTranslation('common');
   const { t: tShared } = useTranslation('shared');
   const path = useLocalizedPath();
   const { language } = useLanguage();
+  const locale = language === 'en' ? 'en-GB' : 'fr-FR';
 
   const { data: posts = [] } = useQuery<BlogPost[]>({
     queryKey: queryKeys.homeRecentPosts,
@@ -104,61 +73,26 @@ export default function Home() {
     queryKey: queryKeys.publishedPodcasts,
     queryFn: async () => (await import('../lib/firestore/content')).getPublishedPodcasts(),
   });
+  const { data: videos = [] } = useQuery<Video[]>({
+    queryKey: queryKeys.publishedVideos,
+    queryFn: async () => (await import('../lib/firestore/content')).getPublishedVideos(),
+  });
 
-  /*
-   * ⚠️ LA DATE DE RELEVÉ NE VIENT PLUS DE `counts.asOf` — cette lecture a quitté la page avec
-   * la grille des quatre comptes (voir l'en-tête). C'est l'instant du RENDU, c'est-à-dire
-   * celui où les deux requêtes ci-dessus ont servi cette page : la seule chose qu'`asOf`
-   * date encore ici est `derniere`, qui en est tirée.
-   */
-  const asOf = new Date();
-  const locale = language === 'en' ? 'en-GB' : 'fr-FR';
-
-  /*
-   * LES TROIS DERNIÈRES PUBLICATIONS, TOUS SUPPORTS CONFONDUS.
-   *
-   * Articles et épisodes se rangent sur la MÊME frise chronologique : trier chaque source
-   * séparément ferait passer un article vieux de six mois devant un épisode d'hier, et la
-   * section s'appelle « les dernières publications », pas « un de chaque ».
-   *
-   * `publishedAt` est une chaîne ISO en base — la comparaison lexicographique y est déjà
-   * chronologique, et elle évite de construire trois `Date` par rendu.
-   */
-  const latest = [
-    ...posts.map((p) => ({
-      territory: 'informe' as const,
-      meta: t('latest.metaArticle'),
-      title: p.title,
-      at: p.publishedAt,
-      to: contentPath('blog', p, language),
-    })),
-    ...podcasts.map((p) => ({
-      territory: 'transforme' as const,
-      meta: t('latest.metaEpisode'),
-      title: p.title,
-      at: p.publishedAt,
-      to: contentPath('podcasts', p, language),
-    })),
-  ]
-    .sort((a, b) => (a.at < b.at ? 1 : -1))
-    .slice(0, 3);
-
-  /*
-   * LE RYTHME DE PUBLICATION, RÉDUIT À CE QUI EST SOURÇABLE : la date de la dernière parution.
-   *
-   * Le CDC demande « le rythme de publication ». Une CADENCE — « un article par semaine » —
-   * n'est mesurable par aucune lecture que cette page fait : les cinq derniers articles ne
-   * décrivent pas une fréquence, et l'écrire à la main serait précisément le chiffre rond
-   * invérifiable que le CDC interdit. La date de la dernière publication, elle, est lue en
-   * base, et elle dit au lecteur ce qu'une cadence prétendrait lui dire.
-   */
-  const derniere = latest[0]?.at ?? null;
+  /* Les deux faits de la dalle — chacun avec sa source et sa date (AD-5). */
+  const registeredAt = new Date(`${legalEntity.registeredAt}T12:00:00Z`);
+  const renderedAt = new Date();
+  const projectCount = clientProjects.length;
+  const latestEpisode = podcasts[0];
+  const articles = posts.slice(0, 4);
+  /* La planche montre cinq vignettes, la plus récente au centre. */
+  const shownVideos = videos.slice(0, 5);
+  const centre = Math.floor(shownVideos.length / 2);
+  const ordered = shownVideos.length > 0 ? [...shownVideos.slice(1, centre + 1).reverse(), shownVideos[0], ...shownVideos.slice(centre + 1)] : [];
+  const fmt = (d: string) => new Date(d).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   return (
     <DsNavHost>
       <SEOHead title={DEFAULT_TITLE} description={DEFAULT_DESCRIPTION} ogImage={DEFAULT_OG_IMAGE} />
-      {/* Le balisage ne décrit QUE l'organisation. Pas de `Person` : `/a-propos` le porte
-          déjà, et un second qui divergerait d'un champ vaudrait moins que rien. */}
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'Organization',
@@ -167,189 +101,296 @@ export default function Home() {
         sameAs: Object.values(SOCIAL_URLS),
       }} />
 
-      {/*
-        ── 1 · LA PRÉSENTATION ─────────────────────────────────────────────────────────
-        Kit v3 (`Main`, `PersonalHero`) : la dalle de nuit, le titre géant, le portrait à
-        droite. Une personne, un métier, un lieu — le titre NOMME, il ne promet pas, et le
-        fragment entre crochets prend l'orange du surlignage.
-
-        ⚠️ ÉCART DÉLIBÉRÉ À LA MAQUETTE : `PersonalHero` y aligne quatre faits chiffrés (une
-        date d'immatriculation, un nombre de projets, des personnes formées, des pays). FR-122
-        et le CDC § 4.1 tiennent : aucun compteur sur l'accueil, le seul fait daté est la
-        dernière parution (bloc 3). La colonne du portrait reste FIXE (380 px) : une personne
-        a une taille naturelle.
-      */}
-      <SiteHero
+      {/* ── 1 · LA DALLE DE NUIT ─────────────────────────────────────────────── */}
+      <NightHero
         mesh="club"
-        eyebrow={t('hero.eyebrow')}
-        titleLines={t('hero.titleLines', { returnObjects: true }) as string[]}
-        size={60}
-        lede={t('hero.lede')}
-        actions={
-          <Button href={path('/a-propos')} tone="highlight" arrow fullWidth={false}>
-            {t('hero.cta')}
-          </Button>
-        }
-        asideCols="portrait"
-        aside={
-          /* Au-dessus de la ligne de flottaison : ni `lazy`, ni différé. */
-          <figure
-            className="rv-s m-0 w-full max-w-[380px] rounded-media p-[10px] shadow-lift"
-            style={{
-              background: 'linear-gradient(150deg,var(--mm-orange-c),var(--mm-rose-c) 48%,var(--mm-violet-c))',
-              ['--i' as string]: 4,
-            }}
-          >
-            <img
-              src={portrait.src}
-              srcSet={portrait.srcSet}
-              /* La largeur AFFICHÉE : la piste de 380 px moins le passe-partout de 2 × 10. */
-              sizes="360px"
-              width={portrait.width}
-              height={portrait.height}
-              alt={tShared('portrait.alt')}
-              fetchPriority="high"
-              decoding="async"
-              className="block w-full rounded-card object-cover"
-              style={{ aspectRatio: '4 / 5' }}
+        className="flex min-h-[780px] flex-col wide:min-h-[860px]"
+        backdrop={
+          <>
+            <Photo tone="club" className="!absolute inset-0 !rounded-none" />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 hidden wide:block"
+              style={{ background: 'linear-gradient(90deg,rgba(10,13,17,.94) 0%,rgba(10,13,17,.6) 45%,rgba(10,13,17,0) 72%),linear-gradient(0deg,rgba(10,13,17,.92) 0%,rgba(10,13,17,0) 42%)' }}
             />
-          </figure>
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 wide:hidden"
+              style={{ background: 'linear-gradient(0deg,rgba(10,13,17,.96) 10%,rgba(10,13,17,.2) 70%)' }}
+            />
+          </>
         }
-      />
-
-      {/*
-        ── 2 · LES DEUX PISTES ─────────────────────────────────────────────────────────
-        Le seul aiguillage de la page, et son centre de gravité. Kit v3 : les cartes de
-        service de `Main` (« Apprendre avec moi, ou construire avec moi »). Les deux sont
-        rigoureusement identiques en dessin — même tuile, même aplat, même pied ; ce qui les
-        distingue est leur teinte et leur texte, jamais leur taille ni un chiffre.
-      */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <SiteDisplay as="h2" lines={t('pistes.titleLines', { returnObjects: true }) as string[]} size={34} />
-        <p className="mm-prose rv mt-3 max-w-[58ch] text-lede text-ink-2" style={{ ['--i' as string]: 3 }}>
-          {t('pistes.lede')}
-        </p>
-
-        <div className="mt-7 grid gap-5 stack:grid-cols-2">
-          {PISTES.map((piste, i) => (
-            <a
-              key={piste.key}
-              href={path(piste.to)}
-              className="mm-bento rv group flex min-w-0 flex-col text-ink no-underline"
-              style={{ ['--i' as string]: i + 1, padding: 'var(--sp-24)' }}
-            >
-              <span className="flex items-center justify-between gap-3">
-                <span className="mm-tag">{t(`pistes.${piste.key}Meta`)}</span>
-                <span
-                  aria-hidden="true"
-                  className="grid h-10 w-10 place-items-center rounded-pill bg-ink text-paper transition-transform duration-ui ease-ds-out group-hover:-rotate-45"
-                >
-                  <Icon name="forward" size={16} />
-                </span>
-              </span>
-              <span className="mt-5 block font-display text-[clamp(24px,2.6vw,30px)] font-black leading-[1] tracking-[-.035em]">
-                {t(`pistes.${piste.key}Title`)}
-              </span>
-              <span className="mt-3 block text-[15px] leading-[1.55] text-ink-2">{t(`pistes.${piste.key}Body`)}</span>
-              {/* L'élément élastique : il pousse les deux pieds sur la même ligne. */}
-              <span aria-hidden="true" className="min-h-[18px] flex-1" />
-              <span className="mm-eyebrow">{tc(piste.cta)}</span>
-              <span aria-hidden="true" className={`mm-photo ${piste.art} mt-5 block`} style={{ minHeight: '150px' }} />
-            </a>
-          ))}
-        </div>
-      </PageSite>
-
-      {/*
-        ── 3 · LA PREUVE ───────────────────────────────────────────────────────────────
-        UN SEUL FAIT DATÉ, et le renvoi vers ce qui a déménagé (le décompte vit sur
-        `/a-propos`). Kit v3 : la statistique (`mm-stat`) dans une tuile. Tout nombre passe
-        toujours par <Num> : source et date exigées au typage.
-      */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <div className="grid items-start gap-[46px] wide:grid-cols-[1fr_.95fr]">
-          <div className="min-w-0">
-            <SiteDisplay as="h2" lines={t('proof.titleLines', { returnObjects: true }) as string[]} size={34} />
-            <p
-              className="mm-prose rv mt-[11px] max-w-[46ch] text-[15.5px] leading-[1.6] text-ink-2"
-              style={{ ['--i' as string]: 2 }}
-            >
-              {t('proof.lede')}
-            </p>
-
-            <GlassPanel level="truth" className="rv mt-[18px] max-w-[54ch]" style={{ ['--i' as string]: 3 }}>
-              <SiteEyebrow style={{ marginBottom: '6px' }}>{t('proof.truthTitle')}</SiteEyebrow>
-              <p className="m-0 text-meta leading-[1.55] text-ink-2">{t('proof.truthBody')}</p>
-            </GlassPanel>
+      >
+        <div className="relative z-[1] mx-auto mt-auto box-border w-full max-w-[1360px] px-5 pb-6 wide:mt-0 wide:flex-1 wide:px-10 wide:pb-0 wide:pt-[150px]">
+          <h1 className="mm-d m-0 mb-4 text-[min(58px,14.6vw)] !leading-[.86] wide:!leading-[.84] wide:mb-6 wide:text-[clamp(72px,9.5vw,148px)]" style={{ letterSpacing: '-.055em' }}>
+            <Lines accent="aplat" lines={t('hero.titleLines', { returnObjects: true }) as string[]} />
+          </h1>
+          <p className="m-0 mb-[18px] max-w-[48ch] text-[15.5px] leading-[1.5] text-ink-2 wide:mb-7 wide:text-[19px]">{t('hero.lede')}</p>
+          <div className="flex flex-wrap gap-[10px]">
+            <KitButton href={path('/contact?rdv=1')} tone="club" arrow className="w-full justify-between stack:w-auto">
+              {t('hero.ctaCall')}
+            </KitButton>
+            <KitButton href={path('/a-propos')} tone="veil" className="hidden stack:inline-flex">
+              {t('hero.ctaStory')}
+            </KitButton>
           </div>
-
-          <div className="mm-bento rv min-w-0" style={{ ['--i' as string]: 4, padding: 'var(--sp-24)' }}>
-            <div className="mm-stat">
-              <span className="mm-stat__v">
-                <Num
-                  value={derniere ? new Date(derniere).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }) : null}
-                  source="db"
-                  asOf={asOf}
-                  fallback={t('proof.lastNone')}
-                />
-              </span>
-              <span className="mm-stat__l">{t('proof.lastLabel')}</span>
+        </div>
+        <div className="relative z-[1] mx-auto box-border w-full max-w-[1360px] px-5 pb-6 wide:mt-16 wide:px-10 wide:pb-[30px]">
+          <dl aria-label={t('hero.statsLabel')} className="m-0 grid grid-cols-2 border-0 border-t border-solid border-[color:var(--line)] wide:grid-cols-4">
+            <div className="mm-stat !pl-0">
+              <dt className="sr-only">{t('stats.projectsLabel')}</dt>
+              <dd className="m-0 contents">
+                <span className="mm-stat__v !text-[30px] wide:!text-[44px]"><Num value={projectCount} source={{ cite: t('stats.projectsSrc') }} asOf={renderedAt} /></span>
+                <span className="mm-stat__l text-ink-2" aria-hidden="true">{t('stats.projectsLabel')}</span>
+                <span className="mm-stat__src">{t('stats.projectsSrc')}</span>
+              </dd>
             </div>
+            <div className="mm-stat">
+              <dt className="sr-only">{t('stats.companyLabel')}</dt>
+              <dd className="m-0 contents">
+                <span className="mm-stat__v !text-[30px] wide:!text-[44px]"><Num value={String(registeredAt.getUTCFullYear())} source={{ cite: t('stats.companySrc', { date: fmt(registeredAt.toISOString()) }) }} asOf={registeredAt} /></span>
+                <span className="mm-stat__l text-ink-2" aria-hidden="true">{t('stats.companyLabel')}</span>
+                <span className="mm-stat__src">{t('stats.companySrc', { date: fmt(registeredAt.toISOString()) })}</span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </NightHero>
+
+      {/* ── 2 · LES CLIENTS (vrais noms seulement) ───────────────────────────── */}
+      <KitSection className="pt-10 text-center wide:pt-[72px]">
+        <p className="m-0 mb-4 wide:mb-[22px]"><Eyebrow>{t('clients.eyebrow')}</Eyebrow></p>
+        <ul className="m-0 flex list-none flex-wrap justify-center gap-x-[22px] gap-y-[10px] p-0 font-display text-[20px] font-black leading-none tracking-[-.03em] text-ink-3 wide:gap-x-10 wide:gap-y-[14px] wide:text-[26px]">
+          {clientProjects.map((c) => (
+            <li key={c.slug}>{c.name}</li>
+          ))}
+        </ul>
+        <p className="m-0 mt-[14px] hidden text-[12px] text-ink-3 stack:block">{t('clients.note')}</p>
+      </KitSection>
+
+      {/* ── 3 · À PROPOS ─────────────────────────────────────────────────────── */}
+      <KitSection className="grid items-center gap-11 pt-14 wide:grid-cols-2 wide:gap-12 wide:pt-24">
+        <div className="relative w-full wide:max-w-[460px]">
+          <Photo
+            className="h-[400px] !rounded-xl wide:h-[540px]"
+            img={{ src: portrait.src, srcSet: portrait.srcSet, sizes: '(min-width: 1080px) 460px, 100vw', width: portrait.width, height: portrait.height, alt: tShared('portrait.alt') }}
+          />
+          {latestEpisode && (
+            <a
+              href={contentPath('podcasts', latestEpisode, language)}
+              className="mm-float bottom-[-22px] right-3 text-ink no-underline wide:bottom-[60px] wide:right-[-40px] wide:max-w-[250px]"
+            >
+              <span className="mm-avatar bg-[image:linear-gradient(135deg,var(--mm-orange),var(--mm-corail))] text-[color:var(--ink-fixed)]">
+                <Icon name="mic" size={16} />
+              </span>
+              <span>
+                <b>{t('about.podcast')}</b>
+                {latestEpisode.title}
+              </span>
+            </a>
+          )}
+        </div>
+        <div>
+          <Eyebrow>{t('about.eyebrow')}</Eyebrow>
+          <KitH2 className="mb-[14px] mt-3 wide:mb-[22px] wide:mt-4" size="clamp(44px, 5.5vw, 76px)">
+            <Hl text={t('about.title')} />
+          </KitH2>
+          <p className="m-0 mb-[18px] text-[15.5px] leading-[1.6] text-ink-2 stack:hidden">{t('about.pShort')}</p>
+          <p className="m-0 mb-[14px] hidden max-w-[54ch] text-[17px] leading-[1.6] text-ink-2 stack:block">{t('about.p1')}</p>
+          <p className="m-0 mb-[26px] hidden max-w-[54ch] text-[17px] leading-[1.6] text-ink-2 stack:block">{t('about.p2')}</p>
+          <div className="flex flex-wrap gap-[10px]">
+            <KitButton href={path('/a-propos')} tone="club" arrow className="hidden stack:inline-flex">{t('about.cta')}</KitButton>
+            <KitButton href={path('/a-propos')} tone="quiet" arrow className="stack:hidden">{t('about.ctaShort')}</KitButton>
+            <span aria-hidden="true" className="ml-3 hidden self-center font-display text-[30px] font-black leading-none text-ink-3 stack:inline">{t('about.signature')}</span>
           </div>
         </div>
-      </PageSite>
+      </KitSection>
 
-      {/*
-        ── 4 · LES DERNIÈRES PUBLICATIONS ──────────────────────────────────────────────
-        Alimentées automatiquement : trois entrées, articles et épisodes mêlés, prises sur la
-        même frise chronologique. Kit v3 : les cartes d'article de `Main` (étiquette, titre,
-        aplat). Rien n'y est choisi à la main, donc rien n'y périme.
-      */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <SiteDisplay as="h2" lines={t('latest.titleLines', { returnObjects: true }) as string[]} size={34} />
-          <Button href={path('/blog')} tone="quiet" size="sm" arrow fullWidth={false}>
-            {t('latest.all')}
-          </Button>
-        </div>
-
-        {latest.length > 0 ? (
-          <div className="mt-7 grid gap-4 stack:grid-cols-3">
-            {latest.map((item, i) => (
-              <a
-                key={item.to}
-                href={item.to}
-                className="mm-bento rv flex min-w-0 flex-col text-ink no-underline"
-                style={{ ['--i' as string]: i + 1, padding: 'var(--sp-20)' }}
-              >
-                <span className="mm-tag self-start">{item.meta}</span>
-                <span className="mt-4 block font-display text-[20px] font-black leading-[1.05] tracking-[-.03em]">
-                  {item.title}
+      {/* ── 4 · POUR QUI JE TRAVAILLE ────────────────────────────────────────── */}
+      <KitSection className="pt-14 wide:pt-24">
+        <div className="grid items-center gap-4 rounded-xl wide:grid-cols-2 wide:gap-8 wide:bg-[color:var(--paper-2)] wide:p-10">
+          <div>
+            <Eyebrow>{t('audiences.eyebrow')}</Eyebrow>
+            <KitH2 className="mb-4 mt-3 wide:mb-[18px] wide:mt-[14px]" size="clamp(38px, 5vw, 64px)">{t('audiences.title')}</KitH2>
+            <p className="m-0 hidden text-[20px] leading-[1.45] text-ink-3 wide:block">
+              {t('audiences.lede')} <b className="text-ink">{t('audiences.ledeStrong')}</b>
+            </p>
+          </div>
+          <Photo tone="club" className="hidden h-[300px] wide:block" />
+          <div className="grid gap-[10px] wide:col-span-2 wide:grid-cols-3 wide:gap-[14px]">
+            {AUDIENCES.map((a) => (
+              <a key={a.key} href={path(a.to)} className="relative isolate block h-[170px] overflow-hidden rounded-xl text-[color:var(--paper-fixed)] no-underline wide:h-auto wide:min-h-[260px]">
+                <Photo tone={a.tone} className="!absolute inset-0 !min-h-0 !rounded-none" />
+                <span aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(0deg,rgba(14,17,22,.88),rgba(14,17,22,.05) 70%)' }} />
+                <span className="absolute bottom-[14px] left-4 right-4 wide:bottom-[18px] wide:left-5 wide:right-5">
+                  <b className="block font-display text-[22px] font-black leading-[1.05] wide:text-[26px]">{t(`audiences.${a.key}Title`)}</b>
+                  <span className="text-[13px] opacity-[.88] wide:text-[14px]">{t(`audiences.${a.key}Body`)}</span>
                 </span>
-                <span aria-hidden="true" className="min-h-[14px] flex-1" />
-                <span
-                  aria-hidden="true"
-                  className={`mm-photo ${item.territory === 'informe' ? 'is-informe' : 'is-club'} mt-4 block`}
-                  style={{ minHeight: '120px' }}
-                />
               </a>
             ))}
           </div>
-        ) : (
-          /* Un état vide DIT ce qui manque et oriente. Jamais « oups », jamais un vide muet. */
-          <p className="mm-prose mt-[22px] max-w-prose text-lede text-ink-2">{t('latest.empty')}</p>
-        )}
-      </PageSite>
+        </div>
+      </KitSection>
 
-      {/*
-        ── 5 · LE LIEN MY ONOMA ────────────────────────────────────────────────────────
-        Une phrase et un lien sortant, rendus par le pont partagé. Il n'y a volontairement
-        pas de seconde rédaction ici : deux écritures du même rattachement corporate sont
-        une occasion de le contredire.
-      */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <MyOnomaBridge variant="line" />
-      </PageSite>
+      {/* ── 5 · CE QUE JE PROPOSE ────────────────────────────────────────────── */}
+      <section className="relative z-[3] pt-14 wide:pt-24">
+        <KitSection as="div" className="mb-4 wide:mb-[26px]">
+          <Eyebrow>{t('offers.eyebrow')}</Eyebrow>
+          <KitH2 className="mt-3 wide:mt-[14px]" size="clamp(38px, 5vw, 64px)">
+            <Lines lines={t('offers.titleLines', { returnObjects: true }) as string[]} />
+          </KitH2>
+        </KitSection>
+        <KitSection as="div" className="!px-0 stack:!px-6">
+          <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-[18px] pb-2 stack:grid stack:grid-cols-2 stack:overflow-visible stack:px-0 stack:pb-0 wide:grid-cols-4 wide:gap-4">
+            {OFFERS.map((o, i) => {
+              const accent = i === 0;
+              return (
+                <a
+                  key={o.key}
+                  href={path(o.to)}
+                  className={[
+                    'flex min-h-[360px] flex-none basis-[260px] snap-start flex-col gap-[10px] rounded-xl p-4 no-underline stack:basis-auto wide:min-h-[440px] wide:gap-3 wide:p-[18px]',
+                    accent ? 'bg-[color:var(--mm-violet)] text-[color:var(--paper-fixed)]' : 'border border-solid border-[color:var(--line)] bg-bento text-ink',
+                  ].join(' ')}
+                >
+                  <span className="flex items-center justify-between">
+                    <span className={accent ? 'mm-tag bg-[color:rgb(255_255_255/.18)] text-[color:var(--paper-fixed)]' : 'mm-tag'}>{t(`offers.${o.key}Tag`)}</span>
+                    <span
+                      aria-hidden="true"
+                      className={[
+                        'hidden h-[34px] w-[34px] place-items-center rounded-pill wide:grid',
+                        accent ? 'bg-[color:var(--paper-fixed)] text-[color:var(--ink-fixed)]' : 'border border-solid border-[color:var(--line)]',
+                      ].join(' ')}
+                    >
+                      <Icon name="arrow-up-right" size={16} />
+                    </span>
+                  </span>
+                  <b className="font-display text-[24px] font-black leading-none wide:text-[28px]">{t(`offers.${o.key}Title`)}</b>
+                  <span className={accent ? 'text-[13px] opacity-[.88] wide:text-[14px]' : 'text-[13px] text-ink-2 wide:text-[14px]'}>
+                    {t(`offers.${o.key}Body`, { price: CLUB_PRICE_XOF.toLocaleString('fr-FR').replace(/\s/g, ' ') })}
+                  </span>
+                  <Photo tone={o.tone} className="mt-auto h-[170px] !min-h-0 !rounded-card wide:h-[200px]" />
+                </a>
+              );
+            })}
+          </div>
+        </KitSection>
+      </section>
+
+      {/* ── 6 · LA MÉTHODE ───────────────────────────────────────────────────── */}
+      <KitSection className="grid items-start gap-8 pt-14 wide:grid-cols-2 wide:pt-24">
+        <div>
+          <Eyebrow>{t('method.eyebrow')}</Eyebrow>
+          <KitH2 className="mb-4 mt-3 wide:mb-5 wide:mt-[14px]" size="clamp(38px, 5vw, 60px)">
+            <Lines lines={t('method.titleLines', { returnObjects: true }) as string[]} />
+          </KitH2>
+          <div className="mm-acc">
+            {[1, 2, 3, 4].map((n) => (
+              <details key={n} className="mm-acc__item" open={n === 3}>
+                <summary>
+                  <span className="mm-acc__n">{String(n).padStart(2, '0')}</span>
+                  {t(`method.s${n}Title`)}
+                  <span className="mm-acc__plus" aria-hidden="true">
+                    <Icon name="plus" size={14} />
+                  </span>
+                </summary>
+                <div className="mm-acc__body">{t(`method.s${n}Body`)}</div>
+              </details>
+            ))}
+          </div>
+        </div>
+        <Photo tone="club" className="hidden h-[520px] wide:block" />
+      </KitSection>
+
+      {/* ── 7 · LES VIDÉOS (lues en base ; absentes sans contenu) ─────────────── */}
+      {ordered.length > 0 && (
+        <section className="relative z-[3] pt-14 wide:pt-24">
+          <KitSection as="div" className="flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <Eyebrow tone="informe">{t('videos.eyebrow')}</Eyebrow>
+              <KitH2 className="mt-3 wide:mt-[14px]" size="clamp(38px, 5vw, 64px)">{t('videos.title')}</KitH2>
+            </div>
+            <p className="m-0 hidden max-w-[40ch] text-ink-2 stack:block">{t('videos.lede')}</p>
+          </KitSection>
+          <div className="flex gap-3 overflow-x-auto px-[18px] pb-2 pt-4 wide:items-center wide:justify-center wide:gap-[18px] wide:overflow-hidden wide:px-6 wide:pt-7">
+            {ordered.map((v, i) => {
+              const dist = Math.abs(i - ordered.indexOf(shownVideos[0]));
+              const main = dist === 0;
+              const wideCls = main ? 'wide:basis-[420px]' : dist === 1 ? 'wide:basis-[300px] wide:scale-[.94] wide:opacity-80' : 'wide:basis-[240px] wide:scale-[.88] wide:opacity-[.55]';
+              return (
+                <div key={v.id} className={`mm-video flex-none basis-[250px] ${wideCls}`}>
+                  <Photo tone={VIDEO_TONES[i % VIDEO_TONES.length]} img={v.thumbnailUrl ? { src: v.thumbnailUrl, alt: '' } : undefined} />
+                  {(main || dist === 1) && (
+                    <div className={`mm-video__cap ${main ? '' : 'wide:hidden'}`}>
+                      <span>
+                        {v.title}
+                        {v.duration && <span className="mm-video__weight">{v.duration}</span>}
+                      </span>
+                      <a className="mm-video__play" href={contentPath('videos', v, language)} aria-label={t('videos.play', { title: v.title })}>
+                        <Icon name="play" size={14} />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ── 8 · LES DERNIERS ARTICLES (lus en base) ──────────────────────────── */}
+      {articles.length > 0 && (
+        <KitSection className="hidden pt-24 stack:block">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <Eyebrow>{t('articles.eyebrow')}</Eyebrow>
+              <KitH2 className="mt-[14px]">{t('articles.title')}</KitH2>
+            </div>
+            <KitButton href={path('/blog')} tone="quiet" size="sm" arrow>{t('articles.all')}</KitButton>
+          </div>
+          <div className="grid grid-cols-2 gap-4 wide:grid-cols-4">
+            {articles.map((p, i) => {
+              const accent = i === 0;
+              return (
+                <a
+                  key={p.id}
+                  href={contentPath('blog', p, language)}
+                  className={[
+                    'flex min-h-[420px] flex-col gap-[10px] rounded-xl p-[18px] no-underline',
+                    accent ? 'bg-[color:var(--mm-violet)] text-[color:var(--paper-fixed)]' : 'border border-solid border-[color:var(--line)] bg-bento text-ink',
+                  ].join(' ')}
+                >
+                  {p.publishedAt && (
+                    <span className={accent ? 'mm-tag self-start bg-[color:rgb(255_255_255/.18)] text-[color:var(--paper-fixed)]' : 'mm-tag self-start'}>{fmt(p.publishedAt)}</span>
+                  )}
+                  <b className="font-display text-[26px] font-black leading-[1.02]">{p.title}</b>
+                  {p.excerpt && <span className={accent ? 'line-clamp-3 text-[13.5px] opacity-[.88]' : 'line-clamp-3 text-[13.5px] text-ink-2'}>{p.excerpt}</span>}
+                  <Photo
+                    tone={ARTICLE_TONES[i % ARTICLE_TONES.length]}
+                    className="mt-auto h-[190px] !min-h-0 !rounded-card"
+                    img={p.coverImage ? { src: p.coverImage, alt: '' } : undefined}
+                  />
+                </a>
+              );
+            })}
+          </div>
+        </KitSection>
+      )}
+
+      {/* ── 9 · L'APPEL FINAL ────────────────────────────────────────────────── */}
+      <KitSection className="pt-14 wide:pt-24">
+        <div className="dk relative isolate flex min-h-[380px] items-end overflow-hidden rounded-xl wide:min-h-[460px]">
+          <Photo tone="edu" className="!absolute inset-0 !rounded-none" />
+          <span aria-hidden="true" className="absolute inset-0 hidden wide:block" style={{ background: 'linear-gradient(90deg,rgba(10,13,17,.8),rgba(10,13,17,0) 70%)' }} />
+          <span aria-hidden="true" className="absolute inset-0 wide:hidden" style={{ background: 'linear-gradient(0deg,rgba(10,13,17,.85),rgba(10,13,17,0) 70%)' }} />
+          <div className="relative z-[1] p-[22px] wide:p-11">
+            <KitH2 className="mb-4 text-ink wide:mb-6 wide:leading-[.9]" size="clamp(38px, 6vw, 84px)">
+              <Lines accent="aplat" lines={t('cta.titleLines', { returnObjects: true }) as string[]} />
+            </KitH2>
+            <KitButton href={path('/contact?rdv=1')} tone="highlight" arrow>{t('cta.button')}</KitButton>
+          </div>
+        </div>
+      </KitSection>
     </DsNavHost>
   );
 }

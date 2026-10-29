@@ -1,17 +1,61 @@
 {
   "seoTitle": "Contact",
   "seoDescription": "Write to Max-Morrys: a course and the community, or a website and platform project. Marketing-direction engagements are contracted by MY ONOMA. Dakar, Senegal.",
-  "eyebrow": "CONTACT",
-  "heroTitle1": "Let's talk about",
-  "heroTitle2": "your strategy",
-  "heroSubtitle": "Got a project, a question, or need a consultation? I'm here to help you reach your digital marketing goals!",
-  "info": {
-    "email": "Email",
-    "phone": "Phone",
-    "location": "Location",
-    "locationValue": "Dakar, Senegal",
-    "whatsapp": "WhatsApp",
-    "whatsappValue": "Let's chat on WhatsApp"
+  "site": {
+    "hero": {
+      "eyebrow": "Contact",
+      "titleLines": [
+        "Let's talk about",
+        "your [project.]"
+      ],
+      "lede": "Tell me what you're looking for: I'll point you to the right place, no pointless form.",
+      "ledeShort": "Tell me what you're looking for, I'll point you to the right place.",
+      "whatsapp": "WhatsApp"
+    },
+    "route": {
+      "eyebrow": "What brings you here?",
+      "learnEyebrow": "Courses and coaching",
+      "learnTitle": "I want to learn",
+      "learnBody": "The catalogue, sessions and enrolments are on Edu.",
+      "learnCta": "See the courses",
+      "buildEyebrow": "Shops, organisations",
+      "buildTitle": "I want a website or visibility",
+      "buildBody": "Shop pack or bespoke project: online quote or qualification.",
+      "buildCta": "See the services",
+      "talkEyebrow": "Collaboration, speaking, media",
+      "talkTitle": "I want to talk with Max",
+      "talkBody": "Book a 30-minute slot by video or phone.",
+      "talkCta": "Pick a slot"
+    },
+    "booking": {
+      "eyebrow": "Book · 30 min · free",
+      "title": "Pick your slot.",
+      "tz": "Dakar time (GMT). The slot is a request: I confirm it myself.",
+      "name": "Your name",
+      "phone": "WhatsApp number",
+      "email": "Your email",
+      "topic": "What the call is about, in one sentence",
+      "formatLabel": "Format",
+      "format": {
+        "visio": "Video",
+        "phone": "Phone",
+        "whatsapp": "WhatsApp"
+      },
+      "submit": "Confirm the appointment",
+      "note": "Your request is saved right away; I'll get back to you to confirm the slot."
+    },
+    "facts": {
+      "basedLabel": "Based in",
+      "basedValue": "Dakar, Senegal",
+      "replyLabel": "Response time",
+      "replyValue": "≤ 48 business hours",
+      "faqLabel": "Before you write",
+      "faqValue": "Read the FAQ →"
+    },
+    "write": {
+      "title": "Rather write? Send me a message",
+      "note": "I'm the one who reads, and the one who replies — to the address you leave here."
+    }
   },
   "subjects": {
     "formationInfo": "Information about a course",
@@ -51,94 +95,10 @@
     "appointmentError": "Something went wrong while booking. Please try again."
   },
   "booking": {
-    "cardTitle": "Book an appointment",
-    "cardText": "Reserve a slot for a personalized conversation.",
-    "cardButton": "Schedule a call",
-    "modalTitle": "Schedule a call",
     "successTitle": "Request sent!",
-    "successTextLine1": "Your appointment request has been received.",
-    "successTextLine2": "I'll confirm the slot by email very soon.",
-    "close": "Close",
+    "successBody": "Your request is saved. I'll look at the slot and come back to you: nothing is confirmed until I do, and the product sends no automatic email.",
     "dateLabel": "Date *",
     "timeLabel": "Time *",
-    "subjectLabel": "Call topic *",
-    "nameLabel": "Full name *",
-    "namePlaceholder": "Your name",
-    "phoneLabel": "Phone (optional)",
-    "phonePlaceholder": "+221 77...",
-    "emailLabel": "Email *",
-    "emailPlaceholder": "your@email.com",
-    "notesLabel": "Notes (optional)",
-    "notesPlaceholder": "Tell me what you need so I can prepare the call...",
-    "cancel": "Cancel",
-    "submitting": "Sending...",
-    "submit": "Confirm the request",
-    "successBody": "Your request is saved. I'll look at the slot and come back to you: nothing is confirmed until I do, and the product sends no automatic email."
-  },
-  "faqEyebrow": "FAQ",
-  "faqTitle": "Frequently asked questions",
-  "page": {
-    "titleLines": [
-      "Write to me.",
-      "[I answer.]"
-    ],
-    "lede": "A question about a course, a shop to put online, an idea for an episode. I'm the one who reads, and I'm the one who answers — give it two working days.",
-    "route": {
-      "eyebrow": "First question",
-      "question": "What is this about?",
-      "learnTitle": "A course, or the community",
-      "learnBody": "A course, an access problem, the Digitos Club, the blog, an episode.",
-      "buildTitle": "A website, or a platform",
-      "buildBody": "A shop to put online, a custom project to scope.",
-      "growTitle": "Marketing direction",
-      "growBody": "Acquisition, revenue, a brand strategy to run."
-    },
-    "myonoma": {
-      "eyebrow": "This isn't the place",
-      "title": "This request goes to MY ONOMA.",
-      "body": "Marketing direction, acquisition and revenue are not carried by Max-Morrys: MY ONOMA contracts them, through its own practice. So I don't collect your request here to copy it over there by hand — you write it straight to the right place, and you keep a single conversation.",
-      "cta": "Open the MY ONOMA form",
-      "note": "Outbound link: you are leaving maxmorrys.me."
-    },
-    "triage": {
-      "title": "Before you write",
-      "paymentBefore": "A payment that isn't showing? Check",
-      "paymentLink": "My courses",
-      "paymentAfter": "in your space first: access opens as soon as the payment is confirmed.",
-      "faqBefore": "A general question? It may already be in the",
-      "faqLink": "FAQ",
-      "faqAfter": "with the full answer."
-    },
-    "channels": {
-      "title": "Other ways to reach me",
-      "bookingBody": "Rather talk it through? Book an evening slot, Dakar time."
-    },
-    "account": {
-      "title": "You're writing from your account",
-      "body": "My answer will arrive in your space, and this message will stay in your inbox.",
-      "signedIn": "Signed in"
-    },
-    "form": {
-      "subjectLabel": "What do you want to talk about?",
-      "subjectPlaceholder": "Pick a topic",
-      "messagePlaceholderLearn": "Tell me where you are and what you're trying to do…",
-      "messagePlaceholderBuild": "Describe the shop or the project, and what already exists online…",
-      "note": "You can write without an account too — but then I can't answer you inside the app."
-    },
-    "truth": {
-      "title": "What happens to your message",
-      "body": "From a signed-in account, the message is attached to that account: it stays in your inbox, and my answer lands in the same place. Without an account it stays anonymous inside the app — I then answer by hand, at the address left in the form."
-    },
-    "facts": {
-      "replyLabel": "Reply",
-      "replyValue": "≤ 48 h",
-      "replyNote": "Working days, Dakar time",
-      "readerLabel": "Who reads",
-      "readerValue": "Me",
-      "readerNote": "There is no support team",
-      "langsLabel": "Languages",
-      "langsValue": "FR · EN",
-      "langsNote": "Write in whichever you prefer"
-    }
+    "submitting": "Sending..."
   }
 }

@@ -129,54 +129,33 @@
     "otherEpisodes": "Autres épisodes"
   },
   "pole": {
-    "eyebrow": "Je te transforme · gratuit",
-    "titleLines": [
-      "DES GENS D'ICI",
-      "QUI RACONTENT",
-      "[CE QU'ILS ONT FAIT.]"
-    ],
-    "lede": "Pas de méthode, pas de tutoriel — ça, c'est le blog. Ici, des gens qui vendent vraiment quelque chose à Dakar et à Abidjan racontent ce qui a marché, et ce qui leur a coûté cher.",
-    "tagFree": "Écoute gratuite, sans compte",
-    "tagTranscript": "Transcription lisible sans audio",
-    "rhythm": "Un épisode par mois, quand j'ai quelqu'un qui vaut la peine d'être écouté. Pas de calendrier tenu à vide.",
-    "filterAll": "Tout",
-    "filterListen": "À écouter",
-    "filterWatch": "À regarder",
-    "truthTitle": "Ce que ce pôle ne compte pas encore",
-    "truthBody": "Le poids de chaque épisode et de chaque vidéo devrait être écrit ici — c'est ce qui permet de décider quand le forfait est compté. Il n'est pas encore mesuré à l'enregistrement, et je préfère te le dire que t'annoncer un chiffre inventé. Aucun compteur d'écoute non plus : à un épisode, il ne dirait rien d'utile.",
-    "clubTitle": [
-      "Tu viens d'écouter",
-      "quelqu'un qui l'a fait."
-    ],
-    "clubBody": "Le Club, c'est là où ils sont. Payant, fermé, et il ne se visite pas — c'est la contrepartie de le garder fermé.",
-    "clubCta": "Voir le Club des Digitos",
-    "empty": "Rien n'est encore en ligne ici. Le blog, lui, est ouvert — et tout y est gratuit.",
+    "eyebrow": "Contenus · podcast et vidéos",
+    "eyebrowShort": "Podcast et vidéos",
     "subnavFree": "Écouter & regarder",
     "subnavClub": "Le Club des Digitos",
-    "elsewhereTitle": [
-      "Écoute où tu veux."
+    "seoTitle": "Podcast et vidéos",
+    "titleLines": [
+      "À écouter,",
+      "à [regarder.]"
     ],
-    "elsewhereBody": "Les vidéos sont aussi sur YouTube, et tout ce qui se publie sort dans le flux. Si tu y es déjà abonné, garde tes habitudes — je ne t'obligerai pas à revenir ici pour écouter.",
-    "elsewhereNote": "Les compteurs d'écoute sont synchronisés côté serveur, jamais appelés depuis ton navigateur. Ils ne sont pas affichés ici : à un épisode, un compteur ne dit rien d'utile.",
-    "elsewhereYoutube": "YouTube",
-    "elsewhereYoutubeCta": "S'abonner",
-    "elsewhereRss": "Flux podcast",
-    "elsewhereRssCta": "Ouvrir",
-    "elsewherePlatformCta": "Écouter",
-    "elsewhereMissing": "Pas encore de page Spotify à te donner : le podcast n'y est pas publié sous un flux à moi. Le jour où il l'est, il s'ajoute ici.",
-    "clubEyebrow": "L'étage au-dessus",
-    "clubCtaPriced": "Voir le Club —",
-    "clubBilled": "Facturé",
-    "clubBilledSuffix": "une fois par an.",
-    "gridTitle": [
-      "Tout ce qu'il y a,",
-      "pour l'instant."
-    ],
-    "featuredRead": "Lire la transcription",
-    "featuredPlay": "Écouter",
-    "featuredWatch": "Regarder",
-    "emptyListen": "Rien à écouter pour l'instant — le podcast n'a pas encore d'épisode en ligne. Retire le filtre pour voir les vidéos.",
-    "emptyWatch": "Rien à regarder pour l'instant — aucune vidéo n'est encore en ligne. Retire le filtre pour voir les épisodes."
+    "lede": "La durée de chaque épisode et de chaque vidéo est affichée : tu sais avant de lancer ce que ça te prend.",
+    "ledeShort": "La durée de chaque fichier est affichée avant lecture.",
+    "weightNote": "Le poids des fichiers n'est pas encore mesuré à l'enregistrement : seule la durée est affichée.",
+    "tabsAria": "Type de contenu",
+    "tabArticles": "Articles",
+    "tabMedia": "Podcast et vidéos",
+    "latestEyebrow": "Podcast · dernier épisode",
+    "audioUnsupported": "Ton navigateur ne lit pas ce fichier audio.",
+    "download": "Télécharger",
+    "listen": "Écouter : {{title}}",
+    "episodesTitle": "Tous les épisodes",
+    "episodesTitleShort": "Épisodes",
+    "videosTitle": "Vidéos",
+    "dataTitle": "Économie de data",
+    "dataBody": "Aucune lecture automatique : une vidéo ne se charge qu'au clic sur « Lancer ».",
+    "emptyEpisodes": "Aucun épisode en ligne pour l'instant.",
+    "emptyVideos": "Aucune vidéo en ligne pour l'instant.",
+    "loading": "Chargement du podcast et des vidéos"
   },
   "detail": {
     "breadcrumbRoot": "Je te transforme",

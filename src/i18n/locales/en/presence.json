@@ -457,5 +457,65 @@
   "details": {
     "title": "The details",
     "subtitle": "What the packs don't cover, and the terms. Nothing here you need to read before asking for a quote."
+  },
+  "v3": {
+    "hero": {
+      "eyebrow": "Services · Shops and small businesses",
+      "eyebrowShort": "Shops and small businesses",
+      "titleLines": [
+        "Your shop,",
+        "found on [Google.]"
+      ],
+      "lede": "When a customer searches for \"shop near me\", you're the one they should find. {{count}} packs, prices on display, a quote in one minute.",
+      "ledeShort": "{{count}} packs, prices on display, a quote in one minute.",
+      "ctaPacks": "See the packs",
+      "ctaDemo": "Take the Google Maps test"
+    },
+    "packs": {
+      "eyebrow": "{{count}} packs, public prices",
+      "eyebrowShort": "Public prices excl. VAT",
+      "title": "Pick your pack.",
+      "lede": "Prices excluding tax, plus {{rate}}% VAT. No hidden fees: what isn't listed isn't included.",
+      "promo": "Launch offer",
+      "tax": "+{{rate}}% VAT",
+      "ht": "FCFA excl. VAT",
+      "strike": "Previous price",
+      "choose": "Choose this pack",
+      "selected": "This pack · selected",
+      "selectedTag": "Selected",
+      "summary": {
+        "presence": "Your optimised Google profile, a clear page, WhatsApp and call buttons.",
+        "visible": "A 5-page website, your catalogue up to 40 products, full tracking.",
+        "boutique": "Your online shop up to 50 products, cart and order management."
+      }
+    },
+    "quote": {
+      "eyebrow": "Your quote, right now",
+      "packHt": "{{name}} pack, excl. VAT",
+      "vat": "VAT {{rate}}%",
+      "ttc": "Total incl. VAT",
+      "deposit": "{{pct}}% deposit on order (excl. VAT)",
+      "balance": "Balance before going live (excl. VAT)",
+      "note": "Quote valid {{days}} days. Pay with Wave, Orange Money or card. Terms:",
+      "cgv": "T&Cs",
+      "cta": "Get my quote",
+      "cite": "current price list and VAT rate"
+    },
+    "steps": {
+      "eyebrow": "How it works",
+      "title": "From order to going live.",
+      "s1Title": "You pick your pack",
+      "s1Body": "Instant quote, valid {{days}} days.",
+      "s2Title": "You pay the deposit",
+      "s2Body": "{{pct}}% via Wave, Orange Money or card.",
+      "s3Title": "We gather your details",
+      "s3Body": "Photos, information, opening hours.",
+      "s4Title": "You're online",
+      "s4Body": "Then {{min}} to {{max}} days of support, depending on the pack."
+    },
+    "cta": {
+      "title": "A question before you choose?",
+      "button": "Book a call"
+    }
   }
 }
