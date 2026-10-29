@@ -79,11 +79,37 @@ export interface TabBarProps {
    * ouvrir pour savoir lequel est lequel. Il se traduit — la chaîne vient de la surface.
    */
   label: string;
+  /**
+   * `bar` — la barre pleine largeur, collée au bas (défaut historique).
+   * `float` — kit v3 (AD-27, MobileSchoolShell) : la barre FLOTTANTE à 12 px des bords, 70 px,
+   * rayon 24, opaque (D-10 = AD-26). Le contenu doit réserver 110 px en bas.
+   */
+  variant?: 'bar' | 'float';
   className?: string;
   style?: CSSProperties;
 }
 
-export function TabBar({ items, active, label, className = '', style }: TabBarProps) {
+export function TabBar({ items, active, label, variant = 'bar', className = '', style }: TabBarProps) {
+  if (variant === 'float') {
+    return (
+      <nav
+        aria-label={label}
+        className={['mm-tabbar', className].filter(Boolean).join(' ')}
+        style={{ ['--tabs' as string]: String(items.length), ...style } as CSSProperties}
+      >
+        {items.map((it) => (
+          <a key={it.label} href={it.href} aria-current={it.label === active ? 'page' : undefined}>
+            {it.icon && (
+              <span aria-hidden="true" style={{ display: 'grid', placeItems: 'center', width: '21px', height: '21px' }}>
+                {it.icon}
+              </span>
+            )}
+            {it.label}
+          </a>
+        ))}
+      </nav>
+    );
+  }
   return (
     // AD-26 : `mm-menu` REMPLACE `glass mm-chrome`, elle ne s'y ajoute pas. Les trois replis
     // de `fallback.css` sont en `!important` : une surface qui garderait l'ancienne classe se

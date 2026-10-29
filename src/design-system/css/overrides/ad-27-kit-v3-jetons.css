@@ -1,0 +1,73 @@
+/* AD-27 — LES JETONS DU KIT v3, RAMENÉS AU SYSTÈME DU DÉPÔT (29/10/2026).
+
+   Le kit v3 (`Max-Morrys_DS_Platform/kit-v3/tokens.css`) change de convention : `--brand-*`,
+   `--pastel-*`, `--font-*`, sombre par `[data-theme="dark"]`. Le dépôt garde la sienne —
+   `--mm-*`, `--f-*`, `--fs-dsp-*`, sombre par `.dk` — et ce fichier n'ajoute que ce que le kit
+   apporte réellement. La table de correspondance des noms vit dans `scripts/ds-kit-v3.mjs`
+   (`RENOMMAGE`), qui traduit `bundle.css` ; rien n'est déclaré deux fois sous deux noms.
+
+   Ce qui ne bouge PAS, délibérément :
+   · `--paper` ne bascule pas sous `.dk` (AD-22) — le kit le fait passer à #0B0E13 ;
+   · `--line` sombre reste translucide (le kit : #1F2731 opaque) ;
+   · les pastels `--mm-*-c` ne basculent pas (le kit les assombrit) ;
+   · les jetons retirés par le kit (`--sp-6/10/14…`, `--glass-*`, `--g-*`, `--surface-*`,
+     `--press-scale*`, `--fs-meta*`…) restent : ils sont consommés.
+   Le thème clair est celui par défaut partout, Club et console compris. */
+
+:root,.dk{
+  /* Les teintes FIXES : le kit peint ses boutons pleins en `--brand-*`, qui ne bascule pas.
+     `--mm-bleu` bascule sous `.dk` (#6FB1FF) ; sous une encre blanche il ne tient plus. */
+  --mm-bleu-f:#0057BC; --mm-orange-f:#F38B0A; --mm-violet-f:#6C23DD; --mm-teal-f:#02AC9C; --mm-corail-f:#FF6E7F;
+  --on-brand:#FFFFFF;
+  --on-highlight:#0E1116;
+  --highlight:#F38B0A;
+  /* Gabarit */
+  --sp-56:56px; --sp-96:96px; --sp-128:128px;
+  --h-chip:40px;
+  --rail-w:72px;
+  /* Mouvement — AD-16 AMENDÉ : cinq durées, quatre courbes.
+     `--t-page` porte le changement de page et d'espace (View Transitions) ; `--ease-spring`
+     est RÉSERVÉE aux récompenses (certificat, badge) ; `--ease-in-out` aux allers-retours. */
+  --t-page:480ms; /* @kind other */
+  --ease-spring:cubic-bezier(.34,1.56,.64,1); /* @kind other */
+  --ease-in-out:cubic-bezier(.65,0,.35,1); /* @kind other */
+  /* Typographie : l'échelle d'affichage garde SES NOMS (les classes `text-dsp-*` en dépendent),
+     le kit en change l'interlignage et l'approche ; il ajoute le nom géant du pied de page. */
+  --fs-dsp-mega:132px; --lh-dsp-mega:.86; /* @kind other */ --ls-dsp-mega:-.05em; /* @kind other */
+  --lh-dsp-xxl:.9; /* @kind other */ --ls-dsp-xxl:-.045em; /* @kind other */
+  --lh-dsp-xl:.92; /* @kind other */ --ls-dsp-xl:-.04em; /* @kind other */
+  --lh-dsp:.95; /* @kind other */ --ls-dsp:-.035em; /* @kind other */
+  --ls-dsp-sm:-.03em; /* @kind other */
+  --fs-lede:18px;
+  --fs-body-dense:14px; --fs-label:13px; --fs-help:12.5px; --fs-caption:11.5px;
+  /* Chiffres (JetBrains Mono 600) — un nombre en monospace vient de la base (règle 6). */
+  --fs-num-hero:44px; --fs-num-xl:30px; --fs-num-l:26px; --fs-num-m:19px; --fs-num-s:13px;
+}
+
+:root{
+  /* Tuiles opaques des tableaux de bord : elles REMPLACENT le verre translucide qui défile. */
+  --bento:#FFFFFF; --bento-2:#F5F7F9;
+  --focus:#0057BC;
+  /* Ombres douces du kit v3 — la carte, la levée au survol, le relief discret. */
+  --sh-card:0 10px 28px rgba(14,17,22,.10);
+  --sh-lift:0 18px 44px rgba(14,17,22,.14);
+  --sh-soft:0 6px 18px rgba(14,17,22,.08);
+  --sh-teal:0 8px 24px rgba(2,172,156,.30);
+  /* L'espace courant : il se lit sur le pouce du sélecteur et la pastille des lanceurs. */
+  --space-hub:var(--ink);
+  --space-edu:var(--mm-bleu);
+  --space-club:var(--mm-violet);
+  --space-studio:var(--mm-teal-t);
+}
+
+.dk{
+  --bento:#121821; --bento-2:#171E28;
+  --focus:#6FB1FF;
+  --sh-card:0 10px 28px rgba(0,0,0,.40);
+  --sh-lift:0 18px 44px rgba(0,0,0,.52);
+  --sh-soft:0 6px 18px rgba(0,0,0,.36);
+  --space-hub:var(--ink);
+  --space-edu:var(--mm-bleu);
+  --space-club:var(--mm-violet);
+  --space-studio:var(--mm-teal-t);
+}

@@ -11,6 +11,7 @@
     "ds:tokens": "node scripts/ds-tokens.mjs",
     "ds:barrel": "node scripts/ds-barrel.mjs",
     "ds:check": "node scripts/ds-check.mjs",
+    "ds:v3": "node scripts/ds-kit-v3.mjs",
     "ds": "npm run ds:sync && npm run ds:tokens && npm run ds:barrel && npm run ds:check",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",

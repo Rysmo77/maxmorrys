@@ -105,6 +105,12 @@ export default {
         stop: t('stop'),
 
         // ── Surfaces ─────────────────────────────────────────────────────────────────
+        // ── Kit v3 (AD-27) : tuiles opaques, surlignage, espace courant ─────────────
+        bento: { DEFAULT: t('bento'), 2: t('bento-2') },
+        highlight: t('highlight'),
+        'on-highlight': t('on-highlight'),
+        space: { hub: t('space-hub'), edu: t('space-edu'), club: t('space-club'), studio: t('space-studio') },
+
         surface: {
           page: t('surface-page'),
           card: t('surface-card'),
@@ -128,6 +134,8 @@ export default {
 
       // L'échelle du kit, verbatim. Fraunces 900 ne descend jamais sous 22 px.
       fontSize: {
+        // Le nom géant du pied de page (kit v3, AD-27). Jamais ailleurs.
+        'dsp-mega': [t('fs-dsp-mega'), { lineHeight: t('lh-dsp-mega'), letterSpacing: t('ls-dsp-mega'), fontWeight: '900' }],
         'dsp-xxl': [t('fs-dsp-xxl'), { lineHeight: t('lh-dsp-xxl'), letterSpacing: t('ls-dsp-xxl'), fontWeight: '900' }],
         'dsp-xl': [t('fs-dsp-xl'), { lineHeight: t('lh-dsp-xl'), letterSpacing: t('ls-dsp-xl'), fontWeight: '900' }],
         dsp: [t('fs-dsp'), { lineHeight: t('lh-dsp'), letterSpacing: t('ls-dsp'), fontWeight: '900' }],
@@ -141,6 +149,17 @@ export default {
         'meta-2': [t('fs-meta-2')],
         small: [t('fs-small')],
         eyebrow: [t('fs-eyebrow'), { letterSpacing: t('ls-eyebrow') }],
+        // Kit v3 (AD-27) : texte dense, étiquette, aide, légende.
+        dense: [t('fs-body-dense'), { lineHeight: '1.5' }],
+        label: [t('fs-label'), { lineHeight: '1.3', fontWeight: '600' }],
+        help: [t('fs-help'), { lineHeight: '1.4' }],
+        caption: [t('fs-caption'), { lineHeight: '1.35', fontWeight: '500' }],
+        // Chiffres en monospace : à n'employer que dans <Num> ou une tuile sourcée (règle 6).
+        'num-hero': [t('fs-num-hero'), { lineHeight: '1', letterSpacing: '-.03em', fontWeight: '600' }],
+        'num-xl': [t('fs-num-xl'), { lineHeight: '1.05', letterSpacing: '-.02em', fontWeight: '600' }],
+        'num-l': [t('fs-num-l'), { lineHeight: '1.1', letterSpacing: '-.02em', fontWeight: '600' }],
+        'num-m': [t('fs-num-m'), { lineHeight: '1.2', fontWeight: '600' }],
+        'num-s': [t('fs-num-s'), { lineHeight: '1.3', fontWeight: '500' }],
       },
 
       /*
@@ -208,9 +227,10 @@ export default {
         pill: t('r-pill'),
       },
 
-      // Quatre durées, deux courbes, et rien d'autre (AD-16).
-      transitionDuration: { tap: t('t-tap'), ui: t('t-ui'), enter: t('t-enter'), scene: t('t-scene') },
-      transitionTimingFunction: { ds: t('ease'), 'ds-out': t('ease-out') },
+      // Cinq durées, quatre courbes, et rien d'autre (AD-16, amendé le 29/10/2026 par AD-27 :
+      // `page` porte le changement de page et d'espace ; `spring` est RÉSERVÉE aux récompenses).
+      transitionDuration: { tap: t('t-tap'), ui: t('t-ui'), enter: t('t-enter'), scene: t('t-scene'), page: t('t-page') },
+      transitionTimingFunction: { ds: t('ease'), 'ds-out': t('ease-out'), spring: t('ease-spring'), 'in-out': t('ease-in-out') },
 
       // La seule règle de mise en page que le design system déclare non négociable (AD-14) :
       // la colonne de lecture ne s'élargit jamais, à 1400 px comme à 390.
@@ -252,6 +272,11 @@ export default {
         // Reprise de l'ancienne `shadow-soft` (12 usages) : l'ombre plate du système en est
         // la jumelle — même famille douce et large, même opacité d'encre.
         soft: t('glass-sh-flat'),
+        // Kit v3 (AD-27). `card` et `soft` gardent leur sens (consommés) ; la levée au survol
+        // et l'ombre de tuile du kit arrivent sous des noms à elles.
+        lift: t('sh-lift'),
+        'v3-card': t('sh-card'),
+        'v3-soft': t('sh-soft'),
       },
     },
   },

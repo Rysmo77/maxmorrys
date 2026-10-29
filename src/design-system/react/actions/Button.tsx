@@ -27,9 +27,12 @@ const TONE: Record<string, CSSProperties> = {
      au rouge clair sous `.dk` et donnerait du blanc à 2,28:1. */
   stop: { background: 'var(--action-stop)', color: 'var(--on-action-stop)', boxShadow: 'var(--sh-ink)' },
   disabled: { background: 'var(--btn-off-bg)', color: 'var(--ink-3)' },
+  /* Kit v3 (AD-27) — le surlignage orange : l'action principale UNIQUE d'une page publique
+     (« Réserver un appel »). Encre fixe : l'orange reste clair dans les deux modes. */
+  highlight: { background: 'var(--highlight)', color: 'var(--on-highlight)', boxShadow: '0 8px 24px rgba(243,139,10,.32)' },
 };
 
-export type ButtonTone = 'primary' | 'forme' | 'informe' | 'transforme' | 'digitalise' | 'ghost' | 'quiet' | 'stop';
+export type ButtonTone = 'primary' | 'forme' | 'informe' | 'transforme' | 'digitalise' | 'ghost' | 'quiet' | 'stop' | 'highlight';
 
 export interface ButtonProps {
   tone?: ButtonTone;
@@ -56,6 +59,11 @@ export interface ButtonProps {
   loading?: boolean;
   /** Sur une surface colorée, l'anneau de focus bleu se noie dans le fond : il passe en blanc. */
   focusInvert?: boolean;
+  /**
+   * Kit v3 (AD-27) — la pastille-flèche à droite du libellé (`has-arrow`). Elle pivote de
+   * 45° au survol. Décorative : le libellé dit déjà où l'on va.
+   */
+  arrow?: boolean;
   className?: string;
   style?: CSSProperties;
   'aria-label'?: string;
@@ -64,7 +72,7 @@ export interface ButtonProps {
 
 export const Button = forwardRef<HTMLButtonElement & HTMLAnchorElement, ButtonProps>(function Button(
   { tone = 'primary', size = 'md', fullWidth, children, href, target, rel, type = 'button', onClick,
-    disabled, loading, focusInvert, className = '', style, ...rest },
+    disabled, loading, focusInvert, arrow, className = '', style, ...rest },
   ref,
 ) {
   const off = disabled || loading;
@@ -80,14 +88,14 @@ export const Button = forwardRef<HTMLButtonElement & HTMLAnchorElement, ButtonPr
   //
   // Seule `sm` la porte. En `md`, `--touch-btn` vaut 54 : la classe n'aurait rien à étendre,
   // et son `::before` centré à 44 px serait un mensonge de plus dans le DOM.
-  const cls = ['mm-press', sm && 'mm-touch-extend', loading && 'mm-loading', focusInvert && 'mm-on-color', className]
+  const cls = ['mm-press', arrow && 'mm-has-arrow', sm && 'mm-is-sm', sm && 'mm-touch-extend', loading && 'mm-loading', focusInvert && 'mm-on-color', className]
     .filter(Boolean).join(' ');
 
   const css: CSSProperties = {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
     border: 0, cursor: off ? 'default' : 'pointer',
     minHeight: sm ? '42px' : 'var(--touch-btn)',
-    padding: sm ? '0 17px' : '0 22px',
+    padding: arrow ? (sm ? '0 5px 0 17px' : '0 7px 0 22px') : sm ? '0 17px' : '0 22px',
     borderRadius: 'var(--r-pill)',
     fontFamily: 'var(--f-body)', fontWeight: 700, fontSize: sm ? '13.5px' : '15px',
     textDecoration: 'none',
@@ -97,9 +105,18 @@ export const Button = forwardRef<HTMLButtonElement & HTMLAnchorElement, ButtonPr
 
   // Un élément natif, toujours. Le kit rendait des <span> sans tabindex ni rôle : rien
   // n'était atteignable au clavier ni annoncé par un lecteur d'écran.
+  const content = arrow ? (
+    <>
+      {children}
+      <span aria-hidden="true" className="mm-btn__arrow">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </span>
+    </>
+  ) : children;
+
   if (href && !off) {
     const safeRel = target === '_blank' ? (rel ?? 'noopener noreferrer') : rel;
-    return <a ref={ref} href={href} target={target} rel={safeRel} className={cls} style={css} {...rest}>{children}</a>;
+    return <a ref={ref} href={href} target={target} rel={safeRel} className={cls} style={css} {...rest}>{content}</a>;
   }
   return (
     <button
@@ -113,7 +130,7 @@ export const Button = forwardRef<HTMLButtonElement & HTMLAnchorElement, ButtonPr
       aria-busy={loading || undefined}
       {...rest}
     >
-      {children}
+      {content}
     </button>
   );
 });

@@ -5,10 +5,11 @@ import { cn } from '../../lib/utils';
 import { toCanonicalPath } from '../../i18n/routing';
 import AppSidebar, { type AppSidebarSection } from './AppSidebar';
 import AppBottomNav, { type BottomNavItem } from './AppBottomNav';
+import AppSpaceSwitcher from './AppSpaceSwitcher';
 import UserMenu from './UserMenu';
 import NotificationDropdown from '@/components/layout/NotificationDropdown';
 import SearchOverlay from '../shared/SearchOverlay';
-import { Mesh, type Territory, type WordmarkProps } from '../../design-system';
+import { Mesh, type SpaceId, type Territory, type WordmarkProps } from '../../design-system';
 import { Icon } from '@ds';
 
 const COLLAPSED_KEY = 'app:sidebar:collapsed';
@@ -92,11 +93,25 @@ export interface AppShellProps {
    * même AD-3 prescrit. Le niveau était faux, pas le principe.
    */
   shellClassName?: string;
+  /**
+   * ── EMPLACEMENTS DU KIT v3 (AD-27) — les lots y posent leur contenu SANS toucher la coquille.
+   *
+   * `space` : l'espace courant. Il pose `data-space` sur la coquille (les jetons `--space-*`
+   * s'y lisent) et affiche le sélecteur d'espaces dans la barre haute, dès 1080 px.
+   */
+  space?: SpaceId;
+  /** `false` retire le maillage : la console v3 est une surface claire et plate (`bento-2`). */
+  mesh?: boolean;
+  /** Contenu à droite de la barre haute, avant la cloche (badge d'environnement, filtre…). */
+  headerEnd?: ReactNode;
+  /** Contenu au pied de la colonne latérale (carte d'accueil `mm-promo`, quota…). */
+  sidebarFooter?: ReactNode;
 }
 
 export default function AppShell({
   brand, territory = 'forme', territoryMap, wordmark = 'rysmo', sidebarSections, bottomNavItems,
   titleMap, beforeOutlet, outletContext, contentClassName, shellClassName,
+  space, mesh = true, headerEnd, sidebarFooter,
 }: AppShellProps) {
   const { t } = useTranslation('lms');
   const [collapsed, setCollapsed] = useState<boolean>(() => {
@@ -156,11 +171,11 @@ export default function AppShell({
   const hasBottomNav = bottomNavItems && bottomNavItems.length > 0;
 
   return (
-    <div className={cn('min-h-screen relative isolate overflow-x-clip', shellClassName)}>
+    <div className={cn('min-h-screen relative isolate overflow-x-clip', shellClassName)} data-space={space}>
       {/* Le fond du produit : trois lobes flous en dérive, animés en `transform` seulement,
           fixés à la fenêtre pour que le voile de lisibilité garde la géométrie sur laquelle
           AD-18 a été mesuré. Poids : 0 octet. */}
-      <Mesh territory={meshTerritory} style={{ position: 'fixed', zIndex: 0 }} />
+      {mesh && <Mesh territory={meshTerritory} style={{ position: 'fixed', zIndex: 0 }} />}
 
       {/* Colonne latérale — 250 px, à partir de 700 px */}
       <aside
@@ -176,6 +191,7 @@ export default function AppShell({
           collapsed={collapsed}
           onToggleCollapsed={() => setCollapsed((v) => !v)}
           onOpenCommandPalette={() => setSearchOpen(true)}
+          footer={collapsed ? undefined : sidebarFooter}
         />
       </aside>
 
@@ -198,6 +214,7 @@ export default function AppShell({
               showCollapseButton={false}
               onItemClick={() => setMobileOpen(false)}
               onOpenCommandPalette={() => { setSearchOpen(true); setMobileOpen(false); }}
+              footer={sidebarFooter}
             />
           </aside>
         </div>
@@ -228,6 +245,8 @@ export default function AppShell({
               </h1>
             </div>
 
+            {space && <AppSpaceSwitcher current={space} className="hidden wide:block shrink-0" />}
+
             {/* Déclencheur de recherche, écran large */}
             <button
               type="button"
@@ -250,6 +269,7 @@ export default function AppShell({
               <Icon name="search" size={20} strokeWidth={2.2} />
             </button>
 
+            {headerEnd}
             <NotificationDropdown />
             <UserMenu compact />
           </div>
@@ -261,7 +281,8 @@ export default function AppShell({
             contentClassName ?? 'p-4 stack:p-pane',
             // La barre d'onglets recouvre 80 px : le dernier bloc de la page doit pouvoir
             // remonter au-dessus d'elle, zone sûre comprise.
-            hasBottomNav && 'pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom)+1rem)] stack:pb-8',
+            // Kit v3 : la barre FLOTTE à 14 px du bas, 70 px de haut — le kit réserve 110 px.
+            hasBottomNav && 'pb-[calc(110px+env(safe-area-inset-bottom))] stack:pb-8',
           )}
           style={{ overscrollBehavior: 'contain' }}
         >

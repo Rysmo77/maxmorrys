@@ -77,12 +77,9 @@ export default function AppBottomNav({ items }: AppBottomNavProps) {
         items={tabs}
         active={active}
         label={t('shell.primaryNav')}
-        // La zone sûre de l'iPhone s'ajoute à la hauteur du jeton : sans ça, la dernière
-        // rangée de libellés passe sous la barre système.
-        style={{
-          height: 'calc(var(--tabbar-h) + env(safe-area-inset-bottom))',
-          paddingBottom: 'env(safe-area-inset-bottom)',
-        }}
+        // Kit v3 (AD-27, MobileSchoolShell) : la barre flotte, opaque, à 12 px des bords ;
+        // la zone sûre est comptée dans son `bottom`, et `AppShell` réserve 110 px.
+        variant="float"
       />
     </DsNavHost>
   );

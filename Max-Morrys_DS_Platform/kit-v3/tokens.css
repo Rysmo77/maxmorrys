@@ -1,0 +1,144 @@
+/* Max-Morrys — generated from tokens.json */
+:root, [data-theme="light"] {
+  --brand-bleu: #0057bc;
+  --brand-orange: #f38b0a;
+  --brand-violet: #6c23dd;
+  --brand-teal: #02ac9c;
+  --brand-corail: #ff6e7f;
+  --accent-bleu: #0057bc;
+  --accent-violet: #6c23dd;
+  --accent-violet-t: #5a17be;
+  --accent-orange-t: #8a4b00;
+  --accent-teal-t: #00695e;
+  --pastel-bleu: #c7e1ff;
+  --pastel-violet: #dfd0ff;
+  --pastel-orange: #ffdca8;
+  --pastel-teal: #a8eee4;
+  --pastel-rose: #ffc9ce;
+  --ink: #0e1116;
+  --ink-2: #5a6472;
+  --ink-3: #68727f;
+  --paper: #ffffff;
+  --paper-2: #f5f7f9;
+  --paper-3: #edf0f4;
+  --line: #e2e7ec;
+  --bento: #ffffff;
+  --bento-2: #f5f7f9;
+  --night: #0a0d11;
+  --surface-ink: #0e1116;
+  --on-brand: #ffffff;
+  --on-highlight: #0e1116;
+  --highlight: #f38b0a;
+  --ok: #0f7b52;
+  --warn: #8a4b00;
+  --stop: #b4231f;
+  --focus: #0057bc;
+  --space-hub: var(--ink);
+  --space-edu: var(--accent-bleu);
+  --space-club: var(--accent-violet);
+  --space-studio: var(--accent-teal-t);
+  --sh-card: 0 10px 28px rgba(14,17,22,.10);
+  --sh-lift: 0 18px 44px rgba(14,17,22,.14);
+  --sh-soft: 0 6px 18px rgba(14,17,22,.08);
+  --sh-glass-hl: inset 0 1px 0 rgba(255,255,255,.75);
+  --sh-btn-edu: 0 8px 24px rgba(0,87,188,.34);
+  --sh-btn-club: 0 8px 24px rgba(108,35,221,.34);
+  --sh-btn-studio: 0 8px 24px rgba(2,172,156,.30);
+  --sh-focus: 0 0 0 3px rgba(0,87,188,.16);
+}
+[data-theme="dark"] {
+  --accent-bleu: #6fb1ff;
+  --accent-violet: #b98cff;
+  --accent-violet-t: #b98cff;
+  --accent-orange-t: #ffb24d;
+  --accent-teal-t: #3fd9c6;
+  --pastel-bleu: #12294d;
+  --pastel-violet: #241c4e;
+  --pastel-orange: #3a2510;
+  --pastel-teal: #0b3b39;
+  --pastel-rose: #3b1a24;
+  --ink: #ecf0f5;
+  --ink-2: #a2adbb;
+  --ink-3: #77828f;
+  --paper: #0b0e13;
+  --paper-2: #11161d;
+  --paper-3: #161c24;
+  --line: #1f2731;
+  --bento: #121821;
+  --bento-2: #171e28;
+  --ok: #4ade9b;
+  --warn: #ffb24d;
+  --stop: #ff8a80;
+  --focus: #6fb1ff;
+  --space-hub: var(--ink);
+  --space-edu: var(--accent-bleu);
+  --space-club: var(--accent-violet);
+  --space-studio: var(--accent-teal-t);
+  --sh-card: 0 10px 28px rgba(0,0,0,.40);
+  --sh-lift: 0 18px 44px rgba(0,0,0,.52);
+  --sh-soft: 0 6px 18px rgba(0,0,0,.36);
+  --sh-glass-hl: inset 0 1px 0 rgba(255,255,255,.10);
+  --sh-focus: 0 0 0 3px rgba(111,177,255,.22);
+}
+:root {
+  --sp-4: 4px;
+  --sp-8: 8px;
+  --sp-12: 12px;
+  --sp-16: 16px;
+  --sp-20: 20px;
+  --sp-24: 24px;
+  --sp-32: 32px;
+  --sp-40: 40px;
+  --sp-56: 56px;
+  --sp-96: 96px;
+  --sp-128: 128px;
+  --gutter-screen: 18px;
+  --h-btn: 54px;
+  --h-chip: 40px;
+  --touch-aa: 44px;
+  --tabbar-h: 80px;
+  --rail-w: 72px;
+  --measure-prose: 68ch;
+  --r-s: 10px;
+  --r-m: 16px;
+  --r-l: 24px;
+  --r-xl: 30px;
+  --r-media: 26px;
+  --r-pill: 999px;
+  --t-tap: 120ms;
+  --t-ui: 220ms;
+  --t-enter: 380ms;
+  --t-scene: 700ms;
+  --t-page: 480ms;
+  --stagger: 70ms;
+  --stagger-line: 90ms;
+  --ease: cubic-bezier(.2,.7,.2,1);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  --ease-in-out: cubic-bezier(.65,0,.35,1);
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
+}
+.display-mega { font-family: var(--font-display); font-size: 132px; line-height: 0.86; font-weight: 900; letter-spacing: -0.05em; }
+.display-xl { font-family: var(--font-display); font-size: 74px; line-height: 0.9; font-weight: 900; letter-spacing: -0.045em; }
+.display-l { font-family: var(--font-display); font-size: 64px; line-height: 0.92; font-weight: 900; letter-spacing: -0.04em; }
+.display-m { font-family: var(--font-display); font-size: 41px; line-height: 0.95; font-weight: 900; letter-spacing: -0.035em; }
+.display-s { font-family: var(--font-display); font-size: 30px; line-height: 0.95; font-weight: 900; letter-spacing: -0.03em; }
+.display-xs { font-family: var(--font-display); font-size: 23px; line-height: 1.02; font-weight: 900; letter-spacing: -0.028em; }
+.lede { font-family: var(--font-body); font-size: 18px; line-height: 1.5; font-weight: 400; }
+.body { font-family: var(--font-body); font-size: 15px; line-height: 1.45; font-weight: 400; }
+.prose { font-family: var(--font-body); font-size: 15.5px; line-height: 1.68; font-weight: 400; }
+.body-dense { font-family: var(--font-body); font-size: 14px; line-height: 1.5; font-weight: 400; }
+.label { font-family: var(--font-body); font-size: 13px; line-height: 1.3; font-weight: 600; }
+.help { font-family: var(--font-body); font-size: 12.5px; line-height: 1.4; font-weight: 400; }
+.caption { font-family: var(--font-body); font-size: 11.5px; line-height: 1.35; font-weight: 500; }
+.num-hero { font-family: var(--font-mono); font-size: 44px; line-height: 1; font-weight: 600; letter-spacing: -0.03em; }
+.num-xl { font-family: var(--font-mono); font-size: 30px; line-height: 1.05; font-weight: 600; letter-spacing: -0.02em; }
+.num-l { font-family: var(--font-mono); font-size: 26px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; }
+.num-m { font-family: var(--font-mono); font-size: 19px; line-height: 1.2; font-weight: 600; }
+.num-s { font-family: var(--font-mono); font-size: 13px; line-height: 1.3; font-weight: 500; }
+.eyebrow { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.2; font-weight: 600; letter-spacing: 0.14em; }
+@font-face { font-family: "Fraunces"; src: url("fonts/Fraunces-Display900.woff2") format("woff2"); font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Schibsted Grotesk"; src: url("fonts/SchibstedGrotesk-var.woff2") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-var.woff2") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }

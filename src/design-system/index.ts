@@ -37,6 +37,8 @@ export { CheckLine } from './react/data/CheckLine';
 export type { CheckLineProps, CheckLineTone } from './react/data/CheckLine';
 export { DocLine } from './react/data/DocLine';
 export type { DocLineProps } from './react/data/DocLine';
+export { KpiTile } from './react/data/KpiTile';
+export type { KpiTileProps } from './react/data/KpiTile';
 export { LessonRow } from './react/data/LessonRow';
 export type { LessonRowProps } from './react/data/LessonRow';
 export { MediaCard } from './react/data/MediaCard';
@@ -89,6 +91,20 @@ export { TabBar } from './react/navigation/TabBar';
 export type { TabBarItem, TabBarProps } from './react/navigation/TabBar';
 export { TopBar } from './react/navigation/TopBar';
 export type { TopBarItem, TopBarProps } from './react/navigation/TopBar';
+
+/* ── Coquilles ─────────────────────────────────────────────────────────── */
+export { ConsoleSpaceFilter } from './react/shells/ConsoleSpaceFilter';
+export type { ConsoleSpaceFilterProps, ConsoleSpaceOption } from './react/shells/ConsoleSpaceFilter';
+export { EnvBadge } from './react/shells/EnvBadge';
+export type { EnvBadgeProps } from './react/shells/EnvBadge';
+export { MegaFooter } from './react/shells/MegaFooter';
+export type { MegaFooterProps } from './react/shells/MegaFooter';
+export { SpaceLauncher } from './react/shells/SpaceLauncher';
+export type { SpaceLauncherProps } from './react/shells/SpaceLauncher';
+export { SpaceSwitcher } from './react/shells/SpaceSwitcher';
+export type { SpaceId, SpaceSwitcherItem, SpaceSwitcherProps } from './react/shells/SpaceSwitcher';
+export { Ticker } from './react/shells/Ticker';
+export type { TickerProps } from './react/shells/Ticker';
 
 /* ── Surfaces ─────────────────────────────────────────────────────────── */
 export { ConfirmDialog } from './react/surfaces/ConfirmDialog';

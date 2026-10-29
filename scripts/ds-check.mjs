@@ -113,6 +113,19 @@ const MOBILE = existsSync(join(root, 'mobile')) ? walk(join(root, 'mobile'), ['.
   }
 }
 
+/* ── AD-27 · la traduction du kit v3 est à jour ───────────────────────────── */
+{
+  /*
+   * Le kit v3 ne se copie pas littéralement (AD-1) : il se TRADUIT (noms, `.dk`, flou, replis,
+   * collisions — voir l'en-tête de `scripts/ds-kit-v3.mjs`). La preuve change de forme, pas
+   * de force : on rejoue la traduction et on compare. Un écart à la main se voit ici.
+   */
+  const { traduire, KIT_V3_SRC, KIT_V3_DST } = await import('./ds-kit-v3.mjs');
+  if (!existsSync(KIT_V3_SRC)) add('27 · traduction v3', 'AD-27', relative(root, KIT_V3_SRC), 0, 'kit v3 absent du dépôt — AD-27 n\'est plus prouvable');
+  else if (!existsSync(KIT_V3_DST) || readFileSync(KIT_V3_DST, 'utf8') !== traduire(readFileSync(KIT_V3_SRC, 'utf8')))
+    add('27 · traduction v3', 'AD-27', relative(root, KIT_V3_DST), 0, 'diverge de la traduction du kit v3 — lancer npm run ds:v3');
+}
+
 /* ── AD-8 · les jetons générés sont à jour ─────────────────────────────────── */
 {
   /*

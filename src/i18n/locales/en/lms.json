@@ -45,7 +45,14 @@
     "openMenu": "Open menu",
     "search": "Search",
     "searchShortcut": "Search (Cmd+K)",
-    "searchPlaceholder": "Search…"
+    "searchPlaceholder": "Search…",
+    "spaces": {
+      "label": "Switch space",
+      "hub": "Site",
+      "edu": "Learn",
+      "club": "Club",
+      "admin": "Console"
+    }
   },
   "userMenu": {
     "profile": "My profile",

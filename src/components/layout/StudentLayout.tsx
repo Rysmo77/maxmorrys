@@ -129,6 +129,8 @@ export default function StudentLayout() {
   return (
     <AppShell
       brand={{ label: t('nav.brand'), href: '/mon-espace/tableau-de-bord' }}
+      // Kit v3 (AD-27) : l'espace courant, lu par le sélecteur d'espaces et `--space-*`.
+      space={path === '/mon-espace/club' || path.startsWith('/mon-espace/club/') ? 'club' : 'edu'}
       titleMap={{
         '/mon-espace/tableau-de-bord': t('titles.dashboard'),
         '/mon-espace/cours':           t('titles.courses'),

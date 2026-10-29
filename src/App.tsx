@@ -1,3 +1,4 @@
+import { CLUB_TAB_SEGMENTS } from './lib/club/tabs';
 import { createBrowserRouter, RouterProvider, Outlet, ScrollRestoration, useLocation, useParams, Navigate } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { useState, lazy, Suspense } from 'react';
@@ -533,6 +534,13 @@ function appChildren() {
             { path: 'profil',          element: <Suspense fallback={<PageLoader />}><ProfilePage /></Suspense> },
             { path: 'parametres',      element: <Suspense fallback={<PageLoader />}><SettingsPage /></Suspense> },
             { path: 'club',            element: <Suspense fallback={<PageLoader />}><ClubPage /></Suspense> },
+            /* Kit v3 / FR-031 (AD-27) : chaque onglet du Club devient une ADRESSE. Les huit
+               routes sont posées par le lot Fondations ; `ClubPage` les sert toutes, et c'est
+               au Club de lire l'onglet dans l'URL (`useLocation`). Segments EN : `segments.ts`. */
+            ...CLUB_TAB_SEGMENTS.map((onglet) => ({
+              path: `club/${onglet}`,
+              element: <Suspense fallback={<PageLoader />}><ClubPage /></Suspense>,
+            })),
             { path: 'repetiteur',      element: <Suspense fallback={<PageLoader />}><RysmoPage /></Suspense> },
             { path: 'hors-connexion',  element: <Suspense fallback={<PageLoader />}><OfflinePage /></Suspense> },
             { path: 'notifications',   element: <Suspense fallback={<PageLoader />}><NotificationsPage /></Suspense> },

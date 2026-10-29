@@ -20,6 +20,7 @@ const GROUPS = [
   ['data', 'Données'],
   ['forms', 'Formulaires'],
   ['navigation', 'Navigation'],
+  ['shells', 'Coquilles'],
   ['surfaces', 'Surfaces'],
 ];
 

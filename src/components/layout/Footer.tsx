@@ -4,7 +4,7 @@ import LocalizedLink from '../shared/LocalizedLink';
 import { FacebookIcon, InstagramIcon, LinkedInIcon, TikTokIcon, XIcon, YouTubeIcon } from '../shared/SocialIcons';
 import { SOCIAL_LINKS } from '../seo/seo-config';
 import { contact, corporateUrl, legalName } from '../../lib/brand';
-import { Wordmark } from '../../design-system';
+import { MegaFooter, Wordmark } from '../../design-system';
 import { Icon } from '@ds';
 
 /*
@@ -188,10 +188,49 @@ export default function Footer() {
     </>
   );
 
+  const legal = (
+    <>
+        {/* ── Mentions ────────────────────────────────────────────────────────── */}
+        {/* Le filet, puis la ligne de copyright en monospace — `reference/site-shell.jsx:63-64`. */}
+        <div className="py-4 border-t border-[color:var(--border-hair)] flex flex-col stack:flex-row justify-between items-center gap-3">
+          <p className="mm-num m-0 text-small text-ink-2">
+            {t('copyright', { year: new Date().getFullYear() })}
+          </p>
+          <p className="text-small text-ink-2">
+            {t('operatedByPrefix')}{' '}
+            <a
+              href={corporateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-ink underline-offset-2 hover:underline"
+            >
+              {legalName}
+            </a>
+          </p>
+        </div>
+
+        {/* La phrase qui remplaçait le formulaire de lettre d'information. Elle tenait dans
+            une bande de `py-16` ; elle tient sur une ligne. Le produit n'a aucun canal
+            d'envoi, et c'est ce qu'elle dit — plutôt qu'un champ qui ne sert à rien. */}
+        <p className="pb-6 m-0 text-small leading-[1.5] text-ink-2">{t('noEmail')}</p>
+    </>
+  );
+
   return (
     // `relative z-[1]` : le maillage est fixé à la fenêtre en `z-0`, et le pied de page se
     // pose dessus. `dk` : voir l'en-tête — la dalle sombre est une portée, pas une couleur.
-    <footer className="dk relative z-[1] bg-night text-[color:var(--text-body)]">
+    // Kit v3 (AD-27) : le pied de page GÉANT — filet des quatre teintes et nom en Fraunces
+    // sous les colonnes, mentions en dernier. `MegaFooter` pose la portée `.dk` lui-même.
+    <MegaFooter
+      name="Max-Morrys"
+      className="relative z-[1] bg-night text-[color:var(--text-body)]"
+      innerClassName="px-[18px] stack:px-10"
+      innerStyle={{
+        maxWidth: 'calc(var(--site-measure, 1200px) + 2 * var(--site-gutter, 40px))',
+        marginInline: 'auto',
+      }}
+      legal={legal}
+    >
 
       {/*
         ── LA BANDE DE SUIVI A ÉTÉ SUPPRIMÉE ────────────────────────────────────────
@@ -235,13 +274,7 @@ export default function Footer() {
         bords tombent au pixel, à toutes les largeurs, ce que ni l'un ni l'autre des deux
         états précédents ne savait faire.
       */}
-      <div
-        className="px-[18px] stack:px-10"
-        style={{
-          maxWidth: 'calc(var(--site-measure, 1200px) + 2 * var(--site-gutter, 40px))',
-          marginInline: 'auto',
-        }}
-      >
+
         {/*
           ── LA LETTRE ────────────────────────────────────────────────────────────────
           UNE BANDE, ET NON UNE CINQUIÈME COLONNE.
@@ -345,30 +378,6 @@ export default function Footer() {
           <div>{column('columns.legal', footerLinks.legal)}</div>
         </div>
 
-        {/* ── Mentions ────────────────────────────────────────────────────────── */}
-        {/* Le filet, puis la ligne de copyright en monospace — `reference/site-shell.jsx:63-64`. */}
-        <div className="py-4 border-t border-[color:var(--border-hair)] flex flex-col stack:flex-row justify-between items-center gap-3">
-          <p className="mm-num m-0 text-small text-ink-2">
-            {t('copyright', { year: new Date().getFullYear() })}
-          </p>
-          <p className="text-small text-ink-2">
-            {t('operatedByPrefix')}{' '}
-            <a
-              href={corporateUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-ink underline-offset-2 hover:underline"
-            >
-              {legalName}
-            </a>
-          </p>
-        </div>
-
-        {/* La phrase qui remplaçait le formulaire de lettre d'information. Elle tenait dans
-            une bande de `py-16` ; elle tient sur une ligne. Le produit n'a aucun canal
-            d'envoi, et c'est ce qu'elle dit — plutôt qu'un champ qui ne sert à rien. */}
-        <p className="pb-6 m-0 text-small leading-[1.5] text-ink-2">{t('noEmail')}</p>
-      </div>
-    </footer>
+    </MegaFooter>
   );
 }

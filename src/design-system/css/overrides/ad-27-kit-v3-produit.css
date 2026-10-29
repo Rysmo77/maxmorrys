@@ -1,0 +1,26 @@
+/* AD-27 — CE QUE LE PRODUIT AJOUTE AUX COMPOSANTS DU KIT v3 (29/10/2026).
+
+   La traduction mécanique (`kit-v3/components.css`) est fidèle au kit. Ce fichier ne dit
+   que ce qu'un kit écrit pour des maquettes ne peut pas dire : un lien à la place d'un
+   bouton, la flèche d'un bouton qui n'est pas `.mm-btn`, une tuile cliquable au clavier. */
+
+/* Le sélecteur d'espaces NAVIGUE : ses entrées sont des liens, pas des boutons. Le kit ne
+   style que `button` ; on reprend sa recette, au caractère près, pour `a`. */
+.mm-spaces a{position:relative;z-index:1;height:38px;padding:0 16px 0 12px;display:flex;align-items:center;gap:8px;font:600 13px/1 var(--f-body);color:var(--ink-2);border-radius:var(--r-pill);text-decoration:none;white-space:nowrap;transition:color var(--t-ui) var(--ease)}
+.mm-spaces a i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.mm-spaces a[data-space="hub"] i{background:var(--grad-four)}
+.mm-spaces a[data-space="edu"] i{background:var(--mm-bleu-f)}
+.mm-spaces a[data-space="club"] i{background:var(--mm-violet-f)}
+.mm-spaces a[data-space="admin"] i{background:var(--ink)}
+.mm-spaces a[aria-current="page"]{color:var(--ink)}
+.mm-spaces a small{font:500 11px/1 var(--f-mono);color:var(--ink-3)}
+
+/* La pastille-flèche de <Button arrow> : le bouton du dépôt n'est pas `.mm-btn`, la règle
+   de survol du kit ne l'atteint donc pas. */
+.mm-has-arrow .mm-btn__arrow{width:40px;height:40px}
+.mm-has-arrow.mm-is-sm .mm-btn__arrow{width:30px;height:30px}
+@media (hover:hover){.mm-has-arrow:hover .mm-btn__arrow svg{transform:translateX(3px) rotate(-45deg)}}
+
+/* Le pied de page géant se pose sur la dalle nuit du dépôt : le nom et le filet suivent sa
+   gouttière, pas celle du cadre de maquette. */
+.mm-megafooter .mm-footer__mega{margin-inline:-.04em}

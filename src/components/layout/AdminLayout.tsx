@@ -5,6 +5,7 @@ import type { AppSidebarItem } from './AppSidebar';
 import { isSupportAllowedPath } from '../../lib/adminAccess';
 import { useConsoleCounts } from '../../lib/admin/consoleCounts';
 import { ADMIN_NAV, ADMIN_SECTIONS } from '../../lib/admin/consoleNav';
+import { EnvBadge } from '@ds';
 
 /*
   LA TABLE DES ÉCRANS ET LEURS CINQ FAMILLES VIVENT DANS `lib/admin/consoleNav.ts`.
@@ -101,40 +102,18 @@ export default function AdminLayout() {
     <AppShell
       brand={{ label: panelLabel, href: '/admin' }}
       /*
-        LA CONSOLE PREND LE MAILLAGE NUIT, DANS LES DEUX MODES. `nuit` est un TERRITOIRE — le
-        cinquième maillage du kit, sur #0A0D11 — et il dit ce que dit une console : tu n'es
-        plus sur le site, tu es dans la salle des machines. Les dix-neuf écrans le prennent
-        d'un coup.
+        ── LA CONSOLE EST CLAIRE (kit v3, AD-27 — décision du 29/10/2026) ──────────────
+        Elle portait le maillage `nuit` et la portée `.dk` sur toute la coquille : la
+        salle des machines. Le kit v3 la redessine « claire, barre latérale à libellés »,
+        comme le reste du produit, et le thème clair est celui PAR DÉFAUT partout. Le mode
+        sombre reste celui de la personne : la portée `.dk` posée sur <html> par
+        ThemeContext, jamais une portée forcée ici (AD-3).
+        Sans maillage, la coquille se pose sur `--bento-2` — surface plate et opaque.
       */
-      territory="nuit"
-      /*
-        ── ET IL FAUT LA PORTÉE `.dk` AVEC, SANS QUOI LA CONSOLE EST ILLISIBLE ────────────
-        La version précédente de ce commentaire soutenait le contraire : « ce n'est pas une
-        prop de thème (AD-3) et ça n'en tiendrait pas lieu ; `.dk` reste la portée du mode
-        sombre, posée sur <html> ». Le raisonnement confondait deux choses.
-
-        AD-3 interdit de passer le THÈME EN PROP de composant. Il n'interdit pas la portée
-        CSS — c'est même le mécanisme qu'il prescrit, et le dépôt l'emploie déjà deux fois en
-        local : `Forbidden403` (« le seul écran sombre du produit ») et le pied de page.
-
-        Le défaut que ça laissait est mesurable. `AppShell` ne peint aucun fond sur son
-        `<main>` : le contenu de la console est posé DIRECTEMENT sur le maillage nuit. En
-        mode clair, les jetons restaient clairs — `--ink` foncé sur #0A0D11. Encre foncée sur
-        fond foncé, sur les dix-neuf écrans, pour qui n'avait pas choisi le mode sombre.
-
-        `dk` ici fait basculer les 78 jetons concernés en même temps que le maillage, et rend
-        cohérent le `territory="nuit"` déjà décidé au-dessus.
-
-        ⚠️ ET IL LA FAUT SUR LA COQUILLE, PAS SUR LE CONTENU. La version précédente posait
-        `dk` sur `contentClassName`, c'est-à-dire sur le seul `<main>`. La colonne, la barre
-        haute, le tiroir, le menu utilisateur et la cloche sont rendus DEHORS : en mode clair
-        ils prenaient donc leurs jetons clairs par-dessus le maillage nuit #0A0D11 — chrome
-        clair, corps nuit, sur les vingt et un écrans, pour qui n'a pas choisi le mode sombre.
-        Le défaut se voyait d'autant moins que le chrome était translucide ; AD-26 le rend
-        opaque, et il serait devenu une dalle blanche. `shellClassName` porte la portée.
-        ────────────────────────────────────────────────────────────────────────────────
-      */
-      shellClassName="dk"
+      mesh={false}
+      space="admin"
+      shellClassName="bg-bento-2"
+      headerEnd={import.meta.env.PROD ? <EnvBadge label={t('console.envProd')} className="hidden stack:inline-flex" /> : undefined}
       contentClassName="p-4 stack:p-pane"
       /*
         « Max-Morrys » ne survit que comme PERSONNE (AD-12) : la page « Je suis Max-Morrys »,

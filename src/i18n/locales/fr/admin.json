@@ -1788,5 +1788,17 @@
   },
   "motif": {
     "scopeTitle": "Ce que cet écran ne couvre pas"
+  },
+  "console": {
+    "spacesLabel": "Filtrer par espace",
+    "spaces": {
+      "all": "Tout",
+      "hub": "Hub",
+      "edu": "Edu",
+      "club": "Club",
+      "conception": "Conception",
+      "rysmo": "Rysmo"
+    },
+    "envProd": "PRODUCTION"
   }
 }

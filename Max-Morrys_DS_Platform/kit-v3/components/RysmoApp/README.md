@@ -1,0 +1,9 @@
+L'application Rysmo (React Native) sur iOS et Android — l'app de toute la plateforme (Edu, Club, contenus du site, services, console limitée) : une seule base de code, des conventions de plateforme pour la navigation, les onglets, les feuilles, les interrupteurs et les retours d'état, la marque Max-Morrys partout.
+
+**Racine** : `<div class="mm mm-r" data-os="ios|android" data-space="hub|edu|club|ia|admin" data-enter="push|tab|modal">` à la taille de l'appareil (390 × 844 sur iOS, 412 × 915 sur Android). `data-os` choisit les conventions ; `data-enter` choisit la transition d'arrivée (poussée, onglet, feuille).
+
+**Structure** : `mm-r__bar` (barre haute : `mm-r__back`, `mm-r__title`, `mm-r__large`), `mm-r__body` (contenu qui défile), `mm-r__tabs` (cinq onglets : Accueil, Apprendre, Club, Assistant, Profil), `mm-r-band` (sections d'Apprendre, huit onglets du Club) ou `mm-r-compose` (champ de question) en bas.
+
+**Composants** : `mm-r-card`, `mm-r-list` / `mm-r-li` (groupe en encart sur iOS, rangées pleine largeur sur Android), `mm-r-btn`, `mm-r-chip`, `mm-r-seg`, `mm-r-sw`, `mm-r-input`, `mm-r-otp`, `mm-r-bub` et `mm-r-mark` (bulles et étincelle de l'assistant, Rysmo IA par défaut, renommable), `mm-r-resume`, `mm-r-tiles`, `mm-r-truth`, `mm-r-mini`, `mm-r-sk`, `mm-r-share`, `mm-r-mesh`, `mm-r-sheet` + `mm-r-scrim`, `mm-r-toast` (bannière iOS, snackbar Android), `mm-r-ring`, `mm-r-bar`, `mm-r-wave`, `mm-r-dots`, `mm-r-opt`, `mm-r-check`, `mm-r-fab` (Android).
+
+**Règles** : ne jamais dessiner de fausse barre d'état ni de faux clavier — la zone haute (`--r-top`) et basse (`--r-bot`) reste libre. Le quota est visible avant chaque question. Aucun contenu numérique ne s'achète dans l'app : le mur explique pourquoi et renvoie au site. La mémoire est désactivée par défaut. Le contenu d'exemple porte `mm-r-demo`. `is-rm` sur la racine coupe toutes les animations (réglage « Réduire les animations »).

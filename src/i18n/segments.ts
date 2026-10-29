@@ -95,6 +95,15 @@ const SEGMENTS: Record<string, { fr: string; en: string }> = {
   profil: { fr: 'profil', en: 'profile' },
   parametres: { fr: 'parametres', en: 'settings' },
   club: { fr: 'club', en: 'club' },
+  // Les onglets du Club, une adresse chacun (kit v3, FR-031 — AD-27).
+  fil: { fr: 'fil', en: 'feed' },
+  discussions: { fr: 'discussions', en: 'discussions' },
+  agenda: { fr: 'agenda', en: 'agenda' },
+  membres: { fr: 'membres', en: 'members' },
+  classement: { fr: 'classement', en: 'leaderboard' },
+  opportunites: { fr: 'opportunites', en: 'opportunities' },
+  infos: { fr: 'infos', en: 'info' },
+  parrainage: { fr: 'parrainage', en: 'referral' },
   // AD-12 — le tuteur s'appelle « Répétiteur » par défaut, et chaque personne peut le
   // renommer. La ROUTE, elle, ne suit pas le renommage : elle est un contrat, pas un
   // libellé. `/mon-espace/rysmo` est redirigé de façon permanente vers `/mon-espace/repetiteur`.

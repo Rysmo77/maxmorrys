@@ -181,7 +181,7 @@ la fois, dans la plateforme que personne ne regarde pendant qu'on corrige l'autr
 
 - **Binds :** tout
 - **Prevents :** la ré-introduction du coût de recomposition sur le profil d'appareil visé — 2 Go de mémoire, 4 cœurs, qui *est* le marché et non le cas limite
-- **Rule :** aucune transition ni animation sur `width`, `height`, `top`, `left`, `margin`, `padding`, `inset`. **Exception unique, déjà écrite et fermée** : le remplissage de barre de progression et le curseur du fil de lecture (`@keyframes barfill`, `.prog-fill`), bornés à un élément de 3 à 8 px de haut sans enfant. Aucune nouvelle exception. Quatre durées et deux courbes, jamais d'autres. `ds:check` grep les propriétés interdites et échoue.
+- **Rule :** aucune transition ni animation sur `width`, `height`, `top`, `left`, `margin`, `padding`, `inset`. **Exception unique, déjà écrite et fermée** : le remplissage de barre de progression et le curseur du fil de lecture (`@keyframes barfill`, `.prog-fill`), bornés à un élément de 3 à 8 px de haut sans enfant. Aucune nouvelle exception. Cinq durées (`t-tap 120 · t-ui 220 · t-enter 380 · t-page 480 · t-scene 700`) et quatre courbes (`ease`, `ease-out`, `ease-spring` réservée aux récompenses, `ease-in-out`), jamais d'autres. *Amendé le 29/10/2026 (AD-27, kit v3) : `t-page`, `ease-spring` et `ease-in-out` ajoutées ; avant, quatre durées et deux courbes.* `ds:check` grep les propriétés interdites et échoue.
 
 ### AD-17 — La PWA n'interrompt jamais, et son seul argument est le forfait
 
