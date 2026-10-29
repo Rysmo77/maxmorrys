@@ -61,7 +61,7 @@ export default function Biometrie() {
 
   if (pose) {
     return (
-      <Screen territory="transforme" center>
+      <Screen territory="transforme" espace="hub" center>
         <Heros>
           <View style={{ width: 66, height: 66, borderRadius: 33, alignItems: 'center', justifyContent: 'center', backgroundColor: t('ok') }}>
             <Icon name="check" size={30} color={t('paperFixed')} strokeWidth={3} />
@@ -78,7 +78,7 @@ export default function Biometrie() {
   }
 
   return (
-    <Screen territory="transforme" center>
+    <Screen territory="transforme" espace="hub" center>
       {bandeau}
       <Gradient
         colors={[t('mmTealN'), t('mmBleu')]}

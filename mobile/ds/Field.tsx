@@ -1,3 +1,5 @@
+import { isIOS } from './platform';
+import { useTeinte } from './espace';
 import {
   AccessibilityInfo, Animated, Text, TextInput, View,
   type KeyboardTypeOptions, type ReturnKeyTypeOptions, type StyleProp, type TextInputProps, type ViewStyle,
@@ -5,7 +7,7 @@ import {
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
 import { COURBE, DUREE, duree, useBascule, useMouvement } from './mouvement';
 import { POLICE } from './police';
-import { useToken, px } from './theme';
+import { useToken } from './theme';
 
 /**
  * LE CHAMP — un VRAI contrôle, et c'est le point.
@@ -59,6 +61,7 @@ export function Field({
      bordure ne s'anime pas sur le pilote natif : c'est une couche par-dessus). */
   const [focus, setFocus] = useState(false);
   const anneau = useBascule(focus && !bad);
+  const teinte = useTeinte();
 
   return (
     <View style={[{ marginTop: 14 }, style]}>
@@ -73,18 +76,20 @@ export function Field({
       </Text>
       <View style={{
         flexDirection: 'row', alignItems: multiline ? 'flex-start' : 'center', gap: 10,
-        minHeight: multiline ? 96 : 54,
-        paddingHorizontal: 16, paddingTop: multiline ? 14 : 0,
-        borderRadius: px(t('rM')),
-        backgroundColor: t('fieldBg'),
-        borderWidth: 1.5,
-        borderColor: bad ? t('stop') : t('borderField'),
+        /* `mm-r-input` du kit v4.5 : 52 px à 14 sur `bento` (iOS) ; champ CONTOURÉ Material 3
+           de 56 px à 4 sur Android. */
+        minHeight: multiline ? 96 : isIOS ? 52 : 56,
+        paddingHorizontal: isIOS ? 14 : 16, paddingTop: multiline ? 14 : 0,
+        borderRadius: isIOS ? 14 : 4,
+        backgroundColor: isIOS ? t('bento') : 'transparent',
+        borderWidth: 1,
+        borderColor: bad ? t('stop') : isIOS ? t('line') : t('ink3'),
       }}>
         <Animated.View
           pointerEvents="none"
           style={{
-            position: 'absolute', top: -1.5, right: -1.5, bottom: -1.5, left: -1.5,
-            borderRadius: px(t('rM')), borderWidth: 1.5, borderColor: t('ink'), opacity: anneau,
+            position: 'absolute', top: -1, right: -1, bottom: -1, left: -1,
+            borderRadius: isIOS ? 14 : 4, borderWidth: isIOS ? 1 : 2, borderColor: teinte.rv, opacity: anneau,
           }}
         />
         <TextInput

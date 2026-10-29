@@ -3,7 +3,9 @@ import { POLICE } from './police';
 import { Animated, Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { COURBE, DUREE, duree, useMouvement } from './mouvement';
 import { haptique } from './haptique';
-import { useToken, px } from './theme';
+import { useToken } from './theme';
+import { isIOS } from './platform';
+import { useTeinte } from './espace';
 
 /**
  * LE SÉLECTEUR À DEUX OU TROIS VUES — pas un onglet, pas un filtre.
@@ -29,11 +31,16 @@ export function Segmented({
   style?: StyleProp<ViewStyle>;
 }) {
   const t = useToken();
+  /* `mm-r-seg` du kit v4.5. iOS : rail gris à 10 px, curseur blanc à 8 px, ombré.
+     Android (Material 3) : boutons segmentés CONTOURÉS en pilule, l'actif sur le fond doux. */
+  const teinte = useTeinte();
+  const marge = isIOS ? 2 : 0;
+  const ecart = isIOS ? 2 : 0;
   const { reduit } = useMouvement();
   const [largeur, setLargeur] = useState(0);
   const index = Math.max(0, value === undefined ? 0 : options.indexOf(value));
   const x = useRef(new Animated.Value(index)).current;
-  const pas = largeur > 0 ? (largeur - 8 - 4 * (options.length - 1)) / options.length : 0;
+  const pas = largeur > 0 ? (largeur - (isIOS ? marge * 2 : 2) - ecart * (options.length - 1)) / options.length : 0;
 
   useEffect(() => {
     Animated.timing(x, {
@@ -46,17 +53,21 @@ export function Segmented({
       accessibilityRole="tablist"
       onLayout={(e) => setLargeur(e.nativeEvent.layout.width)}
       style={[{
-        flexDirection: 'row', padding: 4, gap: 4,
-        borderRadius: px(t('rPill')), backgroundColor: t('surfaceQuiet'),
+        flexDirection: 'row', padding: marge, gap: ecart, overflow: 'hidden',
+        borderRadius: isIOS ? 10 : 999,
+        backgroundColor: isIOS ? t('fill2') : 'transparent',
+        borderWidth: isIOS ? 0 : 1, borderColor: t('ink3'),
       }, style]}
     >
       {pas > 0 ? (
         <Animated.View
           pointerEvents="none"
           style={{
-            position: 'absolute', top: 4, bottom: 4, left: 4, width: pas,
-            borderRadius: px(t('rPill')), backgroundColor: t('segOnBg'),
-            transform: [{ translateX: x.interpolate({ inputRange: [0, 1], outputRange: [0, pas + 4] }) }],
+            position: 'absolute', top: marge, bottom: marge, left: marge, width: pas,
+            borderRadius: isIOS ? 8 : 0,
+            backgroundColor: isIOS ? t('segOnBg') : teinte.doux,
+            ...(isIOS ? { shadowColor: t('inkFixed'), shadowOpacity: 0.12, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } } : null),
+            transform: [{ translateX: x.interpolate({ inputRange: [0, 1], outputRange: [0, pas + ecart] }) }],
           }}
         />
       ) : null}
@@ -68,7 +79,10 @@ export function Segmented({
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             onPress={onChange ? () => { if (!on) haptique.selection(); onChange(o); } : undefined}
-            style={{ flex: 1, minHeight: 36, paddingHorizontal: 6, borderRadius: px(t('rPill')), alignItems: 'center', justifyContent: 'center' }}
+            style={{
+              flex: 1, minHeight: isIOS ? 34 : 40, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center',
+              borderLeftWidth: !isIOS && i > 0 ? 1 : 0, borderLeftColor: t('ink3'),
+            }}
           >
             <Text
               numberOfLines={1}
@@ -76,8 +90,8 @@ export function Segmented({
               minimumFontScale={0.8}
               maxFontSizeMultiplier={1.5}
               style={{
-                fontFamily: POLICE.corps, fontSize: 13, fontWeight: '600',
-                color: on ? t('ink') : t('textMuted'),
+                fontFamily: POLICE.corps, fontSize: isIOS ? 13 : 14, fontWeight: isIOS ? '600' : '500',
+                color: on ? (isIOS ? t('ink') : teinte.surDoux) : isIOS ? t('textBody') : t('textMuted'),
               }}
             >
               {o}

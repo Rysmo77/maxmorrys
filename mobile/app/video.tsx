@@ -76,7 +76,7 @@ export default function Video() {
   }
 
   return (
-    <Screen territory="transforme" retour="Écouter" titre={isIOS ? undefined : 'Vidéo'}>
+    <Screen territory="transforme" espace="edu" retour="Écouter" titre={isIOS ? undefined : 'Vidéo'}>
         {bandeau}
         <Eyebrow>Je te transforme · Vidéo</Eyebrow>
         <View style={{ marginTop: 8 }}>

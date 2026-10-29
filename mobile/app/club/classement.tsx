@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 import {
   Avatar, Body, Display, Eyebrow, Num, ProgressBar, SansDonnees, Surface, useToken, veil,
+  Rubrique,
 } from '../../ds';
 import { ClubScreen } from './_layout';
 import { provenance, useClassement } from '../../donnees';
@@ -92,8 +93,8 @@ export default function ClubClassement() {
         </Body>
       </Surface>
 
-      <Eyebrow style={{ marginTop: 22 }}>Ta vague</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16, paddingVertical: 4 }}>
+      <Rubrique>Ta vague</Rubrique>
+      <Surface level="flat" style={{ paddingHorizontal: 16, paddingVertical: 4 }}>
         {classement.lignes.map((l) => (
           <View
             key={l.rang}

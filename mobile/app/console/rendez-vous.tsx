@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Body, Button, EmptyState, Eyebrow, Icon, Num, Pipeline, Surface, useToken, veil,
+  Body, Button, EmptyState, Icon, Num, Pipeline, Surface, useToken, veil, Rubrique,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
 import { RELEVE, SOURCE } from '../../contenu/demo';
@@ -34,7 +34,7 @@ export default function RendezVous() {
         style={{ marginTop: 18 }}
       />
 
-      <Surface level="night" style={{ marginTop: 14, padding: 6 }}>
+      <Surface level="flat" style={{ marginTop: 14, padding: 6 }}>
         <EmptyState
           glyph={<Icon name="calendar" size={26} color={t('mmBleu')} />}
           glyphBackground={veil(t('mmBleu'), 0.18)}
@@ -43,8 +43,8 @@ export default function RendezVous() {
         />
       </Surface>
 
-      <Eyebrow style={{ marginTop: 22 }}>Le relevé</Eyebrow>
-      <Surface level="night" style={{ marginTop: 10, padding: 17 }}>
+      <Rubrique>Le relevé</Rubrique>
+      <Surface level="flat" style={{ padding: 17 }}>
         <Num value={0} source={SOURCE} asOf={RELEVE} unit="rendez-vous demandé" style={{ fontSize: 15 }} />
         <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 8 }}>
           Les heures s'affichent en heure de Dakar, avec leur fuseau écrit. Dakar n'a pas

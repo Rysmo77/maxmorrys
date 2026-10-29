@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import {
-  Body, CheckLine, Display, Eyebrow, LessonRow, Num, Surface,
+  Body, CheckLine, Display, Eyebrow, Num, Surface, Ligne, Liste, Rubrique,
 } from '../../ds';
 import { ClubScreen } from './_layout';
 import { CLUB_GARANTI, CLUB_PAS_GARANTI } from '../../contenu/engagement';
@@ -38,15 +38,15 @@ export default function ClubInfos() {
           alors « en attente du serveur », pour une promesse que personne n'a jamais eu
           l'intention de ranger dans un serveur. Elles sont l'engagement commercial du
           produit : voir `contenu/engagement.ts`. */}
-      <Eyebrow style={{ marginTop: 22 }}>Garanti</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
+      <Rubrique>Garanti</Rubrique>
+      <Surface level="flat" style={{ padding: 18 }}>
         {CLUB_GARANTI.map((g, i) => (
           <CheckLine key={g} tone="ok" style={i === 0 ? { marginTop: 0 } : undefined}>{g}</CheckLine>
         ))}
       </Surface>
 
-      <Eyebrow style={{ marginTop: 22 }}>Pas garanti</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
+      <Rubrique>Pas garanti</Rubrique>
+      <Surface level="flat" style={{ padding: 18 }}>
         {CLUB_PAS_GARANTI.map((g, i) => (
           <CheckLine key={g} tone="neutre" dash style={i === 0 ? { marginTop: 0 } : undefined}>{g}</CheckLine>
         ))}
@@ -61,15 +61,14 @@ export default function ClubInfos() {
           souscrire ne renseigne personne et désigne un achat introuvable. Le parrainage, lui,
           reste atteignable : son intérêt est la RÈGLE (la remise va au filleul), pas le
           montant — et cette règle vaut d'être lue par un membre déjà inscrit. */}
-      <Eyebrow style={{ marginTop: 22 }}>Le parrainage</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        <LessonRow
-          title="Ton code, et ce qu'il donne"
-          meta="la remise va au filleul, jamais au parrain"
+      <Rubrique>Le parrainage</Rubrique>
+      <Liste>
+        <Ligne
+          titre="Ton code, et ce qu'il donne"
+          sous="la remise va au filleul, jamais au parrain"
           onPress={() => router.push('/club/parrainage')}
-          last
         />
-      </Surface>
+      </Liste>
 
       <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
         <Eyebrow>Le renouvellement n'est pas automatique</Eyebrow>

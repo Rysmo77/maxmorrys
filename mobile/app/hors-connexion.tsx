@@ -1,5 +1,8 @@
 import { router } from 'expo-router';
-import { Body, Button, Display, Eyebrow, Icon, LessonRow, Screen, Surface, Tag, useToken, veil } from '../ds';
+import {
+  Body, Button, Display, Eyebrow, Icon, LessonRow, Screen, Surface, Tag, useToken, Ligne, Liste,
+  Rubrique,
+} from '../ds';
 import { envoyerLaFile, oublierEcartees, useHorsLigne } from '../donnees/hors-ligne';
 import { useReseau } from '../donnees/veille-reseau';
 import { poids } from '../donnees/garde';
@@ -47,6 +50,7 @@ export default function HorsConnexion() {
   return (
     <Screen
       territory="informe"
+      espace="hub"
       retour="Retour"
       droite={inconnu ? <Tag>Vérification…</Tag> : coupe ? <Tag tone="stop">Hors connexion</Tag> : <Tag tone="ok">Réseau revenu</Tag>}
     >
@@ -59,8 +63,8 @@ export default function HorsConnexion() {
 
       {gardees.length > 0 ? (
         <>
-          <Eyebrow style={{ marginTop: 22 }}>Disponible sans réseau</Eyebrow>
-          <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
+          <Rubrique>Disponible sans réseau</Rubrique>
+          <Surface level="flat" style={{ paddingHorizontal: 16 }}>
             {[...gardees].sort((a, b) => b.gardeeLe.localeCompare(a.gardeeLe)).map((l, i, liste) => (
               <LessonRow
                 key={l.cle}
@@ -80,19 +84,18 @@ export default function HorsConnexion() {
       {file.length === 0 ? (
         <Body muted style={{ marginTop: 10, fontSize: 13.5 }}>Rien n'attend : tout ce que tu as fait est parti.</Body>
       ) : (
-        <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-          {file.map((f, i) => (
-            <LessonRow
+        <Liste>
+          {file.map((f) => (
+            <Ligne
               key={f.id}
-              icon={<Icon name={f.operation.type === 'ecrireUneNote' ? 'pencil' : f.operation.type === 'posterAuClub' ? 'comment' : 'check'} size={13} color={t('mmOrangeT')} strokeWidth={2.2} />}
-              iconBackground={veil(t('mmOrange'), 0.18)}
-              title={f.titre}
-              meta={`fait le ${heure(f.faitLe)}`}
-              trailing={<Icon name="clock" size={16} color={t('mmOrangeT')} strokeWidth={2.2} />}
-              last={i === file.length - 1}
+              icone={f.operation.type === 'ecrireUneNote' ? 'pencil' : f.operation.type === 'posterAuClub' ? 'comment' : 'check'}
+              fondIcone={t('mmOrange')}
+              titre={f.titre}
+              sous={`fait le ${heure(f.faitLe)}`}
+              droite={<Icon name="clock" size={16} color={t('mmOrangeT')} strokeWidth={2.2} />}
             />
           ))}
-        </Surface>
+        </Liste>
       )}
       {file.length > 0 && !coupe ? (
         <Button
@@ -106,18 +109,18 @@ export default function HorsConnexion() {
 
       {ecartees.length > 0 ? (
         <>
-          <Eyebrow style={{ marginTop: 22 }}>Refusé par le serveur</Eyebrow>
-          <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-            {ecartees.map((e, i) => (
-              <LessonRow
+          <Rubrique>Refusé par le serveur</Rubrique>
+          <Liste>
+            {ecartees.map((e) => (
+              <Ligne
                 key={e.id}
-                icon={<Icon name="alert" size={13} color={t('stop')} strokeWidth={2.4} />}
-                title={e.titre}
-                meta={e.motif}
-                last={i === ecartees.length - 1}
+                icone="alert"
+                danger
+                titre={e.titre}
+                sous={e.motif}
               />
             ))}
-          </Surface>
+          </Liste>
           <Button tone="quiet" label="J'ai vu" style={{ marginTop: 12 }} onPress={() => { void oublierEcartees(); }} />
         </>
       ) : null}

@@ -148,7 +148,7 @@ export default function Certificat() {
      ordre d'un rendu à l'autre, ce que React refuse. */
   if (doc === null || lien === null || prenom === null) {
     return (
-      <Screen territory="forme" retour="Espace">
+      <Screen territory="forme" espace="edu" retour="Accueil">
         <Display size={27} lines={['Aucun certificat', 'à afficher.']} style={{ marginTop: 10 }} />
         <SansDonnees
           quoi="ce certificat"
@@ -163,7 +163,8 @@ export default function Certificat() {
   return (
     <Screen
       territory="forme"
-      retour="Espace"
+      espace="edu"
+      retour="Accueil"
       /* ⚠️ LES PARAMÈTRES MANQUAIENT. `/partage` compose le lien de vérification à partir du
          certificat ; sans eux il retombait sur la démonstration, donc sur RIEN en production
          — l'écran de partage d'un certificat qu'on venait d'ouvrir affichait « Rien à

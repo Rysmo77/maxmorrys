@@ -1,6 +1,6 @@
 import { Redirect, router } from 'expo-router';
 import {
-  Body, Display, Eyebrow, Icon, LessonRow, Screen, Surface, type IconName, useToken,
+  Body, Display, Eyebrow, Screen, Surface, type IconName, Ligne,
 } from '../ds';
 import { PORTEE_RESUMEE } from '../contenu/termes';
 
@@ -148,7 +148,6 @@ export default function Apercu() {
    * `eslint .` rend une ERREUR. C'est le job `lint-and-build` de la CI, donc `deploy` qui en
    * dépend : la porte du déploiement était fermée par ces deux lignes.
    */
-  const t = useToken();
 
   /* La planche liste les 48 écrans, systèmes et états compris. C'est un outil de revue :
      elle n'a aucun sens pour quelqu'un qui utilise le produit, et elle se lit en revue de
@@ -169,19 +168,17 @@ export default function Apercu() {
 
       {PLANCHE.map((groupe) => (
         <Surface key={groupe.titre} level="flat" style={{ marginTop: 18, paddingHorizontal: 16 }}>
-          <LessonRow
-            icon={<Icon name={groupe.glyphe} size={15} color={t('mmBleu')} />}
-            title={groupe.titre}
-            meta={`${groupe.ecrans.length} écrans`}
+          <Ligne
+            icone={groupe.glyphe}
+            titre={groupe.titre}
+            sous={`${groupe.ecrans.length} écrans`}
           />
-          {groupe.ecrans.map((e, i) => (
-            <LessonRow
+          {groupe.ecrans.map((e) => (
+            <Ligne
               key={e.href}
-              title={e.titre}
-              meta={<Body muted style={{ fontSize: 12, lineHeight: 17 }}>{e.note}</Body>}
-              trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+              titre={e.titre}
+              sous={<Body muted style={{ fontSize: 12, lineHeight: 17 }}>{e.note}</Body>}
               onPress={() => router.push(e.href)}
-              last={i === groupe.ecrans.length - 1}
             />
           ))}
         </Surface>

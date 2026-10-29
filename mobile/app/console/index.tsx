@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, Button, Eyebrow, Icon, LessonRow, Num, Pipeline, SansDonnees, StatTile, Surface, useToken, veil,
+  Body, Button, Num, Pipeline, SansDonnees, StatTile, useToken, Ligne, Liste, Rubrique,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
 import { provenance, useConsole } from '../../donnees';
@@ -76,27 +76,26 @@ export default function Console() {
           style={{ marginTop: 14 }}
         />
       ) : (
-        <Surface level="night" style={{ marginTop: 14, paddingHorizontal: 16 }}>
-          <LessonRow
-            icon={<Icon name="case" size={14} color={t('mmOrange')} />}
-            iconBackground={veil(t('mmOrange'), 0.2)}
-            title={prospect.titre}
-            meta={prospect.meta}
-            trailing={<Button tone="quiet" size="sm" label="Qualifier" onPress={() => router.push('/console/prospects')} />}
-            last
+        <Liste style={{ marginTop: 14 }}>
+          <Ligne
+            icone="case"
+            fondIcone={t('mmOrange')}
+            titre={prospect.titre}
+            sous={prospect.meta}
+            droite={<Button tone="quiet" size="sm" label="Qualifier" onPress={() => router.push('/console/prospects')} />}
           />
-        </Surface>
+        </Liste>
       )}
 
-      <Eyebrow style={{ marginTop: 24 }}>Ce que ton rôle atteint</Eyebrow>
-      <Surface level="night" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        {SUPPORT_PORTEE.map((e, i) => (
-          <LessonRow
+      <Rubrique>Ce que ton rôle atteint</Rubrique>
+      <Liste>
+        {SUPPORT_PORTEE.map((e) => (
+          <Ligne
             key={e.titre}
-            icon={<Icon name="check" size={13} color={t('mmTeal')} strokeWidth={3.4} />}
-            iconBackground={veil(t('mmTeal'), 0.18)}
-            title={e.titre}
-            trailing={(
+            icone="check"
+            fondIcone={t('mmTeal')}
+            titre={e.titre}
+            droite={(
               <Num
                 value={compte(e.titre)}
                 {...provenance(console)}
@@ -105,10 +104,9 @@ export default function Console() {
               />
             )}
             onPress={() => router.push(e.href)}
-            last={i === SUPPORT_PORTEE.length - 1}
           />
         ))}
-      </Surface>
+      </Liste>
 
       <Button
         tone="quiet"

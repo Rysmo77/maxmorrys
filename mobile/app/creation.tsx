@@ -78,6 +78,7 @@ export default function Creation() {
   return (
     <Screen
       territory="forme"
+      espace="hub"
       retour="Retour"
       titre={isIOS ? undefined : 'Créer un compte'}
     >

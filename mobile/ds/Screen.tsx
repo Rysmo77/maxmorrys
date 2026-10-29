@@ -9,6 +9,7 @@ import { Display } from './Type';
 import { Mesh } from './Mesh';
 import { NavBar } from './NavBar';
 import { ThemeScope, useToken, px } from './theme';
+import { EspaceScope, useTeinte, type Espace } from './espace';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -41,8 +42,20 @@ import { ThemeScope, useToken, px } from './theme';
  */
 export type ScreenTerritory = 'forme' | 'informe' | 'transforme' | 'digitalise' | 'nuit';
 
+/**
+ * L'ESPACE PAR DÉFAUT D'UN TERRITOIRE — pour que les écrans qui ne le disent pas prennent quand
+ * même la bonne teinte : le bleu de « je te forme » est celui d'Apprendre, le violet de
+ * « je transforme » celui du Club. Un écran le précise avec `espace` quand les deux divergent
+ * (l'accueil et le profil sont `hub`, l'assistant `ia`).
+ */
+export const ESPACE_DU_TERRITOIRE: Record<ScreenTerritory, Espace> = {
+  forme: 'edu', transforme: 'club', informe: 'hub', digitalise: 'hub', nuit: 'admin',
+};
+
 export function Screen({
   territory = 'forme',
+  espace,
+  maillage = true,
   dark,
   retour,
   onRetour,
@@ -60,6 +73,10 @@ export function Screen({
   children,
 }: {
   territory?: ScreenTerritory;
+  /** L'espace du kit v4.5 (`data-space`) : la teinte d'action de l'écran. Déduit du territoire sinon. */
+  espace?: Espace;
+  /** `false` : surface plate, sans maillage — la console et ses états (kit v4.3, « console claire »). */
+  maillage?: boolean;
   /** Écran nuit — console, /403. Ouvre une portée de thème, pas une prop passée aux enfants. */
   dark?: boolean; // ok-ds — OUVRE la portée de thème de l'écran, l'équivalent RN de `.dk` ; rien n'est passé aux enfants
   /** Libellé de retour. Affiché sur iOS, dit à voix haute sur Android. */
@@ -93,6 +110,7 @@ export function Screen({
 }) {
   const corps = (
     <Corps
+      maillage={maillage}
       territory={dark ? 'nuit' : territory}
       retour={retour}
       onRetour={onRetour}
@@ -112,15 +130,17 @@ export function Screen({
     </Corps>
   );
 
-  return dark ? <ThemeScope scheme="dark">{corps}</ThemeScope> : corps;
+  const porte = <EspaceScope espace={espace ?? ESPACE_DU_TERRITOIRE[dark ? 'nuit' : territory]}>{corps}</EspaceScope>;
+  return dark ? <ThemeScope scheme="dark">{porte}</ThemeScope> : porte;
 }
 
 /* Séparé pour que `useToken()` lise la portée nuit OUVERTE par `Screen`, et pas celle du
    téléphone : un hook appelé dans le composant qui pose le fournisseur ne le voit pas. */
 function Corps({
-  territory, retour, onRetour, titre, droite, tabbar, center, scroll, gutter, contentStyle,
+  maillage, territory, retour, onRetour, titre, droite, tabbar, center, scroll, gutter, contentStyle,
   overlay, onRefresh, enRafraichissement, refDefilement, children,
 }: {
+  maillage: boolean;
   territory: ScreenTerritory;
   retour?: string;
   onRetour?: () => void;
@@ -138,6 +158,7 @@ function Corps({
   children: ReactNode;
 }) {
   const t = useToken();
+  const teinte = useTeinte();
   const insets = useSafeAreaInsets();
   const barre = retour !== undefined || titre !== undefined || droite !== undefined;
 
@@ -165,8 +186,8 @@ function Corps({
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: territory === 'nuit' ? t('night') : t('surfacePage') }}>
-      <Mesh territory={territory} />
+    <View style={{ flex: 1, backgroundColor: territory === 'nuit' ? t('night') : t('bento2') }}>
+      {maillage ? <Mesh territory={territory} /> : null}
       <View style={{ flex: 1, paddingTop: insets.top }}>
         {barre ? (
           <NavBar
@@ -195,8 +216,8 @@ function Corps({
                 <RefreshControl
                   refreshing={!!enRafraichissement}
                   onRefresh={() => { haptique.selection(); onRefresh(); }}
-                  tintColor={t(TEINTE[territory])}
-                  colors={[t(TEINTE[territory])]}
+                  tintColor={teinte.rv}
+                  colors={[teinte.rv]}
                   progressBackgroundColor={t('surfacePage')}
                 />
               ) : undefined}
@@ -243,9 +264,3 @@ function enCascade(children: ReactNode): ReactNode {
       )
   ));
 }
-
-/** La teinte de l'indicateur de rafraîchissement — celle du territoire de l'écran. */
-const TEINTE = {
-  forme: 'mmBleu', informe: 'mmOrange', transforme: 'mmViolet', digitalise: 'mmTeal', nuit: 'mmBleu',
-} as const;
-

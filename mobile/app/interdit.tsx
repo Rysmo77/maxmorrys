@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import {
-  Body, Button, Display, Eyebrow, Icon, LessonRow, Num, Screen, Surface, isIOS, useToken, veil,
+  Body, Button, Display, Num, Screen, isIOS, useToken, veil, Ligne, Liste, Rubrique,
 } from '../ds';
 import { RELEVE, SOURCE } from '../contenu/demo';
 import { SUPPORT_PORTEE } from '../contenu/portee';
@@ -26,8 +26,10 @@ export default function Interdit() {
 
   return (
     <Screen
-      territory="nuit"
-      dark
+      /* La console est CLAIRE depuis le kit v4.3 (« console claire ») : surface plate, sans
+         maillage, à la teinte d'encre de l'espace `admin`. */
+      espace="admin"
+      maillage={false}
       retour={isIOS ? 'Console' : undefined}
       onRetour={isIOS ? () => router.replace('/console') : undefined}
       titre={isIOS ? undefined : 'Accès refusé'}
@@ -46,20 +48,18 @@ export default function Interdit() {
         {' '}écrans, et celui-ci n'en fait pas partie.
       </Body>
 
-      <Eyebrow style={{ marginTop: 22 }}>Ce que le rôle support atteint</Eyebrow>
-      <Surface level="night" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        {SUPPORT_PORTEE.map((e, i) => (
-          <LessonRow
+      <Rubrique>Ce que le rôle support atteint</Rubrique>
+      <Liste>
+        {SUPPORT_PORTEE.map((e) => (
+          <Ligne
             key={e.titre}
-            icon={<Icon name="check" size={13} color={t('mmTeal')} strokeWidth={3.4} />}
-            iconBackground={veil(t('mmTeal'), 0.18)}
-            title={e.titre}
-            trailing={<Icon name="forward" size={15} color={t('textFaint')} strokeWidth={2.4} />}
+            icone="check"
+            fondIcone={t('mmTeal')}
+            titre={e.titre}
             onPress={() => router.replace(e.href)}
-            last={i === SUPPORT_PORTEE.length - 1}
           />
         ))}
-      </Surface>
+      </Liste>
       <Button
         tone="quiet"
         label="Revenir à la console"

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Body, EmptyState, Eyebrow, Icon, Num, Pipeline, Surface, useToken, veil,
+  Body, EmptyState, Icon, Num, Pipeline, Surface, useToken, veil, Rubrique,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
 import { RELEVE, SOURCE } from '../../contenu/demo';
@@ -35,7 +35,7 @@ export default function Projets() {
         style={{ marginTop: 18 }}
       />
 
-      <Surface level="night" style={{ marginTop: 14, padding: 6 }}>
+      <Surface level="flat" style={{ marginTop: 14, padding: 6 }}>
         <EmptyState
           glyph={<Icon name="boxes" size={26} color={t('mmViolet')} />}
           glyphBackground={veil(t('mmViolet'), 0.18)}
@@ -44,8 +44,8 @@ export default function Projets() {
         />
       </Surface>
 
-      <Eyebrow style={{ marginTop: 22 }}>Le plafond de livraison</Eyebrow>
-      <Surface level="night" style={{ marginTop: 10, padding: 17 }}>
+      <Rubrique>Le plafond de livraison</Rubrique>
+      <Surface level="flat" style={{ padding: 17 }}>
         <Num value={0} source={SOURCE} asOf={RELEVE} unit="projet en cours" style={{ fontSize: 15 }} />
         <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 8 }}>
           C'est le nombre EN COURS qui compte, jamais le cumul livré. Un total flatteur ne dit

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import {
-  Body, Button, EmptyState, Eyebrow, Icon, Num, Pipeline, Surface, useToken, veil,
+  Body, Button, EmptyState, Icon, Num, Pipeline, Surface, useToken, veil, Rubrique,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
 import { RELEVE, SOURCE } from '../../contenu/demo';
@@ -37,7 +37,7 @@ export default function Messages() {
         style={{ marginTop: 18 }}
       />
 
-      <Surface level="night" style={{ marginTop: 14, padding: 6 }}>
+      <Surface level="flat" style={{ marginTop: 14, padding: 6 }}>
         <EmptyState
           glyph={<Icon name="inbox" size={26} color={t('mmTeal')} />}
           glyphBackground={veil(t('mmTeal'), 0.18)}
@@ -56,8 +56,8 @@ export default function Messages() {
         />
       </Surface>
 
-      <Eyebrow style={{ marginTop: 22 }}>Le relevé</Eyebrow>
-      <Surface level="night" style={{ marginTop: 10, padding: 17 }}>
+      <Rubrique>Le relevé</Rubrique>
+      <Surface level="flat" style={{ padding: 17 }}>
         <Num value={0} source={SOURCE} asOf={RELEVE} unit="message depuis l'origine" style={{ fontSize: 15 }} />
         <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 8 }}>
           Un zéro daté est une information : il dit que le canal marche et que personne n'a

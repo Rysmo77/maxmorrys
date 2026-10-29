@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, Button, Display, Field, Heros, Icon, LessonRow, SansDonnees, Screen, Surface, haptique, isIOS, useBandeau, useToken, veil,
+  Body, Button, Display, Field, Heros, Icon, SansDonnees, Screen, Surface, haptique, isIOS,
+  useBandeau, useToken, veil, Ligne, Liste,
 } from '../ds';
 import { useSession } from '../donnees/session';
 import { effacerHorsLigne } from '../donnees/hors-ligne';
@@ -129,7 +130,7 @@ export default function Suppression() {
 
   if (supprime) {
     return (
-      <Screen territory="transforme" center>
+      <Screen territory="transforme" espace="hub" center>
         <Heros>
           <View style={{ width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center', backgroundColor: veil(t('ink'), 0.08) }}>
             <Icon name="check" size={26} color={t('ink2')} strokeWidth={2.6} />
@@ -148,7 +149,7 @@ export default function Suppression() {
   /* Sans session, il n'y a rien à supprimer : le formulaire n'a pas lieu d'être. */
   if (session.phase !== 'connectee') {
     return (
-      <Screen territory="transforme" retour="Profil" titre={isIOS ? undefined : 'Supprimer mon compte'}>
+      <Screen territory="transforme" espace="hub" retour="Profil" titre={isIOS ? undefined : 'Supprimer mon compte'}>
         <SansDonnees
           quoi="ton compte"
           etat={session.phase === 'restauration' ? { phase: 'restauration', valeur: null } : { phase: 'anonyme', valeur: null }}
@@ -162,17 +163,22 @@ export default function Suppression() {
   return (
     <Screen
       territory="transforme"
+      espace="hub"
       retour="Profil"
       titre={isIOS ? undefined : 'Supprimer mon compte'}
     >
       <Display size={27} lines={['Ce qui part', 'avec ton compte.']} style={{ marginTop: 10 }} />
       {bandeau}
 
-      <Surface level="flat" style={{ marginTop: 20, paddingHorizontal: 16 }}>
-        {CE_QUI_PART.map((l, i) => (
-          <LessonRow key={l.titre} title={l.titre} meta={l.meta} last={i === CE_QUI_PART.length - 1} />
+      <Liste style={{ marginTop: 20 }}>
+        {CE_QUI_PART.map((l) => (
+          <Ligne
+            key={l.titre}
+            titre={l.titre}
+            sous={l.meta}
+          />
         ))}
-      </Surface>
+      </Liste>
 
       <Surface level="flat" style={{ marginTop: 14, padding: 18, borderColor: veil(t('ok'), 0.28) }}>
         <Body style={{ fontSize: 14.5, fontWeight: '700', color: t('ok') }}>Ce qui reste</Body>

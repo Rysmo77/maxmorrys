@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import {
-  Body, Button, Eyebrow, Icon, LessonRow, Num, Pipeline, SansDonnees, Surface, Tag, useToken, veil,
+  Body, Button, Eyebrow, Num, Pipeline, SansDonnees, Surface, Tag, useToken, Ligne, Liste,
+  Rubrique,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
 import { PROSPECT, RELEVE, SOURCE } from '../../contenu/demo';
@@ -54,19 +55,18 @@ export default function Prospects() {
           style={{ marginTop: 14 }}
         />
       ) : (
-        <Surface level="night" style={{ marginTop: 14, paddingHorizontal: 16 }}>
-          <LessonRow
-            icon={<Icon name="case" size={14} color={t('mmOrange')} />}
-            iconBackground={veil(t('mmOrange'), 0.2)}
-            title={PROSPECT.titre}
-            meta={PROSPECT.meta}
-            trailing={<Button tone="quiet" size="sm" label="Qualifier" onPress={qualifier} />}
-            last
+        <Liste style={{ marginTop: 14 }}>
+          <Ligne
+            icone="case"
+            fondIcone={t('mmOrange')}
+            titre={PROSPECT.titre}
+            sous={PROSPECT.meta}
+            droite={<Button tone="quiet" size="sm" label="Qualifier" onPress={qualifier} />}
           />
-        </Surface>
+        </Liste>
       )}
 
-      <Surface level="night" style={{ marginTop: 12, padding: 17 }}>
+      <Surface level="flat" style={{ marginTop: 12, padding: 17 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <Eyebrow>Depuis combien de temps</Eyebrow>
           {PROSPECT ? <Tag tone="warn">{PROSPECT.statut}</Tag> : null}
@@ -77,8 +77,8 @@ export default function Prospects() {
         </Body>
       </Surface>
 
-      <Eyebrow style={{ marginTop: 22 }}>Le relevé</Eyebrow>
-      <Surface level="night" style={{ marginTop: 10, padding: 17 }}>
+      <Rubrique>Le relevé</Rubrique>
+      <Surface level="flat" style={{ padding: 17 }}>
         <Num
           value={PROSPECT === null ? null : 1}
           source={SOURCE}

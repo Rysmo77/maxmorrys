@@ -1,6 +1,6 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { POLICE } from './police';
-import { useToken, px } from './theme';
+import { useToken } from './theme';
 import { Num, type NumSource } from './Num';
 
 /**
@@ -26,9 +26,9 @@ export function StatTile({
   const t = useToken();
   return (
     <View style={[{
-      padding: 16, borderRadius: px(t('rL')),
-      backgroundColor: t('surfaceCardFlat'),
-      borderWidth: 1, borderColor: t('borderGlass'),
+      padding: 14, borderRadius: 18,
+      backgroundColor: t('bento'),
+      borderWidth: 1, borderColor: t('line'),
     }, style]}>
       <Text style={{ fontFamily: POLICE.corps, fontSize: 12, color: t('textMuted') }}>{label}</Text>
       {/*

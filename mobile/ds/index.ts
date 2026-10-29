@@ -10,12 +10,17 @@ export {
 } from './platform';
 
 /* Le châssis natif — un corps, deux plateformes. C'est lui qui porte la différence. */
-export { Screen, type ScreenTerritory } from './Screen';
+export { Screen, ESPACE_DU_TERRITOIRE, type ScreenTerritory } from './Screen';
+export {
+  EspaceScope, useEspaceCourant, useTeinte, useTeinteDe, type Espace, type Teinte,
+} from './espace';
 export { NavBar, NAVBAR_H } from './NavBar';
 
 /* Surfaces et fond */
 export { Mesh } from './Mesh';
-export { Surface } from './Surface';
+export { Surface, RAYON_CARTE } from './Surface';
+export { Liste, Ligne, Rubrique } from './Liste';
+export { Reprise } from './Reprise';
 export { Gradient, useActionGradient, useDegrade } from './Gradient';
 export { analyserDegrade, ligneDeDegrade, type Degrade } from './degrade';
 export { Skeleton, SqueletteGroupe } from './Skeleton';

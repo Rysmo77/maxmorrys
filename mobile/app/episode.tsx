@@ -49,7 +49,7 @@ export default function Episode() {
 
   if (episode === null) {
     return (
-      <Screen territory="transforme" retour="Écouter">
+      <Screen territory="transforme" espace="hub" retour="Écouter">
         <Display size={27} lines={media.phase === 'charge' || media.phase === 'restauration' ? ['Cet épisode.'] : ['Cet épisode', 'n’est pas chargé.']} style={{ marginTop: 10 }} />
         <SansDonnees
           quoi="cet épisode"
@@ -78,6 +78,7 @@ export default function Episode() {
   return (
     <Screen
       territory="transforme"
+      espace="hub"
       retour="Écouter"
       titre={isIOS ? undefined : 'Épisode'}
       droite={episode.lien ? (

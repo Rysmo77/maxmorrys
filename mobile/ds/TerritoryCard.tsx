@@ -1,4 +1,5 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { RAYON_CARTE } from './Surface';
 import { POLICE } from './police';
 import { Pressoir } from './Pressoir';
 import type { ReactNode } from 'react';
@@ -55,14 +56,14 @@ export function TerritoryCard({
     <View
       style={[{
         position: 'relative',
-        borderRadius: px(t('rL')),
+        borderRadius: RAYON_CARTE,
         paddingTop: showGrip ? 24 : 20,
         paddingHorizontal: 20,
         paddingBottom: stacked ? 36 : 28,
         marginTop: stacked && !first ? px(t('stackOverlap')) : 0,
-        backgroundColor: t('surfaceCardFlat'),
+        backgroundColor: t('bento'),
         borderWidth: 1,
-        borderColor: t('borderGlass'),
+        borderColor: t('line'),
         // La teinte du territoire est portée par un LISERÉ, pas par un dégradé : les quatre
         // dégradés du kit sont des valeurs CSS que React Native ne comprend pas, et un aplat
         // saturé sur toute la carte rendrait son texte illisible dans un des deux modes.

@@ -65,7 +65,7 @@ export default function MotDePasse() {
   }
 
   return (
-    <Screen territory="forme" retour="Retour" titre={isIOS ? undefined : 'Mot de passe oublié'}>
+    <Screen territory="forme" espace="hub" retour="Retour" titre={isIOS ? undefined : 'Mot de passe oublié'}>
         <Eyebrow>Ton compte</Eyebrow>
         <View style={{ marginTop: 10 }}>
           <Display size="sm" lines={['On te remet', 'dedans.']} />

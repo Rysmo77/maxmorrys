@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { isIOS, ripple } from './platform';
 import { useToken } from './theme';
 import { Icon } from './Icon';
+import { useTeinte } from './espace';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -45,6 +46,9 @@ export function NavBar({
   style?: StyleProp<ViewStyle>;
 }) {
   const t = useToken();
+  /* Le retour iOS porte la teinte de l'ESPACE (`--rv` du kit v4.5) : bleu dans Apprendre,
+     violet au Club, encre à l'accueil et dans la console. */
+  const teinte = useTeinte();
 
   const bouton = retour !== undefined && onRetour !== undefined;
 
@@ -67,10 +71,10 @@ export function NavBar({
                 opacity: pressed ? 0.6 : 1,
               })}
             >
-              <Icon name="back" size={19} color={t('mmBleu')} strokeWidth={2.6} />
+              <Icon name="back" size={24} color={teinte.rv} strokeWidth={2.4} />
               <Text
                 numberOfLines={1}
-                style={{ fontFamily: POLICE.corps, fontSize: 16, fontWeight: '500', color: t('mmBleu') }}
+                style={{ fontFamily: POLICE.corps, fontSize: 17, fontWeight: '400', color: teinte.rv }}
               >
                 {retour}
               </Text>
@@ -84,7 +88,7 @@ export function NavBar({
               numberOfLines={1}
               accessibilityRole="header"
               maxFontSizeMultiplier={1.3}
-              style={{ fontFamily: POLICE.corps, fontSize: 16, fontWeight: '600', color: t('textBody'), flexShrink: 1 }}
+              style={{ fontFamily: POLICE.corps, fontSize: 17, fontWeight: '600', letterSpacing: -0.17, color: t('textBody'), flexShrink: 1 }}
             >
               {titre}
             </Text>
@@ -112,7 +116,7 @@ export function NavBar({
           android_ripple={ripple(t('ink3'), true)}
           style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' }}
         >
-          <Icon name="back" size={22} color={t('textBody')} strokeWidth={2.4} />
+          <Icon name="back" size={24} color={t('textBody')} strokeWidth={2.2} />
         </Pressable>
       ) : null}
       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: bouton ? 4 : 12 }}>
@@ -122,7 +126,7 @@ export function NavBar({
           accessibilityRole="header"
           maxFontSizeMultiplier={1.3}
           style={{
-            flexShrink: 1, fontFamily: POLICE.corps, fontSize: 19, fontWeight: '600',
+            flexShrink: 1, fontFamily: POLICE.corps, fontSize: 22, fontWeight: '500',
             color: t('textBody'),
           }}
         >

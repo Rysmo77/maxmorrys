@@ -48,7 +48,7 @@ export default function Media() {
      état normal, pas une panne. On ne referme donc l'écran que si les DEUX manquent. */
   if (episode === null && video === null) {
     return (
-      <Screen territory="transforme" retour="Profil">
+      <Screen territory="transforme" espace="hub" retour="Profil">
         <Display size={27} lines={['Rien à écouter', 'pour l’instant.']} style={{ marginTop: 10 }} />
         <SansDonnees
           quoi="le pôle média"
@@ -61,7 +61,7 @@ export default function Media() {
   }
 
   return (
-    <Screen territory="transforme" retour="Profil">
+    <Screen territory="transforme" espace="hub" retour="Profil">
       <SubNav
         items={[{ label: 'Écouter & regarder' }, { label: 'Le Club', color: t('mmViolet') }]}
         active="Écouter & regarder"

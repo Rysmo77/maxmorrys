@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, View, type StyleProp, type ViewStyle } from 'react-native';
 import { COURBE, DUREE, duree, useMouvement } from './mouvement';
-import { useToken } from './theme';
+import { veil, useToken } from './theme';
 
 /**
  * LA BARRE DE PROGRESSION — et la seule exception du système à la règle 3.
@@ -20,8 +20,10 @@ import { useToken } from './theme';
  * dit d'ailleurs quelque chose de vrai que le dégradé, lui, ne dit pas.
  */
 export function ProgressBar({
-  value, height = 8, territory = 'forme', style,
+  value, height = 8, territory = 'forme', surFond, style,
 }: {
+  /** Posée sur un dégradé (`mm-r-resume`) : rail blanc voilé, remplissage blanc. */
+  surFond?: boolean;
   /** 0 à 100. Une valeur hors bornes est ramenée : une barre ne ment pas sur elle-même. */
   value: number;
   height?: number;
@@ -62,10 +64,10 @@ export function ProgressBar({
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }}
       onLayout={(e) => setLargeur(e.nativeEvent.layout.width)}
-      style={[{ height, borderRadius: 5, backgroundColor: t('fill2'), overflow: 'hidden' }, style]}
+      style={[{ height, borderRadius: 5, backgroundColor: surFond ? veil(t('paperFixed'), 0.25) : t('fill2'), overflow: 'hidden' }, style]}
     >
       <Animated.View style={{
-        height: '100%', width: '100%', borderRadius: 5, backgroundColor: ink,
+        height: '100%', width: '100%', borderRadius: 5, backgroundColor: surFond ? t('paperFixed') : ink,
         /* Invisible tant que le rail n'est pas mesuré : sans largeur, la translation vaut 0
            et la barre paraîtrait PLEINE le temps d'une image — une progression mensongère. */
         opacity: largeur > 0 ? 1 : 0,

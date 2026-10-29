@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Avatar, Body, Button, Eyebrow, Field, Icon, LessonRow, SansDonnees, Screen,
-  Surface, Switch, TUTOR_DEFAUT, isIOS, useBandeau, useConfirmation, useScheme, useToken, useTutorNom, veil,
+  Avatar, Body, Button, Field, Icon, SansDonnees, Screen, Surface, Switch, TUTOR_DEFAUT,
+  isIOS, useBandeau, useConfirmation, useScheme, useToken, useTutorNom, veil, Ligne, Liste,
+  Rubrique,
 } from '../../ds';
 import { useResumeTelechargements } from '../../donnees/hors-ligne';
 import { PORTEE_RESUMEE } from '../../contenu/termes';
@@ -146,6 +147,7 @@ export default function Profil() {
   return (
     <Screen
       territory="transforme"
+      espace="hub"
       tabbar
       titre={isIOS ? undefined : 'Mon profil'}
       onRefresh={rafraichir}
@@ -180,30 +182,29 @@ export default function Profil() {
       )}
 
       {/* ── NOTIFICATIONS ──────────────────────────────────────────────────────────────── */}
-      <Eyebrow style={{ marginTop: 22 }}>Notifications</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        <LessonRow
-          title="Reprise de cours"
-          meta="après 5 jours sans activité"
-          trailing={<Switch on={reprise} label="Reprise de cours" onPress={() => setReprise(!reprise)} />}
+      <Rubrique>Notifications</Rubrique>
+      <Liste>
+        <Ligne
+          titre="Reprise de cours"
+          sous="après 5 jours sans activité"
+          droite={<Switch on={reprise} label="Reprise de cours" onPress={() => setReprise(!reprise)} />}
         />
-        <LessonRow
-          title="Ta série va se casser"
-          meta="le soir du 5e jour"
-          trailing={<Switch on={serie} label="Ta série va se casser" onPress={() => setSerie(!serie)} />}
+        <Ligne
+          titre="Ta série va se casser"
+          sous="le soir du 5e jour"
+          droite={<Switch on={serie} label="Ta série va se casser" onPress={() => setSerie(!serie)} />}
         />
-        <LessonRow
-          title="Session du Club"
-          meta="1 h avant, si tu as réservé ta place"
-          trailing={<Switch on={club} label="Session du Club" onPress={() => setClub(!club)} />}
+        <Ligne
+          titre="Session du Club"
+          sous="1 h avant, si tu as réservé ta place"
+          droite={<Switch on={club} label="Session du Club" onPress={() => setClub(!club)} />}
         />
-        <LessonRow
-          title={<Body style={{ fontWeight: '600', fontSize: 14 }}>Par e-mail</Body>}
-          meta="aucun canal d'envoi n'existe encore"
-          trailing={<Switch disabled label="Par e-mail — indisponible" />}
-          last
+        <Ligne
+          titre={<Body style={{ fontWeight: '600', fontSize: 14 }}>Par e-mail</Body>}
+          sous="aucun canal d'envoi n'existe encore"
+          droite={<Switch disabled label="Par e-mail — indisponible" />}
         />
-      </Surface>
+      </Liste>
 
       {/* ⚠️ CE BLOC AFFIRMAIT « AUTORISÉES SUR CET APPAREIL », coche verte à l'appui, pour
           une permission que RIEN NE DEMANDE JAMAIS. `permissions.tsx` prime l'accord puis
@@ -247,15 +248,15 @@ export default function Profil() {
          Ni l'un ni l'autre n'était visible pour `mobile-controles-morts.test.ts` : la porte
          cherche un `onPress` manquant, pas un `onChange` absent sur un composant à choix.
          Le test est étendu dans le même lot. */}
-      <Eyebrow style={{ marginTop: 22 }}>Apparence</Eyebrow>
+      <Rubrique>Apparence</Rubrique>
       <Body muted style={{ fontSize: 11.5, marginTop: 10 }}>
         L'affichage suit ton téléphone, actuellement en mode {scheme === 'dark' ? 'sombre' : 'clair'}.
         L'application ne le contredit pas.
       </Body>
 
       {/* ── LE TUTEUR ──────────────────────────────────────────────────────────────────── */}
-      <Eyebrow style={{ marginTop: 22 }}>Ton répétiteur</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, padding: 17 }}>
+      <Rubrique>Ton répétiteur</Rubrique>
+      <Surface level="flat" style={{ padding: 17 }}>
         <Field
           label="Comment tu l'appelles"
           value={brouillon}
@@ -281,19 +282,19 @@ export default function Profil() {
       </Surface>
 
       {/* ── L'APPAREIL ─────────────────────────────────────────────────────────────────── */}
-      <Eyebrow style={{ marginTop: 22 }}>Sur cet appareil</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        <LessonRow
-          icon={<Icon name="lock" size={14} color={t('ink2')} />}
+      <Rubrique>Sur cet appareil</Rubrique>
+      <Liste>
+        <Ligne
+          icone="lock"
           /* Le geste RÉEL de l'appareil : « Face ID » était écrit en dur, faux sur un iPhone
              à capteur d'empreinte comme sur Android. */
-          title={verrou.capacite?.etat === 'pret' ? `Entrer avec ${verrou.capacite.geste}` : 'Entrer sans mot de passe'}
+          titre={verrou.capacite?.etat === 'pret' ? `Entrer avec ${verrou.capacite.geste}` : 'Entrer sans mot de passe'}
           /* Quand l'appareil ne peut pas, la ligne DIT pourquoi plutôt que de rester
              muette : un réglage éteint sans raison se lit comme une panne. */
-          meta={verrou.capacite === null || verrou.capacite.etat === 'pret'
+          sous={verrou.capacite === null || verrou.capacite.etat === 'pret'
             ? 'raccourci, pas remplacement'
             : verrou.capacite.court}
-          trailing={verrou.capacite === null || verrou.capacite.etat !== 'pret' ? (
+          droite={verrou.capacite === null || verrou.capacite.etat !== 'pret' ? (
             <Switch disabled label="Entrer avec la biométrie — indisponible" />
           ) : (
             <Switch
@@ -303,42 +304,37 @@ export default function Profil() {
             />
           )}
         />
-        <LessonRow
-          icon={<Icon name="download" size={14} color={t('ink2')} />}
-          title="Téléchargements"
-          meta={telechargements}
-          trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+        <Ligne
+          icone="download"
+          titre="Téléchargements"
+          sous={telechargements}
           onPress={() => router.push('/telechargements')}
-          last
         />
         {/* La ligne du widget est partie : il n'existe pas dans le binaire. L'annoncer dans
             les réglages, c'était promettre une fonction à la revue comme à la personne. */}
-      </Surface>
+      </Liste>
 
       {/* ── LES DONNÉES ────────────────────────────────────────────────────────────────── */}
-      <Eyebrow style={{ marginTop: 22 }}>Tes données</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
+      <Rubrique>Tes données</Rubrique>
+      <Liste>
         {/* ⚠️ CETTE LIGNE N'AVAIT AUCUN `onPress`. Elle avait l'apparence complète d'un
             contrôle — glyphe, titre, chevron de tête de ligne — et ne faisait rien. Sur
             l'écran des données, c'est le pire endroit pour un bouton mort : quelqu'un qui
             veut ses données avant de partir repart en croyant que l'export n'existe pas. */}
-        <LessonRow
-          icon={<Icon name="download" size={14} color={t('ink2')} />}
-          title="Exporter mes données"
-          meta={exportEnCours ? 'préparation du fichier…' : 'tout ce qui te concerne, en un fichier'}
-          trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+        <Ligne
+          icone="download"
+          titre="Exporter mes données"
+          sous={exportEnCours ? 'préparation du fichier…' : 'tout ce qui te concerne, en un fichier'}
           onPress={() => { void exporter(); }}
         />
-        <LessonRow
-          icon={<Icon name="trash" size={14} color={t('stop')} />}
-          iconBackground={veil(t('stop'), 0.12)}
-          title={<Body style={{ fontWeight: '600', fontSize: 14, color: t('stop') }}>Supprimer mon compte</Body>}
-          meta="définitif, sans passer par le support"
-          trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+        <Ligne
+          icone="trash"
+          danger
+          titre={<Body style={{ fontWeight: '600', fontSize: 14, color: t('stop') }}>Supprimer mon compte</Body>}
+          sous="définitif, sans passer par le support"
           onPress={() => router.push('/suppression')}
-          last
         />
-      </Surface>
+      </Liste>
 
       {/*
         ── TON COMPTE ────────────────────────────────────────────────────────────────────
@@ -346,17 +342,15 @@ export default function Profil() {
         une route qu'aucun écran n'ouvre est du code mort, et sur un routeur par fichiers elle
         ne se voit pas manquer.
       */}
-      <Eyebrow style={{ marginTop: 22 }}>Ton compte</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        {COMPTE.map((e, i) => (
-          <LessonRow
+      <Rubrique>Ton compte</Rubrique>
+      <Liste>
+        {COMPTE.map((e) => (
+          <Ligne
             key={e.href}
-            icon={<Icon name={e.glyphe} size={14} color={t('ink2')} />}
-            title={e.titre}
-            meta={e.meta}
-            trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+            icone={e.glyphe}
+            titre={e.titre}
+            sous={e.meta}
             onPress={() => router.push(e.href)}
-            last={i === COMPTE.length - 1 && session.phase !== 'connectee'}
           />
         ))}
 
@@ -366,10 +360,10 @@ export default function Profil() {
             connecté : proposer de se déconnecter à un visiteur anonyme est une action qui ne
             veut rien dire. */}
         {session.phase === 'connectee' ? (
-          <LessonRow
-            icon={<Icon name="logout" size={14} color={t('ink2')} />}
-            title="Me déconnecter"
-            meta={session.email ?? 'de ce téléphone'}
+          <Ligne
+            icone="logout"
+            titre="Me déconnecter"
+            sous={session.email ?? 'de ce téléphone'}
             onPress={() => Alert.alert(
               'Te déconnecter ?',
               "Tes téléchargements restent sur ce téléphone tant que l'application est installée.",
@@ -378,10 +372,9 @@ export default function Profil() {
                 { text: 'Me déconnecter', style: 'destructive', onPress: () => { void quitter(); } },
               ],
             )}
-            last
           />
         ) : null}
-      </Surface>
+      </Liste>
 
       {/*
         ── AILLEURS DANS L'APPLICATION ───────────────────────────────────────────────────
@@ -393,20 +386,18 @@ export default function Profil() {
         à tout le monde. La garde existe maintenant, des deux côtés — ici pour l'entrée, et
         dans la mise en page pour l'accès direct par URL, qu'une liste ne protège pas.
       */}
-      <Eyebrow style={{ marginTop: 22 }}>Ailleurs</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        {AILLEURS.map((e, i) => (
-          <LessonRow
+      <Rubrique>Ailleurs</Rubrique>
+      <Liste>
+        {AILLEURS.map((e) => (
+          <Ligne
             key={e.href}
-            icon={<Icon name={e.glyphe} size={14} color={t('ink2')} />}
-            title={e.titre}
-            meta={e.meta}
-            trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+            icone={e.glyphe}
+            titre={e.titre}
+            sous={e.meta}
             onPress={() => router.push(e.href)}
-            last={i === AILLEURS.length - 1}
           />
         ))}
-      </Surface>
+      </Liste>
     </Screen>
   );
 }

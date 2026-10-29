@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import {
-  Body, Button, ChipRow, Display, Eyebrow, Field, Icon, IconButton, LessonRow, SansDonnees, Screen, Surface, Switch,
-  TUTOR_DEFAUT, haptique, isIOS, useBandeau, useConfirmation, useToken, useTutorNom, veil,
+  Body, Button, ChipRow, Display, Eyebrow, Field, Icon, IconButton, SansDonnees, Screen, Surface,
+  Switch, TUTOR_DEFAUT, haptique, isIOS, useBandeau, useConfirmation, useToken, useTutorNom,
+  Ligne, Liste, Rubrique,
 } from '../ds';
 import { ErreurAppel, effacerLaMemoire, reglerLeRepetiteur, useRepetiteur } from '../donnees';
 import { useSession } from '../donnees/session';
@@ -126,6 +127,7 @@ export default function Memoire() {
   return (
     <Screen
       territory="transforme"
+      espace="ia"
       retour={tuteur}
       titre={isIOS ? undefined : 'Mémoire de profil'}
       droite={
@@ -166,21 +168,20 @@ export default function Memoire() {
         </Body>
       </Surface>
 
-      <Eyebrow style={{ marginTop: 24 }}>Sa mémoire</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        <LessonRow
-          icon={<Icon name="brain" size={14} color={t('mmVioletT')} />}
-          iconBackground={veil(t('mmViolet'), 0.12)}
-          title="Retenir ce que je lui dis"
-          meta={memoireActive === false
+      <Rubrique>Sa mémoire</Rubrique>
+      <Liste>
+        <Ligne
+          icone="brain"
+          fondIcone={t('mmViolet')}
+          titre="Retenir ce que je lui dis"
+          sous={memoireActive === false
             ? "il ne retient rien de nouveau"
             : 'tes objectifs, ton activité, tes difficultés'}
-          trailing={memoireActive === null
+          droite={memoireActive === null
             ? <Switch disabled label="Retenir ce que je lui dis — en lecture" />
             : <Switch on={memoireActive} label="Retenir ce que je lui dis" onPress={() => { void basculerMemoire(); }} />}
-          last
         />
-      </Surface>
+      </Liste>
 
       <Eyebrow style={{ marginTop: 24 }}>Ce qu'il a retenu</Eyebrow>
       {memoire.length === 0 ? (
@@ -193,20 +194,19 @@ export default function Memoire() {
           style={{ marginTop: 10 }}
         />
       ) : (
-        <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
+        <Liste>
           {/* Les poubelles par ligne sont parties : elles étaient rouges, désactivées, et ne
               faisaient rien — l'oubli ligne par ligne n'existe pas côté serveur. */}
-          {memoire.map((m, i) => (
-            <LessonRow
+          {memoire.map((m) => (
+            <Ligne
               key={m.id}
-              icon={<Icon name="chat" size={14} color={t('mmVioletT')} />}
-              iconBackground={veil(t('mmViolet'), 0.12)}
-              title={m.fait}
-              meta={m.depuis ?? undefined}
-              last={i === memoire.length - 1}
+              icone="chat"
+              fondIcone={t('mmViolet')}
+              titre={m.fait}
+              sous={m.depuis ?? undefined}
             />
           ))}
-        </Surface>
+        </Liste>
       )}
 
       <Button

@@ -49,7 +49,7 @@ export function Fab({
     >
       <Gradient
         colors={g[territory]}
-        radius={isIOS ? 28 : 18}
+        radius={isIOS ? 28 : 16}
         style={{ width: 56, height: 56, alignItems: 'center', justifyContent: 'center' }}
       >
         {children}

@@ -1,7 +1,8 @@
 import { Redirect } from 'expo-router';
 import { View } from 'react-native';
 import {
-  Body, Display, Eyebrow, Gradient, Icon, LessonRow, Num, SansDonnees, Screen, Surface, Wordmark, isIOS, useActionGradient, useToken, veil, POLICE,
+  Body, Display, Eyebrow, Gradient, Icon, LessonRow, Num, SansDonnees, Screen, Surface, Wordmark,
+  isIOS, useActionGradient, useToken, veil, POLICE, Rubrique,
 } from '../ds';
 import { FORMATION, RELEVE, SOURCE } from '../contenu/demo';
 
@@ -156,8 +157,8 @@ function WidgetAtelier() {
 
       {/* ── COMMENT L'AJOUTER. Le geste diffère, donc il est écrit deux fois — c'est l'un des
              rares endroits où la plateforme change le TEXTE et pas seulement le cadre. ── */}
-      <Eyebrow style={{ marginTop: 24 }}>Pour l'ajouter</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
+      <Rubrique>Pour l'ajouter</Rubrique>
+      <Surface level="flat" style={{ paddingHorizontal: 16 }}>
         {(isIOS
           ? [
             ['Appuie longuement sur ton écran d’accueil', 'jusqu’à ce que les icônes bougent'],

@@ -3,7 +3,7 @@ import { POLICE } from './police';
 import type { ReactNode } from 'react';
 import { Onde } from './Onde';
 import { Revele } from './Pressoir';
-import { useScheme, useToken } from './theme';
+import { useToken } from './theme';
 
 /**
  * LA BULLE DE CONVERSATION — et la raison pour laquelle elle n'a AUCUN flou.
@@ -35,7 +35,6 @@ export function ChatBubble({
   style?: StyleProp<ViewStyle>;
 }) {
   const t = useToken();
-  const scheme = useScheme();
   const me = from === 'me';
 
   const base: ViewStyle = {
@@ -53,8 +52,8 @@ export function ChatBubble({
           accessibilityLabel={`${auteur ?? 'Le répétiteur'} écrit une réponse`}
           accessibilityLiveRegion="polite"
           style={[base, {
-            alignSelf: 'flex-start', borderBottomLeftRadius: 7,
-            backgroundColor: t('bubbleBg'), borderWidth: 1, borderColor: t('bubbleBrd'),
+            alignSelf: 'flex-start', borderBottomLeftRadius: 6,
+            backgroundColor: t('bento'), borderWidth: 1, borderColor: t('line'),
             flexDirection: 'row', alignItems: 'center', gap: 10,
           }, style]}
         >
@@ -67,8 +66,6 @@ export function ChatBubble({
     );
   }
 
-  const encreMoi = scheme === 'dark' ? t('inkFixed') : t('paperFixed');
-
   return (
     <Pressable
       accessible
@@ -77,14 +74,16 @@ export function ChatBubble({
       onLongPress={onAppuiLong}
       delayLongPress={350}
       style={[base, me
-        ? { alignSelf: 'flex-end', backgroundColor: t('mmViolet'), borderBottomRightRadius: 7 }
-        : { alignSelf: 'flex-start', backgroundColor: t('bubbleBg'), borderWidth: 1, borderColor: t('bubbleBrd'), borderBottomLeftRadius: 7 },
+        /* `mm-r-bub` du kit v4.5 : ta question à l'ENCRE (l'aplat de l'action principale, qui
+           bascule avec le mode), la réponse sur `bento` et son filet. */
+        ? { alignSelf: 'flex-end', backgroundColor: t('actionPrimary'), borderBottomRightRadius: 6 }
+        : { alignSelf: 'flex-start', backgroundColor: t('bento'), borderWidth: 1, borderColor: t('line'), borderBottomLeftRadius: 6 },
         style]}
     >
       {typeof children === 'string' ? (
         <Text style={{
-          fontFamily: POLICE.corps, fontSize: 14, lineHeight: 20,
-          color: me ? encreMoi : t('textBody'),
+          fontFamily: POLICE.corps, fontSize: 15, lineHeight: 22.5,
+          color: me ? t('textOnPrimary') : t('textBody'),
         }}>
           {children}
         </Text>

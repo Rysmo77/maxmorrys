@@ -3,7 +3,8 @@ import { View } from 'react-native';
 import { router } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Body, Button, Display, Eyebrow, Field, Icon, IconButton, Num, PriceBlock, SansDonnees, Screen, Surface, TerritoryCard, isIOS, useToken,
+  Body, Button, Display, Eyebrow, Field, Icon, IconButton, Num, PriceBlock, SansDonnees, Screen,
+  Surface, TerritoryCard, isIOS, useToken, Rubrique,
 } from '../ds';
 import { PACK_PRESENCE, PRESENCE_ARRETEE, PRESENCE_SOURCE } from '../contenu/engagement';
 import { FORME_REFERENCE, OFFRE } from '../contenu/termes';
@@ -140,8 +141,8 @@ export default function Presence() {
           C'était un écran que rien n'ouvrait. Une référence mal formée ouvrirait un écran
           qui dirait « ce devis n'existe pas » — le pire des messages pour une faute de
           frappe : le bouton attend donc la bonne forme. */}
-      <Eyebrow style={{ marginTop: 24 }}>Tu as déjà reçu un devis ?</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, padding: 17 }}>
+      <Rubrique>Tu as déjà reçu un devis ?</Rubrique>
+      <Surface level="flat" style={{ padding: 17 }}>
         <Field
           label="Référence du devis"
           value={saisie}

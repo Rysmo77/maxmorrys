@@ -2,7 +2,8 @@ import { Share, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Body, Button, Display, Eyebrow, Gradient, Icon, LessonRow, Num, SansDonnees, Screen, Surface, useBandeau, useToken, veil,
+  Body, Button, Display, Eyebrow, Gradient, Icon, Num, SansDonnees, Screen, Surface, useBandeau,
+  useToken, Ligne, Liste,
 } from '../ds';
 import { CERTIFICAT, RELEVE, SOURCE } from '../contenu/demo';
 import { lienDeVerification } from '../contenu/termes';
@@ -137,24 +138,23 @@ export default function Partage() {
         </Body>
       </Surface>
 
-      <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
-        <LessonRow
-          icon={<Icon name="download" size={15} color={t('ink2')} />}
-          title="Enregistrer le PDF"
-          meta="il se fabrique sur le site, à la demande"
-          trailing={<Icon name="external" size={16} color={t('ink3')} strokeWidth={2.4} />}
+      <Liste style={{ marginTop: 14 }}>
+        <Ligne
+          icone="download"
+          titre="Enregistrer le PDF"
+          sous="il se fabrique sur le site, à la demande"
+          droite={<Icon name="external" size={16} color={t('ink3')} strokeWidth={2.4} />}
           onPress={() => { void openBrowserAsync(`${doc.lien}.pdf`); }}
         />
-        <LessonRow
-          icon={<Icon name="eye" size={15} color={t('ink2')} />}
-          iconBackground={veil(t('mmBleu'), 0.12)}
-          title="Voir ce que verra la personne"
-          meta="la page publique, sans compte"
-          trailing={<Icon name="external" size={16} color={t('ink3')} strokeWidth={2.4} />}
+        <Ligne
+          icone="eye"
+          fondIcone={t('mmBleu')}
+          titre="Voir ce que verra la personne"
+          sous="la page publique, sans compte"
+          droite={<Icon name="external" size={16} color={t('ink3')} strokeWidth={2.4} />}
           onPress={() => { void openBrowserAsync(doc.lien); }}
-          last
         />
-      </Surface>
+      </Liste>
 
       <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
         <Eyebrow>Pourquoi un lien et pas une image</Eyebrow>

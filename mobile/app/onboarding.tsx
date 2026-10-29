@@ -92,6 +92,7 @@ export default function Onboarding() {
   return (
     <Screen
       territory="forme"
+      espace="hub"
       droite={
         <Pressable
           accessibilityRole="button"

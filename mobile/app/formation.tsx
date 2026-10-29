@@ -73,7 +73,7 @@ export default function Formation() {
   return (
     <Screen
       territory="forme"
-      retour="Cours"
+      retour="Apprendre"
       titre={isIOS ? undefined : (f?.titreCourt ?? titre ?? 'Formation')}
       /* ⚠️ CE BOUTON OUVRAIT `/partage`, QUI PARTAGE UN CERTIFICAT. « Partager cette
          formation » menait donc à un écran qui compose un lien de VÉRIFICATION de diplôme —

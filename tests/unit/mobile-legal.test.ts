@@ -105,8 +105,11 @@ describe('exigences des magasins — textes légaux et suppression de compte', (
     /* On borne au COMPOSANT, pas au premier `/>` : celui-là ferme l'icône du `trailing`,
        et la borne suivante appartiendrait déjà à la ligne d'après — qui, elle, a bien une
        action. Un test qui déborde sur le voisin passe pour la mauvaise raison. */
-    const debut = profil.lastIndexOf('<LessonRow', titre);
-    const suivant = profil.indexOf('<LessonRow', titre);
+    /* La ligne est une `Ligne` du kit v4.5 depuis la refonte (`ds/Liste.tsx`) ; l'ancienne
+       `LessonRow` reste reconnue. */
+    const debut = Math.max(profil.lastIndexOf('<LessonRow', titre), profil.lastIndexOf('<Ligne', titre));
+    const suivants = [profil.indexOf('<LessonRow', titre), profil.indexOf('<Ligne', titre)].filter((i) => i > -1);
+    const suivant = suivants.length ? Math.min(...suivants) : -1;
     const bloc = profil.slice(debut, suivant === -1 ? undefined : suivant);
     expect(bloc, 'la ligne d’export n’a pas d’action').toContain('onPress');
   });

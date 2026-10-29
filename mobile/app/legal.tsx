@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Body, Eyebrow, Icon, IconButton, LessonRow, Screen, Surface, isIOS, useToken, POLICE,
+  Body, Eyebrow, Icon, IconButton, Screen, Surface, isIOS, useToken, POLICE, Ligne, Liste,
 } from '../ds';
 
 /**
@@ -67,6 +67,7 @@ export default function Legal() {
   return (
     <Screen
       territory="forme"
+      espace="hub"
       retour="Retour"
       titre={isIOS ? undefined : 'Textes légaux'}
       droite={
@@ -77,18 +78,17 @@ export default function Legal() {
     >
       <Eyebrow style={{ marginTop: 10 }}>Ce qui t'engage, et ce qui nous engage</Eyebrow>
 
-      <Surface level="flat" style={{ marginTop: 12, paddingHorizontal: 16 }}>
-        {TEXTES.map((texte, i) => (
-          <LessonRow
+      <Liste style={{ marginTop: 12 }}>
+        {TEXTES.map((texte) => (
+          <Ligne
             key={texte.chemin}
-            title={texte.titre}
-            meta={texte.meta}
-            trailing={<Icon name="external" size={15} color={t('ink2')} />}
+            titre={texte.titre}
+            sous={texte.meta}
+            droite={<Icon name="external" size={15} color={t('ink2')} />}
             onPress={() => { void openBrowserAsync(`${SITE_LEGAL}${texte.chemin}`); }}
-            last={i === TEXTES.length - 1}
           />
         ))}
-      </Surface>
+      </Liste>
 
       <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
         <Eyebrow>Pourquoi ils s'ouvrent sur le site</Eyebrow>

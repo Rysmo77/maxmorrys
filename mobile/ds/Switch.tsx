@@ -1,8 +1,9 @@
 import { Animated, Pressable, type StyleProp, type ViewStyle } from 'react-native';
 import { useBascule } from './mouvement';
-import { Gradient, useActionGradient } from './Gradient';
 import { haptique } from './haptique';
 import { useToken } from './theme';
+import { isIOS } from './platform';
+import { useTeinte } from './espace';
 
 /**
  * L'INTERRUPTEUR — et la règle qui le distingue d'un bouton.
@@ -30,7 +31,10 @@ export function Switch({
   style?: StyleProp<ViewStyle>;
 }) {
   const t = useToken();
-  const g = useActionGradient();
+  /* `mm-r-sw` du kit v4.5 : la teinte de l'espace quand il est ouvert. iOS 51 × 31, curseur
+     de 27 ; Android (Material 3) 52 × 32, piste contourée, curseur qui GRANDIT de 16 à 24 en
+     s'ouvrant — par une échelle, pour rester sur le pilote natif. */
+  const teinte = useTeinte();
   const bascule = useBascule(!!on);
   return (
     <Pressable
@@ -40,22 +44,51 @@ export function Switch({
       onPress={disabled ? undefined : () => { haptique.selection(); onPress?.(); }}
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
       style={[{
-        width: 48, height: 29, borderRadius: 16, justifyContent: 'center', overflow: 'hidden',
-        backgroundColor: t('fill4'),
+        width: isIOS ? 51 : 52, height: isIOS ? 31 : 32, borderRadius: 16, justifyContent: 'center', overflow: 'hidden',
+        backgroundColor: isIOS ? t('fill3') : t('surfaceQuiet'),
         opacity: disabled ? 0.4 : 1,
       }, style]}
     >
       {/* 220 ms — « l'état a changé ». La couleur ne passe pas par le pilote natif : le fond
           actif est une COUCHE qui apparaît en fondu, et le curseur glisse en `translateX`.
           Désactivé, rien ne bouge (planche des micro-interactions). */}
-      <Animated.View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: bascule }}>
-        <Gradient colors={g.forme} angle={90} radius={16} style={{ flex: 1 }} />
-      </Animated.View>
+      {isIOS ? null : (
+        <Animated.View style={{
+          position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 16,
+          borderWidth: 2, borderColor: t('ink3'),
+          opacity: bascule.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
+        }} />
+      )}
       <Animated.View style={{
-        position: 'absolute', top: 3, left: 3,
-        width: 23, height: 23, borderRadius: 12, backgroundColor: t('paperFixed'),
-        transform: [{ translateX: bascule.interpolate({ inputRange: [0, 1], outputRange: [0, 19] }) }],
+        position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: teinte.rv, opacity: bascule,
       }} />
+      {isIOS ? (
+        <Animated.View style={{
+          position: 'absolute', top: 2, left: 2,
+          width: 27, height: 27, borderRadius: 14, backgroundColor: t('paperFixed'),
+          shadowColor: t('inkFixed'), shadowOpacity: 0.15, shadowRadius: 4, shadowOffset: { width: 0, height: 3 },
+          transform: [{ translateX: bascule.interpolate({ inputRange: [0, 1], outputRange: [0, 20] }) }],
+        }} />
+      ) : (
+        <>
+          <Animated.View style={{
+            position: 'absolute', top: 4, left: 4, width: 24, height: 24, borderRadius: 12, backgroundColor: t('ink3'),
+            opacity: bascule.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
+            transform: [
+              { translateX: bascule.interpolate({ inputRange: [0, 1], outputRange: [0, 20] }) },
+              { scale: bascule.interpolate({ inputRange: [0, 1], outputRange: [0.667, 1] }) },
+            ],
+          }} />
+          <Animated.View style={{
+            position: 'absolute', top: 4, left: 4, width: 24, height: 24, borderRadius: 12, backgroundColor: t('paperFixed'),
+            opacity: bascule,
+            transform: [
+              { translateX: bascule.interpolate({ inputRange: [0, 1], outputRange: [0, 20] }) },
+              { scale: bascule.interpolate({ inputRange: [0, 1], outputRange: [0.667, 1] }) },
+            ],
+          }} />
+        </>
+      )}
     </Pressable>
   );
 }

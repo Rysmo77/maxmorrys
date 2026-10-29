@@ -2,6 +2,14 @@ import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { ThemeScope, useScheme, useToken, px } from './theme';
 import { useTransparenceReduite } from './transparence';
+import { isIOS } from './platform';
+
+/**
+ * LA CARTE DU KIT v4.5 (`mm-r-card`) : `bento` OPAQUE et filet `line`, 20 px sur iOS, 16 sur
+ * Android (Material 3). « Tout ce qui défile est opaque » — le voile translucide d'avant ne
+ * subsiste que pour le héros et la carte nuit, posés sur le maillage.
+ */
+export const RAYON_CARTE = isIOS ? 20 : 16;
 import type { ReactNode } from 'react';
 
 /**
@@ -68,6 +76,19 @@ export function Surface({
   }
 
   /* « Réduire la transparence » : ni voile ni flou, la surface de la page, cernée. */
+  if (level === 'flat') {
+    return (
+      <View style={[{ borderRadius: RAYON_CARTE, borderWidth: 1, borderColor: t('line'), backgroundColor: t('bento') }, style]}>
+        {children}
+      </View>
+    );
+  }
+
+  if (level === 'truth') {
+    /* `mm-r-truth` : l'encart « ce que ça ne fait pas », sur papier 3, sans filet. */
+    return <View style={[{ borderRadius: 16, backgroundColor: t('surfaceQuiet') }, style]}>{children}</View>;
+  }
+
   if (dense && level !== 'night') {
     return <View style={[base, { backgroundColor: t('surfacePage'), borderColor: t('borderHair') }, style]}>{children}</View>;
   }
@@ -89,9 +110,7 @@ export function Surface({
      nuit ; seuls le héros et la carte nuit gardent leur voile calculé. */
   const alpha = Number.parseFloat(t(VEIL[level])) || 0.78;
   const white = scheme === 'dark';
-  const surface = level === 'flat' || level === 'truth'
-    ? t('surfaceCardFlat')
-    : white
+  const surface = white
       ? `rgba(255,255,255,0.08)`
       : level === 'night'
         ? `rgba(14,17,22,${alpha})`
