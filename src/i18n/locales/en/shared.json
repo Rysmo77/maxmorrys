@@ -303,7 +303,10 @@
       "education": "Education",
       "communaute": "Community",
       "media": "Media",
-      "evenementiel": "Events"
+      "evenementiel": "Events",
+      "sante": "Healthcare",
+      "conseil": "Consulting",
+      "ingenierie": "Engineering"
     }
   }
 }

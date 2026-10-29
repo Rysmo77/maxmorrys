@@ -185,10 +185,14 @@ filtrer les leads, pas d'en maximiser le volume.
 | English Lab — yessienglish.com | `CLIENT` | Client product |
 | Klio Pro — kliopro.com | `CLIENT` | Client product |
 | ResHo Konnexion — resho.vasesdhonneursenegal.com | `CLIENT` | Client product |
-| Je Témoigne — temoignage.vasesdhonneursenegal.com | `CLIENT` | Client product |
 | LauraVerse — lauraverse.blog | `CLIENT` | Client product |
-| Dunamis Holydays — holydays.vasesdhonneursenegal.com | `CLIENT` | Client product |
 | IN Sénégal 2026 — insenegal.web.app | `CLIENT` | Client product |
+| Chez Mon Cardio — chezmoncardio.com | `CLIENT` | Client product |
+| Vases d'Honneur Sénégal — vasesdhonneursenegal.com | `CLIENT` | Client product |
+| FredKevWil Consulting — fkw-site.rysmo.workers.dev | `CLIENT` | Client product |
+| Concepcoe — concepcoe.com | `CLIENT` | Client product |
+| RESIC — resic.africa | `CLIENT` | Client product |
+| Africa Coop Tech — cooptech.africa | `CLIENT` | Client product |
 | DOVEN — myonoma.com | `MY_ONOMA_VENTURE` | A MY ONOMA Venture |
 | NAYO — nayo.pro | `MY_ONOMA_VENTURE` | A MY ONOMA Venture |
 | STEPS — stepsmag.com | `MY_ONOMA_VENTURE` | A MY ONOMA Venture |

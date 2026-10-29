@@ -303,7 +303,10 @@
       "education": "Éducation",
       "communaute": "Communauté",
       "media": "Média",
-      "evenementiel": "Événementiel"
+      "evenementiel": "Événementiel",
+      "sante": "Santé",
+      "conseil": "Conseil",
+      "ingenierie": "Ingénierie"
     }
   }
 }

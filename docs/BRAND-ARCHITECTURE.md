@@ -202,10 +202,14 @@ Produits réalisés **pour des tiers**. Ils appartiennent à leurs clients.
 | **English Lab** | yessienglish.com | Client | Éducation |
 | **Klio Pro** | kliopro.com | Client | Éducation |
 | **ResHo Konnexion** | resho.vasesdhonneursenegal.com | Client | Communauté |
-| **Je Témoigne** | temoignage.vasesdhonneursenegal.com | Client | Communauté |
 | **LauraVerse** | lauraverse.blog | Client | Média |
-| **Dunamis Holydays** | holydays.vasesdhonneursenegal.com | Client | Événementiel |
 | **IN Sénégal 2026** | insenegal.web.app | Client | Événementiel |
+| **Chez Mon Cardio** | chezmoncardio.com | Client | Santé |
+| **Vases d'Honneur Sénégal** | vasesdhonneursenegal.com | Client | Communauté |
+| **FredKevWil Consulting** | fkw-site.rysmo.workers.dev | Client | Conseil |
+| **Concepcoe** | concepcoe.com | Client | Ingénierie |
+| **RESIC** | resic.africa | Client | Communauté |
+| **Africa Coop Tech** | cooptech.africa | Client | Conseil |
 
 `stack` et `capabilities` sont établies **depuis les dépôts git** des projets, jamais supposées.
 La règle de déduction figure en tête de [`src/lib/brand/clients.ts`](../src/lib/brand/clients.ts).

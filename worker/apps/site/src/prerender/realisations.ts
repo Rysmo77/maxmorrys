@@ -6,7 +6,7 @@ import type { PageMeta } from './types';
  * ═══════════════════════════════════════════════════════════════════════════════
  * LES FICHES DE RÉALISATION — `/conception/realisations/:slug`.
  *
- * `routes.ts` envoie ce préfixe au pré-rendu ; sans producteur, les onze fiches
+ * `routes.ts` envoie ce préfixe au pré-rendu ; sans producteur, les fiches
  * tomberaient dans `unknownRouteMeta` : `noindex, nofollow`, sous le titre et l'image de
  * la page d'accueil. C'est le défaut exact qu'avaient les questions de la FAQ et les
  * certificats avant `faq.ts` et `certificat.ts` — une route routée sans rien au bout.
@@ -24,8 +24,8 @@ import type { PageMeta } from './types';
  * pré-rendu est construit des seuls FAITS que `clients.ts` établit : le nom, le secteur, le
  * rôle tenu, la pile et le domaine en ligne.
  *
- * ⛔ NI DURÉE NI RÉSULTAT. `duration` et `outcome` existent dans la source, vides sur les
- * onze projets : l'accord de publication couvre le nom, le rôle, la pile et le lien, et
+ * ⛔ NI DURÉE NI RÉSULTAT. `duration` et `outcome` existent dans la source, vides sur tous
+ * les projets : l'accord de publication couvre le nom, le rôle, la pile et le lien, et
  * exclut « aucun résultat, aucun chiffre de croissance ». Rien ici ne doit les inventer —
  * une fiche de portfolio est exactement l'endroit où la tentation est la plus forte.
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -131,14 +131,6 @@ export const REALISATIONS: readonly Realisation[] = [
     stack: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Firebase', 'Firebase Admin'],
   },
   {
-    slug: 'je-temoigne',
-    name: 'Je Témoigne',
-    category: 'Communauté',
-    domain: 'temoignage.vasesdhonneursenegal.com',
-    capabilities: ['engineering', 'securityRules', 'platformArchitecture'],
-    stack: ['React', 'Vite', 'TypeScript', 'Firebase', 'Firebase Admin', 'React Router'],
-  },
-  {
     slug: 'lauraverse',
     name: 'LauraVerse',
     category: 'Média',
@@ -147,20 +139,60 @@ export const REALISATIONS: readonly Realisation[] = [
     stack: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Firebase', 'Firebase Admin'],
   },
   {
-    slug: 'dunamis-holydays',
-    name: 'Dunamis Holydays',
-    category: 'Événementiel',
-    domain: 'holydays.vasesdhonneursenegal.com',
-    capabilities: ['engineering', 'securityRules'],
-    stack: ['HTML', 'CSS', 'JavaScript', 'Firebase Hosting'],
-  },
-  {
     slug: 'in-senegal',
     name: 'IN Sénégal 2026',
     category: 'Événementiel',
     domain: 'insenegal.web.app',
     capabilities: ['engineering'],
     stack: ['HTML', 'CSS', 'JavaScript', 'Firebase Hosting'],
+  },
+  {
+    slug: 'chez-mon-cardio',
+    name: 'Chez Mon Cardio',
+    category: 'Santé',
+    domain: 'chezmoncardio.com',
+    capabilities: ['engineering', 'platformArchitecture', 'designSystem', 'seo'],
+    stack: ['React', 'React Router', 'Vite', 'TypeScript', 'Hono', 'Cloudflare Workers', 'Cloudflare D1', 'Cloudflare R2', 'Expo', 'React Native'],
+  },
+  {
+    slug: 'vh-senegal',
+    name: "Vases d'Honneur Sénégal",
+    category: 'Communauté',
+    domain: 'vasesdhonneursenegal.com',
+    capabilities: ['engineering', 'platformArchitecture', 'seo'],
+    stack: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Cloudflare Workers', 'Cloudflare D1', 'Cloudflare R2', 'Drizzle ORM', 'Hono'],
+  },
+  {
+    slug: 'fkw-consulting',
+    name: 'FredKevWil Consulting',
+    category: 'Conseil',
+    domain: 'fkw-site.rysmo.workers.dev',
+    capabilities: ['engineering', 'platformArchitecture', 'seo'],
+    stack: ['Astro', 'Preact', 'TypeScript', 'Cloudflare Workers', 'Cloudflare D1', 'Pagefind'],
+  },
+  {
+    slug: 'concepcoe',
+    name: 'Concepcoe',
+    category: 'Ingénierie',
+    domain: 'concepcoe.com',
+    capabilities: ['engineering', 'securityRules', 'platformArchitecture', 'seo'],
+    stack: ['React', 'Vite', 'TypeScript', 'Tailwind CSS', 'Firebase', 'TipTap', 'Cloudflare Workers', 'Cloudflare R2'],
+  },
+  {
+    slug: 'resic',
+    name: 'RESIC',
+    category: 'Communauté',
+    domain: 'resic.africa',
+    capabilities: ['engineering', 'platformArchitecture', 'designSystem', 'aiAutomation'],
+    stack: ['React', 'React Router', 'Vite', 'TypeScript', 'Hono', 'Drizzle ORM', 'Cloudflare Workers', 'Cloudflare D1', 'Workers AI', 'Expo', 'React Native'],
+  },
+  {
+    slug: 'africa-coop-tech',
+    name: 'Africa Coop Tech',
+    category: 'Conseil',
+    domain: 'cooptech.africa',
+    capabilities: ['engineering', 'platformArchitecture', 'seo'],
+    stack: ['React', 'React Router', 'Vite', 'TypeScript', 'Cloudflare Workers', 'Cloudflare D1'],
   },
 ];
 
@@ -217,9 +249,9 @@ export function getRealisationMeta(slug: string, lang: 'fr' | 'en'): PageMeta | 
    * tronqué à deux éléments et la pile à trois, le corps porte les listes entières. Un
    * extrait coupé au milieu d'un mot vaut moins qu'une phrase complète.
    *
-   * ⚠️ Les bornes ne sont pas décoratives : quatre des onze projets vivent sous un
+   * ⚠️ Les bornes ne sont pas décoratives : ResHo Konnexion vit sous un
    * sous-domaine de `vasesdhonneursenegal.com`, qui coûte à lui seul trente-quatre
-   * caractères. `test/realisations.test.ts` mesure les onze.
+   * caractères. `test/realisations.test.ts` les mesure toutes.
    */
   const shortRoles = enumerate(roles.slice(0, 2));
   const shortStack = stack.slice(0, 3).join(', ');

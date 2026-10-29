@@ -109,17 +109,29 @@
     "klio-pro": {
       "description": "Site public, billetterie et back-office d'un cabinet de conseil et de formation en achats, à Dakar."
     },
-    "je-temoigne": {
-      "description": "Recueil, modération et publication de témoignages en vidéo, audio ou texte, depuis le téléphone."
-    },
     "lauraverse": {
       "description": "Plateforme média et agenda des événements chrétiens en Afrique francophone."
     },
-    "dunamis-holydays": {
-      "description": "Site d'événement : présentation, programme et inscriptions."
-    },
     "in-senegal": {
       "description": "Site institutionnel d'un événement national — présentation, programme et contact."
+    },
+    "chez-mon-cardio": {
+      "description": "Plateforme de prévention cardiovasculaire : site public, espace personnel, back-office éditorial et applications iOS et Android."
+    },
+    "vh-senegal": {
+      "description": "Site d'église : cultes, prédications, événements, dons et témoignages, avec un back-office éditorial."
+    },
+    "fkw-consulting": {
+      "description": "Site bilingue d'un cabinet de conseil en numérique, environnement et santé, à Paris : expertises, analyses, glossaire et prise de rendez-vous."
+    },
+    "concepcoe": {
+      "description": "Site d'un bureau d'études en ingénierie et BTP à Dakar : services, réalisations, actualités et back-office de contenu."
+    },
+    "resic": {
+      "description": "Réseau professionnel chrétien d'Afrique francophone : adhésion et carte de membre, annuaire, messagerie, emplois et formations, sur le web et sur mobile."
+    },
+    "africa-coop-tech": {
+      "description": "Site d'un cabinet de conseil en protection sociale mutualiste et santé communautaire à Abidjan, avec prise de rendez-vous et back-office."
     }
   }
 }
