@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Button, GlassPanel, Icon, Num, Skeleton, Tag, TruthPanel } from '@ds';
+import { Button, Icon, Num, Skeleton, Tag, TruthPanel } from '@ds';
 import { getOrCreateReferralCode, getMyReferrals } from '../../../../lib/firestore';
 import { getGamificationProfile } from '../../../../lib/gamification';
 import { CLUB_PRICE_XOF, clubReferralPrice } from '../../../../lib/club/pricing';
 import type { Referral } from '../../../../types';
 import type { useClubData } from '../../hooks/useClubData';
 import { slideUp } from '../../../../lib/animations';
+import { ClubCard } from './_shared';
 
 type ClubData = ReturnType<typeof useClubData>;
 
@@ -117,7 +118,7 @@ export default function ClubReferral({ data }: { data: ClubData }) {
       </div>
 
       {/* Le code, puis le lien qui le porte. */}
-      <GlassPanel level="hero" padding={22}>
+      <ClubCard padding={22} className="shadow-lift">
         <p className="mm-eyebrow m-0">{t('referral.yourCode')}</p>
         <p className="mt-1.5 text-[31px] tracking-[.1em]">
           <Num value={code} source="db" asOf={asOf} fallback={t('referral.noCode')} />
@@ -149,19 +150,19 @@ export default function ClubReferral({ data }: { data: ClubData }) {
             <Icon name="send" size={15} /> Telegram
           </Button>
         </div>
-      </GlassPanel>
+      </ClubCard>
 
       {/* Deux cases — et la seconde n'est pas un compteur, parce qu'il n'y a rien à compter. */}
       <div className="grid grid-cols-1 gap-3 stack:grid-cols-2">
-        <GlassPanel level="flat" padding={16}>
+        <ClubCard padding={16}>
           <p className="mm-eyebrow m-0">{t('referral.convertedTitle')}</p>
           <p className="mt-1 text-[27px]">
             <Num value={referrals.length} source="db" asOf={asOf} />
           </p>
           <p className="text-small text-ink-2">{t('referral.convertedReferrals', { count: referrals.length })}</p>
-        </GlassPanel>
+        </ClubCard>
 
-        <GlassPanel level="flat" padding={16}>
+        <ClubCard padding={16}>
           <div className="flex items-center gap-3">
             <span aria-hidden="true" className={isAmbassador ? 'text-informe-txt' : 'text-ink-2'}>
               <Icon name="trophy" size={26} />
@@ -174,7 +175,7 @@ export default function ClubReferral({ data }: { data: ClubData }) {
             </div>
             {isAmbassador && <Tag tone="ok" className="ml-auto">{t('referral.unlockedTag')}</Tag>}
           </div>
-        </GlassPanel>
+        </ClubCard>
       </div>
 
       <TruthPanel

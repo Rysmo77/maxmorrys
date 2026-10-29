@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { ChipRow, GlassPanel, Icon, IconButton, Skeleton, Tag, type IconName } from '@ds';
-import SpaceSplit from '../components/SpaceSplit';
+import { Icon, IconButton, Skeleton, Tag, Ticker } from '@ds';
+import LocalizedLink from '../../../components/shared/LocalizedLink';
 import ClubAgendaPanel from './club/ClubAgendaPanel';
+import { clubUpcoming } from './club/upcoming';
 import { useFormat } from '../../../hooks/useFormat';
 import { slideUp } from '../../../lib/animations';
+import { cn } from '../../../lib/utils';
 import { useClubData } from '../hooks/useClubData';
-import type { ClubSubTab } from '../hooks/useClubData';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import ClubSubscriptionGate from './club/ClubSubscriptionGate';
 import ClubFeed from './club/ClubFeed';
@@ -20,82 +21,74 @@ import ClubEvents from './club/ClubEvents';
 import ClubSessions from './club/ClubSessions';
 import ClubInfos from './club/ClubInfos';
 import { ClubSectionHeader } from './club/_shared';
+import { CLUB_NAV, clubTabPath } from './club/clubNav';
 
 interface ClubTabProps {
   enrolledFormations: EnrolledFormation[];
 }
 
-interface NavItem { id: ClubSubTab; icon: IconName; labelKey: string }
-
-/** Les huit onglets du kit, dans l'ordre de `club-huit-onglets.html`. */
-const NAV: NavItem[] = [
-  { id: 'feed', icon: 'list', labelKey: 'tab.nav.feed' },
-  { id: 'discussions', icon: 'chat', labelKey: 'tab.nav.discussions' },
-  { id: 'agenda', icon: 'calendar', labelKey: 'tab.nav.agenda' },
-  { id: 'members', icon: 'users', labelKey: 'tab.nav.members' },
-  { id: 'leaderboard', icon: 'trophy', labelKey: 'tab.nav.leaderboard' },
-  { id: 'opportunities', icon: 'case', labelKey: 'tab.nav.opportunities' },
-  { id: 'infos', icon: 'bell', labelKey: 'tab.nav.infos' },
-  { id: 'referral', icon: 'gift', labelKey: 'tab.nav.referral' },
-];
+/** Le moment de la journée, lu sur l'horloge de l'appareil : la seule donnée de la salutation. */
+function greetingKey(hour: number): string {
+  if (hour < 12) return 'tab.greetMorning';
+  if (hour < 18) return 'tab.greetAfternoon';
+  return 'tab.greetEvening';
+}
 
 /**
- * LE CLUB — l'un des cinq écrans du produit qui portent la barre d'onglets, et ses huit
- * sous-onglets.
- *
- * TROIS CHOSES ONT DISPARU DE CET EN-TÊTE, ET AUCUNE N'ÉTAIT COSMÉTIQUE.
- *
- * 1. LE NOMBRE DE MEMBRES ACTIFS. `TruthPanel` le range dans ses « interdits absolus, sans
- *    exception », et la page publique du Club, dans le kit, écrit pourquoi : « je ne
- *    t'annoncerai pas un nombre de membres, parce qu'il serait faux ». L'appel à
- *    `getClubActiveMemberCount()` part avec lui — une lecture Firestore de moins à chaque
- *    ouverture du Club, sur un appareil à 2 Go de mémoire qui EST le marché visé.
- * 2. LA PASTILLE DE RANG. Elle déclenchait un `getClubLeaderboard()` complet rien que pour
- *    lire un numéro déjà affiché, en entier, sur l'onglet Classement. Deuxième lecture
- *    évitée, zéro information perdue.
- * 3. LE MENU « PLUS ». Quatre onglets visibles et quatre cachés derrière un menu déroulant,
- *    avec son écouteur de clic global et sa fermeture au clic extérieur — pour un contrôle
- *    que `ChipRow` fait défiler nativement. Les huit sont désormais atteignables au geste,
- *    dans l'ordre du kit, sans qu'aucun ne soit relégué.
- *
- * ⚠️ CE QUE LE KIT MONTRE ICI ET QUE LE PRODUIT N'A PAS : son panneau `Bilan` (« ce que ton
- * abonnement t'a apporté : 6 sessions suivies, 14 opportunités vues, 2 missions décrochées »)
- * n'a aucun équivalent en base — rien ne compte les sessions suivies ni les missions
- * décrochées. Il n'est pas maquetté avec des zéros : trois compteurs à zéro qui ne bougeront
- * jamais disent quelque chose de faux sur le produit, pas sur l'abonnement.
+ * LE CLUB CONNECTÉ — kit v3 « Club en réseau social », EN CLAIR.
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * CE QUE `ClubDesktop` APPORTE, ET LA SEULE CHOSE QUI CHANGE DE COULEUR
+ * LA COQUILLE À TROIS COLONNES (≥ 1080 px) : rail d'icônes · contenu · « À venir »
  *
- * · UNE TROISIÈME COLONNE : l'agenda. « C'est la seule chose du Club qui a une échéance. »
- *   Voir `ClubAgendaPanel` — aucune lecture de plus, `useClubData` charge déjà tout.
+ * · LE RAIL (`mm-dash__rail`) porte les huit onglets, et chacun est un LIEN : l'onglet vit dans
+ *   l'adresse (`/mon-espace/club/<onglet>`, FR-031). Sous 1080 px, les mêmes huit liens passent
+ *   en rangée de pastilles qui défile au geste — la barre d'onglets basse de l'espace
+ *   apprenant est déjà là, une seconde barre basse se superposerait à elle.
+ * · LA COLONNE DROITE porte l'agenda, pas les « cercles » de la maquette : les cercles
+ *   thématiques n'existent ni en base ni dans les règles. Un rail de sigles qui ne filtre rien
+ *   serait un décor qui ment sur le produit.
  *
- * · LA CARTE D'ABONNEMENT PASSE EN `level="ink"`. C'est la troisième règle du README du
- *   handoff, et elle est mesurée : « une carte sombre sur une page claire doit être opaque ».
- *   `level="night"` est un voile à 72 % — sur cette page, qui est CLAIRE, il compose avec
- *   elle et remonte à `rgb(80,81,86)`, un gris moyen où aucun texte nuit ne tient. `ink` est
- *   opaque ET ouvre sa propre portée `.dk`, donc les jetons de texte basculent seuls : il n'y
- *   a plus un seul gris écrit à la main dans cette carte.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE QUE LA MAQUETTE MONTRE ET QUE CET ÉCRAN NE MONTRE PAS — délibérément
  *
- *   POURQUOI CETTE CARTE-LÀ ET PAS UNE AUTRE. Le bilan d'abonnement est le seul objet de
- *   l'écran qui parle d'ARGENT et d'ÉCHÉANCE. La maquette le met en tête et le rend
- *   permanent — « un abonnement annuel ne supprime pas le renoncement, il le concentre sur
- *   un instant ». Une surface qui se distingue du reste de la page est exactement ce qui
- *   l'empêche de se fondre dans le fil.
+ * · LA RANGÉE DE RELEVÉS (« 5 jours de série », « 860 XP ce mois », « 3 missions », « 11
+ *   retours »). Aucun de ces quatre nombres n'est compté par le produit : ni série du Club, ni
+ *   XP mensuel, ni « mission » distincte d'une publication, ni retour reçu. Quatre zéros
+ *   permanents diraient quelque chose de faux. La rangée reviendra quand la base comptera.
+ * · L'HORLOGE, « AUJOURD'HUI » ET « POUR TOI » : pas de flux d'activité ni de recommandation
+ *   expliquée côté serveur. Pas d'écran sans fonction.
+ * · LE NOMBRE DE MEMBRES ACTIFS et la pastille de rang (retirés avant la refonte, et pour les
+ *   mêmes raisons : `TruthPanel` interdit le premier, le second coûtait une lecture complète).
+ *
+ * La bande « en direct » (`Ticker`), elle, est reprise : elle ne lit que ce que `useClubData`
+ * a déjà chargé — prochaines sessions et derniers ateliers, dernière info publiée. Vide, elle
+ * ne s'affiche pas.
+ *
+ * L'ÉCHÉANCE reste en tête, toujours visible : « un abonnement annuel ne supprime pas le
+ * renoncement, il le concentre sur un instant ». Aucun prélèvement automatique n'existe ; la
+ * ligne dit seulement si le RAPPEL par e-mail est demandé.
  */
 export default function ClubTab({ enrolledFormations }: ClubTabProps) {
   const { t } = useTranslation('club');
   const { locale } = useFormat();
   const data = useClubData();
-  const { loadingClub, isClubActive, clubSubscription, clubTab, setClubTab, handleRefresh } = data;
+  const { loadingClub, isClubActive, clubSubscription, clubTab, handleRefresh, displayName, clubInfos } = data;
 
-  const labels = useMemo(() => NAV.map((it) => t(it.labelKey)), [t]);
-  const activeIndex = Math.max(0, NAV.findIndex((it) => it.id === clubTab));
+  const ticker = useMemo(() => {
+    const items = clubUpcoming(data, t, locale)
+      .slice(0, 3)
+      .map((u) => t('tab.tickerUpcoming', { title: u.title, when: u.meta }));
+    const lastInfo = clubInfos[0];
+    if (lastInfo) items.push(t('tab.tickerInfo', { title: lastInfo.title }));
+    return items;
+    // `data` change à chaque rendu ; les listes qu'on lit, non.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.clubEvents, data.clubSessions, data.registeredEvents, data.registeredSessions, clubInfos, t, locale]);
 
   if (loadingClub) {
     return (
       <div className="space-y-5">
-        <Skeleton height={82} radius="var(--r-l)" label={t('tab.memberActive')} />
+        <Skeleton height={64} radius="var(--r-l)" label={t('tab.memberActive')} />
         <Skeleton height={40} radius="var(--r-pill)" label={t('tab.navLabel')} />
         <Skeleton height={260} radius="var(--r-l)" label={t('tab.memberActive')} />
       </div>
@@ -107,52 +100,79 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
   }
 
   const expiresAt = new Date(clubSubscription!.expiresAt);
+  const firstName = displayName.split(' ')[0] || displayName;
+
+  const nav = CLUB_NAV.map((it) => ({ ...it, label: t(`tab.nav.${it.id}`), href: clubTabPath(it.id) }));
 
   return (
     <motion.div variants={slideUp} initial="hidden" animate="visible">
-      <SpaceSplit asideLabel={t('panel.upcomingEyebrow')} aside={<ClubAgendaPanel data={data} />}>
-        <div className="space-y-5">
-          {/* ── L'état de l'abonnement — carte d'encre, opaque sur une page claire ── */}
-          <GlassPanel level="ink" padding={18}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span
-                  aria-hidden="true"
-                  className="grid h-10 w-10 flex-none place-items-center rounded-m bg-[image:var(--action-transforme)]"
-                >
-                  <Icon name="crown" size={19} color="var(--paper-fixed)" />
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate font-bold text-ink">{t('tab.memberActive')}</p>
-                  <p className="truncate text-meta-2 text-ink-2">
-                    {t('tab.expiresOn', {
-                      date: expiresAt.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
-                    })}
-                    {clubSubscription!.autoRenew ? t('tab.autoRenew') : t('tab.manual')}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-none items-center gap-2">
-                <Tag tone="ok">{t('tab.statusActive')}</Tag>
-                <IconButton label={t('tab.refresh')} onClick={handleRefresh}>
-                  <Icon name="repeat" size={17} />
-                </IconButton>
-              </div>
+      <div className="wide:grid wide:grid-cols-[72px_minmax(0,1fr)_290px] wide:items-start wide:gap-5">
+        {/* ── Le rail des huit onglets (bureau) ─────────────────────────────── */}
+        <nav aria-label={t('tab.navLabel')} className="mm-dash__rail hidden wide:flex">
+          {nav.map((it) => (
+            <LocalizedLink
+              key={it.id}
+              to={it.href}
+              aria-label={it.label}
+              title={it.label}
+              aria-current={clubTab === it.id ? 'page' : undefined}
+            >
+              <Icon name={it.icon} size={20} />
+            </LocalizedLink>
+          ))}
+        </nav>
+
+        <div className="min-w-0 space-y-5">
+          {/* ── La salutation, puis l'échéance — toujours sous les yeux ──────── */}
+          <header className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="m-0 font-display text-[30px] font-black leading-none tracking-[-.03em] text-ink wide:text-[40px]">
+                {t(greetingKey(new Date().getHours()), { name: firstName })}
+              </h1>
+              <p className="m-0 mt-2 text-meta text-ink-2">
+                {t('tab.memberActive')} ·{' '}
+                {t('tab.expiresOn', {
+                  date: expiresAt.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
+                })}
+                {clubSubscription!.autoRenew ? t('tab.autoRenew') : t('tab.manual')}
+              </p>
             </div>
-          </GlassPanel>
+            <div className="flex flex-none items-center gap-2">
+              <Tag tone="ok">{t('tab.statusActive')}</Tag>
+              <IconButton label={t('tab.refresh')} onClick={handleRefresh}>
+                <Icon name="repeat" size={17} />
+              </IconButton>
+            </div>
+          </header>
 
-          {/* ── Les huit onglets, tous atteignables ────────────────────────────── */}
-          <ChipRow
-            label={t('tab.navLabel')}
-            options={labels}
-            value={labels[activeIndex]}
-            onChange={(option) => {
-              const idx = labels.indexOf(option);
-              if (idx >= 0) setClubTab(NAV[idx].id);
-            }}
-          />
+          {/* ── Les huit onglets (mobile et tablette) — liens, défilement au geste ── */}
+          <nav aria-label={t('tab.navLabel')} className="-mx-1 overflow-x-auto px-1 wide:hidden">
+            <ul className="m-0 flex w-max list-none gap-2 p-0">
+              {nav.map((it) => {
+                const on = clubTab === it.id;
+                return (
+                  <li key={it.id}>
+                    <LocalizedLink
+                      to={it.href}
+                      aria-current={on ? 'page' : undefined}
+                      className={cn(
+                        'mm-chipd h-9 whitespace-nowrap',
+                        on && 'border-[color:var(--ink)] bg-ink text-[color:var(--paper)]',
+                      )}
+                    >
+                      <Icon name={it.icon} size={15} />
+                      {it.label}
+                    </LocalizedLink>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
 
-          {/* ── Le contenu ─────────────────────────────────────────────────────── */}
+          {/* ── La bande « en direct » : uniquement des données chargées ─────── */}
+          <Ticker items={ticker} label={t('tab.tickerLabel')} badge={t('tab.tickerBadge')} />
+
+          {/* ── Le contenu de l'onglet ─────────────────────────────────────── */}
           {clubTab === 'feed' && <ClubFeed data={data} />}
           {clubTab === 'members' && <ClubMembers data={data} />}
           {clubTab === 'discussions' && <ClubDiscussions data={data} />}
@@ -173,7 +193,12 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
           {clubTab === 'infos' && <ClubInfos data={data} />}
           {clubTab === 'referral' && <ClubReferral data={data} />}
         </div>
-      </SpaceSplit>
+
+        {/* ── « À venir » : la seule chose du Club qui a une échéance ──────────── */}
+        <aside aria-label={t('panel.upcomingEyebrow')} className="mt-6 wide:sticky wide:top-2 wide:mt-0">
+          <ClubAgendaPanel data={data} />
+        </aside>
+      </div>
     </motion.div>
   );
 }

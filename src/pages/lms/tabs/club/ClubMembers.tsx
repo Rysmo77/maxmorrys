@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { httpsCallable } from 'firebase/functions';
 import {
-  Avatar, Button, Field, GlassPanel, Icon, IconButton, ProgressBar, SearchPill, Skeleton, Switch, Tag,
+  Avatar, Button, Field, Icon, IconButton, ProgressBar, SearchPill, Skeleton, Switch, Tag,
 } from '@ds';
 import { getMyClubProfile, saveClubProfile, getClubMemberProfiles, getUserById, updateUserProfile } from '../../../../lib/firestore';
 import { functions } from '../../../../config/firebase';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useDialogA11y } from '../../../../hooks/useDialogA11y';
-import { ClubEmptyState, ClubSectionHeader } from './_shared';
+import { ClubCard, ClubEmptyState, ClubSectionHeader } from './_shared';
 import type { ClubMemberProfile } from '../../../../types';
 import type { useClubData } from '../../hooks/useClubData';
 import { staggerContainer, staggerItem } from '../../../../lib/animations';
@@ -227,7 +227,7 @@ export default function ClubMembers({ data }: { data: ClubData }) {
   return (
     <motion.div className="space-y-4" variants={staggerContainer} initial="hidden" animate="visible">
       {/* ── Ma fiche ────────────────────────────────────────────────────────── */}
-      <GlassPanel level="flat" padding={18}>
+      <ClubCard padding={18}>
         <ClubSectionHeader
           icon="user"
           title={t('members.myProfile')}
@@ -336,7 +336,7 @@ export default function ClubMembers({ data }: { data: ClubData }) {
             {form.visible ? t('members.profileVisible') : t('members.profileHidden')}
           </p>
         )}
-      </GlassPanel>
+      </ClubCard>
 
       {/* ── L'annuaire ──────────────────────────────────────────────────────── */}
       <SearchPill

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Avatar, GlassPanel, Icon, LessonRow, Num, Skeleton, TerritoryCard, TruthPanel } from '@ds';
+import { Avatar, Icon, LessonRow, Num, Skeleton, TerritoryCard, TruthPanel } from '@ds';
 import { getClubLeaderboard, type LeaderboardEntry } from '../../../../lib/gamification';
 import { getLevelTitle } from '../../../../types/gamification';
 import type { useClubData } from '../../hooks/useClubData';
 import { staggerContainer } from '../../../../lib/animations';
-import { ClubEmptyState } from './_shared';
+import { ClubCard, ClubEmptyState } from './_shared';
 
 type ClubData = ReturnType<typeof useClubData>;
 
@@ -76,7 +76,7 @@ export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
         </p>
       </TerritoryCard>
 
-      <GlassPanel level="flat" padding="4px 18px" as="ol" className="m-0 list-none">
+      <ClubCard padding="4px 18px" as="ol" className="m-0 list-none">
         {entries.map((entry, i) => {
           const isMe = user?.uid === entry.userId;
           return (
@@ -115,7 +115,7 @@ export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
             </li>
           );
         })}
-      </GlassPanel>
+      </ClubCard>
 
       <TruthPanel
         provenTitle={t('leaderboard.truth.provenTitle')}

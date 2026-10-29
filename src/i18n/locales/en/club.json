@@ -19,7 +19,14 @@
     "upcomingEvents": "Upcoming events",
     "liveSessions": "Live sessions",
     "statusActive": "Active",
-    "navLabel": "Club tabs"
+    "navLabel": "Club tabs",
+    "greetMorning": "Good morning, {{name}}!",
+    "greetAfternoon": "Good afternoon, {{name}}!",
+    "greetEvening": "Good evening, {{name}}!",
+    "tickerLabel": "Coming up at the Club",
+    "tickerBadge": "Coming up",
+    "tickerUpcoming": "{{title}} · {{when}}",
+    "tickerInfo": "New in the info tab: {{title}}"
   },
   "sessions": {
     "emptyTitle": "No live session scheduled",
@@ -138,7 +145,8 @@
       "proven2": "Only the author of a listing can take it down.",
       "withheld1": "Budgets shown are the ones announced by whoever posts. The platform does not verify them, and that's written here rather than hidden.",
       "withheld2": "Contact details aren't checked either: they go out as typed."
-    }
+    },
+    "warning": "The Club does not check the offers posted here. Never pay to apply: a real job never asks you for money."
   },
   "discussions": {
     "memberFallback": "Member",
@@ -216,7 +224,8 @@
       "proven3": "The price shown is the one the server charges, and it lives in exactly one place in the code.",
       "withheld1": "No member count. The Club opened in {{opened}}: the number would be small, so making an argument of it would mislead you, and you'd check it on the first screen after paying.",
       "withheld2": "No testimonials and no star ratings. What's said inside belongs to the people inside, and a rating on a closed club can't be verified."
-    }
+    },
+    "noDebit": "One payment for a year. No automatic debit, whatever the payment method."
   },
   "members": {
     "myProfile": "My member profile",
@@ -362,9 +371,6 @@
     "lede": "A year with me, and with people doing the same thing you are. Live sessions, gigs that circulate, and someone to ask the question you ask no one else.",
     "cta": "I'm joining the Club",
     "perMonth": "/ month",
-    "billedPre": "billed",
-    "billedPost": "once a year",
-    "referralPre": "Someone referred you? Your code brings it down to",
     "includedTitle": "What you're paying for, exactly",
     "included": {
       "sessionsPost": "live sessions a month, with me",
@@ -372,13 +378,10 @@
       "workshops": "The in-person workshops in Dakar, seats kept for members",
       "answer": "An answer from me in the discussions, not from a moderator",
       "tutorPre": "Your tutor goes to",
-      "tutorMid": "questions a day instead of"
+      "tutorMid": "questions a day instead of",
+      "discountPost": "off every course, as long as your membership is active"
     },
     "includedNote": "Those five lines depend on me alone. That's why they're here, and not promises about the vibe.",
-    "guaranteeTitle": [
-      "What I can't",
-      "promise you yet."
-    ],
     "tabsTitle": [
       "Eight tabs.",
       "Here's what they're for."
@@ -393,16 +396,8 @@
       "infos": "The weekly digest, written here and in your notifications. Not by email.",
       "referral": "Your code gets the person you bring in 15 % off. You get nothing — and I'm telling you so."
     },
-    "priceTitle": [
-      "One price,",
-      "said two ways."
-    ],
-    "priceBody": "A yearly subscription doesn't remove the hesitation, it concentrates it into one moment. So here are both numbers up front: the one you pay, and what it works out to each month.",
     "renewalTitle": "What happens when it runs out",
     "renewalBody": "When it runs out, your access stops. I don't charge anything automatically — not on Wave, not on Orange Money, not on your card. I'd rather tell you now than let you find out that day. If you asked for it, I'll email you fifteen days ahead, with a one-click link to pick it back up.",
-    "priceUnit": "FCFA / month",
-    "priceBilledPre": "Billed",
-    "priceBilledPost": ", once, for twelve months.",
     "payWave": "Wave",
     "payOrange": "Orange Money",
     "payCard": "Bank card",
@@ -435,8 +430,8 @@
         "a": "You'll have paid for nothing, and I can't stop that. That's why your renewal date sits in the Club permanently, with its reminder — not just on the last day."
       },
       {
-        "q": "Do I get a refund if I change my mind?",
-        "a": "The fourteen-day withdrawal period applies to the courses. For the Club, access is immediate and complete on sign-up: write to me before paying if you're unsure, I'd rather have a conversation than a refund."
+        "q": "What if I'm not sure before paying?",
+        "a": "Access to the Club is immediate and complete as soon as you pay, for the whole year. If you're unsure, write to me before paying: I'd rather have a conversation than a misunderstanding."
       },
       {
         "q": "Is the Club just one more WhatsApp group?",
@@ -460,7 +455,46 @@
     "sessionsHeldPre": "Held over the past {{days}} days:",
     "truthProvenTitle": "What I can prove about the subscription",
     "truthProvenPurchase": "I'd rather you came in knowing what you're buying: a year of access to what already exists, and a seat in what's being built.",
-    "truthWithheldTitle": "What this page won't show you"
+    "truthWithheldTitle": "What this page won't show you",
+    "pill": "Club",
+    "ctaInside": "See inside the Club",
+    "payMethods": "Wave, Orange Money or card",
+    "noDebit": "no automatic debit",
+    "insideCaption": "Inside the Club: the eight tabs you unlock, under the names they carry in your space.",
+    "offerKick": "What you get when you join",
+    "offerTitle": [
+      "Everything guaranteed,",
+      "from day one."
+    ],
+    "offerCards": {
+      "sessions": "Live sessions",
+      "missions": "Gigs",
+      "workshops": "Workshops in Dakar",
+      "answer": "An answer from me",
+      "tutor": "Your tutor, boosted",
+      "discount": "Courses, for less"
+    },
+    "stepsKick": "How it works",
+    "stepsTitle": [
+      "Three steps",
+      "to get started."
+    ],
+    "steps": [
+      {
+        "title": "You join from your space",
+        "body": "Wave, Orange Money or card. One payment for a year, no automatic debit."
+      },
+      {
+        "title": "You fill in your profile",
+        "body": "Your trade, your city, what you can do. Whether you show up in the directory is your call."
+      },
+      {
+        "title": "You post and you come to the sessions",
+        "body": "Your first post in the feed, answers from members, and the live session every month."
+      }
+    ],
+    "priceUnitYear": "FCFA / year",
+    "priceMonthlyNote": "the yearly price divided by twelve, nothing more"
   },
   "panel": {
     "upcomingEyebrow": "Coming up",

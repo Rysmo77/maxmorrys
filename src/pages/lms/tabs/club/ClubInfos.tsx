@@ -1,11 +1,11 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { GlassPanel, Icon, Num, Tag, TruthPanel } from '@ds';
+import { Icon, Num, Tag, TruthPanel } from '@ds';
 import { cn } from '../../../../lib/utils';
 import { markdownToHtml } from '../../../../lib/markdown';
 import { useFormat } from '../../../../hooks/useFormat';
-import { ClubEmptyState } from './_shared';
+import { ClubCard, ClubEmptyState } from './_shared';
 import { SHARE_PLATFORMS } from '../../hooks/useClubData';
 import type { useClubData } from '../../hooks/useClubData';
 import { staggerContainer, staggerItem } from '../../../../lib/animations';
@@ -66,7 +66,7 @@ export default function ClubInfos({ data }: ClubInfosProps) {
           const infoLiked = user ? likes.includes(user.uid) : false;
           return (
             <motion.div key={info.id} variants={staggerItem}>
-              <GlassPanel level="flat" padding={20} className="relative h-full">
+              <ClubCard padding={20} className="relative h-full">
                 <div className="flex items-start justify-between gap-3">
                   <Tag>{typeLabel(info.type)}</Tag>
                   <p className="flex-none text-small text-ink-2">{formatDate(info.publishedAt)}</p>
@@ -138,7 +138,7 @@ export default function ClubInfos({ data }: ClubInfosProps) {
                     )}
                   </div>
                 </div>
-              </GlassPanel>
+              </ClubCard>
             </motion.div>
           );
         })}

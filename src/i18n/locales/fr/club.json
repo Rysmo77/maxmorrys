@@ -19,7 +19,14 @@
     "upcomingEvents": "Événements à venir",
     "liveSessions": "Sessions live",
     "statusActive": "Actif",
-    "navLabel": "Onglets du Club"
+    "navLabel": "Onglets du Club",
+    "greetMorning": "Bonjour, {{name}} !",
+    "greetAfternoon": "Bon après-midi, {{name}} !",
+    "greetEvening": "Bonsoir, {{name}} !",
+    "tickerLabel": "Ce qui vient au Club",
+    "tickerBadge": "À venir",
+    "tickerUpcoming": "{{title}} · {{when}}",
+    "tickerInfo": "Nouveau dans les infos : {{title}}"
   },
   "sessions": {
     "emptyTitle": "Aucune session live programmée",
@@ -138,7 +145,8 @@
       "proven2": "Seul l'auteur d'une annonce peut la retirer.",
       "withheld1": "Les budgets affichés sont ceux annoncés par la personne qui publie. Ils ne sont pas vérifiés par la plateforme, et c'est écrit ici plutôt que caché.",
       "withheld2": "Aucun contrôle des coordonnées de contact : elles partent telles quelles."
-    }
+    },
+    "warning": "Le Club ne vérifie pas les offres publiées ici. Ne paie jamais pour postuler : une vraie mission ne te demande pas d'argent."
   },
   "discussions": {
     "memberFallback": "Membre",
@@ -216,7 +224,8 @@
       "proven3": "Le prix affiché est celui que le serveur débite, et il vit à un seul endroit dans le code.",
       "withheld1": "Aucun nombre de membres. Le Club a ouvert en {{opened}} : le chiffre serait faible, il serait donc trompeur d'en faire un argument, et tu le vérifierais au premier écran après avoir payé.",
       "withheld2": "Aucun témoignage ni note en étoiles. Ce qui se dit à l'intérieur appartient à ceux qui y sont, et une note sur un club fermé ne se vérifie pas."
-    }
+    },
+    "noDebit": "Un paiement pour un an. Aucun prélèvement automatique, sur aucun moyen de paiement."
   },
   "members": {
     "myProfile": "Mon profil membre",
@@ -362,9 +371,6 @@
     "lede": "Une année avec moi, et avec ceux qui font la même chose que toi. Des sessions en direct, des missions qui circulent, et quelqu'un à qui poser la question que tu ne poses à personne.",
     "cta": "Je rejoins le Club",
     "perMonth": "/ mois",
-    "billedPre": "facturé",
-    "billedPost": "une fois par an",
-    "referralPre": "Parrainé ? Ton code te fait",
     "includedTitle": "Ce que tu paies, précisément",
     "included": {
       "sessionsPost": "sessions en direct par mois, avec moi",
@@ -372,13 +378,10 @@
       "workshops": "Les ateliers en présentiel à Dakar, places réservées aux membres",
       "answer": "Une réponse de moi dans les discussions, pas d'un modérateur",
       "tutorPre": "Ton répétiteur à",
-      "tutorMid": "questions par jour au lieu de"
+      "tutorMid": "questions par jour au lieu de",
+      "discountPost": "sur chaque formation, tant que ton adhésion est active"
     },
     "includedNote": "Ces cinq lignes ne dépendent que de moi. C'est pour ça qu'elles sont ici, et pas des promesses sur l'ambiance.",
-    "guaranteeTitle": [
-      "Ce que je ne peux pas",
-      "encore te garantir."
-    ],
     "tabsTitle": [
       "Huit onglets.",
       "Voilà à quoi ils servent."
@@ -393,16 +396,8 @@
       "infos": "Le digest de la semaine, écrit ici et dans tes notifications. Pas par e-mail.",
       "referral": "Ton code fait gagner 15 % à celui que tu amènes. Toi, tu ne gagnes rien — et je te le dis."
     },
-    "priceTitle": [
-      "Un prix,",
-      "dit des deux façons."
-    ],
-    "priceBody": "Un abonnement annuel ne supprime pas l'hésitation, il la concentre sur un instant. Alors je te donne les deux chiffres tout de suite : celui que tu paies, et celui que ça représente chaque mois.",
     "renewalTitle": "Ce qui se passe à l'échéance",
     "renewalBody": "À l'échéance, ton accès s'arrête. Je ne prélève rien automatiquement — ni sur Wave, ni sur Orange Money, ni sur ta carte. Je préfère te le dire maintenant que te laisser le découvrir ce jour-là. Si tu l'as demandé, je t'envoie un e-mail quinze jours avant, avec le lien pour reprendre en un geste.",
-    "priceUnit": "FCFA / mois",
-    "priceBilledPre": "Facturé",
-    "priceBilledPost": ", une fois, pour douze mois.",
     "payWave": "Wave",
     "payOrange": "Orange Money",
     "payCard": "Carte bancaire",
@@ -435,8 +430,8 @@
         "a": "Tu auras payé pour rien, et je ne peux pas t'en empêcher. C'est pour ça que l'échéance de ton abonnement est affichée en permanence dans le Club, avec son rappel — et pas seulement le dernier jour."
       },
       {
-        "q": "Je suis remboursé si je change d'avis ?",
-        "a": "Les quatorze jours de rétractation s'appliquent aux formations. Pour le Club, l'accès est immédiat et complet dès l'inscription : écris-moi avant de payer si tu hésites, je préfère une conversation à un remboursement."
+        "q": "Et si j'hésite avant de payer ?",
+        "a": "L'accès au Club est immédiat et complet dès le paiement, pour toute l'année. Si tu hésites, écris-moi avant de payer : je préfère une conversation à un malentendu."
       },
       {
         "q": "Le Club, c'est un groupe WhatsApp de plus ?",
@@ -460,7 +455,46 @@
     "sessionsHeldPre": "Tenues sur les {{days}} derniers jours :",
     "truthProvenTitle": "Ce que je peux prouver sur l'abonnement",
     "truthProvenPurchase": "Je préfère que tu entres en sachant ce que tu achètes : une année d'accès à ce qui existe déjà, et une place dans ce qui se construit.",
-    "truthWithheldTitle": "Ce que cette page ne te montrera pas"
+    "truthWithheldTitle": "Ce que cette page ne te montrera pas",
+    "pill": "Club",
+    "ctaInside": "Voir l'intérieur du Club",
+    "payMethods": "Wave, Orange Money ou carte",
+    "noDebit": "aucun prélèvement automatique",
+    "insideCaption": "L'intérieur du Club : les huit onglets que tu ouvres, sous les noms qu'ils portent dans ton espace.",
+    "offerKick": "Ce que tu as en rejoignant",
+    "offerTitle": [
+      "Tout ce qui est garanti,",
+      "dès le premier jour."
+    ],
+    "offerCards": {
+      "sessions": "Les sessions en direct",
+      "missions": "Les missions",
+      "workshops": "Les ateliers à Dakar",
+      "answer": "Une réponse de moi",
+      "tutor": "Ton répétiteur, renforcé",
+      "discount": "Les formations, moins cher"
+    },
+    "stepsKick": "Comment ça marche",
+    "stepsTitle": [
+      "Trois étapes",
+      "pour commencer."
+    ],
+    "steps": [
+      {
+        "title": "Tu adhères depuis ton espace",
+        "body": "Wave, Orange Money ou carte. Un paiement pour un an, sans prélèvement automatique."
+      },
+      {
+        "title": "Tu complètes ton profil",
+        "body": "Ton métier, ta ville, ce que tu sais faire. Apparaître dans l'annuaire, c'est toi qui le décides."
+      },
+      {
+        "title": "Tu publies et tu viens aux sessions",
+        "body": "Ta première publication au fil, les réponses des membres, et le direct chaque mois."
+      }
+    ],
+    "priceUnitYear": "FCFA / an",
+    "priceMonthlyNote": "l'annuel divisé par douze, rien de plus"
   },
   "panel": {
     "upcomingEyebrow": "À venir",

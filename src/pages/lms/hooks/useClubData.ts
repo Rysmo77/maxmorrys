@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '@ds';
@@ -25,6 +26,8 @@ const createClubCharge = httpsCallable<
   { checkoutUrl: string; transactionId: string }
 >(functions, 'createClubCharge');
 import { estMembreActif } from '../../../lib/club/membership';
+import { useLocalizedPath } from '../../../contexts/LanguageContext';
+import { clubTabFromPath, clubTabPath } from '../tabs/club/clubNav';
 import type { ClubDigitosSubscription, ClubDigitosPost, ClubDigitosEvent, ClubDigitosSession, ClubDigitosInfo, ClubDigitosComment, ClubPostCategory } from '../../../types';
 import type { IconName } from '@ds';
 
@@ -120,7 +123,16 @@ export function useClubData() {
   const [clubEvents, setClubEvents] = useState<ClubDigitosEvent[]>([]);
   const [clubSessions, setClubSessions] = useState<ClubDigitosSession[]>([]);
   const [clubInfos, setClubInfos] = useState<ClubDigitosInfo[]>([]);
-  const [clubTab, setClubTab] = useState<ClubSubTab>('feed');
+  /* L'onglet est LU dans l'adresse (FR-031) : changer d'onglet, c'est naviguer. Le Retour du
+     navigateur, un lien partagé et un rechargement retrouvent donc le même endroit. */
+  const location = useLocation();
+  const navigate = useNavigate();
+  const localize = useLocalizedPath();
+  const clubTab = clubTabFromPath(location.pathname);
+  const setClubTab = useCallback(
+    (tab: ClubSubTab) => navigate(localize(clubTabPath(tab))),
+    [navigate, localize],
+  );
   const [dmTarget, setDmTarget] = useState<{ id: string; name: string; photo?: string } | null>(null);
   const [clubPostContent, setClubPostContent] = useState('');
   const [postingToClub, setPostingToClub] = useState(false);

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { GlassPanel, Icon, Tag } from '@ds';
+import { Icon, Tag } from '@ds';
+import { clubUpcoming } from './upcoming';
 import { useFormat } from '../../../../hooks/useFormat';
 import type { useClubData } from '../../hooks/useClubData';
 
@@ -41,85 +42,39 @@ interface ClubAgendaPanelProps {
   data: ClubData;
 }
 
+/**
+ * Kit v3 : une carte blanche (bento) et des lignes `mm-ev` — pastille à gauche, titre,
+ * échéance. Trois au plus : au-delà, l'onglet Agenda les liste toutes.
+ */
 export default function ClubAgendaPanel({ data }: ClubAgendaPanelProps) {
   const { t } = useTranslation('club');
   const { locale } = useFormat();
-  const { clubEvents, clubSessions, registeredEvents, registeredSessions } = data;
-
-  const when = (iso: string, time?: string) => {
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return time ?? '';
-    const day = d.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
-    const hour = time ?? d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-    return `${day} · ${hour}`;
-  };
-
-  /* Les deux collections fusionnées, triées par échéance, plafonnées à trois. Au-delà,
-     ce n'est plus « ce qui vient » mais l'onglet Agenda — qui existe et porte tout. */
-  const upcoming = [
-    ...clubEvents
-      .filter((e) => e.status === 'upcoming')
-      .map((e) => ({
-        id: `e-${e.id}`,
-        at: new Date(e.date).getTime(),
-        title: e.title,
-        meta: `${when(e.date, e.time)} · ${e.type === 'online' ? t('events.online') : e.location}`,
-        glyph: e.type === 'online' ? ('chat' as const) : ('users' as const),
-        gradient: e.type === 'online' ? 'var(--action-transforme)' : 'var(--action-digitalise)',
-        registered: registeredEvents.has(e.id),
-      })),
-    ...clubSessions
-      .filter((s) => s.status === 'upcoming')
-      .map((s) => ({
-        id: `s-${s.id}`,
-        at: new Date(s.scheduledAt).getTime(),
-        title: s.title,
-        meta: `${when(s.scheduledAt)}${s.duration ? ` · ${s.duration}` : ''}`,
-        glyph: 'video' as const,
-        gradient: 'var(--action-transforme)',
-        registered: registeredSessions.has(s.id),
-      })),
-  ]
-    .filter((x) => Number.isFinite(x.at))
-    .sort((a, b) => a.at - b.at)
-    .slice(0, 3);
+  const upcoming = clubUpcoming(data, t, locale).slice(0, 3);
 
   return (
-    <>
-      <p className="mm-eyebrow m-0">{t('panel.upcomingEyebrow')}</p>
+    <section className="rounded-card border border-[color:var(--line)] bg-bento p-[18px] shadow-v3-soft">
+      <h2 className="m-0 font-display text-[18px] font-black tracking-[-.02em] text-ink">{t('panel.upcomingEyebrow')}</h2>
 
       {upcoming.length === 0 ? (
-        <GlassPanel level="flat" padding={16} className="rv mt-2.5" style={{ ['--i' as string]: 1 }}>
-          <p className="m-0 text-meta-2 leading-[1.5] text-ink-2">{t('panel.upcomingEmpty')}</p>
-        </GlassPanel>
+        <p className="m-0 mt-2.5 text-meta-2 leading-[1.5] text-ink-2">{t('panel.upcomingEmpty')}</p>
       ) : (
-        upcoming.map((item, i) => (
-          <GlassPanel
-            key={item.id}
-            level="flat"
-            padding={16}
-            className="rv mt-2.5"
-            style={{ ['--i' as string]: i + 1 }}
-          >
-            <div className="flex gap-[11px]">
-              <span
-                aria-hidden="true"
-                className="grid h-[38px] w-[38px] flex-none place-items-center rounded-[12px]"
-                style={{ background: item.gradient }}
-              >
-                <Icon name={item.glyph} size={17} color="var(--paper-fixed)" />
+        <ul className="m-0 mt-1 list-none p-0">
+          {upcoming.map((item) => (
+            <li key={item.id} className="mm-ev">
+              <span aria-hidden="true" className="ico" style={{ background: item.gradient }}>
+                <Icon name={item.glyph} size={18} color="var(--paper-fixed)" />
               </span>
               <div className="min-w-0">
-                <p className="m-0 text-meta font-semibold leading-[1.35]">{item.title}</p>
-                <p className="m-0 mt-0.5 text-meta-2 text-ink-2">{item.meta}</p>
+                <b>{item.title}</b>
+                <span>{item.meta}</span>
+                {item.registered && <Tag tone="ok" style={{ marginTop: '6px' }}>{t('panel.registered')}</Tag>}
               </div>
-            </div>
-            {item.registered && <Tag tone="ok" style={{ marginTop: '12px' }}>{t('panel.registered')}</Tag>}
-          </GlassPanel>
-        ))
+            </li>
+          ))}
+        </ul>
       )}
 
       <p className="m-0 mt-3 text-meta-2 leading-[1.5] text-ink-3">{t('panel.upcomingNote')}</p>
-    </>
+    </section>
   );
 }
