@@ -71,39 +71,181 @@
   "club": {
     "sessions": {
       "eyebrow": "Club des Digitos",
-      "title": "Les sessions",
+      "title": "Les sessions du Club",
+      "seoDescription": "Les sessions en direct du Club des Digitos avec Max-Morrys : l'engagement, et ce qui a été tenu.",
+      "kick": "{{n}} sessions en direct par mois",
+      "heroA": "Les sessions",
+      "heroEm": "du Club.",
+      "sub": "Animées par Max-Morrys, ouvertes à tous les membres. Le calendrier et les liens se trouvent dans l'espace membre.",
+      "upcoming": "À venir",
+      "membersOnly": "calendrier des membres",
+      "cardKick": "Session du Club",
+      "emptyTitle": "Le calendrier est réservé aux membres",
+      "emptyBody": "Les dates, les sujets et les liens sont publiés dans l'agenda du Club. Cette page ne montre aucune date d'exemple.",
+      "reserved": "réservé aux membres",
+      "commitment": "Engagement : {{n}} sessions par mois",
+      "heldPre": "Tenu sur les {{days}} derniers jours :",
+      "heldPost": "relevé public, recalculé chaque jour",
+      "cta": "Rejoindre pour s'inscrire",
       "empty": "Aucune session publiée pour l'instant.",
-      "body": "Les sessions à venir du Club, avec leur date et leur sujet, s'afficheront ici dès qu'elles seront programmées."
+      "body": "Les sessions à venir du Club s'affichent dans l'agenda de l'espace membre."
     },
     "adhesion": {
       "eyebrow": "Club des Digitos",
       "title": "Rejoindre le Club",
+      "seoDescription": "Adhérer au Club des Digitos : un prix annuel, payé une fois, sans prélèvement automatique.",
+      "kick": "Adhésion annuelle",
+      "heroA": "Rejoindre",
+      "heroEm": "le Club.",
+      "sub": "Un an de Club, payé une seule fois, sans aucun prélèvement automatique.",
+      "opensKick": "Ce que l'adhésion ouvre",
+      "guaranteedTitle": "Garanti dès aujourd'hui",
+      "buildingTitle": "En construction",
+      "guaranteed": {
+        "feed": "Le fil, les discussions privées et l'agenda",
+        "sessions": "{{n}} sessions en direct par mois",
+        "opportunities": "Les opportunités publiées par les membres",
+        "discount": "−{{pct}} % sur chaque formation de l'école",
+        "rysmo": "{{n}} questions Rysmo de plus par jour"
+      },
+      "building": {
+        "replays": "Les replays des sessions",
+        "digest": "Le digest de la semaine par e-mail",
+        "circles": "Les cercles thématiques"
+      },
+      "charter": {
+        "kick": "La charte du Club",
+        "items": [
+          "On montre ce qu'on a fait, pas ce qu'on promet.",
+          "On critique un travail, jamais une personne.",
+          "Pas de vente forcée, pas de chaîne, pas d'arnaque : on signale.",
+          "Ce qui se dit en session reste au Club."
+        ]
+      },
+      "price": {
+        "title": "Adhésion annuelle",
+        "tag": "tout compris",
+        "perYear": "par an",
+        "monthlyPre": "soit",
+        "monthlyPost": "par mois · payé une fois",
+        "referralPost": "si un membre t'a parrainé·e (−{{pct}} %)",
+        "note": "Aucun prélèvement automatique · rappel 15 jours avant l'échéance, sur demande"
+      },
+      "methodsTitle": "Trois moyens de paiement",
+      "methods": {
+        "wave": "Wave",
+        "orange": "Orange Money",
+        "card": "Carte bancaire"
+      },
+      "methodsNote": "Tu choisis ton moyen sur la page de paiement sécurisée, après connexion à ton espace.",
+      "cta": "Rejoindre le Club",
+      "honesty": "Ni nombre de membres ni témoignage affiché : on te montre ce qui est garanti.",
       "empty": "Cette page est en cours d'écriture.",
-      "body": "Elle détaillera l'adhésion au Club. L'abonnement se crée depuis ton espace, une fois connecté. Rien n'est prélevé automatiquement."
+      "body": "L'abonnement se crée depuis ton espace, une fois connecté."
     },
     "defis": {
       "eyebrow": "Club des Digitos",
       "title": "Défis",
-      "empty": "Aucun défi en cours.",
-      "body": "Le défi de la semaine et tes participations apparaîtront ici. Pas de classement public : la régularité, pas la comparaison."
+      "empty": "Aucun défi en cours cette semaine.",
+      "body": "Le prochain défi apparaîtra ici dès que Max-Morrys l’aura lancé. Les défis passés restent listés à droite.",
+      "sub": "Un défi par semaine, pour pratiquer ensemble.",
+      "weekKick": "Défi de la semaine · clôt le {{date}}",
+      "participate": "Participer au fil",
+      "entriesTitle": "Participations",
+      "entriesEmpty": "Les participations ne sont pas encore regroupées ici : publie la tienne au fil, avec le titre du défi, pour que Max-Morrys la retrouve.",
+      "toFeed": "Aller au fil",
+      "howTitle": "Comment ça marche",
+      "how1": "Un défi par semaine.",
+      "how2": "Tu publies ta participation au fil.",
+      "how3": "Pas de vote : Max choisit des coups de cœur et explique pourquoi en session.",
+      "pastTitle": "Défis passés",
+      "pastEmpty": "Aucun défi terminé pour l’instant."
     },
     "live": {
       "eyebrow": "Club des Digitos",
       "title": "Session en direct",
-      "empty": "Aucune session n'est en direct.",
-      "body": "Quand une session du Club commencera, elle s'ouvrira ici. Les prochaines sont dans l'agenda du Club."
+      "empty": "Aucune session n'est programmée.",
+      "body": "Les prochaines sessions apparaissent dans l'agenda du Club dès qu'elles sont programmées.",
+      "kick": "Session du Club",
+      "liveBadge": "En direct",
+      "stageLive": "La session a commencé.",
+      "stageSoon": "La session n’a pas encore commencé.",
+      "join": "Rejoindre la session",
+      "noLink": "Le lien de la session n'est pas encore publié. Il apparaîtra ici et dans l'agenda.",
+      "programTitle": "Au programme",
+      "programEmpty": "Le programme détaillé sera publié avec la session.",
+      "afterKick": "Après la session",
+      "afterTitle": "Publie ce que tu en retiens au fil.",
+      "afterCta": "Aller au fil",
+      "chatTitle": "Discussion",
+      "chatEmpty": "Le chat de session n'existe pas encore sur le web. Pose tes questions dans les discussions du Club.",
+      "chatCta": "Ouvrir les discussions",
+      "notRecorded": "Session non enregistrée pour l’instant : les replays sont en construction."
     },
     "profil": {
       "eyebrow": "Club des Digitos",
       "title": "Profil de membre",
       "empty": "Ce profil n'est pas disponible.",
-      "body": "Le profil d'un membre montrera ce qu'il a choisi de partager. Les signalements et le blocage seront proposés ici."
+      "body": "Ce membre n'a pas rendu sa fiche visible dans l'annuaire, ou elle n'existe pas encore.",
+      "back": "Membres",
+      "edit": "Modifier mon profil",
+      "about": "À propos",
+      "noSkills": "Aucune compétence renseignée.",
+      "available": "ouvert·e aux collaborations",
+      "visible": "visible dans l'annuaire",
+      "hidden": "masqué dans l'annuaire",
+      "links": {
+        "linkedin": "LinkedIn",
+        "website": "Site",
+        "instagram": "Instagram",
+        "facebook": "Facebook",
+        "tiktok": "TikTok",
+        "youtube": "YouTube",
+        "twitter": "X"
+      },
+      "certificates": "Certificats",
+      "noCertificates": "Aucun certificat pour l’instant.",
+      "certificateKick": "Certificat vérifiable",
+      "atClub": "Au Club",
+      "atClubMasked": "Pas de compteur d'abonnés ni de vues. Les totaux de publications, retours et sessions s'afficheront quand la base les comptera.",
+      "postsTitle": "Publications récentes",
+      "postsEmpty": "Aucune publication récente au fil."
     },
     "publication": {
       "eyebrow": "Club des Digitos",
       "title": "Publication",
       "empty": "Cette publication n'est pas disponible.",
-      "body": "Une publication du fil s'ouvrira ici avec ses commentaires. Reviens au fil pour voir les dernières."
+      "body": "Elle a peut-être été retirée par son auteur ou par la modération. Les dernières publications sont au fil.",
+      "back": "Le fil",
+      "me": "Membre",
+      "commentsTitle": "Commentaires · {{count}}",
+      "commentsEmpty": "Aucun commentaire pour l’instant. Écris le premier.",
+      "commentLabel": "Ton commentaire…",
+      "send": "Envoyer",
+      "viewProfile": "Voir le profil",
+      "noProfile": "Ce membre n'a pas rendu sa fiche visible dans l'annuaire.",
+      "relatedTitle": "Dans {{category}}",
+      "relatedEmpty": "Pas d’autre publication récente dans cette catégorie.",
+      "reportTitle": "Un problème avec ce post ?",
+      "reportBody": "Le signalement et le blocage ne sont pas encore proposés sur le web. Écris à l'équipe : chaque message est lu.",
+      "reportCta": "Écrire à l'équipe"
+    },
+    "circles": {
+      "label": "Cercles",
+      "empty": "Les cercles thématiques arrivent bientôt"
+    },
+    "locked": {
+      "title": "Cet écran est réservé aux membres",
+      "body": "Ton adhésion au Club n'est pas active. Le mur d'abonnement t'explique ce qu'elle ouvre et comment la prendre.",
+      "cta": "Voir l'adhésion"
+    },
+    "categories": {
+      "general": "Général",
+      "question": "Question",
+      "ressource": "Ressource",
+      "temoignage": "Témoignage",
+      "opportunite": "Opportunité",
+      "discussion": "Discussion"
     }
   },
   "console": {

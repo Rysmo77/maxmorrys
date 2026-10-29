@@ -359,147 +359,190 @@
   },
   "publicPage": {
     "seoTitle": "Le Club des Digitos",
-    "seoDescription": "Une année avec moi, et avec ceux qui font la même chose que toi. Des sessions en direct, des missions qui circulent, et quelqu'un à qui poser la question que tu ne poses à personne.",
-    "subnavLabel": "Je te transforme",
-    "subnavFree": "Écouter & regarder",
-    "subnavClub": "Le Club des Digitos",
-    "eyebrow": "Je te transforme · payant, fermé",
-    "titleLines": [
-      "LE CLUB DES",
-      "[DIGITOS.]"
-    ],
-    "lede": "Une année avec moi, et avec ceux qui font la même chose que toi. Des sessions en direct, des missions qui circulent, et quelqu'un à qui poser la question que tu ne poses à personne.",
-    "cta": "Je rejoins le Club",
-    "perMonth": "/ mois",
-    "includedTitle": "Ce que tu paies, précisément",
-    "included": {
-      "sessionsPost": "sessions en direct par mois, avec moi",
-      "missions": "Les missions et appels d'offres que je sors de mon carnet",
-      "workshops": "Les ateliers en présentiel à Dakar, places réservées aux membres",
-      "answer": "Une réponse de moi dans les discussions, pas d'un modérateur",
-      "tutorPre": "Ton répétiteur à",
-      "tutorMid": "questions par jour au lieu de",
-      "discountPost": "sur chaque formation, tant que ton adhésion est active"
-    },
-    "includedNote": "Ces cinq lignes ne dépendent que de moi. C'est pour ça qu'elles sont ici, et pas des promesses sur l'ambiance.",
-    "tabsTitle": [
-      "Huit onglets.",
-      "Voilà à quoi ils servent."
-    ],
-    "tabs": {
-      "feed": "Ce qui se passe cette semaine, et l'échéance de ton abonnement, toujours sous les yeux.",
-      "discussions": "Écrire à quelqu'un directement, sans passer par le fil. Un message se signale s'il dérape.",
-      "members": "Qui fait quoi, où. Message privé, et profils tenus par leurs auteurs.",
-      "agenda": "Sessions en ligne et ateliers à Dakar. Inscription en un geste, sans doublon possible.",
-      "leaderboard": "Le classement du Club, par expérience gagnée. Il ne compare pas les revenus, et il ne sert à rien d'autre qu'à situer.",
-      "opportunities": "Missions, appels d'offres, recrutements. Avec le budget annoncé quand il l'est.",
-      "infos": "Le digest de la semaine, écrit ici et dans tes notifications. Pas par e-mail.",
-      "referral": "Ton code fait gagner 15 % à celui que tu amènes. Toi, tu ne gagnes rien — et je te le dis."
-    },
-    "renewalTitle": "Ce qui se passe à l'échéance",
-    "renewalBody": "À l'échéance, ton accès s'arrête. Je ne prélève rien automatiquement — ni sur Wave, ni sur Orange Money, ni sur ta carte. Je préfère te le dire maintenant que te laisser le découvrir ce jour-là. Si tu l'as demandé, je t'envoie un e-mail quinze jours avant, avec le lien pour reprendre en un geste.",
+    "seoDescription": "Le Club des Digitos, c'est un fil pour montrer ton travail et recevoir des retours, des sessions en direct chaque mois avec Max-Morrys, et des opportunités publiées par les membres.",
+    "lede": "Le Club des Digitos, c'est un fil pour montrer ton travail et recevoir des retours, des sessions en direct chaque mois avec Max-Morrys, et des opportunités publiées par les membres.",
     "payWave": "Wave",
     "payOrange": "Orange Money",
     "payCard": "Carte bancaire",
-    "referralRow": "Avec un code de parrainage",
-    "referralNote": "La remise est calculée côté serveur : elle ne dépend pas du lien sur lequel tu as cliqué.",
-    "fitTitle": [
-      "Et si ce n'est pas pour toi,",
-      "je te le dis."
-    ],
-    "fitYesTitle": "Le Club, si…",
-    "fitYes1": "Tu vends déjà quelque chose, et tu veux le vendre mieux",
-    "fitYes2": "Tu travailles seul, et c'est ça le plus dur",
-    "fitYes3": "Tu cherches des missions, pas des cours",
-    "fitNoTitle": "Autre chose, si…",
-    "fitNo1": "Tu pars de zéro et tu veux apprendre une compétence →",
-    "fitNo2": "Tu veux qu'on le fasse à ta place →",
-    "fitNo3": "Tu veux juste lire et te tenir au courant →",
-    "fitNo3End": ", c'est gratuit",
-    "faqTitle": [
-      "Les questions",
-      "qu'on me pose"
-    ],
-    "faq": [
-      {
-        "q": "Je peux payer en plusieurs fois ?",
-        "a": "Non. Le Club est annuel et ne se fractionne pas, et les formations non plus aujourd'hui : le tunnel n'accepte qu'un paiement unique. Si le montant bloque, écris-moi avant de payer."
-      },
-      {
-        "q": "Et si je n'y vais jamais ?",
-        "a": "Tu auras payé pour rien, et je ne peux pas t'en empêcher. C'est pour ça que l'échéance de ton abonnement est affichée en permanence dans le Club, avec son rappel — et pas seulement le dernier jour."
-      },
-      {
-        "q": "Et si j'hésite avant de payer ?",
-        "a": "L'accès au Club est immédiat et complet dès le paiement, pour toute l'année. Si tu hésites, écris-moi avant de payer : je préfère une conversation à un malentendu."
-      },
-      {
-        "q": "Le Club, c'est un groupe WhatsApp de plus ?",
-        "a": "Non — et c'est justement pour ça qu'il est payant. Un groupe gratuit se remplit de gens qui passent. Ici, l'agenda, les inscriptions, les opportunités et les discussions sont structurés, et personne n'entre par hasard."
-      }
-    ],
-    "listenTitle": [
-      "Avant de payer,",
-      "écoute-les."
-    ],
-    "listenLede": "Le podcast et les vidéos sont sur ce même territoire, à l'étage du dessous : gratuits, sans compte. Des gens d'ici racontent ce qu'ils ont fait. Le Club, c'est quand tu veux leur parler au lieu de les écouter.",
-    "listenCta": "Écouter d'abord",
-    "listenEmpty": "Aucun épisode n'est encore en ligne. Quand il y en aura un, il sera ici, gratuit et sans compte.",
-    "listenBoundary": "Écouter est gratuit et le restera. Ce que l'abonnement ajoute est ailleurs : les sessions en direct, les missions qui circulent, et une réponse de moi. Le Club, lui, ne se visite pas — c'est la contrepartie de le garder fermé.",
-    "finalPre": "Une année.",
-    "finalPost": "par mois.",
-    "finalSecondLine": "Et quelqu'un au bout du fil.",
-    "finalBody": "Si tu veux juger avant de payer, écoute le podcast et regarde les vidéos : c'est gratuit, sans compte, et c'est le même territoire. Le blog aussi.",
-    "finalCtaSecondary": "Écris-moi d'abord",
-    "sessionsCite": "engagement du Club, annoncé",
-    "sessionsHeldPre": "Tenues sur les {{days}} derniers jours :",
-    "truthProvenTitle": "Ce que je peux prouver sur l'abonnement",
-    "truthProvenPurchase": "Je préfère que tu entres en sachant ce que tu achètes : une année d'accès à ce qui existe déjà, et une place dans ce qui se construit.",
-    "truthWithheldTitle": "Ce que cette page ne te montrera pas",
-    "pill": "Club",
-    "ctaInside": "Voir l'intérieur du Club",
-    "payMethods": "Wave, Orange Money ou carte",
-    "noDebit": "aucun prélèvement automatique",
-    "insideCaption": "L'intérieur du Club : les huit onglets que tu ouvres, sous les noms qu'ils portent dans ton espace.",
-    "offerKick": "Ce que tu as en rejoignant",
-    "offerTitle": [
-      "Tout ce qui est garanti,",
-      "dès le premier jour."
-    ],
-    "offerCards": {
-      "sessions": "Les sessions en direct",
-      "missions": "Les missions",
-      "workshops": "Les ateliers à Dakar",
-      "answer": "Une réponse de moi",
-      "tutor": "Ton répétiteur, renforcé",
-      "discount": "Les formations, moins cher"
-    },
-    "stepsKick": "Comment ça marche",
-    "stepsTitle": [
-      "Trois étapes",
-      "pour commencer."
-    ],
-    "steps": [
-      {
-        "title": "Tu adhères depuis ton espace",
-        "body": "Wave, Orange Money ou carte. Un paiement pour un an, sans prélèvement automatique."
-      },
-      {
-        "title": "Tu complètes ton profil",
-        "body": "Ton métier, ta ville, ce que tu sais faire. Apparaître dans l'annuaire, c'est toi qui le décides."
-      },
-      {
-        "title": "Tu publies et tu viens aux sessions",
-        "body": "Ta première publication au fil, les réponses des membres, et le direct chaque mois."
-      }
-    ],
-    "priceUnitYear": "FCFA / an",
-    "priceMonthlyNote": "l'annuel divisé par douze, rien de plus"
+    "ctaInside": "Voir l'intérieur du Club"
   },
   "panel": {
     "upcomingEyebrow": "À venir",
     "upcomingEmpty": "Rien de programmé pour l'instant. L'agenda est publié un mois à l'avance — c'est un engagement de la page publique, pas une habitude.",
     "upcomingNote": "Te réinscrire ne crée pas de doublon, et personne ne peut t'inscrire à ta place.",
     "registered": "Tu es inscrit·e"
+  },
+  "v3": {
+    "hero": {
+      "pill": "CLUB",
+      "pillText": "Le réseau des apprenants du digital en Afrique de l'Ouest",
+      "titleA": "Apprends le digital",
+      "titleB": "avec d'autres,",
+      "titleEm": "pas seul.",
+      "cta": "Rejoindre",
+      "note": "par mois · Wave, Orange Money ou carte · aucun prélèvement automatique"
+    },
+    "preview": {
+      "url": "maxmorrys.me/mon-espace/club",
+      "railLabel": "Les onglets du Club",
+      "greeting": "Bonsoir !",
+      "greetingSub": "Voici ce qui a bougé depuis ta dernière visite.",
+      "search": "Chercher un membre, un post…",
+      "sessionKick": "SESSION · DATE DANS L'AGENDA",
+      "sessionTitle": "La prochaine session en direct, avec Max-Morrys.",
+      "forYou": "Pour toi",
+      "circles": "Cercles",
+      "caption": "Aperçu de l'espace membre : sa vraie structure, sans aucun membre ni contenu inventé."
+    },
+    "offer": {
+      "kick": "Ce que tu as en rejoignant",
+      "title": "Tout ce qui est garanti, dès le premier jour.",
+      "sub": "Une adhésion, un prix, pas d'options cachées.",
+      "cards": {
+        "feed": {
+          "title": "Le fil et les retours",
+          "body": "Montre tes missions, tes victoires et tes questions. Les membres relisent et te répondent."
+        },
+        "sessions": {
+          "title": "{{n}} sessions en direct par mois",
+          "body": "Avec Max-Morrys, en direct, à des horaires pensés pour celles et ceux qui travaillent."
+        },
+        "opportunities": {
+          "title": "Les opportunités",
+          "body": "Missions, stages et emplois publiés par les membres, dans un onglet à part."
+        },
+        "directory": {
+          "title": "Discussions et annuaire",
+          "body": "Écris à un membre, trouve qui travaille sur le même sujet que toi."
+        },
+        "discount": {
+          "title": "−{{pct}} % sur les formations",
+          "body": "Sur chaque formation de l'école Max-Morrys, tant que ton adhésion est active."
+        },
+        "rysmo": {
+          "title": "Rysmo : {{bonus}} questions de plus",
+          "body": "{{bonus}} questions de plus par jour à l'assistant d'apprentissage."
+        }
+      },
+      "buildTag": "En construction",
+      "build": "Replays des sessions · digest de la semaine · cercles thématiques. On te le dit tant que ce n'est pas prêt."
+    },
+    "steps": {
+      "kick": "Comment ça marche",
+      "title": "Trois étapes pour commencer.",
+      "composer": "Montre ce que tu as fait cette semaine…",
+      "publish": "Publier",
+      "items": [
+        {
+          "title": "Tu adhères en deux minutes",
+          "body": "Wave, Orange Money ou carte. Un paiement pour un an, sans prélèvement automatique."
+        },
+        {
+          "title": "Tu te présentes et tu publies",
+          "body": "Ton métier, ta ville, ce que tu apprends. Chaque publication est rangée dans une catégorie."
+        },
+        {
+          "title": "Tu publies et tu viens aux sessions",
+          "body": "Ta première mission au fil, des retours des membres, et le direct chaque mois."
+        }
+      ]
+    },
+    "sessions": {
+      "kick": "Prochaines sessions",
+      "title": "En direct avec Max-Morrys",
+      "closedTitle": "Les dates sont dans l'agenda des membres",
+      "closedBody": "{{n}} sessions par mois. Leur calendrier n'est lisible que dans l'espace membre : je ne publie pas ici de dates d'exemple.",
+      "heldPre": "Sessions tenues sur les {{days}} derniers jours :",
+      "link": "voir les sessions"
+    },
+    "topics": {
+      "kick": "Les catégories",
+      "title": "De quoi on parle",
+      "body": "Chaque publication du fil est rangée dans une de ces six catégories, et le fil se filtre par catégorie."
+    },
+    "price": {
+      "title": "Adhésion annuelle",
+      "tag": "tout compris",
+      "perYear": "par an",
+      "monthlyPre": "soit",
+      "monthlyPost": "par mois · payé une fois",
+      "referralPost": "si un membre t'a parrainé·e (−{{pct}} %)",
+      "items": {
+        "feed": "Le fil, les discussions privées et l'agenda",
+        "sessions": "{{n}} sessions en direct par mois",
+        "opportunities": "Les opportunités publiées par les membres",
+        "discount": "−{{pct}} % sur chaque formation de l'école",
+        "rysmo": "{{n}} questions Rysmo de plus par jour"
+      },
+      "cta": "Rejoindre le Club",
+      "note": "Aucun prélèvement automatique · rappel par e-mail 15 jours avant l'échéance, si tu le demandes"
+    },
+    "faq": {
+      "kick": "Questions fréquentes",
+      "title": "Avant de rejoindre",
+      "items": [
+        {
+          "q": "Comment se passe le renouvellement ?",
+          "a": "Il n'y a aucun prélèvement automatique. Si tu le demandes, je te préviens par e-mail 15 jours avant l'échéance, et tu choisis de renouveler ou non."
+        },
+        {
+          "q": "Comment je paie ?",
+          "a": "Avec Wave, Orange Money ou une carte bancaire, sur la page de paiement sécurisée, en une fois pour l'année. Le prix est réduit si un membre t'a parrainé·e."
+        },
+        {
+          "q": "Quand ont lieu les sessions ?",
+          "a": "En direct, chaque mois, avec Max-Morrys. La date, le sujet et le lien sont dans l'agenda de l'espace membre."
+        },
+        {
+          "q": "Et si je rate une session ?",
+          "a": "Les replays sont en construction. Je te le dirai dès qu'ils seront disponibles."
+        },
+        {
+          "q": "Que deviennent mes publications si je ne renouvelle pas ?",
+          "a": "Elles restent à toi et redeviennent visibles dès que tu renouvelles. Ton compte et tes formations ne changent pas."
+        }
+      ]
+    },
+    "quote": {
+      "text": "« Je veux un endroit où l'on montre ce qu'on a fait, pas ce qu'on aimerait faire. »",
+      "by": "Max-Morrys, fondateur du Club",
+      "sessions": "Voir les sessions"
+    },
+    "screens": {
+      "discussions": "Tes conversations privées avec les membres.",
+      "agenda": "Les sessions en direct et les ateliers du Club.",
+      "members": "L'annuaire : qui fait quoi, et où.",
+      "leaderboard": "Facultatif, face à ta cohorte d'arrivée seulement.",
+      "opportunities": "Missions, stages et emplois publiés par les membres.",
+      "infos": "Ce que Max-Morrys publie pour les membres.",
+      "referral": "Invite quelqu’un que tu connais au Club."
+    },
+    "circles": {
+      "empty": "Les cercles thématiques arrivent bientôt",
+      "title": "Tes cercles",
+      "body": "Les cercles thématiques ne sont pas encore ouverts. En attendant, filtre le fil par catégorie."
+    },
+    "feed": {
+      "nextKick": "Prochaine session",
+      "registered": "Tu es inscrit·e",
+      "openAgenda": "Inscription dans l'agenda"
+    },
+    "agenda": {
+      "replaysTitle": "Replays",
+      "replaysBody": "Les replays sont en construction. Les sessions ne sont pas enregistrées pour l’instant."
+    },
+    "wall": {
+      "titleExpired": "Ton adhésion au Club est arrivée à échéance.",
+      "titleNew": "Le Club est réservé à ses membres.",
+      "bodyExpired": "Tes publications restent à toi et redeviennent visibles dès que tu renouvelles. Ton compte et tes formations ne changent pas.",
+      "bodyNew": "Une adhésion annuelle ouvre le fil, les discussions, l'agenda et les sessions. Ton compte et tes formations restent tels quels.",
+      "guaranteed": "Fil, discussions, agenda, {{n}} sessions par mois, opportunités, −{{pct}} % sur les formations.",
+      "building": "Replays, digest de la semaine, cercles thématiques.",
+      "renew": "Renouveler",
+      "join": "Rejoindre",
+      "forYear": "pour un an",
+      "noDebit": "Aucun prélèvement automatique",
+      "backEdu": "retourner à mon espace"
+    }
   }
 }

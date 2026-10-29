@@ -86,6 +86,12 @@ export async function getAllClubSubscriptions(): Promise<ClubDigitosSubscription
 }
 
 // Club Posts
+/** Une publication du fil, lue seule (écran Publication). Même lecture tolérante que le fil. */
+export async function getClubPost(id: string): Promise<ClubDigitosPost | null> {
+  const brut = await getDocById<Record<string, unknown> & { id: string }>('club_posts', id);
+  return brut ? normaliserPostClub(brut) : null;
+}
+
 export async function getClubPosts(limitN = 50): Promise<ClubDigitosPost[]> {
   /* Lecture TOLÉRANTE : des messages écrits par l'application à l'ancien format existent
      peut-être (`src/lib/club/posts.ts`). Sans elle, un `likes: 0` fait tomber le fil. */
