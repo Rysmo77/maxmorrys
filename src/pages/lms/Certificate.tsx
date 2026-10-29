@@ -13,6 +13,7 @@ import ShareButtons from '../../components/shared/ShareButtons';
 import { shareLink } from '../../lib/share/links';
 import SEOHead from '../../components/seo/SEOHead';
 
+import Bento from '../../components/formations/Bento';
 /**
  * LE CERTIFICAT — LE SECOND DES DEUX SEULS MOMENTS SCÉNARISÉS DU SYSTÈME.
  *
@@ -88,13 +89,13 @@ export default function Certificate() {
       <div className="relative min-h-screen isolate overflow-hidden flex items-center justify-center px-[18px] py-16">
         <Mesh territory="forme" />
         <div className="relative z-[3] w-full max-w-[520px]">
-          <GlassPanel level="hero" padding={24}>
+          <Bento tone="hero" padding={24}>
             <Skeleton width="34%" height={27} label={t('certificate.loadingAria')} />
             <Skeleton width="82%" height={34} style={{ marginTop: '24px' }} />
             <Skeleton width="42%" height={19} style={{ marginTop: '12px' }} />
             <div className="h-px bg-[color:var(--border-hair)] my-5" />
             <Skeleton width="60%" height={24} />
-          </GlassPanel>
+          </Bento>
         </div>
       </div>
     );
@@ -106,7 +107,7 @@ export default function Certificate() {
         <Mesh territory="forme" />
         <DsNavHost className="relative z-[3] w-full max-w-[440px]">
           <SiteDisplay lines={t('certificate.notFoundLines', { returnObjects: true }) as string[]} size={30} />
-          <GlassPanel level="flat" padding={20} className="mt-[18px]">
+          <Bento padding={20} className="mt-[18px]">
             <EmptyState
               glyph={<Icon name="medal" size={26} color="var(--text-muted)" />}
               title={t('certificate.notFoundTitle')}
@@ -114,7 +115,7 @@ export default function Certificate() {
               action={<Button tone="quiet" fullWidth href={path('/')}>{t('certificate.backHome')}</Button>}
               style={{ padding: 0 }}
             />
-          </GlassPanel>
+          </Bento>
         </DsNavHost>
       </div>
     );
@@ -141,7 +142,7 @@ export default function Certificate() {
             porte AUCUN flou : le kit y mettait un `blur(30px)`, et cette carte défile sur un
             écran étroit. Le voile de .58 tient le contraste sans lui.
           */}
-          <GlassPanel level="hero" padding={24} className="sheen rv-s mt-5" style={{ ['--i' as string]: 4 }}>
+          <Bento tone="hero" padding={24} className="sheen rv-s mt-5" style={{ ['--i' as string]: 4 }}>
             <div className="flex items-start justify-between gap-3">
               <Wordmark brand="signature" size={26} />
               <Tag tone="ok">{t('certificate.verified')}</Tag>
@@ -166,7 +167,7 @@ export default function Certificate() {
               <Num value={certificate.certificateCode} source="db" asOf={issuedAt} />
             </p>
             <p className="text-small text-ink-2 mt-2.5 mb-0 leading-[1.5]">{t('certificate.verifiableBy')}</p>
-          </GlassPanel>
+          </Bento>
 
           {/*
             LINKEDIN GARDE SON BOUTON PROPRE, ET C'EST DÉLIBÉRÉ.

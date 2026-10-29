@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
-import { GlassPanel } from '@ds';
 import SEOHead from '../seo/SEOHead';
 import DsNavHost from '../layout/DsNavHost';
 import { SiteDisplay, SiteEyebrow } from './SiteType';
 import { useReveal } from './useReveal';
 
+import Bento from '../formations/Bento';
 /**
  * LA COQUILLE DES TROIS ÉCRANS DE COMPTE — connexion, création, mot de passe oublié.
  *
@@ -113,8 +113,7 @@ export function AuthPage({ titleLines, eyebrow, seoTitle, children, footer, asid
           {!deuxColonnes && eyebrow && <SiteEyebrow>{eyebrow}</SiteEyebrow>}
           {!deuxColonnes && <SiteDisplay lines={titleLines} size={30} from={eyebrow ? 1 : 0} />}
 
-          <GlassPanel
-            level="hero"
+          <Bento tone="hero"
             padding={deuxColonnes ? 30 : 22}
             className={deuxColonnes ? 'rv' : 'rv mt-[18px]'}
             style={{ ['--i' as string]: titleLines.length + 2 }}
@@ -126,7 +125,7 @@ export function AuthPage({ titleLines, eyebrow, seoTitle, children, footer, asid
               </>
             )}
             {children}
-          </GlassPanel>
+          </Bento>
 
           {footer}
         </div>

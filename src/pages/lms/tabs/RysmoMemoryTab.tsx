@@ -14,6 +14,7 @@ import {
 import type { RysmoProfile, ContentEngagement } from '../../../types';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * LA MÉMOIRE DU RÉPÉTITEUR — consultable ET effaçable, sans passer par le support.
@@ -227,7 +228,7 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
         <p className="mm-eyebrow m-0">{t('rysmoMemory.renameEyebrow')}</p>
         <h2 className="m-0 mt-[4px] font-display text-dsp-xs text-ink">{t('rysmoMemory.renameTitle')}</h2>
 
-        <GlassPanel level="hero" padding={20} className="mt-[12px]">
+        <Bento tone="hero" padding={20} className="mt-[12px]">
           <Field
             label={t('rysmoMemory.renameLabel')}
             value={draftName}
@@ -288,11 +289,11 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
           <p className="m-0 mt-[12px] text-small leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
             {t('rysmoMemory.renameNote', { app: APP_NAME })}
           </p>
-        </GlassPanel>
+        </Bento>
       </section>
 
       {/* ── Le consentement ──────────────────────────────────────────────────── */}
-      <GlassPanel level="flat" padding={18}>
+      <Bento padding={18}>
         <div className="flex items-start gap-[11px]">
           <span aria-hidden="true" className="mt-[2px] flex-shrink-0" style={{ color: 'var(--mm-violet-t)' }}>
             <Icon name="lock" size={17} strokeWidth={2.4} />
@@ -317,7 +318,7 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
             onChange={(v) => void handleToggleConsent(v)}
           />
         </div>
-      </GlassPanel>
+      </Bento>
 
       {/* ── Ce qu'il retient ─────────────────────────────────────────────────── */}
       <section>
@@ -329,15 +330,15 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
             {[0, 1].map((i) => <Skeleton key={i} height={54} radius="var(--r-m)" label={t('rysmoMemory.loading')} />)}
           </div>
         ) : !consent ? (
-          <GlassPanel level="flat" padding={18} className="mt-[12px]">
+          <Bento padding={18} className="mt-[12px]">
             <p className="m-0 text-meta" style={{ color: 'var(--text-muted)' }}>{t('rysmoMemory.disabledText')}</p>
-          </GlassPanel>
+          </Bento>
         ) : !profile ? (
-          <GlassPanel level="flat" padding={18} className="mt-[12px]">
+          <Bento padding={18} className="mt-[12px]">
             <p className="m-0 text-meta" style={{ color: 'var(--text-muted)' }}>{t('rysmoMemory.noMemoriesText')}</p>
-          </GlassPanel>
+          </Bento>
         ) : (
-          <GlassPanel level="flat" padding="6px 18px" className="mt-[12px]">
+          <Bento padding="6px 18px" className="mt-[12px]">
             {profile.summary && (
               <LessonRow
                 state="plain"
@@ -379,14 +380,14 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
                 </div>
               </div>
             )}
-          </GlassPanel>
+          </Bento>
         )}
 
         {/* ── L'effacement. Deux temps, en ligne, sans feuille modale. ────────── */}
         {consent && (
           <div className="mt-[14px]">
             {confirming ? (
-              <GlassPanel level="flat" padding={18}>
+              <Bento padding={18}>
                 <p className="m-0 text-meta font-semibold text-ink">{t('rysmoMemory.confirmTitle', { tutor })}</p>
                 <p className="m-0 mt-[5px] text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
                   {t('rysmoMemory.confirmText')}
@@ -406,7 +407,7 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
                     {clearing ? t('rysmoMemory.confirmResetting') : t('rysmoMemory.confirmReset')}
                   </Button>
                 </div>
-              </GlassPanel>
+              </Bento>
             ) : (
               <>
                 <Button tone="quiet" onClick={() => setConfirming(true)} style={{ color: 'var(--stop)' }}>
@@ -460,7 +461,7 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
           <p className="m-0 mt-[4px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
             {t('rysmoMemory.interestsSubtitle')}
           </p>
-          <GlassPanel level="flat" padding={18} className="mt-[10px]">
+          <Bento padding={18} className="mt-[10px]">
             {topCategories.length > 0 && (
               <>
                 <p className="mm-eyebrow m-0 mb-[7px]">{t('rysmoMemory.favoriteCategories')}</p>
@@ -484,7 +485,7 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
                 ))}
               </div>
             )}
-          </GlassPanel>
+          </Bento>
         </section>
       )}
 
@@ -494,7 +495,7 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
         <p className="m-0 mt-[4px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
           {t('rysmoMemory.journeySubtitle', { tutor })}
         </p>
-        <GlassPanel level="flat" padding={18} className="mt-[10px]">
+        <Bento padding={18} className="mt-[10px]">
           {enrolledFormations.length === 0 ? (
             <p className="m-0 text-meta" style={{ color: 'var(--text-muted)' }}>{t('rysmoMemory.noFormation')}</p>
           ) : (
@@ -531,7 +532,7 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
               )}
             </>
           )}
-        </GlassPanel>
+        </Bento>
       </section>
     </div>
   );

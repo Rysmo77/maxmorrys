@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { httpsCallable } from 'firebase/functions';
 import { writeBatch, doc, collection } from 'firebase/firestore';
-import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Mesh, Num, Skeleton, StepDots, useToast } from '@ds';
+import { Button, EmptyState, Field, Icon, LessonRow, Mesh, Num, Skeleton, StepDots, useToast } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage, useLocalizedPath } from '../../contexts/LanguageContext';
 import { localizedPath } from '../../i18n/routing';
@@ -11,6 +11,7 @@ import { SiteDisplay, SiteEyebrow, useReveal } from '../../components/site';
 import DsNavHost from '../../components/layout/DsNavHost';
 import { PriceApprox, PriceFootnote } from '../../components/shared/PriceApprox';
 import { getFormationBySlug } from '../../lib/firestore';
+import CourseCover from '../../components/formations/CourseCover';
 import { functions } from '../../config/firebase';
 import { db } from '../../config/db';
 import type { Formation } from '../../types';
@@ -20,6 +21,7 @@ import { markCartPending } from '../../lib/popups/cart';
 import { accepteAchat, ouverture } from '../../types/formationRelease';
 import { useFormat } from '../../hooks/useFormat';
 
+import Bento from '../../components/formations/Bento';
 /**
  * LE TUNNEL DE COMMANDE — étape 2 sur 3 (`ScreensPay.js` · `Paiement`).
  *
@@ -193,12 +195,12 @@ export default function Checkout() {
   if (formation === undefined) {
     return (
       <Frame>
-        <GlassPanel level="flat" padding={18}>
+        <Bento padding={18}>
           <Skeleton width="45%" height={19} label={t('certificate.loadingAria')} />
           <Skeleton width="80%" height={30} style={{ marginTop: '16px' }} />
           <Skeleton height={68} radius="var(--r-m)" style={{ marginTop: '20px' }} />
           <Skeleton height={68} radius="var(--r-m)" style={{ marginTop: '10px' }} />
-        </GlassPanel>
+        </Bento>
       </Frame>
     );
   }
@@ -207,14 +209,14 @@ export default function Checkout() {
     return (
       <Frame>
         <SiteDisplay lines={t('checkout.notFoundLines', { returnObjects: true }) as string[]} size={30} />
-        <GlassPanel level="flat" padding={20} className="mt-[18px]">
+        <Bento padding={20} className="mt-[18px]">
           <EmptyState
             glyph={<Icon name="book" size={26} color="var(--text-muted)" />}
             title={t('checkout.notFoundTitle')}
             action={<Button tone="quiet" fullWidth href={path('/formations')}>{t('checkout.backToFormations')}</Button>}
             style={{ padding: 0 }}
           />
-        </GlassPanel>
+        </Bento>
       </Frame>
     );
   }
@@ -238,7 +240,7 @@ export default function Checkout() {
     return (
       <Frame>
         <SiteDisplay lines={t('checkout.notFoundLines', { returnObjects: true }) as string[]} size={30} />
-        <GlassPanel level="flat" padding={20} className="mt-[18px]">
+        <Bento padding={20} className="mt-[18px]">
           <EmptyState
             glyph={<Icon name="lock" size={26} color="var(--warn)" />}
             title={t('checkout.comingSoonTitle')}
@@ -254,7 +256,7 @@ export default function Checkout() {
             )}
             style={{ padding: 0 }}
           />
-        </GlassPanel>
+        </Bento>
       </Frame>
     );
   }
@@ -406,8 +408,9 @@ export default function Checkout() {
 
   return (
     <Frame back={{ href: path(`/formations/${formation.slug}`), label: t('checkout.backToFormation') }}
-      center={t('checkout.stepOf', { current: 2, total: 3 })}>
-      <div ref={reveal}>
+      center={t('checkout.stepOf', { current: 2, total: 3 })} wide>
+      <div ref={reveal} className="grid items-start gap-6 wide:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]">
+        <section className="mm-card min-w-0" style={{ padding: '26px' }}>
         <StepDots
           total={3}
           current={2}
@@ -421,105 +424,23 @@ export default function Checkout() {
           size={30}
         />
 
-        {/* ── Le récapitulatif chiffré ───────────────────────────────────────
-            Chaque montant passe par <Num source="db"> : il vient du catalogue Firestore, et
-            `readAt` est l'instant où le navigateur l'a lu. La date de relevé n'est pas une
-            décoration — c'est ce qui distingue « le prix est 95 000 » de « le prix ÉTAIT
-            95 000 quand j'ai ouvert la page ». */}
-        <GlassPanel
-          level="flat" padding={18} className="rv mt-4"
-          style={{ ['--i' as string]: 2 }}
-          role="group" aria-label={t('checkout.summaryLabel')}
-        >
-          <p className="font-black text-ink text-body m-0">{formation.title}</p>
-
-          <div className="mt-3">
-            <LessonRow state="plain" icon={<Icon name="clock" size={14} />} title={t('checkout.durationLabel')} meta={formation.duration} />
-            <LessonRow
-              state="plain" icon={<Icon name="book" size={14} />} title={t('checkout.lessonsLabel')}
-              meta={<Num value={lessonCount} source="db" asOf={readAt} />}
-            />
-            <LessonRow state="plain" icon={<Icon name="medal" size={14} />} title={t('checkout.certificateIncluded')} last />
-          </div>
-
-          {formation.promoPrice !== undefined && formation.promoPrice < formation.price && (
-            <>
-              <div className="flex items-center justify-between gap-3 mt-4">
-                <span className="text-meta text-ink-2">{t('checkout.originalPrice')}</span>
-                <s className="text-ink-2"><Num value={formation.price} source="db" asOf={readAt} /></s>
-              </div>
-              <div className="flex items-center justify-between gap-3 mt-2">
-                <span className="text-meta text-ok font-medium">{t('checkout.discount')}</span>
-                <span className="text-ok"><Num value={-(formation.price - formation.promoPrice)} source="db" asOf={readAt} /></span>
-              </div>
-            </>
-          )}
-
-          {/*
-            LA REMISE MEMBRE, ANNONCÉE AVANT LE TOTAL ET NON APRÈS.
-
-            Elle ne se demande pas : elle est constatée par le serveur à l'ouverture de
-            l'écran. Posée sous le total, elle se lirait comme une justification ; posée
-            au-dessus, elle explique le nombre qui suit.
-
-            `source="server"` et non `'db'` : ce montant est CALCULÉ par le serveur sur
-            l'appartenance de la personne, il n'est lu dans aucun catalogue.
-          */}
-          {quote?.clubApplied && (
-            <div className="flex items-baseline justify-between gap-3 mt-2.5">
-              <span className="text-meta text-ok">{t('checkout.clubDiscount')}</span>
-              <span className="text-ok">
-                − <Num value={quote.clubDiscount} unit="FCFA" source="server" asOf={readAt} showAsOf={false} />
-              </span>
-            </div>
-          )}
-
-          <div className="h-px bg-[color:var(--border-hair)] my-[13px]" />
-
-          <div className="flex items-baseline justify-between gap-3">
-            <b className="text-body">{t('checkout.total')}</b>
-            {isFree
-              ? <b className="text-ttl text-ok">{t('checkout.free')}</b>
-              : (
-                /*
-                  LE DERNIER ÉCRAN AVANT LE DÉBIT est celui où « combien ça me coûte
-                  vraiment » se pose le plus fort, et c'est `finalPrice` qu'on convertit —
-                  le montant coupon déduit, pas le prix catalogue. Convertir autre chose que
-                  ce qui sera prélevé serait pire que ne rien convertir du tout.
-                */
-                <span className="text-right">
-                  <b style={{ fontSize: '23px' }}><Num value={finalPrice} unit="FCFA" source="db" asOf={readAt} /></b>
-                  <span className="block text-meta-2 font-semibold text-ink-2">
-                    <PriceApprox xof={finalPrice} />
-                  </span>
-                </span>
-              )}
-          </div>
-          {/* La phrase du kit, et elle n'est pas cosmétique : c'est le serveur qui recalcule
-              le montant et applique le coupon. Ce total-ci est une lecture, pas un engagement. */}
-          <p className="text-small text-ink-2 m-0 mt-1.5">{t('checkout.serverComputed')}</p>
-          {/* La note de change se pose ICI et pas ailleurs sur cette page : à l'instant du
-              paiement, « le prélèvement se fait en francs CFA » est une information, pas une
-              mention légale. C'est aussi le seul endroit où la règle est LUE au clavier. */}
-          {!isFree && <PriceFootnote className="m-0 mt-1" />}
-        </GlassPanel>
-
         {!isFree && (
           <>
             {/* ── Les moyens acceptés — annoncés, pas choisis. Voir l'en-tête du fichier. */}
             <SiteEyebrow style={{ marginTop: '22px' }}>{t('checkout.methodsTitle')}</SiteEyebrow>
-            <GlassPanel level="flat" padding="4px 18px" className="rv" style={{ ['--i' as string]: 3 }}>
-              {METHODS.map((m, i) => (
-                <LessonRow
-                  key={m.key}
-                  state="plain"
-                  icon={<Icon name={m.glyph} size={14} />}
-                  title={t(`checkout.method${m.key}`)}
-                  meta={t(`checkout.method${m.key}Note`)}
-                  last={i === METHODS.length - 1}
-                />
+            <ul className="rv m-0 grid list-none gap-2 p-0 stack:grid-cols-3" style={{ ['--i' as string]: 3 }}>
+              {METHODS.map((m) => (
+                <li key={m.key} className="flex items-center gap-3 rounded-m border border-[color:var(--line)] bg-bento-2 px-3 py-3">
+                  <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-xs bg-[color:var(--fill-1)] text-ink">
+                    <Icon name={m.glyph} size={16} />
+                  </span>
+                  <span className="min-w-0">
+                    <b className="block text-[14px] text-ink">{t(`checkout.method${m.key}`)}</b>
+                    <span className="block text-small text-ink-2">{t(`checkout.method${m.key}Note`)}</span>
+                  </span>
+                </li>
               ))}
-            </GlassPanel>
+            </ul>
             <p className="rv text-small text-ink-2 mt-1.5" style={{ ['--i' as string]: 3 }}>{t('checkout.methodsNote')}</p>
 
             <div className="rv" style={{ ['--i' as string]: 4 }}>
@@ -585,6 +506,102 @@ export default function Checkout() {
         <p className="rv text-small text-ink-2 text-center mt-2.5" style={{ ['--i' as string]: 7 }}>
           {isFree ? t('checkout.secureGuarantee') : t('checkout.leaveNote')}
         </p>
+        </section>
+
+        {/* Le récapitulatif passe en tête sur téléphone : on voit ce qu'on paie avant
+            de choisir comment. */}
+        <aside className="order-first min-w-0 wide:sticky wide:top-4 wide:order-none">
+            {/* ── Le récapitulatif chiffré ───────────────────────────────────────
+                Chaque montant passe par <Num source="db"> : il vient du catalogue Firestore, et
+                `readAt` est l'instant où le navigateur l'a lu. La date de relevé n'est pas une
+                décoration — c'est ce qui distingue « le prix est 95 000 » de « le prix ÉTAIT
+                95 000 quand j'ai ouvert la page ». */}
+            <div
+              className="mm-card rv" style={{ ['--i' as string]: 2, padding: '14px 14px 20px' }}
+              role="group" aria-label={t('checkout.summaryLabel')}
+            >
+              <CourseCover
+                title={formation.title}
+                category={formation.category}
+                slug={formation.slug}
+                id={formation.id}
+                coverImage={formation.coverImage}
+                kicker={formation.category}
+                size="sm"
+              />
+              <p className="font-black text-ink text-body m-0 mt-4 px-1">{formation.title}</p>
+
+              <div className="mt-3">
+                <LessonRow state="plain" icon={<Icon name="clock" size={14} />} title={t('checkout.durationLabel')} meta={formation.duration} />
+                <LessonRow
+                  state="plain" icon={<Icon name="book" size={14} />} title={t('checkout.lessonsLabel')}
+                  meta={<Num value={lessonCount} source="db" asOf={readAt} />}
+                />
+                <LessonRow state="plain" icon={<Icon name="medal" size={14} />} title={t('checkout.certificateIncluded')} last />
+              </div>
+
+              {formation.promoPrice !== undefined && formation.promoPrice < formation.price && (
+                <>
+                  <div className="flex items-center justify-between gap-3 mt-4">
+                    <span className="text-meta text-ink-2">{t('checkout.originalPrice')}</span>
+                    <s className="text-ink-2"><Num value={formation.price} source="db" asOf={readAt} /></s>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 mt-2">
+                    <span className="text-meta text-ok font-medium">{t('checkout.discount')}</span>
+                    <span className="text-ok"><Num value={-(formation.price - formation.promoPrice)} source="db" asOf={readAt} /></span>
+                  </div>
+                </>
+              )}
+
+              {/*
+                LA REMISE MEMBRE, ANNONCÉE AVANT LE TOTAL ET NON APRÈS.
+
+                Elle ne se demande pas : elle est constatée par le serveur à l'ouverture de
+                l'écran. Posée sous le total, elle se lirait comme une justification ; posée
+                au-dessus, elle explique le nombre qui suit.
+
+                `source="server"` et non `'db'` : ce montant est CALCULÉ par le serveur sur
+                l'appartenance de la personne, il n'est lu dans aucun catalogue.
+              */}
+              {quote?.clubApplied && (
+                <div className="flex items-baseline justify-between gap-3 mt-2.5">
+                  <span className="text-meta text-ok">{t('checkout.clubDiscount')}</span>
+                  <span className="text-ok">
+                    − <Num value={quote.clubDiscount} unit="FCFA" source="server" asOf={readAt} showAsOf={false} />
+                  </span>
+                </div>
+              )}
+
+              <div className="h-px bg-[color:var(--border-hair)] my-[13px]" />
+
+              <div className="flex items-baseline justify-between gap-3">
+                <b className="text-body">{t('checkout.total')}</b>
+                {isFree
+                  ? <b className="text-ttl text-ok">{t('checkout.free')}</b>
+                  : (
+                    /*
+                      LE DERNIER ÉCRAN AVANT LE DÉBIT est celui où « combien ça me coûte
+                      vraiment » se pose le plus fort, et c'est `finalPrice` qu'on convertit —
+                      le montant coupon déduit, pas le prix catalogue. Convertir autre chose que
+                      ce qui sera prélevé serait pire que ne rien convertir du tout.
+                    */
+                    <span className="text-right">
+                      <b style={{ fontSize: '23px' }}><Num value={finalPrice} unit="FCFA" source="db" asOf={readAt} /></b>
+                      <span className="block text-meta-2 font-semibold text-ink-2">
+                        <PriceApprox xof={finalPrice} />
+                      </span>
+                    </span>
+                  )}
+              </div>
+              {/* La phrase du kit, et elle n'est pas cosmétique : c'est le serveur qui recalcule
+                  le montant et applique le coupon. Ce total-ci est une lecture, pas un engagement. */}
+              <p className="text-small text-ink-2 m-0 mt-1.5">{t('checkout.serverComputed')}</p>
+              {/* La note de change se pose ICI et pas ailleurs sur cette page : à l'instant du
+                  paiement, « le prélèvement se fait en francs CFA » est une information, pas une
+                  mention légale. C'est aussi le seul endroit où la règle est LUE au clavier. */}
+              {!isFree && <PriceFootnote className="m-0 mt-1" />}
+            </div>
+        </aside>
       </div>
     </Frame>
   );
@@ -596,16 +613,18 @@ export default function Checkout() {
  * `MesNotes` en portent une, et un tunnel de commande n'en est pas.
  */
 function Frame({
-  children, back, center,
+  children, back, center, wide = false,
 }: {
   children: React.ReactNode;
   back?: { href: string; label: string };
   center?: string;
+  /** Le tunnel principal passe à deux colonnes (paiement · récapitulatif) au-delà du pli. */
+  wide?: boolean;
 }) {
   return (
     <div className="relative min-h-screen isolate overflow-hidden px-[18px] pt-4 pb-16">
       <Mesh territory="forme" />
-      <DsNavHost className="relative z-[3] w-full max-w-[520px] mx-auto">
+      <DsNavHost className={wide ? 'relative z-[3] mx-auto w-full max-w-[1040px]' : 'relative z-[3] mx-auto w-full max-w-[520px]'}>
         {back && (
           <div className="flex items-center gap-3 h-12 mb-2">
             <a href={back.href} aria-label={back.label} className="mm-touch-extend inline-grid place-items-center w-touch h-touch rounded-full text-ink-2">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, GlassPanel, Icon, LessonRow, Num, Skeleton, Switch, Tag } from '@ds';
+import { Button, EmptyState, Icon, LessonRow, Num, Skeleton, Switch, Tag } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
 import { tutorName } from '../../lib/naming';
 import {
@@ -21,6 +21,7 @@ import {
   type OutboxKind,
 } from '../../lib/pwa/offline';
 
+import Bento from '../formations/Bento';
 /**
  * L'ÉCRAN HORS CONNEXION — le cœur de la version installable.
  *
@@ -214,7 +215,7 @@ export default function OfflineLibrary() {
       {/* ── 2 · Ce qui ne marche pas sans réseau ─────────────────────────── */}
       <div>
         <p className="mm-eyebrow" style={{ margin: '0 0 var(--sp-10)' }}>{t('pwa.offline.unavailable')}</p>
-        <GlassPanel level="flat" padding="6px 18px">
+        <Bento padding="6px 18px">
           {/* Le nom du répétiteur vient du profil, jamais d'une constante d'écran (AD-12). */}
           <LessonRow
             state="plain"
@@ -231,11 +232,11 @@ export default function OfflineLibrary() {
             meta={t('pwa.offline.needsNetwork')}
             last
           />
-        </GlassPanel>
+        </Bento>
       </div>
 
       {/* ── 3 · Télécharger en Wi-Fi seulement ───────────────────────────── */}
-      <GlassPanel level="flat" padding={18}>
+      <Bento padding={18}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-12)' }}>
           <div style={{ flex: 1 }}>
             <p style={{ margin: 0, fontSize: 'var(--fs-lede)', fontWeight: 600 }}>{t('pwa.offline.wifiOnly')}</p>
@@ -274,7 +275,7 @@ export default function OfflineLibrary() {
                 ? t('pwa.offline.wifiOnlyHolding')
                 : t('pwa.offline.wifiOnlySpending')}
         </p>
-      </GlassPanel>
+      </Bento>
 
       {/* ── 4 · En attente d'envoi ───────────────────────────────────────── */}
       <div>
@@ -293,13 +294,13 @@ export default function OfflineLibrary() {
         </div>
 
         {outbox.length === 0 ? (
-          <GlassPanel level="flat" padding={18}>
+          <Bento padding={18}>
             <p style={{ margin: 0, fontSize: 'var(--fs-meta-2)', color: 'var(--text-muted)', lineHeight: 1.5 }}>
               {t('pwa.offline.queueEmptyBody')}
             </p>
-          </GlassPanel>
+          </Bento>
         ) : (
-          <GlassPanel level="flat" padding="6px 18px">
+          <Bento padding="6px 18px">
             {outbox.map((entry, i) => {
               // « il y a 12 min » est une MESURE, dérivée de l'instant de mise en file — d'où
               // le passage par <Num>, et non un mot posé à côté d'un chiffre inventé.
@@ -333,7 +334,7 @@ export default function OfflineLibrary() {
                 />
               );
             })}
-          </GlassPanel>
+          </Bento>
         )}
 
         {/*

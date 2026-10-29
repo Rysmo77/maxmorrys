@@ -2,16 +2,18 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
-  Button, ChipRow, EmptyState, GlassPanel, Icon, Num, ProgressBar, Skeleton, Tag, TerritoryCard,
+  Button, EmptyState, GlassPanel, Icon, Num, Skeleton, Tag,
 } from '@ds';
 import { useLocalizedPath } from '../../../contexts/LanguageContext';
 import { useMediaQuery } from '../../../hooks/useMediaQuery';
 import SpaceSplit from '../components/SpaceSplit';
 import ResumePanel from '../components/ResumePanel';
+import CourseCover from '../../../components/formations/CourseCover';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import type { Certificate } from '../../../types';
 import { estAVenir } from '../../../types/formationRelease';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * L'ÉCRAN « COURS » — la pile des formations de la personne.
@@ -133,7 +135,7 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
   if (enrolledFormations.length === 0) {
     return (
       <div className="mx-auto max-w-4xl px-[18px] py-6">
-        <GlassPanel level="hero" padding={22}>
+        <Bento tone="hero" padding={22}>
           <EmptyState
             glyph={<Icon name="book" size={26} style={{ color: 'var(--mm-bleu)' }} />}
             glyphBackground="color-mix(in srgb, var(--mm-bleu) 14%, transparent)"
@@ -141,7 +143,7 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
             body={t('courses.emptyText')}
             action={<Button tone="forme" onClick={() => navigate(path('/formations'))}>{t('courses.explore')}</Button>}
           />
-        </GlassPanel>
+        </Bento>
       </div>
     );
   }
@@ -154,33 +156,29 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
       >
         <p className="mm-eyebrow m-0">{t('courses.countEyebrow')}</p>
 
-        <ChipRow
-          className="rv mt-[14px]"
-          style={{ ['--i' as string]: 1 }}
-          label={t('courses.filterLabel')}
-          options={OPTIONS.map((o) => o.label)}
-          value={OPTIONS.find((o) => o.key === filter)?.label}
-          onChange={(label) => {
-            const hit = OPTIONS.find((o) => o.label === label);
-            if (hit) setFilter(hit.key);
-          }}
-        />
+        <div className="mm-tabs rv mt-[14px] max-w-full overflow-x-auto" role="group" aria-label={t('courses.filterLabel')} style={{ ['--i' as string]: 1 }}>
+          {OPTIONS.map((o) => (
+            <button key={o.key} type="button" aria-pressed={filter === o.key} onClick={() => setFilter(o.key)}>
+              {o.label}
+            </button>
+          ))}
+        </div>
 
         {shown.length === 0 ? (
-          <GlassPanel level="flat" padding={20} className="rv mt-[14px]" style={{ ['--i' as string]: 2 }}>
-            <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('courses.filterEmpty')}</p>
-          </GlassPanel>
+          <div className="mm-empty rv mt-[14px]" style={{ ['--i' as string]: 2 }}>
+            <p>{t('courses.filterEmpty')}</p>
+          </div>
         ) : (
           <div className="mt-[14px] grid gap-4 stack:grid-cols-2">
-            {shown.map(({ enrollment, formation }, i) => {
+            {shown.map(({ enrollment, formation }) => {
               if (!formation) {
                 return (
-                  <GlassPanel key={enrollment.id} level="flat" padding={18}>
+                  <div key={enrollment.id} className="mm-card">
                     <p className="m-0 text-meta font-bold text-ink">{t('courses.unavailableTitle')}</p>
                     <p className="m-0 mt-[4px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
                       {t('courses.unavailableText')}
                     </p>
-                  </GlassPanel>
+                  </div>
                 );
               }
 
@@ -194,34 +192,43 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
                   onClick={() => navigate(path(`/cours/${formation.slug}`))}
                   className="mm-press block w-full cursor-pointer border-0 bg-transparent p-0 text-left"
                 >
-                  <TerritoryCard
-                    first
-                    territory={i % 2 === 0 ? 'forme' : 'transforme'}
-                    meta={formation.duration}
-                    title={formation.title}
-                    titleSize={20}
-                  >
+                  <article className="mm-prod h-full">
+                    <CourseCover
+                      title={formation.title}
+                      category={formation.category}
+                      slug={formation.slug}
+                      id={formation.id}
+                      coverImage={formation.coverImage}
+                      kicker={formation.category}
+                      size="sm"
+                      transitionName={`course-${formation.slug}`}
+                    />
+                    <div className="px-2 pb-2">
+                    <p className="m-0 text-small text-ink-2">{formation.duration}</p>
+                    <h2 className="m-0 mt-1 text-[17px] font-bold leading-[1.25] text-ink">{formation.title}</h2>
                     {/* Ni barre ni compteur sur une précommande : ils diraient « 0 / 0 leçon,
                         0 % », trois nombres exacts qui décrivent une panne plutôt qu'un état. */}
                     {estAVenir(formation) ? (
                       <div className="mt-[15px] flex flex-wrap items-center gap-2">
                         <Tag tone="warn">{t('courses.comingSoonTag')}</Tag>
-                        <span className="text-meta-2" style={{ color: 'var(--card-ink-2)' }}>
+                        <span className="text-meta-2" style={{ color: 'var(--ink-2)' }}>
                           {t('courses.comingSoonNote')}
                         </span>
                       </div>
                     ) : (
                       <>
-                        <ProgressBar
-                          value={enrollment.progress}
-                          source="db"
-                          asOf={asOf}
-                          label={t('courses.progressLabel')}
-                          readout
-                          style={{ marginTop: '15px' }}
-                        />
+                        <div
+                          className="mm-progress mt-[15px]"
+                          role="progressbar"
+                          aria-label={t('courses.progressLabel')}
+                          aria-valuenow={enrollment.progress}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                        >
+                          <i style={{ ['--p' as string]: Math.min(1, Math.max(0, enrollment.progress / 100)) }} />
+                        </div>
                         <div className="mt-[10px] flex flex-wrap items-center gap-2">
-                          <span className="text-meta-2" style={{ color: 'var(--card-ink-2)' }}>
+                          <span className="text-meta-2" style={{ color: 'var(--ink-2)' }}>
                             <Num value={enrollment.completedLessons.length} source="db" asOf={asOf} />
                             {' / '}
                             <Num value={lessons || null} source="db" asOf={asOf} />{' '}
@@ -232,7 +239,8 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
                         </div>
                       </>
                     )}
-                  </TerritoryCard>
+                    </div>
+                  </article>
                 </button>
               );
             })}
@@ -243,7 +251,7 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
             « Un zéro daté est une information ; un tiret n'en est pas une. » Le bloc
             reste à l'écran même à zéro, et il dit ce qui déclenche le premier. */}
         <p className="mm-eyebrow m-0 mt-[26px]">{t('courses.certificatesEyebrow')}</p>
-        <GlassPanel level="flat" padding={20} className="rv mt-2.5" style={{ ['--i' as string]: 4 }}>
+        <div className="mm-card rv mt-2.5" style={{ ['--i' as string]: 4, padding: '20px' }}>
           <div className="flex items-center gap-[14px]">
             <span
               aria-hidden="true"
@@ -262,7 +270,7 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
               </p>
             </div>
           </div>
-        </GlassPanel>
+        </div>
 
         <GlassPanel level="truth" className="rv mt-4" style={{ ['--i' as string]: 5 }}>
           <p className="mm-eyebrow m-0 mb-1.5">{t('courses.truthEyebrow')}</p>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
-  Button, EmptyState, GlassPanel, Icon, LessonRow, Num, ProgressBar, Skeleton, StatTile, Tag,
+  Button, EmptyState, Icon, LessonRow, Num, ProgressBar, Skeleton, StatTile, Tag,
   type IconName,
 } from '@ds';
 import SpaceSplit from '../components/SpaceSplit';
@@ -16,6 +16,7 @@ import type { Certificate } from '../../../types';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import { captureError } from '../../../lib/sentry';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * L'ÉCRAN « MES ACCOMPLISSEMENTS » — un écran de PILE.
@@ -214,7 +215,7 @@ export default function AchievementsTab({
           <Num value={BADGES.length} source={{ cite: 'catalogue des badges du produit' }} asOf={asOf} />
         </p>
       </div>
-      <GlassPanel level="flat" padding="4px 18px" className="mt-[10px]">
+      <Bento padding="4px 18px" className="mt-[10px]">
         {BADGES.map((badge, i) => {
           const unlocked = gamification?.badges.includes(badge.id) ?? false;
           return (
@@ -236,7 +237,7 @@ export default function AchievementsTab({
             />
           );
         })}
-      </GlassPanel>
+      </Bento>
 
       {/* ── Les certificats émis ─────────────────────────────────────────────────── */}
       <div className="mt-[24px]">
@@ -249,7 +250,7 @@ export default function AchievementsTab({
           {[0, 1].map((i) => <Skeleton key={i} height={70} radius="var(--r-m)" label={t('achievements.loadingLabel')} />)}
         </div>
       ) : certificates.length === 0 ? (
-        <GlassPanel level="hero" padding={22} className="mt-[12px]">
+        <Bento tone="hero" padding={22} className="mt-[12px]">
           <EmptyState
             glyph={<Icon name="trophy" size={26} style={{ color: 'var(--mm-violet-t)' }} />}
             glyphBackground="color-mix(in srgb, var(--mm-violet) 14%, transparent)"
@@ -265,9 +266,9 @@ export default function AchievementsTab({
               )
             }
           />
-        </GlassPanel>
+        </Bento>
       ) : (
-        <GlassPanel level="flat" padding="4px 18px" className="mt-[12px]">
+        <Bento padding="4px 18px" className="mt-[12px]">
           {certificates.map((cert, i) => (
             <LessonRow
               key={cert.id}
@@ -288,7 +289,7 @@ export default function AchievementsTab({
               last={i === certificates.length - 1}
             />
           ))}
-        </GlassPanel>
+        </Bento>
       )}
 
       {/* ── Ce qui est fini mais pas encore réclamé ──────────────────────────────── */}
@@ -297,7 +298,7 @@ export default function AchievementsTab({
           <p className="mm-eyebrow mt-[24px]">{t('achievements.toClaimTitle')}</p>
           <div className="mt-[10px] grid gap-[10px]">
             {claimable.map(({ enrollment, formation }) => (
-              <GlassPanel key={enrollment.id} level="flat" padding={16}>
+              <Bento key={enrollment.id}  padding={16}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="m-0 text-meta font-bold text-ink">
@@ -320,7 +321,7 @@ export default function AchievementsTab({
                     {t('achievements.obtain')}
                   </Button>
                 </div>
-              </GlassPanel>
+              </Bento>
             ))}
           </div>
         </>

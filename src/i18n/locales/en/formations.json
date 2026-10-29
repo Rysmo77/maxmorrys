@@ -79,7 +79,10 @@
       "coachingDesc": "Follow-up & coaching for your talent",
       "coachingNote": "On quote"
     },
-    "titleLines": ["Train your teams", "with [MAX-MORRYS BUSINESS]."],
+    "titleLines": [
+      "Train your teams",
+      "with [MAX-MORRYS BUSINESS]."
+    ],
     "offersEyebrow": "Three ways to work together",
     "formEyebrow": "Describe what you need",
     "form": {
@@ -125,7 +128,10 @@
       }
     },
     "sent": {
-      "titleLines": ["We're on.", "I'm reading you."],
+      "titleLines": [
+        "We're on.",
+        "I'm reading you."
+      ],
       "body": "Your request is recorded. I reply within 48 hours with a proposed programme, or with the questions I still need answered.",
       "recapEyebrow": "What is recorded",
       "recapCompany": "Organisation",
@@ -154,7 +160,6 @@
     "free": "Free",
     "save": "Save {{amount}}",
     "enroll": "Enroll now",
-    "guaranteeShort": "Lifetime access · 14-day satisfaction guarantee",
     "includesTitle": "What this course includes",
     "durationContent": "{{duration}} of content",
     "lessonsCount": "{{count}} lessons",
@@ -174,7 +179,6 @@
     "descriptionTitle": "Description",
     "reviewsTitle": "Student reviews",
     "ratingSummary": "Average rating from <strong>{{count}} students</strong> enrolled in this course.",
-    "guaranteeBanner": "14-day satisfaction-or-refund guarantee — no questions asked.",
     "crossEyebrow": "Discover also",
     "crossTitle": "I'll keep you posted",
     "crossDescription": "Free articles, analysis and tips to deepen your digital marketing knowledge.",
@@ -240,7 +244,15 @@
       "only be two."
     ],
     "whyBodyEmpty": "I'd rather have two courses I keep up to date than a catalogue that makes up numbers. The opening module of each will be free: you'll judge before you pay.",
-    "emptyReadTitle": "In the meantime, to read"
+    "emptyReadTitle": "In the meantime, to read",
+    "cardFree_one": "{{count}} free lesson",
+    "cardFree_other": "{{count}} free lessons",
+    "statLevel": "Level",
+    "statLessons": "Lessons",
+    "statModules": "Modules",
+    "seeCourse": "See the course",
+    "categoriesLabel": "Categories",
+    "levelLabel": "Level"
   },
   "sheet": {
     "eyebrow": "I'll train you",
@@ -269,15 +281,21 @@
     "faqTitle": [
       "Before you buy."
     ],
-    "q1": "What if it doesn't suit me?",
-    "a1": "You have 14 days. Write to me, I refund — and if you tell me why, it helps me fix it.",
+    "q1": "What if the course isn't right for me?",
+    "a1": "The free lessons are there so you can judge before you buy. The terms of sale are in the T&Cs, and they're what counts.",
     "q2": "How long do I have access?",
     "a2": "For life. A reworked course stays accessible in its corrected version, without paying again.",
     "q3": "Can I pay in instalments?",
     "a3": "Write to me before paying. The amount charged is the one recomputed server-side, never the one your browser displays.",
     "moduleMeta_one": "{{count}} lesson",
     "moduleMeta_other": "{{count}} lessons",
-    "translatedOriginal": "Read the original"
+    "translatedOriginal": "Read the original",
+    "factLessons": "lessons",
+    "factModules": "modules",
+    "factFree": "free, no account",
+    "buy": "Buy",
+    "cardKicker": "Price · one-off",
+    "coverKicker": "Max-Morrys Edu"
   },
   "comingSoon": {
     "tag": "Coming soon",

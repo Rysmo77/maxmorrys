@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { httpsCallable } from 'firebase/functions';
-import { Button, CheckLine, GlassPanel, Icon, Num, PriceBlock, QuotaMeter, Skeleton, StatTile, Tag, useToast } from '@ds';
+import { Button, CheckLine, Icon, Num, PriceBlock, QuotaMeter, Skeleton, StatTile, Tag, useToast } from '@ds';
 import { functions } from '../../../config/firebase';
 import { useAuth } from '../../../contexts/AuthContext';
 import { tutorName } from '../../../lib/naming';
 import { PriceApprox } from '../../../components/shared/PriceApprox';
 import { captureError } from '../../../lib/sentry';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * LE QUOTA DU RÉPÉTITEUR, ET CE QUI L'AUGMENTE.
@@ -165,7 +166,7 @@ export default function RysmoStoreTab() {
         {loadingQuota ? (
           <Skeleton height={96} radius="var(--r-l)" label={t('rysmoStore.loadingQuota')} style={{ marginTop: '10px' }} />
         ) : !quota || !quotaAsOf ? (
-          <GlassPanel level="flat" padding={18} className="mt-[10px]">
+          <Bento padding={18} className="mt-[10px]">
             {/* Une valeur absente se DIT : <Num> rend « non relevé », jamais un tiret. */}
             <p className="m-0 text-meta font-semibold text-ink">
               {t('rysmoStore.dailyQuotaLabel')} : <Num value={null} source="server" asOf={tariffAsOf} />
@@ -173,10 +174,10 @@ export default function RysmoStoreTab() {
             <p className="m-0 mt-[4px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
               {t('rysmoStore.quotaUnavailable')}
             </p>
-          </GlassPanel>
+          </Bento>
         ) : (
           <>
-            <GlassPanel level="flat" padding={18} className="mt-[10px]">
+            <Bento padding={18} className="mt-[10px]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="m-0 text-meta font-semibold text-ink">{t('rysmoStore.dailyQuotaLabel')}</p>
@@ -200,7 +201,7 @@ export default function RysmoStoreTab() {
               <p className="m-0 mt-[12px] text-small" style={{ color: 'var(--text-muted)' }}>
                 {t('rysmoStore.resetNote')}
               </p>
-            </GlassPanel>
+            </Bento>
 
             <div className="mt-[10px] grid grid-cols-2 gap-[10px]">
               <StatTile
@@ -231,7 +232,7 @@ export default function RysmoStoreTab() {
         </p>
         <div className="mt-[12px] grid gap-[10px] stack:grid-cols-3">
           {PACKS.map((pack) => (
-            <GlassPanel key={pack.id} level="flat" padding={18} className="flex flex-col">
+            <Bento key={pack.id}  padding={18} className="flex flex-col">
               <div className="flex items-start justify-between gap-2">
                 <p className="m-0 text-meta font-bold text-ink">{t(`rysmoStore.packs.${pack.id}.label`)}</p>
                 {pack.hasBadge && <Tag>{t(`rysmoStore.packs.${pack.id}.badge`)}</Tag>}
@@ -261,7 +262,7 @@ export default function RysmoStoreTab() {
               >
                 {t('rysmoStore.buyPack')}
               </Button>
-            </GlassPanel>
+            </Bento>
           ))}
         </div>
       </section>
@@ -278,7 +279,7 @@ export default function RysmoStoreTab() {
             const planLabel = t(`rysmoStore.plans.${plan.id}.label`);
             const current = quota?.hasActiveSubscription && quota.plan === plan.id;
             return (
-              <GlassPanel key={plan.id} level={plan.id === 'pro' ? 'hero' : 'flat'} padding={20}>
+              <Bento key={plan.id} tone={plan.id === 'pro' ? 'hero' : 'flat'} padding={20}>
                 <div className="flex items-start justify-between gap-2">
                   <p className="m-0 text-meta font-bold text-ink">{planLabel}</p>
                   {current && <Tag tone="ok">{t('rysmoStore.alreadySubscribed')}</Tag>}
@@ -340,7 +341,7 @@ export default function RysmoStoreTab() {
                     {t('rysmoStore.renewNote')}
                   </p>
                 )}
-              </GlassPanel>
+              </Bento>
             );
           })}
         </div>

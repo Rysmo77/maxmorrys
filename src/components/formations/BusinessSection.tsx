@@ -1,10 +1,11 @@
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, Field, GlassPanel, Icon, Tag } from '@ds';
+import { Button, DocLine, Field, Icon, Tag } from '@ds';
 import { SiteDisplay, SiteEyebrow } from '../site';
 import { agencyLeadConfig } from '../../lib/agency/engagement';
 import { DESCRIPTION_MAX, useTrainingEngagement } from '../../pages/formations/useTrainingEngagement';
 
+import Bento from './Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
  * L'OFFRE ENTREPRISES — la copie existait déjà, et personne ne la lisait.
@@ -58,7 +59,7 @@ export default function BusinessSection() {
           {t('business.sent.body')}
         </p>
 
-        <GlassPanel level="flat" padding={20} className="rv mt-5 max-w-[42rem]" style={rv(4)}>
+        <Bento padding={20} className="rv mt-5 max-w-[42rem]" style={rv(4)}>
           <SiteEyebrow style={{ marginBottom: '9px' }}>{t('business.sent.recapEyebrow')}</SiteEyebrow>
           <DocLine label={t('business.sent.recapCompany')} value={lead.receipt.company} />
           <DocLine
@@ -66,7 +67,7 @@ export default function BusinessSection() {
             value={<Tag tone="ok">{t('business.sent.recapStatusValue')}</Tag>}
             last
           />
-        </GlassPanel>
+        </Bento>
 
         <div className="rv mt-5" style={rv(5)}>
           <Button tone="quiet" size="sm" fullWidth={false} onClick={lead.reset}>
@@ -96,7 +97,7 @@ export default function BusinessSection() {
           <SiteEyebrow style={{ margin: 0 }}>{t('business.offersEyebrow')}</SiteEyebrow>
           <div className="mt-3 grid gap-2.5">
             {OFFRES.map((cle) => (
-              <GlassPanel key={cle} level="flat" padding={18}>
+              <Bento key={cle}  padding={18}>
                 <div className="flex items-start gap-2.5">
                   <Icon name="check" size={14} strokeWidth={3.4} style={{ marginTop: '4px', flexShrink: 0 }} />
                   <div>
@@ -109,14 +110,14 @@ export default function BusinessSection() {
                     </p>
                   </div>
                 </div>
-              </GlassPanel>
+              </Bento>
             ))}
           </div>
         </div>
 
         {/* Le formulaire. Les trois derniers champs ne sont pas négociables :
             `firestore.rules` exige `name`, `company` et `email` à la création. */}
-        <GlassPanel level="hero" padding={24} className="rv" style={rv(5)} as="section">
+        <Bento tone="hero" padding={24} className="rv" style={rv(5)} as="section">
           <SiteEyebrow style={{ margin: 0 }}>{t('business.formEyebrow')}</SiteEyebrow>
 
           <form onSubmit={lead.handleSubmit} noValidate>
@@ -216,7 +217,7 @@ export default function BusinessSection() {
 
             <p className="m-0 mt-3 text-meta-2 leading-[1.5] text-ink-2">{t('business.form.reply')}</p>
           </form>
-        </GlassPanel>
+        </Bento>
       </div>
     </>
   );

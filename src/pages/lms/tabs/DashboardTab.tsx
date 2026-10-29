@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
-  Button, GlassPanel, Icon, LessonRow, Num, ProgressBar, Skeleton, StatTile, TerritoryCard,
+  Button, Icon, LessonRow, Num, Skeleton,
   type IconName,
 } from '@ds';
 import { useLocalizedPath } from '../../../contexts/LanguageContext';
@@ -16,6 +16,33 @@ import { getLevelFromXP, getXPForNextLevel, XP_REWARDS } from '../../../types/ga
 import type { GamificationProfile } from '../../../types/gamification';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import { estAVenir } from '../../../types/formationRelease';
+import CourseCover from '../../../components/formations/CourseCover';
+
+/**
+ * L'anneau de progression moyenne (kit v3 `mm-ringx`). Le trait est plein, sans dégradé :
+ * le dégradé du kit est un `url(#…)` à identifiant global, qui se collisionnerait dès que
+ * deux anneaux partagent une page. `null` = pas encore mesuré : l'anneau reste vide.
+ */
+function ProgressRing({ value, label, asOf }: { value: number | null; label: string; asOf: Date }) {
+  const c = 2 * Math.PI * 42;
+  const p = value === null ? 0 : Math.min(100, Math.max(0, value)) / 100;
+  return (
+    <div className="mm-ringx">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle className="tk" cx="50" cy="50" r="42" />
+        <circle
+          className="vl"
+          cx="50" cy="50" r="42"
+          style={{ stroke: 'var(--mm-teal)', strokeDasharray: c, strokeDashoffset: c * (1 - p) }}
+        />
+      </svg>
+      <div>
+        <b><Num value={value} unit="%" source="db" asOf={asOf} /></b>
+        <span>{label}</span>
+      </div>
+    </div>
+  );
+}
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -200,33 +227,22 @@ export default function DashboardTab({
           classe `hidden` aurait laissé partir l'appel sur téléphone. La mise en page,
           elle, vit dans `SpaceSplit`, écrit une fois pour les cinq écrans. */}
       <SpaceSplit asideLabel={tutor} aside={isWide ? <TutorPanel /> : null}>
-      <p className="mm-eyebrow m-0">{t('dashboard.eyebrow')}</p>
-      {/* La salutation n'est PAS le titre de la page — celui-ci est « Tableau de bord », rendu
-          en <h1> par la barre haute de `AppShell`. Le kit la pose d'ailleurs dans la barre, pas
-          dans le corps (`ScreensSpace.js:17`). Elle garde son dessin, elle perd son rang. */}
-      <p className="m-0 mt-[6px] font-display text-dsp-xs text-ink">{t('dashboard.greeting', { name: firstName })}</p>
-
-      {/* ── La carte de reprise ──────────────────────────────────────────────── */}
+      {/* ── La reprise (kit v3 `LearnerBento` · `mm-promo`) ─────────────────────────
+          La salutation n'est PAS le titre de la page — celui-ci est « Tableau de bord »,
+          rendu en <h1> par la barre haute de `AppShell`. Elle ouvre la carte de reprise.
+          La carte pastel est claire dans les deux thèmes : son encre est `--ink-fixed`. */}
       {loadingEnrollments ? (
-        <Skeleton height={168} radius="var(--r-l)" label={t('dashboard.loadingLabel')} style={{ marginTop: '18px' }} />
+        <Skeleton height={220} radius="var(--r-xl)" label={t('dashboard.loadingLabel')} />
       ) : inProgress?.formation ? (
-        <div className="mt-[18px]">
-          <TerritoryCard
-            first
-            territory="forme"
-            meta={inProgress.formation.duration}
-            title={inProgress.formation.title}
-            titleSize={21}
-          >
-            <ProgressBar
-              value={inProgress.enrollment.progress}
-              source="db"
-              asOf={asOf}
-              label={t('dashboard.progressLabel')}
-              style={{ marginTop: '15px' }}
-            />
-            <div className="mt-[10px] flex items-center justify-between gap-3">
-              <span className="text-meta-2" style={{ color: 'var(--card-ink-2)' }}>
+        <section className="mm-promo grid items-center gap-6 stack:grid-cols-[minmax(0,1fr)_200px]">
+          <div className="min-w-0 text-[color:var(--ink-fixed)]">
+            <p className="mm-eyebrow m-0">{t('dashboard.greeting', { name: firstName })}</p>
+            <h2 className="mt-3">{inProgress.formation.title}</h2>
+            <div className="mt-5 max-w-[420px]">
+              <div className="mm-progress" role="presentation">
+                <i style={{ ['--p' as string]: Math.min(1, Math.max(0, inProgress.enrollment.progress / 100)) }} />
+              </div>
+              <p className="m-0 mt-2 text-meta-2">
                 <Num value={inProgress.enrollment.completedLessons.length} source="db" asOf={asOf} />
                 {' / '}
                 <Num
@@ -235,94 +251,114 @@ export default function DashboardTab({
                   asOf={asOf}
                 />{' '}
                 {t('dashboard.lessonsLabel')}
-              </span>
-              <Button
-                tone="primary"
-                size="sm"
-                fullWidth={false}
-                onClick={() => navigate(path(`/cours/${inProgress.formation!.slug}`))}
-              >
-                {t('dashboard.resume')}
-              </Button>
+              </p>
             </div>
-          </TerritoryCard>
-        </div>
-      ) : (
-        <GlassPanel level="hero" padding={20} className="mt-[18px]">
-          <p className="m-0 text-body text-ink-2">
-            {enrolledFormations.length === 0 ? t('dashboard.startAdventure') : t('dashboard.continueLearningHint')}
-          </p>
-          {enrolledFormations.length === 0 && (
-            <Button tone="forme" style={{ marginTop: '15px' }} onClick={() => navigate(path('/formations'))}>
-              {t('dashboard.explore')}
+            <Button
+              tone="primary"
+              arrow
+              fullWidth={false}
+              onClick={() => navigate(path(`/cours/${inProgress.formation!.slug}`))}
+              style={{ marginTop: '18px' }}
+            >
+              {t('dashboard.resume')}
             </Button>
-          )}
-        </GlassPanel>
+          </div>
+          <CourseCover
+            title={inProgress.formation.title}
+            category={inProgress.formation.category}
+            slug={inProgress.formation.slug}
+            id={inProgress.formation.id}
+            coverImage={inProgress.formation.coverImage}
+            kicker={inProgress.formation.category}
+            size="sm"
+            className="hidden stack:flex"
+            style={{ transform: 'rotate(4deg)' }}
+          />
+        </section>
+      ) : (
+        <section className="mm-promo">
+          <div className="text-[color:var(--ink-fixed)]">
+            <p className="mm-eyebrow m-0">{t('dashboard.greeting', { name: firstName })}</p>
+            <h2 className="mt-3">{enrolledFormations.length === 0 ? t('dashboard.readyTitle') : t('dashboard.continueLearning')}</h2>
+            <p className="m-0 mt-3 max-w-[52ch] text-body">
+              {enrolledFormations.length === 0 ? t('dashboard.startAdventure') : t('dashboard.continueLearningHint')}
+            </p>
+            {enrolledFormations.length === 0 && (
+              <Button tone="primary" arrow fullWidth={false} style={{ marginTop: '18px' }} onClick={() => navigate(path('/formations'))}>
+                {t('dashboard.explore')}
+              </Button>
+            )}
+          </div>
+        </section>
       )}
 
-      {/* ── Deux cases de relevé ─────────────────────────────────────────────── */}
-      <div className="mt-[18px] grid grid-cols-2 gap-[10px]">
-        <StatTile
-          label={t('dashboard.statStreak')}
-          value={gamification ? gamification.currentStreak : null}
-          unit={t('dashboard.dayUnit')}
-          source="db"
-          asOf={asOf}
-          showAsOf={false}
-          foot={
-            gamification ? (
-              <>
+      {/* ── Les relevés (kit v3 `mm-statcard`) ─────────────────────────────────────
+          Tous sortent de la base (inscriptions, profil de jeu). Tant que le profil n'est
+          pas lu, la case dit « — » plutôt qu'un zéro qui n'a pas été mesuré. */}
+      <div className="mt-4 grid gap-3 stack:grid-cols-3">
+        <div className="mm-statcard" style={{ ['--tint' as string]: 'color-mix(in srgb, var(--mm-bleu) 14%, transparent)' }}>
+          <span className="ico bg-[color:var(--mm-bleu)]" aria-hidden="true"><Icon name="book" size={20} /></span>
+          <div>
+            <span className="text-meta-2 text-ink-2">{t('dashboard.statFormations')}</span>
+            <div className="v">
+              <Num value={completedCount} source="db" asOf={asOf} />
+              <small>/ <Num value={enrolledFormations.length} source="db" asOf={asOf} /> {t('dashboard.statCompleted').toLowerCase()}</small>
+            </div>
+          </div>
+        </div>
+        <div className="mm-statcard" style={{ ['--tint' as string]: 'color-mix(in srgb, var(--mm-orange) 16%, transparent)' }}>
+          <span className="ico bg-[color:var(--mm-orange)]" aria-hidden="true"><Icon name="trophy" size={20} /></span>
+          <div>
+            <span className="text-meta-2 text-ink-2">{t('dashboard.statStreak')}</span>
+            <div className="v">
+              <Num value={gamification ? gamification.currentStreak : null} source="db" asOf={asOf} />
+              <small>{t('dashboard.dayUnit')}</small>
+            </div>
+            {/* Sept crans : la série de la semaine, plafonnée à sept. Rien ne s'allume tant
+                que le profil n'est pas lu. */}
+            <span className="mm-streak mt-3" aria-hidden="true">
+              {Array.from({ length: 7 }, (_, i) => (
+                <i key={i} className={gamification && i < Math.min(7, gamification.currentStreak) ? 'on' : undefined} style={{ ['--i' as string]: i }} />
+              ))}
+            </span>
+            {gamification && (
+              <p className="m-0 mt-2 text-small text-ink-2">
                 {t('dashboard.statStreakRecord')} : <Num value={gamification.longestStreak} source="db" asOf={asOf} />
-              </>
-            ) : undefined
-          }
-        />
-        <StatTile
-          label={t('dashboard.statLevel')}
-          value={level}
-          source="db"
-          asOf={asOf}
-          showAsOf={false}
-          foot={
-            level ? (
-              <>
-                <Num value={gamification!.xp} unit={t('dashboard.xpUnit')} source="db" asOf={asOf} />
-                {Number.isFinite(levelCeil) && ` · ${t('dashboard.statLevelNext', { level: level + 1 })}`}
-              </>
-            ) : undefined
-          }
-        />
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="mm-statcard items-center" style={{ ['--tint' as string]: 'color-mix(in srgb, var(--mm-teal) 14%, transparent)' }}>
+          <ProgressRing
+            value={enrolledFormations.length > 0 ? avgProgress : null}
+            label={t('dashboard.statAvgProgress')}
+            asOf={asOf}
+          />
+        </div>
       </div>
-      {level && Number.isFinite(levelCeil) && (
-        <ProgressBar
-          value={levelPct}
-          source="db"
-          asOf={asOf}
-          height={6}
-          label={t('dashboard.statLevelNext', { level: level + 1 })}
-          style={{ marginTop: '10px' }}
-        />
-      )}
 
-      {/* ── Trois relevés du parcours ────────────────────────────────────────── */}
-      <div className="mt-[12px] grid grid-cols-2 gap-[10px] stack:grid-cols-3">
-        <StatTile label={t('dashboard.statFormations')} value={enrolledFormations.length} source="db" asOf={asOf} showAsOf={false} />
-        <StatTile label={t('dashboard.statCompleted')} value={completedCount} source="db" asOf={asOf} showAsOf={false} />
-        <StatTile
-          label={t('dashboard.statAvgProgress')}
-          value={enrolledFormations.length > 0 ? avgProgress : null}
-          unit="%"
-          source="db"
-          asOf={asOf}
-          showAsOf={false}
-        />
-      </div>
+      {level && (
+        <div className="mm-card mt-3 flex flex-wrap items-center gap-4" style={{ padding: '16px 20px' }}>
+          <span className="mm-xp">
+            {t('dashboard.statLevel')} <Num value={level} source="db" asOf={asOf} />
+          </span>
+          <span className="text-meta-2 text-ink-2">
+            <Num value={gamification!.xp} unit={t('dashboard.xpUnit')} source="db" asOf={asOf} />
+            {Number.isFinite(levelCeil) && ` · ${t('dashboard.statLevelNext', { level: level + 1 })}`}
+          </span>
+          {Number.isFinite(levelCeil) && (
+            <div className="mm-progress min-w-[160px] flex-1" role="progressbar" aria-valuenow={levelPct} aria-valuemin={0} aria-valuemax={100} aria-label={t('dashboard.statLevelNext', { level: level + 1 })}>
+              <i style={{ ['--p' as string]: levelPct / 100 }} />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── L'entrée du répétiteur. Son nom vient du profil, jamais d'une constante. ──
           Elle disparaît en desktop : le panneau permanent de la troisième colonne la
           remplace, et garder les deux donnerait deux entrées vers le même endroit sur
           le même écran. Le masquage est en CSS, pas par le crochet — voir `isWide`. */}
-      <GlassPanel level="flat" padding={18} className="mt-[12px] wide:hidden">
+      <div className="mm-card mt-3 wide:hidden" style={{ padding: '18px' }}>
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="m-0 text-[14.5px] font-bold text-ink">{t('dashboard.tutorTitle', { tutor })}</p>
@@ -338,13 +374,13 @@ export default function DashboardTab({
             {t('dashboard.tutorCta')}
           </Button>
         </div>
-      </GlassPanel>
+      </div>
 
       {/* ── Le programme ─────────────────────────────────────────────────────── */}
       {modules.length > 0 && (
         <>
           <p className="mm-eyebrow mt-[22px]">{t('dashboard.programEyebrow')}</p>
-          <GlassPanel level="flat" padding="4px 18px" className="mt-[10px]">
+          <div className="mm-card mt-[10px]" style={{ padding: '4px 18px' }}>
             {modules.map((m, i) => (
               <LessonRow
                 key={m.id}
@@ -369,13 +405,13 @@ export default function DashboardTab({
                 last={i === modules.length - 1}
               />
             ))}
-          </GlassPanel>
+          </div>
         </>
       )}
 
       {/* ── Dans ton espace ──────────────────────────────────────────────────── */}
       <p className="mm-eyebrow mt-[22px]">{t('dashboard.spaceEyebrow')}</p>
-      <GlassPanel level="flat" padding="4px 18px" className="mt-[10px]">
+      <div className="mm-card mt-[10px]" style={{ padding: '4px 18px' }}>
         {SPACE_LINKS.map((link, i) => (
           <LessonRow
             key={link.to}
@@ -388,7 +424,7 @@ export default function DashboardTab({
             last={i === SPACE_LINKS.length - 1}
           />
         ))}
-      </GlassPanel>
+      </div>
       </SpaceSplit>
     </div>
   );

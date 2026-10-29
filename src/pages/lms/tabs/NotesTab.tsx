@@ -4,6 +4,7 @@ import SpaceSplit from '../components/SpaceSplit';
 import { useFormat } from '../../../hooks/useFormat';
 import type { Note } from '../../../lib/firestore';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * L'ÉCRAN « MES NOTES » — le cinquième des écrans qui portent la barre d'onglets.
@@ -100,7 +101,7 @@ export default function NotesTab({
           {editingNote ? t('notes.editTitle') : t('notes.newTitle')}
         </h2>
 
-        <GlassPanel level="hero" padding={22} className="mt-[18px]">
+        <Bento tone="hero" padding={22} className="mt-[18px]">
           <Field
             label={t('notes.titleLabel')}
             value={noteForm.title}
@@ -128,7 +129,7 @@ export default function NotesTab({
               {savingNote ? t('notes.saving') : t('notes.save')}
             </Button>
           </div>
-        </GlassPanel>
+        </Bento>
       </div>
     );
   }
@@ -197,7 +198,7 @@ export default function NotesTab({
           {[0, 1, 2].map((i) => <Skeleton key={i} height={62} radius="var(--r-m)" label={t('notes.loadingLabel')} />)}
         </div>
       ) : filteredNotes.length === 0 ? (
-        <GlassPanel level="hero" padding={22} className="mt-[14px]">
+        <Bento tone="hero" padding={22} className="mt-[14px]">
           <EmptyState
             glyph={<Icon name="comment" size={26} style={{ color: 'var(--mm-bleu)' }} />}
             glyphBackground="color-mix(in srgb, var(--mm-bleu) 14%, transparent)"
@@ -205,9 +206,9 @@ export default function NotesTab({
             body={t('notes.emptyText')}
             action={<Button tone="forme" onClick={openNewNote}>{t('notes.createFirst')}</Button>}
           />
-        </GlassPanel>
+        </Bento>
       ) : (
-        <GlassPanel level="flat" padding="6px 18px" className="mt-[14px]">
+        <Bento padding="6px 18px" className="mt-[14px]">
           {filteredNotes.map((note, i) => (
             <LessonRow
               key={note.id}
@@ -228,7 +229,7 @@ export default function NotesTab({
               }
             />
           ))}
-        </GlassPanel>
+        </Bento>
       )}
       </SpaceSplit>
     </div>

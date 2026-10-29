@@ -2,7 +2,7 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { Button, GlassPanel, Icon, Mesh, Num, Tag, type TagTone } from '@ds';
+import { Button, Icon, Mesh, Num, Tag, type TagTone } from '@ds';
 import { db } from '../../config/db';
 import { SiteDisplay, useReveal } from '../../components/site';
 import DsNavHost from '../../components/layout/DsNavHost';
@@ -14,6 +14,7 @@ import { getClubSubscription } from '../../lib/firestore';
 import { estMembreActif } from '../../lib/club/membership';
 import type { Transaction } from '../../types';
 
+import Bento from '../../components/formations/Bento';
 /**
  * L'ATTENTE DE PAIEMENT — LE PREMIER DES DEUX SEULS MOMENTS SCÉNARISÉS DU SYSTÈME.
  *
@@ -301,7 +302,7 @@ export default function PaymentReturn() {
 
           <p className="rv text-lede text-ink-2 mt-3" style={{ ['--i' as string]: 4 }}>{lede}</p>
 
-          <GlassPanel level="flat" padding={17} className="rv mt-[22px]" style={{ ['--i' as string]: 5 }}>
+          <Bento padding={17} className="rv mt-[22px]" style={{ ['--i' as string]: 5 }}>
             <div className="flex items-center justify-between gap-3">
               <span className="text-meta text-ink-2">{t('paymentReturn.reference')}</span>
               {/* Une référence de transaction est une donnée de base : elle passe par <Num>,
@@ -320,7 +321,7 @@ export default function PaymentReturn() {
                 <Num value={transaction.amount} unit={transaction.currency || 'XOF'} source="server" asOf={asOf} style={{ fontSize: '13px' }} />
               </div>
             )}
-          </GlassPanel>
+          </Bento>
 
           {actions}
 
@@ -344,7 +345,7 @@ export default function PaymentReturn() {
             sur l'écran de quelqu'un qui vient de payer transformerait une porte en relance.
           */}
           {status === 'completed' && clubActif === false && (
-            <GlassPanel level="flat" padding={17} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
+            <Bento padding={17} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
               <p className="m-0 text-meta font-bold text-ink">{t('paymentReturn.clubTitle')}</p>
               <p className="m-0 mt-1.5 text-meta-2 leading-[1.55] text-ink-2">
                 {t('paymentReturn.clubBody')}
@@ -358,7 +359,7 @@ export default function PaymentReturn() {
               >
                 {t('paymentReturn.clubCta')}
               </Button>
-            </GlassPanel>
+            </Bento>
           )}
 
           <p className="rv text-small text-ink-2 text-center mt-3.5" style={{ ['--i' as string]: 9 }}>{foot}</p>

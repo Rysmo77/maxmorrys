@@ -15,6 +15,7 @@ import { useCoursePlayer } from './hooks/useCoursePlayer';
 import { estAVenir, ouverture } from '../../types/formationRelease';
 import { useFormat } from '../../hooks/useFormat';
 
+import Bento from '../../components/formations/Bento';
 /**
  * LE LECTEUR DE LEÇON (`ScreensSpace.js` · `Lecteur`).
  *
@@ -72,7 +73,7 @@ function CourseOutline({
   const { t } = useTranslation('lms');
 
   return (
-    <GlassPanel level="flat" padding="4px 18px" as="nav" aria-label={t('player.outlineLabel')}>
+    <Bento padding="4px 18px" as="nav" aria-label={t('player.outlineLabel')}>
       {(formation.modules ?? []).map((module, mi) => {
         const isExpanded = expandedModules.includes(module.id);
         const moduleCompleted = module.lessons.length > 0 && module.lessons.every((l) => completedLessons.includes(l.id));
@@ -119,7 +120,7 @@ function CourseOutline({
           </div>
         );
       })}
-    </GlassPanel>
+    </Bento>
   );
 }
 
@@ -332,14 +333,14 @@ export default function CoursePlayer() {
     return (
       <Frame back={{ href: path('/mon-espace'), label: t('player.backToSpace') }}>
         <SiteDisplay lines={t('player.notFoundLines', { returnObjects: true }) as string[]} size={30} />
-        <GlassPanel level="flat" padding={20} className="mt-[18px]">
+        <Bento padding={20} className="mt-[18px]">
           <EmptyState
             glyph={<Icon name="book" size={26} color="var(--text-muted)" />}
             title={t('player.courseNotFoundTitle')}
             action={<Button tone="quiet" fullWidth href={path('/mon-espace')}>{t('player.backToSpace')}</Button>}
             style={{ padding: 0 }}
           />
-        </GlassPanel>
+        </Bento>
       </Frame>
     );
   }
@@ -363,7 +364,7 @@ export default function CoursePlayer() {
     return (
       <Frame back={{ href: path(`/formations/${formation.slug}`), label: t('player.seeFormation') }}>
         <SiteDisplay lines={t('player.lockedLines', { returnObjects: true }) as string[]} size={30} />
-        <GlassPanel level="flat" padding={20} className="mt-[18px]">
+        <Bento padding={20} className="mt-[18px]">
           <EmptyState
             glyph={<Icon name="lock" size={26} color="var(--warn)" />}
             title={t('player.comingSoonTitle')}
@@ -379,7 +380,7 @@ export default function CoursePlayer() {
             )}
             style={{ padding: 0 }}
           />
-        </GlassPanel>
+        </Bento>
       </Frame>
     );
   }
@@ -404,7 +405,7 @@ export default function CoursePlayer() {
     return (
       <Frame back={{ href: path(`/formations/${formation.slug}`), label: t('player.seeFormation') }}>
         <SiteDisplay lines={t('player.lockedLines', { returnObjects: true }) as string[]} size={30} />
-        <GlassPanel level="flat" padding={20} className="mt-[18px]">
+        <Bento padding={20} className="mt-[18px]">
           <EmptyState
             glyph={<Icon name="lock" size={26} color="var(--text-muted)" />}
             title={t('player.enrollmentRequiredTitle')}
@@ -431,7 +432,7 @@ export default function CoursePlayer() {
             }
             style={{ padding: 0 }}
           />
-        </GlassPanel>
+        </Bento>
       </Frame>
     );
   }
@@ -494,7 +495,7 @@ export default function CoursePlayer() {
 
           {/* ── La leçon ─────────────────────────────────────────────────── */}
           {activeLesson ? (
-            <GlassPanel level="flat" padding={0} className="rv mt-4 overflow-hidden" style={{ ['--i' as string]: 3 }}>
+            <Bento padding={0} className="rv mt-4 overflow-hidden" style={{ ['--i' as string]: 3 }}>
               {activeLesson.type === 'video' ? (
                 <div className="aspect-video bg-[color:var(--surface-night)] grid place-items-center">
                   {activeLesson.videoUrl ? (
@@ -556,16 +557,16 @@ export default function CoursePlayer() {
                   </Button>
                 </div>
               )}
-            </GlassPanel>
+            </Bento>
           ) : (
-            <GlassPanel level="flat" padding={20} className="rv mt-4" style={{ ['--i' as string]: 3 }}>
+            <Bento padding={20} className="rv mt-4" style={{ ['--i' as string]: 3 }}>
               <EmptyState
                 glyph={<Icon name="play" size={26} color="var(--text-muted)" />}
                 title={t('player.selectLessonTitle')}
                 body={t('player.selectLessonText')}
                 style={{ padding: 0 }}
               />
-            </GlassPanel>
+            </Bento>
           )}
 
           {/* ── Le programme ─────────────────────────────────────────────── */}
