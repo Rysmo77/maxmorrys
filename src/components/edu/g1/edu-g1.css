@@ -1,0 +1,248 @@
+/*
+ * PAGES PUBLIQUES EDU — passe 2, lot B (Accueil Apprendre, Méthode, Rysmo IA, Vérifier).
+ *
+ * Mise en page des maquettes `Edu-*.dc.html` (bureau 1440, mobile 390). Le kit fournit les
+ * pièces (`mm-up`, `mm-script`, `mm-learn`, `mm-prod`, `mm-cover`, `mm-pill`…) ; cette feuille
+ * ne dit que la GÉOMÉTRIE des pages : gabarits, grilles, tailles de titres, et leur repli
+ * à une colonne sous 900 px. Aucune couleur en dur, aucun flou (AD-4, AD-26).
+ */
+
+.eg1 { --eg1-max: 1360px; }
+.eg1-wrap { max-width: var(--eg1-max); margin: 0 auto; padding: 104px 24px 0; }
+.eg1-wrap.is-last { padding-bottom: 200px; }
+
+/* ── Héros de nuit, derrière la barre fixe ──────────────────────────────── */
+.eg1-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--night);
+  border-radius: 0 0 36px 36px;
+  padding: calc(var(--header-h, 80px) + 4px) 24px 0;
+  color: color-mix(in srgb, var(--paper-fixed) 80%, transparent);
+}
+.eg1-hero .mm-mesh { opacity: .55; }
+.eg1-hero__in { position: relative; z-index: 2; max-width: var(--eg1-max); margin: 0 auto; padding: 36px 0 60px; }
+.eg1-hero__in.is-center { max-width: 900px; text-align: center; padding-bottom: 64px; }
+.eg1-hero .mm-script { display: block; font-size: 34px; }
+.eg1-hero h1 { font-size: 110px; color: var(--paper-fixed); margin: 6px 0 20px; }
+.eg1-hero h1.is-xl { font-size: 128px; margin-bottom: 26px; }
+.eg1-hero h1.is-m { font-size: 96px; margin-bottom: 18px; }
+.eg1-hero__lede { font-size: 17.5px; line-height: 1.55; margin: 0 0 26px; max-width: 52ch; }
+.eg1-hero__in.is-center .eg1-hero__lede { margin-left: auto; margin-right: auto; max-width: 46ch; }
+.eg1-hero__ctas { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.eg1-hero__link { color: var(--paper-fixed); font: 600 14px/1 var(--f-body); text-decoration: underline; text-underline-offset: 4px; }
+.eg1-hero__foot { display: flex; align-items: flex-end; justify-content: flex-end; gap: 24px; margin-top: 84px; }
+.eg1-trainer {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 18px 12px 12px; border-radius: 20px;
+  background: var(--paper-fixed); color: var(--ink-fixed);
+  text-decoration: none;
+}
+.eg1-trainer .mm-photo { width: 52px; height: 52px; min-height: 0; border-radius: 14px; background: linear-gradient(160deg, var(--mm-bleu-f), var(--mm-violet-f)); }
+.eg1-trainer span { font-size: 12.5px; color: var(--ink-2); }
+.eg1-scroll { display: flex; justify-content: flex-end; margin-top: 22px; }
+.eg1-scroll span { padding: 12px 28px; border-radius: 18px 18px 0 0; background: var(--paper); color: var(--ink); font: 600 13px/1 var(--f-body); }
+
+/* ── Titres et textes de section ─────────────────────────────────────────── */
+.eg1-h2 { font-size: 56px; margin: 14px 0 18px; }
+.eg1-p { font-size: 16.5px; line-height: 1.6; color: var(--ink-2); margin: 0 0 14px; max-width: 50ch; }
+.eg1-split { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+.eg1-split.is-a { grid-template-columns: 1.1fr .9fr; gap: 56px; }
+.eg1-split.is-b { grid-template-columns: 1.1fr .9fr; gap: 40px; }
+
+/* ── Bande orange « mm-learn » ───────────────────────────────────────────── */
+.eg1-orange { border-radius: 34px; background: var(--mm-orange-f); padding: 44px; color: var(--ink-fixed); }
+.eg1-orange__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+.eg1-orange__head h2 { font-size: 52px; margin: 0; color: var(--ink-fixed); }
+.eg1-orange__head span { max-width: 34ch; font-size: 15px; }
+
+/* ── Quatre temps (Méthode) ─────────────────────────────────────────────── */
+.eg1-steps { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1.5px solid var(--ink); }
+.eg1-step { padding: 26px 24px 0 24px; border-left: 1px solid var(--line); }
+.eg1-step:first-child { padding-left: 0; border-left: 0; }
+.eg1-step__top { display: flex; justify-content: space-between; align-items: center; }
+.eg1-step__n { font: 900 56px/1 var(--f-display); }
+.eg1-step__ico { width: 46px; height: 46px; border-radius: 14px; color: var(--paper-fixed); display: grid; place-items: center; }
+.eg1-step b.t { display: block; font: 700 20px/1.2 var(--f-body); margin: 22px 0 10px; }
+.eg1-step span.d { font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
+
+/* ── Leçon type (Méthode) ───────────────────────────────────────────────── */
+.eg1-lesson { position: relative; border-radius: 28px; background: var(--paper-2); padding: 22px; }
+.eg1-lesson__video { border-radius: 20px; height: 240px; background: linear-gradient(150deg, var(--night-3), var(--mm-bleu-f) 55%, var(--mm-violet-f)); position: relative; }
+.eg1-lesson__play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 64px; height: 64px; border-radius: 50%; background: color-mix(in srgb, var(--paper-fixed) 92%, transparent); color: var(--ink-fixed); display: grid; place-items: center; }
+.eg1-lesson__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.eg1-lesson__grid .mm-card { padding: 14px; }
+.eg1-lesson__grid .mm-card.is-on { background: var(--mm-orange-f); border: 0; color: var(--ink-fixed); }
+.eg1-lesson__grid b { font-size: 14px; }
+.eg1-lesson__grid span { display: block; font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
+.eg1-lesson__grid .is-on span { color: inherit; }
+
+/* ── Panneau sombre (cohorte, Rysmo) ─────────────────────────────────────── */
+.eg1-dark { border-radius: 34px; background: var(--ink-fixed); color: color-mix(in srgb, var(--paper-fixed) 80%, transparent); padding: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: center; position: relative; overflow: hidden; isolation: isolate; }
+.eg1-dark h2 { font-size: 52px; color: var(--paper-fixed); margin: 14px 0 18px; }
+.eg1-dark .mm-eyebrow { color: var(--mm-rose-c); }
+.eg1-ticks { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px; }
+.eg1-ticks li { display: flex; gap: 8px; align-items: flex-start; }
+.eg1-bars { display: flex; flex-direction: column; gap: 10px; }
+.eg1-bar { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: color-mix(in srgb, var(--paper-fixed) 6%, transparent); border: 1px solid color-mix(in srgb, var(--paper-fixed) 10%, transparent); }
+.eg1-bar > span { width: 76px; font-size: 12px; color: color-mix(in srgb, var(--paper-fixed) 62%, transparent); }
+.eg1-bar > div { flex: 1; height: 10px; border-radius: 10px; background: color-mix(in srgb, var(--paper-fixed) 8%, transparent); overflow: hidden; }
+.eg1-bar i { display: block; height: 100%; width: 100%; transform-origin: left; }
+.eg1-note { font-size: 12.5px; color: color-mix(in srgb, var(--paper-fixed) 62%, transparent); }
+
+/* ── Catalogue (accueil) ─────────────────────────────────────────────────── */
+.eg1-center { text-align: center; }
+.eg1-center p { color: var(--ink-2); margin: 0 auto 20px; max-width: 52ch; }
+.eg1-prods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 28px; text-align: left; }
+.eg1-prods .mm-cover { height: 230px; }
+.eg1-prods .mm-prod__cta .mm-pill { flex: 1; justify-content: space-between; }
+.eg1-prods .mm-prod__cta .mm-pill.is-plain { justify-content: center; background: var(--paper-2); color: var(--ink); }
+.eg1-prod__body { padding: 4px 8px 0; }
+.eg1-prod__body b { display: block; font: 700 18px/1.2 var(--f-body); }
+.eg1-prod__body span { font-size: 13.5px; color: var(--ink-2); }
+
+/* ── Rysmo + Club (accueil) ──────────────────────────────────────────────── */
+.eg1-duo { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; }
+.eg1-rysmo { border-radius: 30px; background: var(--ink-fixed); color: var(--ink); padding: 30px; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden; isolation: isolate; }
+.eg1-rysmo > * { position: relative; }
+.eg1-rysmo .mm-mesh { position: absolute; opacity: .5; }
+.eg1-rysmo__head { display: flex; align-items: center; gap: 12px; }
+.eg1-rysmo__ico { width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, var(--mm-violet-f), var(--mm-violet-n)); display: grid; place-items: center; color: var(--paper-fixed); flex: none; }
+.eg1-rysmo__head b { display: block; font: 900 26px/1 var(--f-display); color: var(--paper-fixed); }
+.eg1-rysmo__head span { font-size: 13px; color: color-mix(in srgb, var(--paper-fixed) 68%, transparent); }
+.eg1-rysmo p { margin: 0; font-size: 14.5px; line-height: 1.55; color: color-mix(in srgb, var(--paper-fixed) 80%, transparent); }
+.eg1-club { border-radius: 30px; background: var(--mm-violet-c); padding: 28px; flex: 1; color: var(--ink-fixed); }
+.eg1-club .mm-eyebrow { color: var(--mm-violet-f); }
+.eg1-club b { display: block; font: 900 34px/1.02 var(--f-display); color: var(--mm-violet-t); margin: 12px 0 10px; }
+.eg1-club p { margin: 0 0 18px; color: var(--ink-2); font-size: 14.5px; }
+.eg1-truth { border-radius: 24px; border: 1px dashed var(--ink-3); padding: 20px; font-size: 14px; }
+.eg1-truth b { display: block; margin-bottom: 6px; }
+.eg1-truth span { color: var(--ink-2); }
+.eg1-col { display: flex; flex-direction: column; gap: 18px; }
+.eg1-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.eg1-photos .mm-photo { height: 300px; border-radius: 24px; }
+.eg1-photos .mm-photo + .mm-photo { margin-top: 40px; }
+
+/* ── Rysmo IA (page publique) ────────────────────────────────────────────── */
+.eg1-chat { border-radius: 28px; background: color-mix(in srgb, var(--paper-fixed) 6%, transparent); border: 1px solid color-mix(in srgb, var(--paper-fixed) 12%, transparent); padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+.eg1-chat__q { align-self: flex-end; max-width: 80%; padding: 12px 16px; border-radius: 18px 18px 4px 18px; background: var(--mm-violet-f); color: var(--paper-fixed); font-size: 14.5px; }
+.eg1-chat__a { max-width: 88%; padding: 14px 16px; border-radius: 18px 18px 18px 4px; background: color-mix(in srgb, var(--paper-fixed) 8%, transparent); border: 1px solid color-mix(in srgb, var(--paper-fixed) 10%, transparent); font-size: 14.5px; line-height: 1.55; color: color-mix(in srgb, var(--paper-fixed) 85%, transparent); }
+.eg1-quotas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 30px; }
+.eg1-quota { border-radius: 28px; background: var(--bento); border: 1px solid var(--line); padding: 28px; }
+.eg1-quota.is-club { background: var(--mm-violet-c); border-color: transparent; color: var(--ink-fixed); }
+.eg1-quota__v { display: block; font-size: 56px; line-height: 1; letter-spacing: -.05em; margin: 10px 0 2px; }
+.eg1-quota p { margin: 14px 0 0; font-size: 14px; color: var(--ink-2); }
+.eg1-quota.is-club p { color: var(--ink-fixed); opacity: .78; }
+.eg1-limits { display: grid; grid-template-columns: .8fr 1.2fr; gap: 40px; align-items: start; }
+.eg1-limits__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.eg1-limits__grid .mm-card { padding: 22px; }
+.eg1-limits__grid b { display: block; font-size: 16px; margin-bottom: 6px; }
+.eg1-limits__grid span { font-size: 14px; color: var(--ink-2); }
+
+/* ── Vérifier un certificat ──────────────────────────────────────────────── */
+.eg1-codeform { display: flex; gap: 8px; max-width: 560px; margin: 0 auto; }
+.eg1-codeform input {
+  flex: 1; min-width: 0; height: 56px; padding: 0 20px; border-radius: 999px; border: 0;
+  background: var(--paper-fixed); color: var(--ink-fixed); font: 600 16px/1 var(--f-mono); letter-spacing: .04em;
+}
+.eg1-codeform input::placeholder { color: var(--ink-3); font-family: var(--f-body); letter-spacing: 0; }
+.eg1-codehelp { margin: 10px auto 0; font-size: 13px; color: color-mix(in srgb, var(--paper-fixed) 62%, transparent); }
+.eg1-codeerr { margin: 6px auto 0; font-size: 13px; color: var(--mm-corail-f); }
+.eg1-result { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 1.3fr .7fr; gap: 20px; align-items: start; }
+.eg1-cert { border-radius: 28px; border: 1.5px solid var(--ink); background: linear-gradient(135deg, var(--bento), var(--paper-2)); padding: 40px; position: relative; overflow: hidden; }
+.eg1-cert::before { content: ""; position: absolute; right: -60px; top: -60px; width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle, var(--mm-teal-c), transparent 70%); }
+.eg1-cert > * { position: relative; }
+.eg1-cert.is-idle { border-style: dashed; border-color: var(--ink-3); }
+.eg1-cert.is-idle::before, .eg1-cert.is-bad::before { display: none; }
+.eg1-cert.is-bad { border-color: var(--stop); }
+.eg1-cert__title { display: block; font: 900 40px/1.02 var(--f-display); margin: 12px 0 8px; }
+.eg1-cert__who { font: italic 600 24px/1 var(--f-display); color: var(--mm-bleu-f); }
+.eg1-cert__facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 30px; font-size: 13px; }
+.eg1-cert__facts span { color: var(--ink-2); }
+.eg1-cert__facts b { display: block; font-size: 15px; }
+.eg1-cert__foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-2); }
+.eg1-side { display: flex; flex-direction: column; gap: 14px; }
+.eg1-side h3 { font-size: 17px; margin: 0; }
+.eg1-side p { font-size: 13.5px; color: var(--ink-2); margin: 10px 0 0; }
+.eg1-side .mm-card.is-soft { background: var(--paper-2); }
+.eg1-miss { border-radius: 20px; border: 1px dashed var(--stop); padding: 16px; font-size: 13.5px; }
+.eg1-miss b { color: var(--stop); display: block; }
+.eg1-miss span { color: var(--ink-2); }
+
+/* ── Mobile (maquettes 390) ──────────────────────────────────────────────── */
+@media (max-width: 899px) {
+  .eg1-wrap { padding: 44px 16px 0; }
+  .eg1-wrap.is-last { padding-bottom: 170px; }
+  .eg1-hero { padding: calc(var(--header-h, 64px) + 16px) 16px 0; border-radius: 0 0 28px 28px; }
+  .eg1-hero__in { padding: 24px 0 36px; }
+  .eg1-hero .mm-script { font-size: 24px; }
+  .eg1-hero h1, .eg1-hero h1.is-xl { font-size: 58px; }
+  .eg1-hero h1.is-m { font-size: 50px; }
+  .eg1-hero__lede { font-size: 15.5px; }
+  .eg1-hero__foot { margin-top: 32px; justify-content: flex-start; }
+  .eg1-scroll { display: none; }
+  .eg1-h2, .eg1-orange__head h2, .eg1-dark h2 { font-size: 34px; }
+  .eg1-split, .eg1-split.is-a, .eg1-split.is-b, .eg1-dark, .eg1-duo, .eg1-limits, .eg1-result { grid-template-columns: 1fr; gap: 24px; }
+  .eg1-steps { grid-template-columns: 1fr; border-top: 0; }
+  .eg1-step, .eg1-step:first-child { padding: 18px 0; border-left: 0; border-top: 1px solid var(--line); }
+  .eg1-orange, .eg1-dark { padding: 24px; border-radius: 28px; }
+  .eg1-prods { grid-template-columns: 1fr; }
+  .eg1-quotas { grid-template-columns: 1fr; }
+  .eg1-limits__grid { grid-template-columns: 1fr; }
+  .eg1-cert { padding: 24px; }
+  .eg1-cert__title { font-size: 30px; }
+  .eg1-photos .mm-photo { height: 200px; }
+  .eg1-codeform { flex-direction: column; }
+}
+
+@media (max-width: 899px) {
+  .eg1 .mm-learn { grid-template-columns: 1fr; }
+  .eg1 .mm-learn > div { min-height: 0; border-right: 0; padding: 18px 20px; }
+}
+
+/* Méthode, 390 : les quatre temps en liste (pastille à gauche), la leçon type réduite à sa
+   vidéo, et la bande « Ce qui fait la différence » absente — comme la maquette mobile. */
+@media (max-width: 899px) {
+  .eg1-step, .eg1-step:first-child { display: grid; grid-template-columns: 46px 1fr; column-gap: 14px; border-top: 0; padding: 14px 0; }
+  .eg1-step__top { display: contents; }
+  .eg1-step__ico { grid-column: 1; grid-row: 1 / span 3; }
+  .eg1-step__n { grid-column: 2; font: 600 11px/1 var(--f-mono); color: var(--ink-3) !important; }
+  .eg1-step b.t { grid-column: 2; font-size: 16px; margin: 4px 0 6px; }
+  .eg1-step span.d { grid-column: 2; font-size: 13.5px; }
+  .eg1-lesson { padding: 0; background: none; }
+  .eg1-lesson__grid { display: none; }
+  .eg1-lesson__video { height: 180px; }
+  .eg1-split.is-b > .eg1-lesson { order: 2; }
+  .eg1-only-wide { display: none; }
+}
+
+/* Une couverture porte une photo en `absolute` : sa boîte doit la contenir, quoi qu'il arrive
+   aux règles du kit (garde locale, sans couleur). */
+.eg1 .mm-cover { position: relative; overflow: hidden; isolation: isolate; }
+
+/* Accueil, 390 : photos plus basses, catalogue en défilement horizontal, section « La mission »
+   absente de la maquette mobile — Rysmo/Club devient la dernière section avant le pré-pied. */
+@media (max-width: 899px) {
+  .eg1 .eg1-split > .mm-photo.is-edu { height: 200px !important; }
+  .eg1-portrait { height: 300px !important; }
+  .eg1-prods { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 82%; overflow-x: auto; scroll-snap-type: x mandatory; margin: 20px -16px 0; padding: 0 16px 8px; }
+  .eg1-prods > * { scroll-snap-align: start; }
+  .eg1-wrap.is-last-m { padding-bottom: 170px; }
+}
+
+.eg1-split.is-hero { grid-template-columns: 1fr .9fr; }
+@media (max-width: 899px) {
+  .eg1-split.is-hero { grid-template-columns: 1fr; }
+  .eg1-limits__grid .mm-card { padding: 0; border: 0; background: none; box-shadow: none; }
+}
+
+/* Vérifier, 390 : le champ garde sa hauteur en colonne ; la colonne d'explications et le
+   chapeau ne figurent pas sur la maquette mobile. */
+@media (max-width: 899px) {
+  .eg1-codeform input { flex: none; }
+  .eg1-codeform .mm-pill { justify-content: space-between; }
+  .eg1-result .eg1-side { display: none; }
+  .eg1-hero__in.is-center .eg1-hero__lede { display: none; }
+  .eg1-hero__in.is-center { text-align: left; }
+}

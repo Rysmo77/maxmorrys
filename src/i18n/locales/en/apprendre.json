@@ -84,5 +84,106 @@
     "title": "Not sure where to start?",
     "body": "Write to me. I answer myself, and I'll tell you whether what I do answers your question — or whether it isn't worth it.",
     "cta": "Ask me the question"
+  },
+  "v3": {
+    "seoTitle": "Max-Morrys Edu — short digital courses",
+    "seoDescription": "Digital marketing, SEO, AI: short courses paid once with Wave, Orange Money or card, yours forever, with a mission in every lesson.",
+    "hero": {
+      "script": "Short digital courses",
+      "titleLines": [
+        "I teach you",
+        "digital."
+      ],
+      "lede": "Digital marketing, SEO, AI. You pay with Wave, Orange Money or card, access opens right away, and it's yours forever.",
+      "ctaCourses": "See the courses",
+      "ctaMethod": "Discover the method",
+      "trainer": "Trainer since 2024",
+      "scroll": "Scroll"
+    },
+    "why": {
+      "eyebrow": "Why these courses",
+      "title": "Learn by doing, on your real project.",
+      "body": "Every lesson ends with a mission: your Google listing, your offer, your first post. At the end you don't have a notebook, you have something online.",
+      "cta": "See the method"
+    },
+    "trainer": {
+      "eyebrow": "Your trainer",
+      "title": "Max-Morrys, from Douala",
+      "titleHl": "to Dakar.",
+      "body1": "Economist by training, digital marketer by trade. Head of digital marketing at Eyone Medical, founder of MY ONOMA, trainer since 2024.",
+      "body2": "I teach what I apply every day, with the tools and payment methods used here.",
+      "cta": "My journey"
+    },
+    "skills": {
+      "title": "What you'll learn",
+      "lede": "Six skills, spread across the courses. Each ends with a mission.",
+      "items": {
+        "niche": {
+          "title": "Find your niche",
+          "body": "Pick a customer you can serve this very week."
+        },
+        "offer": {
+          "title": "Write an offer that reads",
+          "body": "A promise, a price, a proof you can show."
+        },
+        "google": {
+          "title": "Get found on Google",
+          "body": "Business listing, neighbourhood keywords, real reviews."
+        },
+        "publish": {
+          "title": "Post without burning out",
+          "body": "A sustainable calendar, three formats that work."
+        },
+        "whatsapp": {
+          "title": "Sell on WhatsApp",
+          "body": "Catalogue, quick replies, Wave payment."
+        },
+        "measure": {
+          "title": "Measure what matters",
+          "body": "Three numbers that decide, not thirty."
+        }
+      }
+    },
+    "courses": {
+      "title": "The courses",
+      "lede": "Each course is paid once and stays yours. Its free lessons can be read without an account.",
+      "tabsLabel": "Categories",
+      "all": "All",
+      "free_one": "{{count}} free lesson",
+      "free_other": "{{count}} free lessons",
+      "soon": "Coming soon",
+      "level": "Level",
+      "lessons": "Lessons",
+      "once": "One-off",
+      "see": "See the course",
+      "notify": "Notify me",
+      "all_cta": "The full catalogue",
+      "emptyTitle": "No course is published yet.",
+      "emptyBody": "Sign up below: you'll get an email the day the first one opens."
+    },
+    "rysmo": {
+      "title": "Rysmo IA, your assistant",
+      "sub": "It answers about the lesson in front of you.",
+      "demoQ": "My Google listing has few reviews. How do I get more without buying them?",
+      "demoA": "Ask right after a job well done, with a short message and the direct link to your listing. Want me to help you write it for your shop?",
+      "demoTag": "example conversation · quota shown before every question",
+      "more": "What Rysmo IA does"
+    },
+    "club": {
+      "eyebrow": "Digitos Club",
+      "title": "Alone, you learn. In the Club, you move forward.",
+      "body": "Club member: −{{discount}}% on every course and {{bonus}} more Rysmo IA questions a day.",
+      "cta": "Discover the Club"
+    },
+    "truth": {
+      "title": "What I don't show",
+      "body": "No rating, no enrolment count: the platform has just opened and I have nothing honest to say about it yet. Reviews will appear after moderation."
+    },
+    "mission": {
+      "eyebrow": "The mission",
+      "title": "Make digital learnable, payable and verifiable.",
+      "body": "No jargon, no income promises. Methods that work with a phone, an average connection and a shopkeeper's budget.",
+      "cta": "See the method"
+    }
   }
 }

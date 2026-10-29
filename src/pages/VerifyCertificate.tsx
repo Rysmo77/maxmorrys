@@ -1,33 +1,24 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, Field, GlassPanel, Icon, Num } from '@ds';
+import { Icon, LogoMark, Num } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
-import DsNavHost from '../components/layout/DsNavHost';
-import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
-import { useLocalizedPath } from '../contexts/LanguageContext';
+import LocalizedLink from '../components/shared/LocalizedLink';
+import { EduNightHero } from '../components/edu/g1/EduPublic';
+import EduPreFooter from '../components/edu/g2/EduPreFooter';
 import { useFormat } from '../hooks/useFormat';
 import { getCertificateByCode } from '../lib/firestore';
 import { captureError } from '../lib/sentry';
 import type { CertificateLookup } from '../types';
 
-import Bento from '../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * /verifier — LE CONTRÔLE D'UN CODE.  Kit : `site-public/PagesUtiles.js` § Verifier,
- * et `plateforme/ScreensNotes.js` § Verification pour la version 390 px.
+ * /verifier — LE CONTRÔLE D'UN CODE.  Passe 2 : maquettes `Edu-Certificat.dc.html` (+ mobile) —
+ * héros de nuit qui porte le champ, puis le certificat à gauche et « Comment ça marche » à droite.
  *
- * LE PIED DE PAGE ANNONÇAIT « Vérifier un certificat » DEPUIS LE DÉBUT, et la page n'existait
- * pas. Seule `/certificat/:code` existait : elle affiche un certificat dont on a déjà le lien.
- * Ce n'est pas la même chose — un employeur a un PDF entre les mains, pas une URL.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * CE QUI REND CETTE PAGE DIFFÉRENTE DE TOUTES LES AUTRES DU SITE : LE LECTEUR.
- *
- * Partout ailleurs, la voix s'adresse à l'apprenante — tutoiement, première personne, « je te
- * forme ». Ici c'est un TIERS qui lit : un employeur, un client, un jury. Il ne connaît pas la
- * marque, ne lui doit rien, et cherche une réponse binaire. Le kit règle ça par un ton neutre
- * et par ce qu'il n'affiche pas : aucune vente, aucun lien vers le catalogue, aucune bannière.
+ * ⚠️ DÉCISION LEVÉE (passe 2) : la page n'affichait « aucune vente, aucun lien vers le
+ * catalogue ». La maquette, qui fait foi, la termine par le pré-pied Edu : il est rendu. Le
+ * VERDICT, lui, reste neutre et sans vente.
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * LES TROIS RÉPONSES SONT DISTINCTES, ET C'EST LE CŒUR DE L'ÉCRAN.
@@ -41,14 +32,12 @@ import Bento from '../components/formations/Bento';
  * ─────────────────────────────────────────────────────────────────────────────
  * CE QUE LA PAGE NE MONTRE PAS, ET POURQUOI CE N'EST PAS UN OUBLI
  *
- * Le kit affiche une ligne « Leçons validées · 47 / 47 ». `CertificateLookup` ne porte pas de
- * nombre de leçons — il porte le code, le titre, la date et le nom. Le 47 est une donnée de
- * démonstration, et un nombre de démonstration finit en production (règle 6). La ligne n'est
- * donc pas rendue, exactement comme sur `lms/Certificate`.
+ * La maquette affiche « Leçons validées · 24 / 24 » et une carte « Compétences validées ».
+ * `CertificateLookup` ne porte ni nombre de leçons ni compétences — il porte le code, le titre,
+ * la date et le nom. Ces éléments de démonstration ne sont donc pas rendus (règle 6).
  *
  * Et la recherche ne remonte à aucun compte : `certificate_lookups` est un miroir indexé PAR
- * LE CODE, sans UID. C'est ce qui permet à cette page d'être publique sans exposer personne —
- * l'encart de vérité dit précisément cela.
+ * LE CODE, sans UID. C'est ce qui permet à cette page d'être publique sans exposer personne.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -63,7 +52,6 @@ type Result =
 export default function VerifyCertificate() {
   const { t } = useTranslation('lms');
   const { formatDate } = useFormat();
-  const path = useLocalizedPath();
 
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | undefined>();
@@ -75,9 +63,7 @@ export default function VerifyCertificate() {
    * ⛔ LE LIEN PARTAGÉ DEPUIS L'APPLICATION VÉRIFIE TOUT DE SUITE. L'application partage
    * `/verifier?code=…` : le préfixe `/verifier` est celui que déclarent les liens profonds
    * (`assetlinks.json`, `apple-app-site-association`), donc le lien ouvre l'application chez
-   * qui l'a, et CETTE page chez qui ne l'a pas — un employeur, un jury. Elle partageait
-   * `/verifier/<code>`, que le routeur ne sert pas : la personne qui contrôlait un certificat
-   * tombait sur une page 404, c'est-à-dire sur ce qui ressemble le plus à un faux document.
+   * qui l'a, et CETTE page chez qui ne l'a pas — un employeur, un jury.
    */
   useEffect(() => {
     const recu = params.get('code');
@@ -95,22 +81,11 @@ export default function VerifyCertificate() {
   }
 
   async function verifier(brut: string) {
-
     /*
-     * Les codes sont émis en capitales et sans espace (`crypto` puis mise en forme, voir
-     * `issueCertificate`). Quelqu'un qui recopie depuis un PDF colle souvent une espace de
-     * fin, ou saisit en minuscules : normaliser ici évite un « introuvable » qui serait une
-     * erreur de saisie présentée comme un verdict sur le document.
-     */
-    /*
-     * ⛔ ON RETIRE AUSSI LES TIRETS SURNUMÉRAIRES, et ce n'est pas de la coquetterie.
-     *
-     * Le code émis est « MM- » suivi de DIX caractères d'un seul tenant. Mais l'indication
-     * sous ce champ annonçait « quatre groupes, séparés par des tirets, tels qu'ils
-     * figurent sur le document » : quelqu'un qui recopiait COMME INDIQUÉ obtenait « aucun
-     * certificat à ce code » SUR UN DOCUMENT AUTHENTIQUE. L'indication est corrigée dans
-     * l'i18n ; cette normalisation rattrape ceux qui l'ont déjà lue, et les groupements
-     * que le kit dessine.
+     * Les codes sont émis en capitales : « MM- » suivi de DIX caractères d'un seul tenant.
+     * Quelqu'un qui recopie depuis un PDF colle une espace de fin, saisit en minuscules ou
+     * ajoute des tirets : normaliser ici évite un « introuvable » qui serait une erreur de
+     * saisie présentée comme un verdict sur le document.
      */
     const nu = brut.toUpperCase().replace(/[^A-Z0-9]/g, '');
     const cleaned = nu.startsWith('MM') ? `MM-${nu.slice(2)}` : nu;
@@ -132,160 +107,153 @@ export default function VerifyCertificate() {
     }
   }
 
+  const busy = result.kind === 'searching';
+
   return (
-    <DsNavHost>
+    <div className="eg1">
       <SEOHead title={t('verify.seoTitle')} description={t('verify.seoDescription')} />
 
-      <PageSite>
-        <div className="grid items-center gap-11 wide:grid-cols-[.95fr_1.05fr]">
-          {/* ── La colonne de gauche : le code, et ce que la page ne fait pas ──── */}
-          <div>
-            <SiteDisplay lines={t('verify.titleLines', { returnObjects: true }) as string[]} size={56} style={{ textTransform: 'uppercase', letterSpacing: '-.045em' }} />
-
-            <p className="rv mt-[14px] max-w-[42ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 3 }}>
-              {t('verify.lede')}
-            </p>
-
-            {/*
-              UN VRAI <form>. Entrée valide depuis le champ, sans qu'on ait à câbler la touche :
-              c'est le geste de quelqu'un qui vient de coller un code, et le seul geste qu'il
-              fera sur cette page.
-            */}
-            {/*
-              ── UNE SEULE LIGNE DE 62 PX, comme le kit (`PagesUtiles.js:115`) ─────────────
-              Le kit dessine ici une barre : `padding="0 18px"`, hauteur 62, le code en
-              monospace à gauche et le bouton collé à droite. La production empilait un champ
-              étiqueté, son indice, puis un bouton pleine largeur — un bloc environ trois fois
-              plus haut, pour le seul geste que quelqu'un fera sur cette page : coller un code.
-
-              LE LIBELLÉ N'EST PAS SUPPRIMÉ, il est masqué à l'œil (`hideLabel`) : le contrôle
-              garde son `<label for>` pour un lecteur d'écran. L'indice et l'erreur descendent
-              SOUS la barre — ils ne peuvent pas tenir dans une ligne de 62 px sans la faire
-              grandir, et c'est la hauteur fixe qui fait la silhouette.
-            */}
-            <form onSubmit={onSubmit} noValidate>
-              <Bento padding="0 18px"
-                className="rv mt-[22px] flex items-center gap-3"
-                style={{ ['--i' as string]: 4, height: '62px' }}
-              >
-                <Field
-                  label={t('verify.codeLabel')}
-                  hideLabel
-                  value={code}
-                  onChange={(value) => { setCode(value); if (error) setError(undefined); }}
-                  placeholder={t('verify.codePlaceholder')}
-                  autoComplete="off"
-                  className="min-w-0 flex-1"
-                  style={{ marginTop: 0 }}
-                />
-                <Button type="submit" tone="primary" size="sm" fullWidth={false} loading={result.kind === 'searching'}>
-                  {t('verify.submit')}
-                </Button>
-              </Bento>
-
-              <p className="mt-2 mb-0 text-small leading-[1.5] text-ink-2">{t('verify.codeHint')}</p>
-              {error && (
-                <p className="mt-1 mb-0 text-small leading-[1.5] text-stop" role="alert">{error}</p>
-              )}
-            </form>
-
-            <GlassPanel level="truth" className="rv mt-5 max-w-[46ch]" style={{ ['--i' as string]: 5 }}>
-              <SiteEyebrow style={{ margin: '0 0 6px' }}>{t('verify.truthTitle')}</SiteEyebrow>
-              <p className="m-0 text-meta leading-[1.6] text-ink-2">{t('verify.truthBody')}</p>
-            </GlassPanel>
+      <EduNightHero
+        center
+        size="m"
+        script={t('verify.script')}
+        title={t('verify.titleLines', { returnObjects: true }) as string[]}
+        lede={t('verify.lede')}
+      >
+        {/* UN VRAI <form> : Entrée valide depuis le champ — le seul geste de cette page. */}
+        <form onSubmit={onSubmit} noValidate>
+          <div className="eg1-codeform">
+            <label htmlFor="verify-code" className="sr-only">{t('verify.codeLabel')}</label>
+            <input
+              id="verify-code"
+              value={code}
+              onChange={(e) => { setCode(e.target.value); if (error) setError(undefined); }}
+              placeholder={t('verify.codeLabel')}
+              autoComplete="off"
+              spellCheck={false}
+              aria-describedby="verify-code-hint"
+            />
+            <button className="mm-pill" type="submit" disabled={busy} aria-busy={busy}>
+              {t('verify.submit')}
+              <i><Icon name="arrow-up-right" size={14} strokeWidth={2.2} /></i>
+            </button>
           </div>
+          <p id="verify-code-hint" className="eg1-codehelp">{t('verify.codeHint')}</p>
+          {error && <p className="eg1-codeerr" role="alert">{error}</p>}
+        </form>
+      </EduNightHero>
 
-          {/* ── La colonne de droite : la réponse, quelle qu'elle soit ─────────── */}
+      <section className="eg1-wrap is-last" style={{ paddingTop: '56px' }}>
+        <div className="eg1-result">
           {/*
             `aria-live="polite"` — la réponse arrive SANS changement de page ni déplacement du
-            focus. Sans cette région, un lecteur d'écran ne dit rien du tout : la personne
-            appuie sur « Vérifier » et le silence est la seule chose qu'elle obtient.
+            focus. Sans cette région, un lecteur d'écran ne dit rien du tout.
           */}
           <div aria-live="polite">
             {result.kind === 'found' ? (
-              <ValidCertificate certificate={result.certificate} formatDate={formatDate} href={path(`/certificat/${result.certificate.certificateCode}`)} />
+              <ValidCertificate certificate={result.certificate} formatDate={formatDate} />
             ) : result.kind === 'unknown' ? (
-              <Bento tone="hero" padding={30} className="rv-s">
-                <div className="flex items-start gap-[13px]">
-                  <span aria-hidden="true" className="grid h-[42px] w-[42px] flex-none place-items-center rounded-full" style={{ background: 'color-mix(in srgb, var(--warn) 16%, transparent)' }}>
-                    <Icon name="alert" size={21} color="var(--warn)" />
-                  </span>
-                  <div>
-                    <p className="m-0 text-[17px] font-bold text-warn">{t('verify.notFoundTitle')}</p>
-                    <p className="mt-[6px] mb-0 max-w-[44ch] text-meta leading-[1.6] text-ink-2">{t('verify.notFoundBody')}</p>
-                  </div>
-                </div>
-                <Button href={path('/contact')} tone="quiet" size="sm" fullWidth={false} className="mt-5">
-                  {t('verify.contact')}
-                </Button>
-              </Bento>
+              <Verdict tone="warn" title={t('verify.notFoundTitle')} body={t('verify.notFoundBody')} contact />
             ) : result.kind === 'failed' ? (
-              <Bento tone="hero" padding={30} className="rv-s">
-                <div className="flex items-start gap-[13px]">
-                  <span aria-hidden="true" className="grid h-[42px] w-[42px] flex-none place-items-center rounded-full" style={{ background: 'color-mix(in srgb, var(--stop) 16%, transparent)' }}>
-                    <Icon name="alert" size={21} color="var(--stop)" />
-                  </span>
-                  <div>
-                    <p className="m-0 text-[17px] font-bold text-stop">{t('verify.failedTitle')}</p>
-                    <p className="mt-[6px] mb-0 max-w-[44ch] text-meta leading-[1.6] text-ink-2">{t('verify.failedBody')}</p>
-                  </div>
-                </div>
-              </Bento>
+              <Verdict tone="stop" title={t('verify.failedTitle')} body={t('verify.failedBody')} />
             ) : (
-              /* Avant toute recherche : ce qui s'affichera, et ce qui ne s'affichera pas. */
-              <Bento padding={30} className="rv" style={{ ['--i' as string]: 6 }}>
-                <SiteEyebrow style={{ margin: 0 }}>{t('verify.idleTitle')}</SiteEyebrow>
-                <p className="mt-2 mb-0 max-w-[42ch] text-meta leading-[1.6] text-ink-2">{t('verify.idleBody')}</p>
-              </Bento>
+              <div className="eg1-cert is-idle">
+                <span className="mm-eyebrow">{t('verify.idleTitle')}</span>
+                <p className="m-0 mt-3 max-w-[44ch] text-[15px] leading-[1.6] text-ink-2">{t('verify.idleBody')}</p>
+              </div>
             )}
           </div>
+
+          <div className="eg1-side">
+            <div className="mm-card is-soft">
+              <h3>{t('verify.howTitle')}</h3>
+              <p>{t('verify.howBody')}</p>
+            </div>
+            <div className="mm-card">
+              <h3>{t('verify.truthTitle')}</h3>
+              <p>{t('verify.truthBody')}</p>
+            </div>
+            <div className="eg1-miss">
+              <b>{t('verify.missTitle')}</b>
+              <span>{t('verify.missBody')}</span>
+            </div>
+          </div>
         </div>
-      </PageSite>
-    </DsNavHost>
+      </section>
+
+      <EduPreFooter source="edu-verifier" />
+    </div>
   );
 }
 
-/**
- * LA CARTE DE RÉPONSE POSITIVE.
- *
- * Bordure verte et glyphe : le verdict se lit avant la lecture. La ligne « Leçons validées »
- * du kit n'y est pas — voir l'en-tête du fichier.
- */
-function ValidCertificate({
-  certificate,
-  formatDate,
-  href,
-}: {
+interface VerdictProps {
+  tone: 'warn' | 'stop';
+  title: string;
+  body: string;
+  contact?: boolean;
+}
+
+/** Les deux réponses négatives : distinctes, et jamais confondues (voir l'en-tête). */
+function Verdict({ tone, title, body, contact = false }: VerdictProps) {
+  const { t } = useTranslation('lms');
+  const color = tone === 'warn' ? 'var(--warn)' : 'var(--stop)';
+  return (
+    <div className="eg1-cert is-bad" style={{ borderColor: color }}>
+      <div className="flex items-start gap-[13px]">
+        <span aria-hidden="true" className="grid h-[42px] w-[42px] flex-none place-items-center rounded-pill" style={{ background: `color-mix(in srgb, ${color} 16%, transparent)` }}>
+          <Icon name="alert" size={21} color={color} />
+        </span>
+        <div>
+          <p className="m-0 text-[19px] font-bold" style={{ color }}>{title}</p>
+          <p className="mt-[6px] mb-0 max-w-[48ch] text-[14.5px] leading-[1.6] text-ink-2">{body}</p>
+        </div>
+      </div>
+      {contact && (
+        <LocalizedLink to="/contact" className="mm-pill is-sm is-plain mt-5" style={{ display: 'inline-flex' }}>
+          {t('verify.contact')}
+        </LocalizedLink>
+      )}
+    </div>
+  );
+}
+
+interface ValidCertificateProps {
   certificate: CertificateLookup;
   formatDate: (value: string) => string;
-  href: string;
-}) {
+}
+
+/**
+ * LE CERTIFICAT AUTHENTIQUE, au gabarit de la maquette. Chaque valeur vient de la base ; la
+ * ligne « Leçons validées » n'y est pas — voir l'en-tête du fichier.
+ */
+function ValidCertificate({ certificate, formatDate }: ValidCertificateProps) {
   const { t } = useTranslation('lms');
   const issuedAt = new Date(certificate.issuedAt);
 
   return (
-    <Bento tone="hero" padding={30} className="rv-s" style={{ borderColor: 'color-mix(in srgb, var(--ok) 34%, transparent)' }}>
-      <div className="flex items-start gap-[13px]">
-        <span aria-hidden="true" className="grid h-[42px] w-[42px] flex-none place-items-center rounded-full" style={{ background: 'color-mix(in srgb, var(--ok) 16%, transparent)' }}>
-          <Icon name="check" size={21} color="var(--ok)" />
-        </span>
+    <div className="eg1-cert">
+      <span className="mm-tag is-ok"><i />{t('verify.validTitle')}</span>
+      <span className="mm-eyebrow" style={{ display: 'flex', marginTop: '22px' }}>{t('verify.kind')}</span>
+      <b className="eg1-cert__title">{certificate.formationTitle}</b>
+      <span className="eg1-cert__who">{certificate.holderName}</span>
+      <div className="eg1-cert__facts">
         <div>
-          <p className="m-0 text-[17px] font-bold text-ok">{t('verify.validTitle')}</p>
-          <p className="mt-[3px] mb-0 text-meta text-ink-2">{t('verify.validIssuer')}</p>
+          <span>{t('verify.issuedOn')}</span>
+          <b><Num value={formatDate(certificate.issuedAt)} source="db" asOf={issuedAt} /></b>
+        </div>
+        <div>
+          <span>{t('verify.code')}</span>
+          <b><Num value={certificate.certificateCode} source="db" asOf={issuedAt} /></b>
         </div>
       </div>
-
-      <div className="my-5 h-px bg-[color:var(--border-hair)]" />
-
-      {/* Les quatre lignes que le miroir porte réellement. Chaque valeur vient de la base. */}
-      <DocLine label={t('verify.holder')} value={certificate.holderName} />
-      <DocLine label={t('verify.formation')} value={certificate.formationTitle} />
-      <DocLine label={t('verify.issuedOn')} value={<Num value={formatDate(certificate.issuedAt)} source="db" asOf={issuedAt} />} />
-      <DocLine label={t('verify.code')} value={<Num value={certificate.certificateCode} source="db" asOf={issuedAt} />} last />
-
-      <Button href={href} tone="quiet" size="sm" fullWidth={false} className="mt-5">
+      <div className="eg1-cert__foot">
+        <span>{t('verify.validIssuer')}</span>
+        <LogoMark size={40} />
+      </div>
+      <LocalizedLink to={`/certificat/${certificate.certificateCode}`} className="mm-pill is-sm mt-5" style={{ display: 'inline-flex' }}>
         {t('verify.openCertificate')}
-      </Button>
-    </Bento>
+        <i><Icon name="arrow-up-right" size={14} strokeWidth={2.2} /></i>
+      </LocalizedLink>
+    </div>
   );
 }

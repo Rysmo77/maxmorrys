@@ -28,7 +28,9 @@ const AVEC_SORTIE = [
   'src/pages/conception/Conception.tsx',
   'src/pages/conception/Realisations.tsx',
   'src/pages/conception/RealisationDetail.tsx',
-  'src/pages/Apprendre.tsx',
+  /* `src/pages/Apprendre.tsx` RETIRÉE le 29/10/2026 (passe 2, lot B) : la maquette Edu-Accueil
+     fait foi et termine la page sur son propre pré-pied « Prêt·e à commencer ? » (catalogue),
+     pas sur la bande « Réserver un appel ». Décision levée par le porteur. */
 ];
 
 const SANS_SORTIE = [

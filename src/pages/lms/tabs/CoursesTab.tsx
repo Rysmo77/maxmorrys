@@ -1,61 +1,30 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import {
-  Button, EmptyState, GlassPanel, Icon, Num, Skeleton, Tag,
-} from '@ds';
-import { useLocalizedPath } from '../../../contexts/LanguageContext';
+import { Icon, Num, Skeleton } from '@ds';
+import LocalizedLink from '../../../components/shared/LocalizedLink';
 import { useMediaQuery } from '../../../hooks/useMediaQuery';
-import SpaceSplit from '../components/SpaceSplit';
-import ResumePanel from '../components/ResumePanel';
 import CourseCover from '../../../components/formations/CourseCover';
+import OfflineCard from '../../../components/edu/g3/OfflineCard';
+import { flattenLessons } from '../../../components/edu/g3/quiz';
+import { CLUB_MEMBER_FORMATION_DISCOUNT } from '../../../lib/club/pricing';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import type { Certificate } from '../../../types';
 import { estAVenir } from '../../../types/formationRelease';
 
-import Bento from '../../../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * L'ÉCRAN « COURS » — la pile des formations de la personne.
+ * « MES FORMATIONS » — maquette `Edu-Cours` (kit v3, passe 2 lot B).
  *
- * Recomposé sur `ScreensCatalogue.js` (la carte territoire) et sur la carte de reprise de
- * `ScreensSpace.js` (la barre de progression et son compte de leçons), puis élargi sur
- * `handoff_tableaux_de_bord/dashboards-app.jsx` § CoursDesktop.
+ * Colonne principale : filtre par état (`mm-tabs`, comptes DÉDUITS des inscriptions), puis une
+ * carte horizontale par formation — couverture, état, progression, prochaine leçon, actions.
+ * Colonne de droite (≥ 1080 px) : hors connexion (poids mesurés), le catalogue, l'offre Club.
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * CE QUI A DISPARU, ET POURQUOI
- *
- * · `FormationCard`. La carte du catalogue public rend une note en étoiles et un nombre
- *   d'inscrits (`formation.rating`, `formation.students`) — deux des interdits absolus du
- *   système — et importe `lucide-react`, ce qui poserait une seconde famille d'icônes sur cet
- *   écran. La carte reste en place pour les surfaces publiques ; elle n'entre plus ici.
- *   Ce que le kit demande — territoire, méta, progression, prix — est rendu par <TerritoryCard>.
- *
- * · LA PROMESSE « 3× PLUS VITE » de l'état vide. Un chiffre de conversion que rien ne mesure
- *   dans ce produit. Un état vide invite ; il n'argumente pas avec un chiffre inventé.
- *
- * LA CARTE EST LE LIEN. Le kit pose un bouton « Voir » dans la carte ; ici la carte entière
- * mène au lecteur. Un bouton interactif à l'intérieur d'un lien est du HTML invalide, et
- * deux cibles pour une seule destination font hésiter au doigt.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * CE QUE LA LARGEUR APPORTE — `CoursDesktop`, et rien de plus
- *
- * · UNE TROISIÈME COLONNE : la reprise, « pour qu'elle soit atteignable depuis n'importe
- *   quelle page de cours et pas seulement depuis l'accueil », et ce qui est gardé hors
- *   connexion avec son poids mesuré. Voir `ResumePanel`.
- *
- * · UN FILTRE PAR ÉTAT, pas par date. Le même principe que la console : on cherche « ce
- *   qui attend », pas « ce qui s'est passé mardi ». Les trois comptes sont RÉELS — ils se
- *   déduisent de `enrollment.progress`, aucun n'est écrit à la main.
- *
- * · LE COMPTE DE CERTIFICATS, DATÉ. La maquette écrit « 0 certificat » et c'est délibéré :
- *   « un zéro daté est une information ; un tiret n'en est pas une ». Le compte vient de
- *   `certificates`, la même lecture qui alimentait déjà l'étiquette par carte.
- *
- * · L'ENCART DE VÉRITÉ sur ce qui reste acquis. Il ne promet rien de neuf : il écrit ce que
- *   les CGV tiennent déjà — accès à vie, mises à jour comprises, certificats vérifiables
- *   après suppression du compte.
+ * Écarts assumés à la maquette :
+ *   · « Liste d'attente » devient « À venir » : la liste d'attente n'est LISTABLE que par
+ *     l'administration, l'écran ne peut donc pas la lire ; les précommandes, si.
+ *   · « Enregistrées » n'existe pas (aucun favori en base) : la carte mène au catalogue.
+ *   · « dernière visite hier » : aucune date de visite n'est stockée, la mention est retirée.
+ * La remise Club est lue dans `lib/club/pricing.ts` (miroir serveur), jamais écrite ici.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -63,222 +32,180 @@ interface CoursesTabProps {
   enrolledFormations: EnrolledFormation[];
   loadingEnrollments: boolean;
   certificates?: Certificate[];
+  isClubActive?: boolean;
 }
 
-/** Les trois états d'une inscription. Ils se DÉDUISENT de la progression, ils ne sont pas stockés. */
-type CourseFilter = 'all' | 'ongoing' | 'done';
+type CourseFilter = 'all' | 'ongoing' | 'done' | 'soon';
 
-export default function CoursesTab({ enrolledFormations, loadingEnrollments, certificates = [] }: CoursesTabProps) {
+export default function CoursesTab({ enrolledFormations, loadingEnrollments, certificates = [], isClubActive = false }: CoursesTabProps) {
   const { t } = useTranslation('lmsTabs');
-  const navigate = useNavigate();
-  const path = useLocalizedPath();
   const certByFormation = new Map(certificates.map((c) => [c.formationId, c]));
-
   const [filter, setFilter] = useState<CourseFilter>('all');
-
-  /*
-    ── POURQUOI UN CROCHET ET PAS UNE CLASSE ────────────────────────────────────
-    `ResumePanel` ouvre le cache hors connexion à son montage. Une classe `hidden`
-    le monterait quand même sur téléphone — le travail partirait, invisible. 1080 px
-    est la rupture que le système déclare, et celle que `SpaceSplit` utilise : deux
-    valeurs différentes ouvriraient une bande où la colonne existe sans son panneau.
-  */
+  /* Le cache hors connexion ne s'ouvre qu'en grand écran : monté par crochet, pas masqué. */
   const isWide = useMediaQuery('(min-width: 1080px)');
-
-  /* La date du relevé : l'instant de la lecture Firestore qui a produit ces inscriptions. */
   const asOf = new Date();
 
-  /*
-   * ⚠️ UNE PRÉCOMMANDE N'EST PAS UNE FORMATION « EN COURS ».
-   *
-   * L'inscription existe dès le paiement — c'est ce qui fait qu'on possède la formation — et
-   * sa progression vaut 0, donc « < 100 ». Sans cette exclusion, une précommande gonflerait
-   * le compte « en cours » d'un cours qu'il est impossible de commencer, et qu'on ne peut
-   * donc jamais faire redescendre.
-   */
-  const counts = useMemo(() => ({
-    all: enrolledFormations.length,
-    ongoing: enrolledFormations.filter((ef) => !estAVenir(ef.formation) && ef.enrollment.progress < 100).length,
-    done: enrolledFormations.filter((ef) => ef.enrollment.progress === 100).length,
-  }), [enrolledFormations]);
+  const stateOf = (ef: EnrolledFormation): Exclude<CourseFilter, 'all'> =>
+    estAVenir(ef.formation) ? 'soon' : ef.enrollment.progress >= 100 ? 'done' : 'ongoing';
 
-  /* La formation à reprendre : celle qui est entamée, sinon la première non terminée.
-     Même règle que le tableau de bord — un seul objet de reprise, jamais deux. */
-  const resume = useMemo(() => {
-    // On ne reprend pas ce qui n'a pas commencé : une formation à venir n'a rien à ouvrir.
-    const ouvrables = enrolledFormations.filter((ef) => !estAVenir(ef.formation));
-    return ouvrables.find((ef) => ef.enrollment.progress > 0 && ef.enrollment.progress < 100)
-      ?? ouvrables.find((ef) => ef.enrollment.progress < 100)
-      ?? null;
+  const counts = useMemo(() => {
+    const c = { all: enrolledFormations.length, ongoing: 0, done: 0, soon: 0 };
+    for (const ef of enrolledFormations) c[stateOf(ef)] += 1;
+    return c;
   }, [enrolledFormations]);
 
-  const shown = useMemo(() => enrolledFormations.filter((ef) => (
-    filter === 'all' ? true
-      : filter === 'done' ? ef.enrollment.progress === 100
-        : ef.enrollment.progress < 100
-  )), [enrolledFormations, filter]);
-
-  const OPTIONS: { key: CourseFilter; label: string }[] = [
-    { key: 'all', label: `${t('courses.filterAll')} · ${counts.all}` },
-    { key: 'ongoing', label: `${t('courses.filterOngoing')} · ${counts.ongoing}` },
-    { key: 'done', label: `${t('courses.filterDone')} · ${counts.done}` },
-  ];
-
-  if (loadingEnrollments) {
-    return (
-      <div className="mx-auto grid max-w-4xl gap-4 px-[18px] py-6 stack:grid-cols-2">
-        {[0, 1].map((i) => <Skeleton key={i} height={200} radius="var(--r-l)" label={t('courses.loadingLabel')} />)}
-      </div>
-    );
-  }
-
-  if (enrolledFormations.length === 0) {
-    return (
-      <div className="mx-auto max-w-4xl px-[18px] py-6">
-        <Bento tone="hero" padding={22}>
-          <EmptyState
-            glyph={<Icon name="book" size={26} style={{ color: 'var(--mm-bleu)' }} />}
-            glyphBackground="color-mix(in srgb, var(--mm-bleu) 14%, transparent)"
-            title={t('courses.emptyTitle')}
-            body={t('courses.emptyText')}
-            action={<Button tone="forme" onClick={() => navigate(path('/formations'))}>{t('courses.explore')}</Button>}
-          />
-        </Bento>
-      </div>
-    );
-  }
+  const shown = enrolledFormations.filter((ef) => filter === 'all' || stateOf(ef) === filter);
+  const TABS: CourseFilter[] = ['all', 'ongoing', 'done', 'soon'];
 
   return (
     <div className="mx-auto max-w-4xl px-[18px] py-6 wide:max-w-none wide:px-pane">
-      <SpaceSplit
-        asideLabel={t('courses.resumeEyebrow')}
-        aside={isWide ? <ResumePanel resume={resume} asOf={asOf} /> : null}
-      >
-        <p className="mm-eyebrow m-0">{t('courses.countEyebrow')}</p>
+      <div className="mb-5 mt-1">
+        <span className="mm-eyebrow">{t('coursesV3.eyebrow')}</span>
+        <h1 className="mm-d m-0 mt-[10px]" style={{ fontSize: 'clamp(32px, 4vw, 44px)' }}>{t('coursesV3.title')}</h1>
+      </div>
 
-        <div className="mm-tabs rv mt-[14px] max-w-full overflow-x-auto" role="group" aria-label={t('courses.filterLabel')} style={{ ['--i' as string]: 1 }}>
-          {OPTIONS.map((o) => (
-            <button key={o.key} type="button" aria-pressed={filter === o.key} onClick={() => setFilter(o.key)}>
-              {o.label}
-            </button>
-          ))}
-        </div>
-
-        {shown.length === 0 ? (
-          <div className="mm-empty rv mt-[14px]" style={{ ['--i' as string]: 2 }}>
-            <p>{t('courses.filterEmpty')}</p>
+      <div className="grid items-start gap-[22px] wide:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="flex min-w-0 flex-col gap-[14px]">
+          <div className="mm-tabs max-w-full self-start overflow-x-auto" role="group" aria-label={t('courses.filterLabel')}>
+            {TABS.map((k) => (
+              <button key={k} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)} style={{ whiteSpace: 'nowrap' }}>
+                {t(`coursesV3.tab_${k}`)} · <Num value={counts[k]} source="db" asOf={asOf} />
+              </button>
+            ))}
           </div>
-        ) : (
-          <div className="mt-[14px] grid gap-4 stack:grid-cols-2">
-            {shown.map(({ enrollment, formation }) => {
-              if (!formation) {
-                return (
-                  <div key={enrollment.id} className="mm-card">
-                    <p className="m-0 text-meta font-bold text-ink">{t('courses.unavailableTitle')}</p>
-                    <p className="m-0 mt-[4px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
-                      {t('courses.unavailableText')}
-                    </p>
-                  </div>
-                );
-              }
 
-              const cert = certByFormation.get(enrollment.formationId);
-              const lessons = formation.modules.reduce((n, m) => n + m.lessons.length, 0);
-
+          {loadingEnrollments ? (
+            [0, 1].map((i) => <Skeleton key={i} height={198} radius="var(--r-xl)" label={t('courses.loadingLabel')} />)
+          ) : enrolledFormations.length === 0 ? (
+            <section className="mm-card" style={{ padding: '28px' }}>
+              <b style={{ display: 'block', font: '700 22px/1.15 var(--f-body)' }}>{t('courses.emptyTitle')}</b>
+              <p className="m-0 mt-2 text-ink-2" style={{ fontSize: '14.5px', lineHeight: 1.55, maxWidth: '52ch' }}>{t('courses.emptyText')}</p>
+              <LocalizedLink to="/formations" className="mm-pill is-sm mt-5">
+                {t('courses.explore')}
+                <i><Icon name="arrow-up-right" size={14} /></i>
+              </LocalizedLink>
+            </section>
+          ) : shown.length === 0 ? (
+            <div className="mm-card"><p className="m-0 text-ink-2" style={{ fontSize: '14.5px' }}>{t('coursesV3.filterEmpty')}</p></div>
+          ) : shown.map((ef) => {
+            const { enrollment, formation } = ef;
+            if (!formation) {
               return (
-                <button
-                  key={enrollment.id}
-                  type="button"
-                  onClick={() => navigate(path(`/cours/${formation.slug}`))}
-                  className="mm-press block w-full cursor-pointer border-0 bg-transparent p-0 text-left"
-                >
-                  <article className="mm-prod h-full">
-                    <CourseCover
-                      title={formation.title}
-                      category={formation.category}
-                      slug={formation.slug}
-                      id={formation.id}
-                      coverImage={formation.coverImage}
-                      kicker={formation.category}
-                      size="sm"
-                      transitionName={`course-${formation.slug}`}
-                    />
-                    <div className="px-2 pb-2">
-                    <p className="m-0 text-small text-ink-2">{formation.duration}</p>
-                    <h2 className="m-0 mt-1 text-[17px] font-bold leading-[1.25] text-ink">{formation.title}</h2>
-                    {/* Ni barre ni compteur sur une précommande : ils diraient « 0 / 0 leçon,
-                        0 % », trois nombres exacts qui décrivent une panne plutôt qu'un état. */}
-                    {estAVenir(formation) ? (
-                      <div className="mt-[15px] flex flex-wrap items-center gap-2">
-                        <Tag tone="warn">{t('courses.comingSoonTag')}</Tag>
-                        <span className="text-meta-2" style={{ color: 'var(--ink-2)' }}>
-                          {t('courses.comingSoonNote')}
-                        </span>
-                      </div>
-                    ) : (
-                      <>
-                        <div
-                          className="mm-progress mt-[15px]"
-                          role="progressbar"
-                          aria-label={t('courses.progressLabel')}
-                          aria-valuenow={enrollment.progress}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                        >
+                <div key={enrollment.id} className="mm-card">
+                  <b>{t('courses.unavailableTitle')}</b>
+                  <p className="m-0 mt-1 text-ink-2" style={{ fontSize: '13.5px' }}>{t('courses.unavailableText')}</p>
+                </div>
+              );
+            }
+            const state = stateOf(ef);
+            const cert = certByFormation.get(enrollment.formationId);
+            const all = flattenLessons(formation);
+            const done = new Set(enrollment.completedLessons ?? []);
+            const next = all.find((l) => !done.has(l.lesson.id));
+            const tag = state === 'soon' ? t('courses.comingSoonTag')
+              : state === 'done' ? (cert ? t('coursesV3.tagCertified') : t('courses.completedTag'))
+                : t('coursesV3.tab_ongoing');
+            return (
+              <article
+                key={enrollment.id}
+                className="mm-card grid items-center gap-6 stack:grid-cols-[200px_1fr] wide:grid-cols-[230px_1fr_auto]"
+                style={{ padding: '14px 22px 14px 14px' }}
+              >
+                <CourseCover
+                  title={formation.title}
+                  category={formation.category}
+                  slug={formation.slug}
+                  id={formation.id}
+                  coverImage={formation.coverImage}
+                  kicker={`Max-Morrys Edu · ${formation.category}`}
+                  size="sm"
+                  style={{ height: '170px', minHeight: '170px' }}
+                  transitionName={`course-${formation.slug}`}
+                />
+                <div className="min-w-0">
+                  <span className="mm-tag" style={{ background: 'var(--paper-2)' }}>{tag}</span>
+                  <b className="mt-[10px] block" style={{ font: '700 22px/1.15 var(--f-body)' }}>{formation.title}</b>
+                  {state === 'soon' ? (
+                    <p className="m-0 mt-2 text-ink-2" style={{ fontSize: '13.5px' }}>{t('courses.comingSoonNote')}</p>
+                  ) : (
+                    <>
+                      <div className="mt-[14px] flex items-center gap-3" style={{ maxWidth: '420px' }}>
+                        <div className="mm-progress" style={{ flex: 1 }} role="progressbar" aria-label={t('courses.progressLabel')} aria-valuenow={enrollment.progress} aria-valuemin={0} aria-valuemax={100}>
                           <i style={{ ['--p' as string]: Math.min(1, Math.max(0, enrollment.progress / 100)) }} />
                         </div>
-                        <div className="mt-[10px] flex flex-wrap items-center gap-2">
-                          <span className="text-meta-2" style={{ color: 'var(--ink-2)' }}>
-                            <Num value={enrollment.completedLessons.length} source="db" asOf={asOf} />
-                            {' / '}
-                            <Num value={lessons || null} source="db" asOf={asOf} />{' '}
-                            {t('courses.lessonsLabel')}
-                          </span>
-                          {enrollment.progress === 100 && <Tag tone="ok">{t('courses.completedTag')}</Tag>}
-                          {cert && <Tag>{t('courses.certificateTag')}</Tag>}
-                        </div>
-                      </>
-                    )}
-                    </div>
-                  </article>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* ── Le compte de certificats, DATÉ ────────────────────────────────────
-            « Un zéro daté est une information ; un tiret n'en est pas une. » Le bloc
-            reste à l'écran même à zéro, et il dit ce qui déclenche le premier. */}
-        <p className="mm-eyebrow m-0 mt-[26px]">{t('courses.certificatesEyebrow')}</p>
-        <div className="mm-card rv mt-2.5" style={{ ['--i' as string]: 4, padding: '20px' }}>
-          <div className="flex items-center gap-[14px]">
-            <span
-              aria-hidden="true"
-              className="grid h-[44px] w-[44px] flex-none place-items-center rounded-[14px]"
-              style={{ background: 'var(--fill-1)' }}
-            >
-              <Icon name="doc" size={20} style={{ color: 'var(--text-faint)' }} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="m-0 text-[23px]">
-                <Num value={certificates.length} source="db" asOf={asOf} />{' '}
-                <span className="text-meta font-semibold">{t('courses.certificatesUnit', { count: certificates.length })}</span>
-              </p>
-              <p className="m-0 mt-0.5 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
-                {t('courses.certificatesNote')}
-              </p>
-            </div>
-          </div>
+                        <span style={{ fontSize: '13px', whiteSpace: 'nowrap' }}>
+                          <Num value={done.size} source="db" asOf={asOf} /> / <Num value={all.length || null} source="db" asOf={asOf} /> {t('courses.lessonsLabel')}
+                        </span>
+                      </div>
+                      <span className="mt-2 block text-ink-2" style={{ fontSize: '13px' }}>
+                        {cert
+                          ? <>{t('coursesV3.certificate')} · <b>{cert.certificateCode}</b></>
+                          : next ? t('coursesV3.next', { num: `${next.moduleIndex}.${next.lessonIndex}`, title: next.lesson.title }) : null}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 stack:col-span-2 wide:col-span-1" style={{ minWidth: '190px' }}>
+                  {state === 'soon' ? (
+                    <LocalizedLink to={`/formations/${formation.slug}`} className="mm-pill is-sm" style={{ justifyContent: 'space-between' }}>
+                      {t('coursesV3.seeSheet')}
+                      <i><Icon name="arrow-up-right" size={14} /></i>
+                    </LocalizedLink>
+                  ) : cert ? (
+                    <LocalizedLink to={`/certificat/${cert.certificateCode}`} className="mm-pill is-sm" style={{ justifyContent: 'space-between' }}>
+                      {t('coursesV3.myCertificate')}
+                      <i><Icon name="arrow-up-right" size={14} /></i>
+                    </LocalizedLink>
+                  ) : (
+                    <LocalizedLink to={`/cours/${formation.slug}${next ? `?lecon=${next.lesson.id}` : ''}`} className="mm-pill is-sm" style={{ justifyContent: 'space-between' }}>
+                      {state === 'done' ? t('coursesV3.review') : t('courses.resumeAction')}
+                      <i><Icon name="arrow-up-right" size={14} /></i>
+                    </LocalizedLink>
+                  )}
+                  <LocalizedLink
+                    to={state === 'soon' || cert ? `/cours/${formation.slug}` : `/formations/${formation.slug}`}
+                    className="flex items-center justify-center rounded-pill no-underline"
+                    style={{ height: '40px', border: '1px solid var(--line)', font: '600 13px/1 var(--f-body)', color: 'var(--ink)' }}
+                  >
+                    {state === 'soon' || cert ? t('coursesV3.review') : t('coursesV3.program')}
+                  </LocalizedLink>
+                </div>
+              </article>
+            );
+          })}
         </div>
 
-        <GlassPanel level="truth" className="rv mt-4" style={{ ['--i' as string]: 5 }}>
-          <p className="mm-eyebrow m-0 mb-1.5">{t('courses.truthEyebrow')}</p>
-          <p className="m-0 text-meta leading-[1.55]" style={{ color: 'var(--text-muted)' }}>
-            {t('courses.truthBody')}
-          </p>
-        </GlassPanel>
-      </SpaceSplit>
+        <div className="flex flex-col gap-5">
+          {isWide && (
+            <OfflineCard
+              labels={{
+                title: t('coursesV3.offlineTitle'),
+                reading: t('courses.offlineReading'),
+                empty: t('courses.offlineEmpty'),
+                onDevice: (count) => t('coursesV3.offlineOnDevice', { count }),
+                manage: t('courses.offlineSetup'),
+              }}
+            />
+          )}
+          <section className="mm-card">
+            <h3>{t('coursesV3.catalogTitle')}</h3>
+            <p className="m-0 mt-2 text-ink-2" style={{ fontSize: '13.5px', lineHeight: 1.5 }}>{t('coursesV3.catalogBody')}</p>
+            <LocalizedLink to="/formations" className="mm-pill is-sm mt-4">
+              {t('coursesV3.catalogCta')}
+              <i><Icon name="arrow-up-right" size={14} /></i>
+            </LocalizedLink>
+          </section>
+          {!isClubActive && (
+            <section className="mm-card" style={{ background: 'var(--mm-violet-c)', borderColor: 'transparent', color: 'var(--ink-fixed)' }}>
+              <b style={{ display: 'block', font: '900 22px/1.1 var(--f-display)' }}>
+                {t('coursesV3.clubTitle', { pct: Math.round(CLUB_MEMBER_FORMATION_DISCOUNT * 100) })}
+              </b>
+              <p className="m-0 mt-2" style={{ fontSize: '13.5px', color: 'var(--mm-violet-t)' }}>{t('coursesV3.clubBody')}</p>
+              <LocalizedLink to="/club-des-digitos" className="mm-btn is-sm is-club mt-4">{t('coursesV3.clubCta')}</LocalizedLink>
+            </section>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

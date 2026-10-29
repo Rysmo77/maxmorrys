@@ -9,7 +9,8 @@ import { localizeAuthError } from '../../lib/auth-errors';
 import { updateUserProfile, getUserById } from '../../lib/firestore';
 import { auth } from '../../config/firebase';
 import GoogleIcon from '../../components/auth/GoogleIcon';
-import { AuthPage, SiteEyebrow } from '../../components/site';
+import { SiteEyebrow } from '../../components/site';
+import AuthSplit from '../../components/edu/g2/AuthSplit';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -93,8 +94,8 @@ export default function Register() {
 
 
   return (
-    <AuthPage
-      titleLines={t('register.titleLines', { returnObjects: true }) as string[]}
+    <AuthSplit
+      title={(t('register.titleLines', { returnObjects: true }) as string[]).join(' ')}
       seoTitle={t('register.title')}
       footer={
         <>
@@ -204,6 +205,6 @@ export default function Register() {
           {loading ? t('register.submitting') : t('register.submit')}
         </Button>
       </form>
-    </AuthPage>
+    </AuthSplit>
   );
 }

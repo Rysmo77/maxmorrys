@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Button, Field, GlassPanel, Icon, useToast } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
 import { localizeAuthError } from '../../lib/auth-errors';
-import { AuthPage, SiteEyebrow } from '../../components/site';
+import { SiteEyebrow } from '../../components/site';
+import AuthSplit from '../../components/edu/g2/AuthSplit';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 
 /**
@@ -64,8 +65,8 @@ export default function ResetPassword() {
   };
 
   return (
-    <AuthPage
-      titleLines={t('reset.titleLines', { returnObjects: true }) as string[]}
+    <AuthSplit
+      title={(t('reset.titleLines', { returnObjects: true }) as string[]).join(' ')}
       seoTitle={t('reset.title')}
       noIndex
       footer={
@@ -133,6 +134,6 @@ export default function ResetPassword() {
           </Button>
         </form>
       )}
-    </AuthPage>
+    </AuthSplit>
   );
 }

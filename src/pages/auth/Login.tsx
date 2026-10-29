@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Field, GlassPanel, Icon, IconButton, useToast } from '@ds';
+import { Button, Field, Icon, IconButton, useToast } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
 import { localizeAuthError } from '../../lib/auth-errors';
 import GoogleIcon from '../../components/auth/GoogleIcon';
-import { AuthPage, SiteEyebrow } from '../../components/site';
+import AuthSplit from '../../components/edu/g2/AuthSplit';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 
-import Bento from '../../components/formations/Bento';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 
@@ -35,6 +34,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [method, setMethod] = useState<'phone' | 'email'>('email');
   const { signIn, signInWithGoogle } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
@@ -79,72 +79,18 @@ export default function Login() {
 
 
   return (
-    <AuthPage
-      titleLines={t('login.titleLines', { returnObjects: true }) as string[]}
+    <AuthSplit
+      title={t('v3.loginTitle')}
+      subtitle={t('v3.loginSubtitle')}
       seoTitle={t('login.title')}
       footer={
-        <p className="mt-4 text-center text-meta text-ink-2">
+        <p className="m-0 mt-3 text-center text-[12.5px] text-ink-2">
           {t('login.noAccount')}{' '}
-          <a href={path('/inscription')} className="font-bold text-forme">
-            {t('login.createAccount')}
-          </a>
+          <a href={path('/inscription')} className="font-bold">{t('login.createAccount')}</a>
         </p>
       }
-      /*
-        ── LA SECONDE COLONNE DU KIT ────────────────────────────────────────────────
-        `PagesUtiles.js:169-186` : la remise en selle vit À CÔTÉ du formulaire, pas derrière
-        un lien. Quelqu'un qui ne se souvient plus de son mot de passe voit la sortie sans
-        quitter l'écran — et l'encart qui explique pourquoi la réponse restera évasive.
-
-        UNE DIFFÉRENCE ASSUMÉE AVEC LE KIT : le kit met ici le formulaire complet. La
-        production garde une seule implémentation de l'envoi, sur `/mot-de-passe-oublie`, et
-        pose ici l'invitation. Deux formulaires d'envoi sur deux écrans, c'est deux fois la
-        gestion d'erreur, la limitation de débit et le message de succès — et le jour où l'un
-        des deux change, personne ne sait que l'autre existe.
-      */
-      aside={
-        <div>
-          {/* Le panneau sombre du kit (`Edu-Connexion`) : ce qui attend la personne une fois
-              connectée. Trois faits du produit, aucun chiffre, aucune cohorte (absente). */}
-          <div className="dk relative mb-[14px] overflow-hidden rounded-xl bg-night p-[26px] text-[color:var(--text-body)]">
-            <span className="mm-script block text-[22px]">{t('login.asideKicker')}</span>
-            <ul className="m-0 mt-4 list-none space-y-2 p-0">
-              {(['aside1', 'aside2', 'aside3'] as const).map((k) => (
-                <li key={k} className="flex items-start gap-2 text-meta leading-[1.5] text-ink">
-                  <Icon name="check" size={16} color="var(--ok)" style={{ marginTop: '3px', flex: 'none' }} />
-                  {t(`login.${k}`)}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <Bento padding={26} className="rv" style={{ ['--i' as string]: 1 }}>
-            <SiteEyebrow style={{ margin: 0 }}>{t('reset.title')}</SiteEyebrow>
-            <p className="m-0 mt-2 font-display text-[19px] font-black tracking-[-.03em] text-ink">
-              {(t('reset.titleLines', { returnObjects: true }) as string[]).join(' ')}
-            </p>
-            <p className="mt-2 mb-4 text-meta leading-[1.5] text-ink-2">{t('reset.subtitleDefault')}</p>
-            <Button href={path('/mot-de-passe-oublie')} tone="primary" fullWidth={false}>
-              {t('reset.submit')}
-            </Button>
-
-            <GlassPanel level="truth" className="mt-4">
-              <SiteEyebrow style={{ marginBottom: '6px' }}>{t('reset.truthTitle')}</SiteEyebrow>
-              <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('reset.truthBody')}</p>
-            </GlassPanel>
-          </Bento>
-
-          {/* Faux verre : cet encart défile avec la page. */}
-          <GlassPanel level="truth" className="rv mt-[14px]" style={{ ['--i' as string]: 2 }}>
-            <SiteEyebrow style={{ marginBottom: '6px' }}>{t('login.truthTitle')}</SiteEyebrow>
-            <p className="m-0 text-meta-2 text-ink-2 leading-[1.5]">{t('login.truthBody')}</p>
-          </GlassPanel>
-        </div>
-      }
     >
-      {/*
-        Google d'abord, l'e-mail ensuite. L'ordre du kit, et il n'est pas neutre : sur un
-        clavier de téléphone, le chemin qui demande le moins de saisie passe devant.
-      */}
+      {/* Google d'abord : sur un clavier de téléphone, le chemin le plus court passe devant. */}
       <Button
         tone="ghost"
         onClick={() => void handleGoogle()}
@@ -155,65 +101,81 @@ export default function Login() {
         {t('login.googleButton')}
       </Button>
 
-      {/* Le séparateur du kit : deux filets encadrant un sourcil, pas un mot posé sur un trait. */}
-      <div className="flex items-center gap-3 my-[18px]">
-        <span className="flex-1 h-px bg-[color:var(--border-hair)]" />
-        <SiteEyebrow style={{ margin: 0 }}>{t('login.divider')}</SiteEyebrow>
-        <span className="flex-1 h-px bg-[color:var(--border-hair)]" />
+      <div className="flex items-center gap-3 text-[12.5px] text-ink-3">
+        <span className="h-px flex-1 bg-[color:var(--line)]" />
+        {t('v3.or')}
+        <span className="h-px flex-1 bg-[color:var(--line)]" />
       </div>
 
-      <form onSubmit={handleSubmit} noValidate>
-        <Field
-          label={t('login.emailLabel')}
-          type="email"
-          value={email}
-          onChange={setEmail}
-          error={errors.email}
-          placeholder={t('login.emailPlaceholder')}
-          /* Sans `inputMode` ni `autoComplete`, aucun clavier adapté ne s'ouvre et rien ne se
-             pré-remplit. C'est exactement ce qui manquait au kit, et ça coûte cher au pouce. */
-          inputMode="email"
-          autoComplete="email"
-          required
-          style={{ marginTop: 0 }}
-        />
+      {/*
+        ── TÉLÉPHONE · E-MAIL ────────────────────────────────────────────────────────
+        La maquette ouvre sur « Téléphone » (code par WhatsApp ou SMS). Aucune connexion par
+        téléphone n'existe côté serveur : l'onglet reste, à sa place, et dit qu'elle n'est
+        pas encore ouverte — l'e-mail est donc l'onglet ouvert par défaut.
+      */}
+      <div className="mm-tabs flex" role="tablist" aria-label={t('v3.methodLabel')}>
+        <button type="button" role="tab" aria-selected={method === 'phone'} aria-pressed={method === 'phone'} className="flex-1" onClick={() => setMethod('phone')}>
+          {t('v3.phoneTab')}
+        </button>
+        <button type="button" role="tab" aria-selected={method === 'email'} aria-pressed={method === 'email'} className="flex-1" onClick={() => setMethod('email')}>
+          {t('v3.emailTab')}
+        </button>
+      </div>
 
-        <Field
-          label={t('login.passwordLabel')}
-          type={showPassword ? 'text' : 'password'}
-          value={password}
-          onChange={setPassword}
-          error={errors.password}
-          placeholder={t('login.passwordPlaceholder')}
-          autoComplete="current-password"
-          required
-          trailing={
-            <IconButton
-              label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
-              onClick={() => setShowPassword((v) => !v)}
-              style={{ width: '32px', height: '32px', background: 'transparent', border: 0, boxShadow: 'none' }}
-            >
-              {showPassword ? <Icon name="eye-off" size={18} /> : <Icon name="eye" size={18} />}
-            </IconButton>
-          }
-        />
-
-        <Button
-          type="submit"
-          tone="forme"
-          loading={loading}
-          disabled={loading || googleLoading}
-          style={{ marginTop: '17px' }}
-        >
-          {loading ? t('login.submitting') : t('login.submit')}
-        </Button>
-      </form>
-
-      <p className="mt-3 text-center text-meta">
-        <a href={path('/mot-de-passe-oublie')} className="text-ink-2">
-          {t('login.forgotPassword')}
-        </a>
-      </p>
-    </AuthPage>
+      {method === 'phone' ? (
+        <div className="mm-card" style={{ padding: '18px' }}>
+          <p className="m-0 text-[14px] font-semibold text-ink">{t('v3.phoneSoonTitle')}</p>
+          <p className="m-0 mt-1.5 text-[13px] text-ink-2">{t('v3.phoneSoonBody')}</p>
+          <button type="button" className="mm-pill is-plain is-sm mt-3" onClick={() => setMethod('email')}>{t('v3.useEmail')}</button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} noValidate>
+          <Field
+            label={t('login.emailLabel')}
+            type="email"
+            value={email}
+            onChange={setEmail}
+            error={errors.email}
+            placeholder={t('login.emailPlaceholder')}
+            inputMode="email"
+            autoComplete="email"
+            required
+            style={{ marginTop: 0 }}
+          />
+          <Field
+            label={t('login.passwordLabel')}
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={setPassword}
+            error={errors.password}
+            placeholder={t('login.passwordPlaceholder')}
+            autoComplete="current-password"
+            required
+            trailing={
+              <IconButton
+                label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
+                onClick={() => setShowPassword((v) => !v)}
+                style={{ width: '32px', height: '32px', background: 'transparent', border: 0, boxShadow: 'none' }}
+              >
+                {showPassword ? <Icon name="eye-off" size={18} /> : <Icon name="eye" size={18} />}
+              </IconButton>
+            }
+          />
+          <p className="m-0 mt-2 text-right text-[12.5px]">
+            <a href={path('/mot-de-passe-oublie')} className="text-ink-2">{t('login.forgotPassword')}</a>
+          </p>
+          <button
+            type="submit"
+            className="mm-pill mt-3"
+            disabled={loading || googleLoading}
+            aria-busy={loading || undefined}
+            style={{ justifyContent: 'space-between', width: '100%' }}
+          >
+            {loading ? t('login.submitting') : t('login.submit')}
+            <i aria-hidden="true"><Icon name="arrow-up-right" size={15} /></i>
+          </button>
+        </form>
+      )}
+    </AuthSplit>
   );
 }
