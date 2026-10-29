@@ -51,8 +51,8 @@ export const ventures: readonly Venture[] = [
     operator: MY_ONOMA,
     owner: MY_ONOMA,
     status: 'live',
-    website: 'https://doven.app',
-    domain: 'doven.app',
+    website: 'https://myonoma.com',
+    domain: 'myonoma.com',
   },
   {
     slug: 'nayo',
@@ -61,8 +61,8 @@ export const ventures: readonly Venture[] = [
     operator: MY_ONOMA,
     owner: MY_ONOMA,
     status: 'live',
-    website: 'https://myonoma.com',
-    domain: 'myonoma.com',
+    website: 'https://nayo.pro',
+    domain: 'nayo.pro',
   },
   {
     slug: 'steps',

@@ -189,8 +189,8 @@ filtrer les leads, pas d'en maximiser le volume.
 | LauraVerse — lauraverse.blog | `CLIENT` | Client product |
 | Dunamis Holydays — holydays.vasesdhonneursenegal.com | `CLIENT` | Client product |
 | IN Sénégal 2026 — insenegal.web.app | `CLIENT` | Client product |
-| DOVEN — doven.app | `MY_ONOMA_VENTURE` | A MY ONOMA Venture |
-| NAYO — myonoma.com | `MY_ONOMA_VENTURE` | A MY ONOMA Venture |
+| DOVEN — myonoma.com | `MY_ONOMA_VENTURE` | A MY ONOMA Venture |
+| NAYO — nayo.pro | `MY_ONOMA_VENTURE` | A MY ONOMA Venture |
 | STEPS — stepsmag.com | `MY_ONOMA_VENTURE` | A MY ONOMA Venture |
 
 Les projets clients sont présentés dans un **index navigable et filtrable par catégorie**, avec
