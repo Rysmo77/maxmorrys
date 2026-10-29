@@ -269,17 +269,6 @@ export const clientProjects: readonly ClientProject[] = [
     stack: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Firebase', 'Firebase Admin'],
   },
   {
-    slug: 'je-temoigne',
-    name: 'Je Témoigne',
-    category: 'Communauté',
-    owner: 'client',
-    website: 'https://temoignage.vasesdhonneursenegal.com/',
-    domain: 'temoignage.vasesdhonneursenegal.com',
-    descriptionKey: 'je-temoigne',
-    capabilities: ['engineering', 'securityRules', 'platformArchitecture'],
-    stack: ['React', 'Vite', 'TypeScript', 'Firebase', 'Firebase Admin', 'React Router'],
-  },
-  {
     slug: 'lauraverse',
     name: 'LauraVerse',
     category: 'Média',
@@ -293,18 +282,6 @@ export const clientProjects: readonly ClientProject[] = [
     stack: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Firebase', 'Firebase Admin'],
   },
   {
-    slug: 'dunamis-holydays',
-    name: 'Dunamis Holydays',
-    category: 'Événementiel',
-    owner: 'client',
-    website: 'https://holydays.vasesdhonneursenegal.com/',
-    domain: 'holydays.vasesdhonneursenegal.com',
-    descriptionKey: 'dunamis-holydays',
-    capabilities: ['engineering', 'securityRules'],
-    // Site statique : aucun package.json dans le dépôt.
-    stack: ['HTML', 'CSS', 'JavaScript', 'Firebase Hosting'],
-  },
-  {
     slug: 'in-senegal',
     name: 'IN Sénégal 2026',
     category: 'Événementiel',
@@ -315,6 +292,96 @@ export const clientProjects: readonly ClientProject[] = [
     capabilities: ['engineering'],
     // Site statique : aucun package.json dans le dépôt.
     stack: ['HTML', 'CSS', 'JavaScript', 'Firebase Hosting'],
+  },
+
+  /*
+   * Lot du 29 octobre 2026 — six projets établis depuis leurs dépôts git, même règle de
+   * déduction que ci-dessus, avec deux preuves de plus :
+   *
+   *   paquet de design system dans le monodépôt (tokens + composants)  → designSystem
+   *   rendu serveur / prérendu + sitemap ou données structurées        → seo
+   *
+   * `designSystem` ne se pose donc que sur un PAQUET de code (`@cmc/design-system`,
+   * `@resic/ui`) — jamais sur une maquette ou une charte fournie par le client.
+   */
+  {
+    slug: 'chez-mon-cardio',
+    name: 'Chez Mon Cardio',
+    category: 'Santé',
+    owner: 'client',
+    website: 'https://chezmoncardio.com/',
+    domain: 'chezmoncardio.com',
+    descriptionKey: 'chez-mon-cardio',
+    capabilities: ['engineering', 'platformArchitecture', 'designSystem', 'seo'],
+    // Monodépôt pnpm : API et site sur Workers, paquet `@cmc/design-system`, app Expo.
+    // `seo` : pages publiques rendues côté serveur par le Worker `cmc-web`.
+    stack: ['React', 'React Router', 'Vite', 'TypeScript', 'Hono', 'Cloudflare Workers', 'Cloudflare D1', 'Cloudflare R2', 'Expo', 'React Native'],
+  },
+  {
+    slug: 'vh-senegal',
+    name: "Vases d'Honneur Sénégal",
+    category: 'Communauté',
+    owner: 'client',
+    website: 'https://vasesdhonneursenegal.com/',
+    domain: 'vasesdhonneursenegal.com',
+    descriptionKey: 'vh-senegal',
+    capabilities: ['engineering', 'platformArchitecture', 'seo'],
+    // Next.js sur Workers (OpenNext), CMS maison sur D1. `seo` : `lib/seo/` (données structurées, sitemap).
+    // Site principal de l'église ; ResHo Konnexion vit sur un de ses sous-domaines.
+    stack: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Cloudflare Workers', 'Cloudflare D1', 'Cloudflare R2', 'Drizzle ORM', 'Hono'],
+  },
+  {
+    slug: 'fkw-consulting',
+    name: 'FredKevWil Consulting',
+    category: 'Conseil',
+    owner: 'client',
+    website: 'https://fkw-site.rysmo.workers.dev/',
+    domain: 'fkw-site.rysmo.workers.dev',
+    descriptionKey: 'fkw-consulting',
+    capabilities: ['engineering', 'platformArchitecture', 'seo'],
+    // ⚠️ Adresse de PRÉVERSION : fredkevwil-consulting.com sert encore l'ancien WordPress tant que la
+    // bascule DNS n'est pas faite (route commentée dans `site/wrangler.jsonc`). Passer `website` et
+    // `domain` sur le domaine de production le jour de la bascule — ici ET dans le miroir du Worker.
+    // `seo` : sitemap, flux RSS, recherche Pagefind, plan du site.
+    stack: ['Astro', 'Preact', 'TypeScript', 'Cloudflare Workers', 'Cloudflare D1', 'Pagefind'],
+  },
+  {
+    slug: 'concepcoe',
+    name: 'Concepcoe',
+    category: 'Ingénierie',
+    owner: 'client',
+    website: 'https://concepcoe.com/',
+    domain: 'concepcoe.com',
+    descriptionKey: 'concepcoe',
+    capabilities: ['engineering', 'securityRules', 'platformArchitecture', 'seo'],
+    // Deux Workers : `concepcoe-api` (médias R2, contact) et `concepcoe-seo` (méta et sitemap par route).
+    stack: ['React', 'Vite', 'TypeScript', 'Tailwind CSS', 'Firebase', 'TipTap', 'Cloudflare Workers', 'Cloudflare R2'],
+  },
+  {
+    slug: 'resic',
+    name: 'RESIC',
+    category: 'Communauté',
+    owner: 'client',
+    website: 'https://resic.africa/',
+    domain: 'resic.africa',
+    descriptionKey: 'resic',
+    capabilities: ['engineering', 'platformArchitecture', 'designSystem', 'aiAutomation'],
+    // Monodépôt : site, web app et app Expo ; kit `@resic/ui`. `aiAutomation` : Workers AI
+    // (Llama 3.3 et embeddings bge-m3 + Vectorize) pour le matching emplois et la formation.
+    stack: ['React', 'React Router', 'Vite', 'TypeScript', 'Hono', 'Drizzle ORM', 'Cloudflare Workers', 'Cloudflare D1', 'Workers AI', 'Expo', 'React Native'],
+  },
+  {
+    slug: 'africa-coop-tech',
+    name: 'Africa Coop Tech',
+    category: 'Conseil',
+    owner: 'client',
+    website: 'https://cooptech.africa/',
+    domain: 'cooptech.africa',
+    descriptionKey: 'africa-coop-tech',
+    capabilities: ['engineering', 'platformArchitecture', 'seo'],
+    // Pages prérendues (React Router 7), Worker pour le contact, les rendez-vous et `/admin`.
+    // `seo` : données structurées, IndexNow au déploiement.
+    stack: ['React', 'React Router', 'Vite', 'TypeScript', 'Cloudflare Workers', 'Cloudflare D1'],
   },
 ];
 

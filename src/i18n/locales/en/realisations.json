@@ -109,17 +109,29 @@
     "klio-pro": {
       "description": "Public site, ticketing and back-office for a procurement consulting and training firm in Dakar."
     },
-    "je-temoigne": {
-      "description": "Collection, moderation and publication of video, audio or text testimonies, straight from the phone."
-    },
     "lauraverse": {
       "description": "Media platform and listings for Christian events across French-speaking Africa."
     },
-    "dunamis-holydays": {
-      "description": "Event site: overview, programme and registration."
-    },
     "in-senegal": {
       "description": "Institutional site for a national event — overview, programme and contact."
+    },
+    "chez-mon-cardio": {
+      "description": "Cardiovascular prevention platform: public site, personal space, editorial back-office and iOS and Android apps."
+    },
+    "vh-senegal": {
+      "description": "Church website: services, sermons, events, giving and testimonies, with an editorial back-office."
+    },
+    "fkw-consulting": {
+      "description": "Bilingual website for a digital, environment and healthcare consulting firm in Paris: expertise, insights, glossary and booking."
+    },
+    "concepcoe": {
+      "description": "Website for an engineering and construction consultancy in Dakar: services, projects, news and a content back-office."
+    },
+    "resic": {
+      "description": "Christian professional network across French-speaking Africa: membership and member card, directory, messaging, jobs and training, on the web and mobile."
+    },
+    "africa-coop-tech": {
+      "description": "Website for a mutual health insurance and community health consulting firm in Abidjan, with booking and a back-office."
     }
   }
 }
