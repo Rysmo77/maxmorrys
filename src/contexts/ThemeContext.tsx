@@ -14,7 +14,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem('mm-theme');
     if (stored === 'light' || stored === 'dark') return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    /* Passe 2 (châssis) : le CLAIR est le défaut, quelle que soit la préférence système —
+       c'est le rendu des maquettes. Le sombre reste un choix explicite (bouton de thème),
+       mémorisé dans `mm-theme`. */
+    return 'light';
   });
 
   useEffect(() => {

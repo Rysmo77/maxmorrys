@@ -126,18 +126,90 @@ export default function StudentLayout() {
     userId: user?.uid, userEmail: user?.email ?? '',
   };
 
+  /*
+   * PASSE 2 — DEUX COQUILLES, UNE ROUTE MÈRE. Sous `/mon-espace/club*`, l'espace est le Club
+   * (`Club-Fil.dc.html` : rail d'icônes violet, onglets Fil · Discussions · Agenda ·
+   * Opportunités · Plus) ; ailleurs, l'école Edu (`Edu-Espace.dc.html` : « Mon école »,
+   * onglets Accueil · Cours · Agenda · Succès · assistant). Le nom de l'assistant est celui
+   * que la personne a choisi (« Rysmo IA » par défaut, PRD rév. 6 FR-283) ; trop long pour
+   * un onglet, il cède la place à « Assistant ».
+   */
+  const inClub = path === '/mon-espace/club' || path.startsWith('/mon-espace/club/');
+  const assistant = tutorName(userData);
+  const assistantTab = assistant.length > 12 ? t('nav.assistantShort') : assistant;
+
+  const eduSections = [
+    {
+      title: t('nav.sectionSchool'),
+      items: [
+        { to: '/mon-espace/tableau-de-bord', label: t('nav.dashboard'), icon: 'home' as const },
+        { to: '/mon-espace/cours', label: t('nav.courses'), icon: 'book' as const },
+        { to: '/mon-espace/agenda', label: t('nav.agenda'), icon: 'calendar' as const },
+        { to: '/mon-espace/cohorte', label: t('nav.cohort'), icon: 'users' as const },
+        { to: '/mon-espace/succes', label: t('nav.achievementsShort'), icon: 'award' as const },
+        { to: '/mon-espace/notes', label: t('nav.notes'), icon: 'doc' as const },
+        { to: '/mon-espace/assistant', label: assistant, icon: 'sparkles' as const },
+      ],
+    },
+    {
+      title: t('nav.sectionCommunity'),
+      items: [
+        {
+          to: '/mon-espace/club', label: t('nav.club'), icon: 'crown' as const, tone: 'club' as const,
+          locked: !isClubActive,
+          badge: isClubPending ? t('nav.clubPending') : null,
+        },
+      ],
+    },
+    {
+      title: t('nav.sectionAccount'),
+      items: [
+        { to: '/compte', label: t('nav.account'), icon: 'globe' as const },
+        { to: '/mon-espace/paiements', label: t('nav.payments'), icon: 'card' as const },
+        { to: '/mon-espace/messages', label: t('nav.messages'), icon: 'inbox' as const },
+        { to: '/mon-espace/temoignages', label: t('nav.testimonials'), icon: 'quote' as const },
+        { to: '/mon-espace/profil', label: t('nav.profile'), icon: 'user' as const },
+        { to: '/mon-espace/parametres', label: t('nav.settings'), icon: 'settings' as const },
+        { to: '/', label: t('nav.backToSite'), icon: 'home' as const, end: true },
+      ],
+    },
+  ];
+
+  const clubSections = [
+    {
+      items: [
+        { to: '/mon-espace/club/fil', label: t('nav.clubFeed'), icon: 'home' as const },
+        { to: '/mon-espace/club/discussions', label: t('nav.clubDiscussions'), icon: 'chat' as const },
+        { to: '/mon-espace/club/agenda', label: t('nav.agenda'), icon: 'calendar' as const },
+        { to: '/mon-espace/club/membres', label: t('nav.clubMembers'), icon: 'users' as const },
+        { to: '/mon-espace/club/classement', label: t('nav.clubLeaderboard'), icon: 'bars' as const },
+        { to: '/mon-espace/club/opportunites', label: t('nav.clubOpportunities'), icon: 'case' as const },
+        { to: '/mon-espace/club/defis', label: t('nav.clubChallenges'), icon: 'target' as const },
+        { to: '/mon-espace/club/infos', label: t('nav.clubInfo'), icon: 'info' as const },
+        { to: '/mon-espace/club/parrainage', label: t('nav.clubReferral'), icon: 'gift' as const },
+      ],
+    },
+    {
+      items: [
+        { to: '/mon-espace/tableau-de-bord', label: t('nav.backToSchool'), icon: 'book' as const },
+        { to: '/compte', label: t('nav.account'), icon: 'settings' as const },
+      ],
+    },
+  ];
+
   return (
     <AppShell
-      brand={{ label: t('nav.brand'), href: '/mon-espace/tableau-de-bord' }}
-      // Kit v3 (AD-27) : l'espace courant, lu par le sélecteur d'espaces et `--space-*`.
-      space={path === '/mon-espace/club' || path.startsWith('/mon-espace/club/') ? 'club' : 'edu'}
+      brand={inClub
+        ? { label: t('nav.clubBrand'), href: '/mon-espace/club' }
+        : { label: t('nav.brand'), href: '/mon-espace/tableau-de-bord', badge: 'EDU' }}
+      space={inClub ? 'club' : 'edu'}
+      rail={inClub}
+      mesh={false}
+      shellClassName={inClub ? 'bg-[color:var(--paper-2)]' : 'bg-[color:var(--paper)]'}
       titleMap={{
         '/mon-espace/tableau-de-bord': t('titles.dashboard'),
         '/mon-espace/cours':           t('titles.courses'),
-        // AD-12 — le nom du répétiteur vient du PROFIL, jamais d'une clé de traduction.
-        // C'est un réglage : chaque personne peut le renommer, et le nom choisi doit
-        // remplacer le mot partout. Une clé i18n figerait « Rysmo » pour tout le monde.
-        '/mon-espace/repetiteur':      tutorName(userData),
+        '/mon-espace/assistant':       assistant,
         '/mon-espace/notes':           t('titles.notes'),
         '/mon-espace/paiements':       t('titles.payments'),
         '/mon-espace/succes':          t('titles.achievements'),
@@ -146,123 +218,34 @@ export default function StudentLayout() {
         '/mon-espace/club':            t('titles.club'),
         '/mon-espace/profil':          t('titles.profile'),
         '/mon-espace/parametres':      t('titles.settings'),
+        '/mon-espace/agenda':          t('nav.agenda'),
+        '/mon-espace/cohorte':         t('nav.cohort'),
+        '/mon-espace/cohorte/live':    t('titles.cohortLive'),
+        '/mon-espace/missions':        t('titles.missions'),
       }}
-      /*
-       * LES TERRITOIRES DE L'ESPACE APPRENANT, relevés écran par écran sur le kit.
-       *
-       * `ScreensSpace.js` : accueil (`:15`), répétiteur (`:83`) et Club (`:117`) sur
-       * « transforme » ; lecteur de leçon (`:53`) sur « forme ». `ScreensNotes.js:14` :
-       * notes sur « forme ». `ScreensCompte.js:115`, `:160` : préférences et suppression
-       * sur « transforme ».
-       *
-       * La règle qui s'en dégage, et qui couvre les écrans que le kit ne dessine pas :
-       * ce qui relève de L'ÉTUDE prend « forme » (bleu), ce qui relève de la COMMUNAUTÉ et
-       * du compte prend « transforme » (violet). Succès et certificats suivent l'étude ;
-       * messages, témoignages et profil suivent le compte.
-       */
       territoryMap={{
         '/mon-espace': 'transforme',
-        '/mon-espace/tableau-de-bord': 'transforme',
         '/mon-espace/cours': 'forme',
         '/mon-espace/notes': 'forme',
-        // Le chemin de l'argent relève de ce qu'on a ACHETÉ, donc de l'étude.
         '/mon-espace/paiements': 'forme',
         '/mon-espace/succes': 'forme',
-        '/mon-espace/repetiteur': 'transforme',
-        '/mon-espace/club': 'transforme',
-        '/mon-espace/messages': 'transforme',
-        '/mon-espace/temoignages': 'transforme',
-        '/mon-espace/profil': 'transforme',
-        '/mon-espace/parametres': 'transforme',
       }}
-      /*
-       * ── HUIT ENTRÉES DANS UN SEUL GROUPE, C'ÉTAIT UNE LISTE, PAS UNE NAVIGATION ────────
-       *
-       * « Espace » portait tableau de bord, cours, répétiteur, notes, paiements, succès,
-       * messages et témoignages — pendant que « Communauté » en portait une et « Compte »
-       * trois. La loi de Miller était à sa limite haute, mais le vrai défaut était ailleurs :
-       * l'écart de FRÉQUENCE. « Cours » se visite chaque jour, « Témoignages » une fois dans
-       * la vie d'un compte, et les deux avaient exactement le même poids visuel. Pour
-       * trouver « Paiements », il fallait lire les huit.
-       *
-       * Le partage suit celui que `territoryMap` fait déjà juste au-dessus, et qui est le bon
-       * — il n'est simplement pas répercuté ici :
-       *
-       *   · APPRENDRE (bleu, « forme ») — cours, notes, succès. Ce qui relève de l'étude.
-       *   · MON COMPTE (violet, « transforme ») — paiements, messages, témoignages, profil,
-       *     réglages. Ce qui relève du dossier plutôt que du travail.
-       *
-       * DEUX ENTRÉES NE SUIVENT PAS LEUR TEINTE, ET C'EST DÉLIBÉRÉ :
-       *   · Le tableau de bord reste SEUL en tête, hors groupe : c'est le point d'entrée, pas
-       *     une rubrique. Lui donner un titre de section l'aurait rangé au même rang que ce
-       *     qu'il résume.
-       *   · Le répétiteur est violet dans `territoryMap`, mais il vit dans « Apprendre » : on
-       *     l'ouvre pour réviser, jamais pour gérer son compte. La teinte dit le territoire,
-       *     le groupe dit le geste — ce sont deux axes.
-       *
-       * « Paiements » quitte donc l'étude pour le compte. `territoryMap` le laisse en bleu
-       * — « le chemin de l'argent relève de ce qu'on a ACHETÉ » — et les deux restent vrais :
-       * on le range avec le dossier, il garde la couleur de ce qu'il paie.
-       */
-      sidebarSections={[
-        {
-          items: [
-            { to: '/mon-espace/tableau-de-bord', label: t('nav.dashboard'), icon: 'dashboard' },
-          ],
-        },
-        {
-          title: t('nav.sectionLearn'),
-          items: [
-            { to: '/mon-espace/cours',           label: t('nav.courses'),   icon: 'book' },
-            { to: '/mon-espace/repetiteur',      label: tutorName(userData), icon: 'bot' },
-            { to: '/mon-espace/notes',           label: t('nav.notes'),     icon: 'bookmark' },
-            { to: '/mon-espace/succes',          label: t('nav.achievements'), icon: 'award' },
-          ],
-        },
-        {
-          title: t('nav.sectionCommunity'),
-          items: [
-            {
-              to: '/mon-espace/club', label: t('nav.club'), icon: 'crown', tone: 'club',
-              locked: !isClubActive,
-              badge: isClubPending ? t('nav.clubPending') : null,
-            },
-          ],
-        },
-        {
-          title: t('nav.sectionAccount'),
-          items: [
-            { to: '/mon-espace/paiements',   label: t('nav.payments'),     icon: 'card' },
-            { to: '/mon-espace/messages',    label: t('nav.messages'),     icon: 'inbox' },
-            { to: '/mon-espace/temoignages', label: t('nav.testimonials'), icon: 'quote' },
-            { to: '/mon-espace/profil',      label: t('nav.profile'),      icon: 'user' },
-            { to: '/mon-espace/parametres',  label: t('nav.settings'),     icon: 'settings' },
-            { to: '/',                       label: t('nav.backToSite'),   icon: 'home', end: true },
-          ],
-        },
-      ]}
-      /*
-       * LES CINQ ONGLETS DU KIT, DANS SON ORDRE — `ScreensSpace.js:3-9`, repris à l'identique
-       * par `ScreensNotes.js` :
-       *
-       *     Espace · Cours · {nom du répétiteur} · Club · Profil
-       *
-       * L'ENTRÉE DU RÉPÉTITEUR MANQUAIT. C'est la seule entrée de barre que le kit fait lire
-       * dans le PROFIL plutôt que dans une clé de traduction — et sous 700 px, cette barre est
-       * la seule navigation : le répétiteur n'était plus atteignable que par la carte du
-       * tableau de bord. « Messages » occupait sa place, sous le libellé « Inbox », seul mot
-       * anglais au milieu de quatre libellés français.
-       *
-       * Messages ne disparaît pas : il reste dans la barre latérale au-delà de 700 px, et dans
-       * la liste « Dans ton espace » du tableau de bord, qui est le chemin que le kit lui donne.
-       */
-      bottomNavItems={[
-        { to: '/mon-espace/tableau-de-bord', label: t('nav.bottomHome'),    icon: 'home' },
-        { to: '/mon-espace/cours',           label: t('nav.bottomCourses'), icon: 'book' },
-        { to: '/mon-espace/repetiteur',      label: tutorName(userData),    icon: 'bot' },
-        { to: '/mon-espace/club',            label: t('nav.bottomClub'),    icon: 'crown' },
-        { to: '/mon-espace/profil',          label: t('nav.bottomProfile'), icon: 'user' },
-      ]}
+      sidebarSections={inClub ? clubSections : eduSections}
+      bottomNavItems={inClub
+        ? [
+            { to: '/mon-espace/club/fil',          label: t('nav.clubFeed'),          icon: 'home' },
+            { to: '/mon-espace/club/discussions',  label: t('nav.clubDiscussions'),   icon: 'chat' },
+            { to: '/mon-espace/club/agenda',       label: t('nav.agenda'),            icon: 'calendar' },
+            { to: '/mon-espace/club/opportunites', label: t('nav.clubOpportunities'), icon: 'case' },
+            { to: '/mon-espace/club/membres',      label: t('nav.more'),              icon: 'dots' },
+          ]
+        : [
+            { to: '/mon-espace/tableau-de-bord', label: t('nav.bottomHome'),    icon: 'home' },
+            { to: '/mon-espace/cours',           label: t('nav.bottomCourses'), icon: 'book' },
+            { to: '/mon-espace/agenda',          label: t('nav.agenda'),        icon: 'calendar' },
+            { to: '/mon-espace/succes',          label: t('nav.achievementsShort'), icon: 'award' },
+            { to: '/mon-espace/assistant',       label: assistantTab,           icon: 'sparkles' },
+          ]}
       contentClassName="p-4 stack:p-6 max-w-6xl mx-auto w-full"
       outletContext={context}
       beforeOutlet={

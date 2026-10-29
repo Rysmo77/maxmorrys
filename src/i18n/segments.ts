@@ -139,6 +139,23 @@ const SEGMENTS: Record<string, { fr: string; en: string }> = {
   'prospects-agence': { fr: 'prospects-agence', en: 'agency-leads' },
   projets: { fr: 'projets', en: 'projects' },
   redirections: { fr: 'redirections', en: 'redirects' },
+  /* Passe 2 (châssis, 29/10/2026) — écrans des maquettes et du PRD rév. 6. */
+  compte: { fr: 'compte', en: 'account' },
+  methode: { fr: 'methode', en: 'method' },
+  assistant: { fr: 'assistant', en: 'assistant' },
+  cohorte: { fr: 'cohorte', en: 'cohort' },
+  live: { fr: 'live', en: 'live' },
+  missions: { fr: 'missions', en: 'missions' },
+  quiz: { fr: 'quiz', en: 'quiz' },
+  sessions: { fr: 'sessions', en: 'sessions' },
+  adhesion: { fr: 'adhesion', en: 'membership' },
+  defis: { fr: 'defis', en: 'challenges' },
+  publication: { fr: 'publication', en: 'post' },
+  journal: { fr: 'journal', en: 'audit-log' },
+  roles: { fr: 'roles', en: 'roles' },
+  moderation: { fr: 'moderation', en: 'moderation' },
+  quotas: { fr: 'quotas', en: 'quotas' },
+  infrastructure: { fr: 'infrastructure', en: 'infrastructure' },
 };
 
 // Tables inverses pré-calculées.

@@ -32,7 +32,7 @@ export const PERSON_NAME = 'Max-Morrys';
 export const AGENCY_NAME = 'Max-Morrys Agency';
 
 /** Le nom par défaut du répétiteur, avant tout renommage. */
-export const TUTOR_DEFAULT_NAME = 'Répétiteur';
+export const TUTOR_DEFAULT_NAME = 'Rysmo IA'; // PRD rév. 6, C-04 / FR-283 : « Répétiteur » quitte l'interface
 
 /**
  * Quatre suggestions plutôt qu'un champ vide.
@@ -41,7 +41,7 @@ export const TUTOR_DEFAULT_NAME = 'Répétiteur';
  * faire autre chose. Quatre propositions donnent un point de départ à modifier, ce qui est
  * une décision beaucoup plus facile que d'en produire une.
  */
-export const TUTOR_NAME_SUGGESTIONS = ['Répétiteur', 'Coach', 'Mentor', 'Binôme'] as const;
+export const TUTOR_NAME_SUGGESTIONS = ['Rysmo IA', 'Coach', 'Mentor', 'Binôme'] as const;
 
 /** La forme minimale que ce module a besoin de connaître d'un profil. */
 interface HasTutorName {
@@ -66,7 +66,7 @@ export function tutorName(profile: HasTutorName | null | undefined): string {
  * l'outil avec lequel il travaille tous les jours, pas un identifiant. Un nom trop long
  * casse la barre d'onglets ; un nom vide retomberait sur le défaut sans le dire.
  */
-export const TUTOR_NAME_MAX = 24;
+export const TUTOR_NAME_MAX = 40; // PRD rév. 6, C-04 : 40 caractères
 
 export function validateTutorName(raw: string): { ok: true; value: string } | { ok: false; reason: string } {
   const v = raw.trim();

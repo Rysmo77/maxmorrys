@@ -146,6 +146,22 @@ const SettingsPage = lazyWithReload(() => import('./pages/lms/routes/SettingsPag
 const PaymentsPage = lazyWithReload(() => import('./pages/lms/routes/PaymentsPage'), ['lms', 'lmsTabs']);
 const ClubPage = lazyWithReload(() => import('./pages/lms/routes/ClubPage'), ['club', 'lms']);
 const RysmoPage = lazyWithReload(() => import('./pages/lms/routes/RysmoPage'), ['lms', 'lmsTabs']);
+/* ── Passe 2 (châssis) : écrans des maquettes et du PRD rév. 6 sans page jusqu'ici. Chacun est
+   un squelette honnête (`EcranSquelette`) que son lot remplace. Table : ROUTES.md. ── */
+const ComptePage = lazyWithReload(() => import('./pages/hub/Compte'), ['ecrans']);
+const MethodePage = lazyWithReload(() => import('./pages/edu/Methode'), ['ecrans']);
+const AssistantPublicPage = lazyWithReload(() => import('./pages/edu/AssistantPublic'), ['ecrans']);
+const ClubSessionsPage = lazyWithReload(() => import('./pages/club/Sessions'), ['ecrans']);
+const ClubAdhesionPage = lazyWithReload(() => import('./pages/club/Adhesion'), ['ecrans']);
+const AgendaPage = lazyWithReload(() => import('./pages/lms/routes/AgendaPage'), ['ecrans']);
+const CohortePage = lazyWithReload(() => import('./pages/lms/routes/CohortePage'), ['ecrans']);
+const CohorteLivePage = lazyWithReload(() => import('./pages/lms/routes/CohorteLivePage'), ['ecrans']);
+const MissionsPage = lazyWithReload(() => import('./pages/lms/routes/MissionsPage'), ['ecrans']);
+const QuizPage = lazyWithReload(() => import('./pages/lms/routes/QuizPage'), ['ecrans']);
+const ClubDefisPage = lazyWithReload(() => import('./pages/lms/routes/club/DefisPage'), ['ecrans']);
+const ClubLivePage = lazyWithReload(() => import('./pages/lms/routes/club/ClubLivePage'), ['ecrans']);
+const ClubMembreProfilPage = lazyWithReload(() => import('./pages/lms/routes/club/MembreProfilPage'), ['ecrans']);
+const ClubPublicationPage = lazyWithReload(() => import('./pages/lms/routes/club/PublicationPage'), ['ecrans']);
 const TestimonialsPage = lazyWithReload(() => import('./pages/lms/routes/TestimonialsPage'), ['lms', 'lmsTabs']);
 const CoursePlayer = lazyWithReload(() => import('./pages/lms/CoursePlayer'), ['lms']);
 const Checkout = lazyWithReload(() => import('./pages/lms/Checkout'), ['lms']);
@@ -175,6 +191,11 @@ const AdminRedirects = lazyWithReload(() => import('./pages/admin/AdminRedirects
    pipeline : tout · envoyées · planifiées. C'était le seul écart de pipeline que rien
    n'argumentait. */
 const AdminNotifications = lazyWithReload(() => import('./pages/admin/AdminNotifications'), ['admin']);
+const AdminJournal = lazyWithReload(() => import('./pages/admin/AdminJournal'), ['ecrans']);
+const AdminRoles = lazyWithReload(() => import('./pages/admin/AdminRoles'), ['ecrans']);
+const AdminModeration = lazyWithReload(() => import('./pages/admin/AdminModeration'), ['ecrans']);
+const AdminQuotas = lazyWithReload(() => import('./pages/admin/AdminQuotas'), ['ecrans']);
+const AdminInfra = lazyWithReload(() => import('./pages/admin/AdminInfra'), ['ecrans']);
 const CertificatePage = lazyWithReload(() => import('./pages/lms/Certificate'), ['lms']);
 /*
  * La vérification d'un code. Elle n'est PAS le certificat : `/certificat/:code` affiche un
@@ -402,8 +423,12 @@ function CommercesRedirect() {
  * utilisaient déjà le produit.
  */
 function LegacyTutorRedirect() {
+  /* Passe 2 — PRD rév. 6 (§1.1) : « Répétiteur » quitte l'interface, et
+     `/mon-espace/repetiteur` (comme l'ancien `/mon-espace/rysmo`) redirige vers
+     `/mon-espace/assistant`. La requête et l'ancre suivent (`?tab=tokens`, `#memoire`). */
   const { language } = useLanguage();
-  return <Navigate to={localizedPath('/mon-espace/repetiteur', language)} replace />;
+  const { search, hash } = useLocation();
+  return <Navigate to={localizedPath(`/mon-espace/assistant${search}${hash}`, language)} replace />;
 }
 
 /** Les deux anciens index de média mènent désormais au pôle unique. */
@@ -445,6 +470,13 @@ function appChildren() {
          * bouton mène à `/mon-espace/club`, seul endroit où l'abonnement se crée, et gardé.
          */
         { path: 'club-des-digitos', element: <Suspense fallback={<PageLoader />}><ClubDigitos /></Suspense> },
+        /* Passe 2 : barre publique du Club (Le Club · Sessions · Tarif) et de l'Edu
+           (Formations · Méthode · Rysmo · Vérifier). Squelettes `noindex` jusqu'au lot. */
+        { path: 'club-des-digitos/sessions', element: <Suspense fallback={<PageLoader />}><ClubSessionsPage /></Suspense> },
+        { path: 'club-des-digitos/adhesion', element: <Suspense fallback={<PageLoader />}><ClubAdhesionPage /></Suspense> },
+        { path: 'apprendre/methode', element: <Suspense fallback={<PageLoader />}><MethodePage /></Suspense> },
+        { path: 'apprendre/assistant', element: <Suspense fallback={<PageLoader />}><AssistantPublicPage /></Suspense> },
+        { path: 'compte', element: <ProtectedRoute><Suspense fallback={<PageLoader />}><ComptePage /></Suspense></ProtectedRoute> },
         /*
          * Les deux anciens index redirigent vers le pôle. Leurs FICHES de détail, elles, ne
          * bougent pas : un épisode et une vidéo ne se lisent pas pareil — transcription d'un
@@ -541,7 +573,17 @@ function appChildren() {
               path: `club/${onglet}`,
               element: <Suspense fallback={<PageLoader />}><ClubPage /></Suspense>,
             })),
-            { path: 'repetiteur',      element: <Suspense fallback={<PageLoader />}><RysmoPage /></Suspense> },
+            { path: 'assistant',       element: <Suspense fallback={<PageLoader />}><RysmoPage /></Suspense> },
+            { path: 'repetiteur',      element: <LegacyTutorRedirect /> },
+            { path: 'agenda',          element: <Suspense fallback={<PageLoader />}><AgendaPage /></Suspense> },
+            { path: 'cohorte',         element: <Suspense fallback={<PageLoader />}><CohortePage /></Suspense> },
+            { path: 'cohorte/live',    element: <Suspense fallback={<PageLoader />}><CohorteLivePage /></Suspense> },
+            { path: 'missions',        element: <Suspense fallback={<PageLoader />}><MissionsPage /></Suspense> },
+            { path: 'quiz/:moduleId',  element: <Suspense fallback={<PageLoader />}><QuizPage /></Suspense> },
+            { path: 'club/defis',      element: <Suspense fallback={<PageLoader />}><ClubDefisPage /></Suspense> },
+            { path: 'club/live',       element: <Suspense fallback={<PageLoader />}><ClubLivePage /></Suspense> },
+            { path: 'club/membres/:memberId', element: <Suspense fallback={<PageLoader />}><ClubMembreProfilPage /></Suspense> },
+            { path: 'club/publication/:postId', element: <Suspense fallback={<PageLoader />}><ClubPublicationPage /></Suspense> },
             { path: 'hors-connexion',  element: <Suspense fallback={<PageLoader />}><OfflinePage /></Suspense> },
             { path: 'notifications',   element: <Suspense fallback={<PageLoader />}><NotificationsPage /></Suspense> },
             { path: 'rysmo',           element: <LegacyTutorRedirect /> },
@@ -620,6 +662,11 @@ function appChildren() {
         { path: 'projets', element: <Suspense fallback={<PageLoader />}><AdminMissions /></Suspense> },
         { path: 'redirections', element: <Suspense fallback={<PageLoader />}><AdminRedirects /></Suspense> },
         { path: 'notifications', element: <Suspense fallback={<PageLoader />}><AdminNotifications /></Suspense> },
+        { path: 'journal', element: <Suspense fallback={<PageLoader />}><AdminJournal /></Suspense> },
+        { path: 'roles', element: <Suspense fallback={<PageLoader />}><AdminRoles /></Suspense> },
+        { path: 'moderation', element: <Suspense fallback={<PageLoader />}><AdminModeration /></Suspense> },
+        { path: 'quotas', element: <Suspense fallback={<PageLoader />}><AdminQuotas /></Suspense> },
+        { path: 'infrastructure', element: <Suspense fallback={<PageLoader />}><AdminInfra /></Suspense> },
       ],
     },
   ];

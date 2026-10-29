@@ -37,5 +37,23 @@
   "alert": "Ton compte, prêt pour l'ouverture",
   "alertAction": "Créer un compte",
   "noEmail": "La lettre part quand il y a quelque chose à dire, pas chaque semaine. Le flux reste là si tu préfères suivre sans donner ton adresse.",
-  "newsletterEyebrow": "Reste au courant"
+  "newsletterEyebrow": "Reste au courant",
+  "v3": {
+    "colLetter": "La lettre",
+    "letterText": "Un e-mail quand je publie quelque chose d'utile. Tu te désabonnes en un clic.",
+    "colMe": "Moi",
+    "colServices": "Services",
+    "colContents": "Contenus",
+    "journey": "Mon parcours",
+    "work": "Réalisations",
+    "contact": "Contact",
+    "commerces": "Commerces et TPE",
+    "custom": "Projets sur mesure",
+    "courses": "Formations",
+    "club": "Club des Digitos",
+    "blog": "Blog",
+    "media": "Podcast et vidéos",
+    "faq": "FAQ",
+    "switchLanguage": "Changer de langue (FR · EN)"
+  }
 }

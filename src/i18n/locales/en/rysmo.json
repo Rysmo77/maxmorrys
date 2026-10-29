@@ -1,5 +1,5 @@
 {
-  "subtitle": "AI tutor",
+  "subtitle": "AI assistant",
   "greeting": "Hey {{name}}! I'm **{{tutor}}**, your AI tutor. I'm here to help you understand your courses, create quizzes, and recommend resources. How can I help you today?",
   "defaultName": "Student",
   "quickActions": {

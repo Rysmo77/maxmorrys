@@ -335,7 +335,8 @@
   @media (max-width: 699.98px) {
     .mm-topbar {
       gap: 10px !important;
-      padding: 10px 12px !important;
+      height: 54px !important;
+      padding: 0 6px 0 10px !important;
     }
   }
 
@@ -347,11 +348,19 @@
     }
   }
 
+  /* Passe 2 : sous 1080 px, la barre ne garde que la marque, l'action courte et le menu. */
+  @media (min-width: 1080px) {
+    .mm-topbar .mm-only-narrow { display: none !important; }
+  }
+  @media (max-width: 1079.98px) {
+    .mm-topbar .mm-only-wide { display: none !important; }
+  }
+
   /* Entre 1080 et 1280 px, la gouttière de 24 px du kit fait déborder les six libellés
      français — ils courent 18 % plus long que l'anglais. Elle se resserre à 14. */
   @media (max-width: 1279.98px) {
-    .mm-topbar > nav {
-      gap: 14px !important;
+    .mm-topbar > nav a {
+      padding: 0 11px !important;
     }
   }
 

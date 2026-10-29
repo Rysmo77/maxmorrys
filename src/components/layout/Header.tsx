@@ -12,133 +12,86 @@ import DsNavHost from './DsNavHost';
 import { Icon } from '@ds';
 import {
   Button, SideNav, TopBar, Wordmark,
-  type SideNavItem, type Territory, type TopBarItem,
+  type SideNavItem, type TopBarItem,
 } from '../../design-system';
 
 /**
- * LA BARRE HAUTE DU SITE — pilule flottante, et la dernière surface du produit à avoir perdu
- * son verre (AD-26).
+ * LA BARRE HAUTE DES PAGES PUBLIQUES — pilule flottante opaque (AD-26), gabarit `mm-topbar`
+ * du kit v3 (passe 2, maquettes du 29/10/2026).
  *
- * Elle avait droit au flou pour une raison qui se vérifiait à l'œil : elle ne défile pas, et
- * le contenu passe RÉELLEMENT dessous. Cet argument justifiait le FLOU, jamais le VOILE — et
- * c'est le voile qui tenait la lisibilité une fois le flou retiré : `.dk .glass` vaut blanc à
- * NEUF pour cent. Le chrome, le tiroir, la sous-navigation et le menu de compte sont
- * désormais opaques ; seul le voile derrière le tiroir reste translucide, parce que reculer
- * la page est sa fonction.
+ * · Marque : le verrouillage « Max-Morrys » des maquettes (`Wordmark brand="kit"`), avec
+ *   l'étiquette d'espace sur Edu ; le Club écrit « Club des Digitos ». « Hello ! » n'est plus
+ *   posé ici (décision levée par le PRD rév. 6 + maquettes).
+ * · Entrées : celles de l'espace public courant (`NAV_BY_SPACE`), en contrôle segmenté avec
+ *   pouce. Aucun menu au survol.
+ * · Droite : FR · EN, thème (le bouton reste), recherche, puis l'action de l'espace —
+ *   « Réserver un appel » (→ `/contact?rdv=1`, la prise de rendez-vous existante) pour une
+ *   personne non connectée sur le site ; avatar et menu de compte une fois connecté.
+ * · Sous 1080 px : marque, action courte (« Appel »), bouton de menu ; les entrées passent
+ *   dans le tiroir (`SideNav`), avec la langue et le thème.
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * CE QUI A CHANGÉ, ET POURQUOI
- *
- * 1. QUATRE ENTRÉES NEUTRES, ET LES SIX VERBES DESCENDUS D'UN ÉTAGE (CDC du 14/09/2026).
- *    La barre porte désormais : Conception · Apprendre · À propos · Contact. Les verbes —
- *    « Je te forme », « Je t'informe », « Je te transforme », « Je te digitalise » — ne
- *    disparaissent PAS : ils deviennent les entrées de la sous-navigation de leur piste, où
- *    ils s'adressent au bon public.
- *
- *    Le CDC dit pourquoi, et ce n'est pas une affaire de goût : « Le problème n'est pas le
- *    ton. Le problème est qu'un seul registre sert deux publics qui n'achètent pas la même
- *    chose, à des prix séparés par un facteur vingt. » Un directeur financier qui vérifie un
- *    dossier avant signature arrivait sur « Je te digitalise ton commerce ». Rien n'était
- *    faux ; l'écart de registre suffisait à installer un doute.
- *
- *    CE QUE ÇA COÛTE ICI : les entrées de la barre ne portent plus de filet de territoire.
- *    Ni « Conception » ni « Apprendre » n'EST un territoire — la première vit hors des quatre
- *    verbes, la seconde les contient tous les quatre — et le type `Territory` interdit
- *    heureusement d'en inventer un. La correspondance couleur ↔ territoire, elle, n'est pas
- *    perdue : elle est rendue par les deux `SubNav` de piste, une pastille par verbe.
- *
- * 2. L'AGENCE A QUITTÉ LA BARRE, PUIS LE SITE. Elle y vivait derrière un séparateur, en
- *    corail texte. `/agence` part maintenant en 301 vers `/conception`, dont elle est devenue
- *    la page mère : le CDC supprime le doublon avec My Onoma (objectif O3), et maxmorrys.me
- *    ne vend plus de direction marketing, de stratégie de marque ni d'acquisition.
- *
- * 3. AUCUN MENU DÉROULANT AU SURVOL, et c'est une règle du CDC : « les deux entrées mènent à
- *    des pages mères qui présentent leur piste. Un visiteur doit pouvoir comprendre l'offre en
- *    arrivant sur la page mère, sans avoir à explorer le menu. » Le système a la primitive
- *    qu'il faut pour le second niveau — `SubNav`, en tête de page, à toutes les largeurs, là
- *    où un survol n'existe pas sur mobile.
- *
- * 4. LE HEADER TRANSPARENT AU-DESSUS D'UN HÉROS A DISPARU. Il existait parce qu'une barre
- *    blanche opaque créait une couture franche sur `/` et `/agence`. Une pilule de verre
- *    détachée des bords n'a pas ce problème : elle flotte sur ce qu'il y a dessous, quel qu'il
- *    soit. Avec lui partent `transparentAccent`, `FOCUS_RING_ON_HERO` et le second anneau de
- *    focus — le système n'en a qu'un, bleu, câblé sur `:focus-visible` dans les jetons.
- *
- * 5. LES TROIS POINTS DE RUPTURE. Sous 1080 px, les entrées passent dans un TIROIR de
- *    250 px en faux verre (la primitive `SideNav`, ses pastilles de territoire comprises), et
- *    la barre garde son verre, son mot-symbole et ses utilitaires. Au-delà, la barre
- *    supérieure flottante porte les six libellés soulignés.
- * ─────────────────────────────────────────────────────────────────────────────
- *
- * `data-header-compact` reste publié sur `<html>` : `--header-h` en dépend, et avec elle le
- * bandeau de langue et la sous-nav de la page À propos.
+ * `data-header-compact` reste publié sur `<html>` : `--header-h` en dépend.
  */
 
-/** Une entrée de la navigation du site. `territory` porte le filet de couleur. */
+/** Une entrée de la navigation d'un espace public. */
 interface NavEntry {
-  /** Clé i18n dans le namespace `nav`. */
+  /** Clé i18n dans le namespace `nav` (sous `v3.`). */
   key: string;
   /** Chemin CANONIQUE FR — `useLocalizedPath` le préfixe selon la langue. */
   path: string;
-  /**
-   * Les quatre territoires, et seulement eux. Aucune des quatre entrées de la barre n'en est
-   * un depuis la refonte en deux pistes : une PISTE regroupe des territoires ou vit hors
-   * d'eux. Le champ reste, parce que le type le décrit correctement et qu'il documente ce
-   * qu'il ne faut pas y mettre.
-   */
-  territory?: Territory;
-  /**
-   * Les chemins qui allument cette entrée, en plus du sien. Une piste est active sur toutes
-   * les pages qu'elle contient : sans ça, la barre n'indique plus où l'on est dès qu'on entre
-   * dans une piste — et c'est TOUT le site qui est dans une piste.
-   */
+  /** Les chemins qui allument cette entrée, en plus du sien (préfixes). */
   owns?: readonly string[];
+  /** Ne s'allume que sur son chemin exact (l'accueil). */
+  exact?: boolean;
 }
 
-/*
- * ⚠️ `owns` PORTE AUSSI LES ANCIENNES ADRESSES. `/agence` et `/presence-digitale` sont
- * redirigées, donc personne ne devrait s'y trouver — mais la redirection est une navigation,
- * et pendant son temps de vol la barre rend déjà. Les y laisser coûte deux chaînes ; les
- * retirer ferait clignoter l'entrée active.
+/**
+ * PASSE 2 — LES TROIS BARRES PUBLIQUES DES MAQUETTES.
+ *
+ * Le PRD rév. 6 et les maquettes font foi : la barre « quatre entrées neutres » (CDC du
+ * 14/09) est LEVÉE. Le site (hub) porte les six entrées de `Main.dc.html` ; les pages
+ * publiques de l'espace Edu et du Club portent leur propre barre (`Edu-Accueil`,
+ * `Club-Accueil`). Pas de sous-domaine : l'espace se lit dans le chemin.
+ *
+ * Aucune URL publique ne change : « Mon parcours » mène à `/a-propos`, « Services » à
+ * `/conception`, « Contenus » au blog — les adresses référencées restent les mêmes.
+ * L'entrée active est celle dont le préfixe est le PLUS LONG (Réalisations vit sous
+ * `/conception`, et doit gagner sur Services).
  */
-const SITE_NAV: NavEntry[] = [
-  {
-    key: 'conception',
-    path: '/conception',
-    owns: ['/conception', '/agence', '/presence-digitale'],
-  },
-  {
-    key: 'learn',
-    path: '/apprendre',
-    /* Les quatre territoires de la piste, plus les deux anciens index de média qui
-       redirigent vers le pôle. Le CDC ne touche à AUCUNE de ces URL : ce sont des années de
-       référencement et de liens entrants. */
-    owns: [
-      '/apprendre',
-      '/formations',
-      '/blog',
-      '/podcast-et-videos',
-      '/podcasts',
-      '/videos',
-      '/club-des-digitos',
-    ],
-  },
-  { key: 'aboutNeutral', path: '/a-propos' },
-  { key: 'contactNeutral', path: '/contact' },
+type PublicSpace = 'hub' | 'edu' | 'club';
+
+const HUB_NAV: NavEntry[] = [
+  { key: 'v3.home', path: '/', exact: true },
+  { key: 'v3.journey', path: '/a-propos' },
+  { key: 'v3.services', path: '/conception', owns: ['/conception', '/agence', '/presence-digitale'] },
+  { key: 'v3.work', path: '/conception/realisations' },
+  { key: 'v3.contents', path: '/blog', owns: ['/blog', '/podcast-et-videos', '/podcasts', '/videos', '/faq'] },
+  { key: 'v3.contact', path: '/contact' },
 ];
 
-/**
- * ⚠️ `TRANSFORME_PATHS` A DISPARU D'ICI, et ce n'est pas un oubli.
- *
- * Il servait à allumer « Je te transforme » dans la barre depuis une fiche d'épisode. Les
- * quatre routes du territoire sont désormais dans le `owns` de la piste Apprendre : une
- * seule liste, au même endroit que les trois autres entrées, au lieu d'une constante à part
- * que rien ne rattachait à la table de navigation.
- *
- * La sous-navigation des deux étages, elle, n'a jamais vécu ici : `SubNav` est une primitive
- * de PAGE — « elle est en tête de page, elle défile avec elle ». Les quatre routes du
- * territoire la posent dans leur `PageSite`.
- */
+const EDU_NAV: NavEntry[] = [
+  { key: 'v3.eduCourses', path: '/formations' },
+  { key: 'v3.eduMethod', path: '/apprendre/methode' },
+  { key: 'v3.eduAssistant', path: '/apprendre/assistant' },
+  { key: 'v3.eduVerify', path: '/verifier' },
+];
+
+const CLUB_NAV: NavEntry[] = [
+  { key: 'v3.clubHome', path: '/club-des-digitos', exact: true },
+  { key: 'v3.clubSessions', path: '/club-des-digitos/sessions' },
+  { key: 'v3.clubPricing', path: '/club-des-digitos/adhesion' },
+  { key: 'v3.clubPerson', path: '/', exact: true },
+];
+
+/** L'espace public d'un chemin canonique. */
+function publicSpaceOf(path: string): PublicSpace {
+  const under = (p: string) => path === p || path.startsWith(p + '/');
+  if (under('/club-des-digitos')) return 'club';
+  if (under('/apprendre') || under('/formations')) return 'edu';
+  return 'hub';
+}
+
+const NAV_BY_SPACE: Record<PublicSpace, NavEntry[]> = { hub: HUB_NAV, edu: EDU_NAV, club: CLUB_NAV };
 
 /** Sélecteur des éléments focusables, pour le piège de focus du tiroir. */
 const FOCUSABLE =
@@ -155,7 +108,6 @@ const UTIL =
   'mm-touch-extend inline-flex items-center justify-center h-9 rounded-pill text-ink-2 ' +
   'hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui';
 const UTIL_ICON = cn(UTIL, 'w-9');
-const UTIL_TEXT = cn(UTIL, 'px-2.5 text-meta font-bold tracking-wide');
 
 /** Une ligne du menu de compte. */
 const MENU_ROW =
@@ -311,24 +263,28 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   }, [drawerOpen]);
 
   /** Une entrée est active sur son chemin et sur tout ce que sa piste possède. */
-  const isEntryActive = (entry: NavEntry) =>
-    (entry.owns ?? [entry.path]).some((p) => path === p || path.startsWith(p + '/'));
+  const space = publicSpaceOf(path);
+  const nav = NAV_BY_SPACE[space];
+  const matchLen = (entry: NavEntry): number => {
+    if (entry.exact) return path === entry.path ? entry.path.length + 1 : -1;
+    const hits = (entry.owns ?? [entry.path]).filter((p) => path === p || path.startsWith(p + '/'));
+    return hits.length ? Math.max(...hits.map((p) => p.length)) : -1;
+  };
+  const best = nav.reduce<{ e?: NavEntry; n: number }>((acc, e) => {
+    const n = matchLen(e);
+    return n > acc.n ? { e, n } : acc;
+  }, { n: -1 });
+  const activeLabel = best.e ? t(best.e.key) : undefined;
 
-  const activeEntry = SITE_NAV.find(isEntryActive);
-  const activeLabel = activeEntry ? t(activeEntry.key) : undefined;
+  const navItems: TopBarItem[] = nav.map((entry) => ({ label: t(entry.key), href: localize(entry.path) }));
+  const drawerItems: SideNavItem[] = nav.map((entry) => ({ label: t(entry.key), href: localize(entry.path) }));
 
-  const navItems: TopBarItem[] = SITE_NAV.map((entry) => ({
-    label: t(entry.key),
-    href: localize(entry.path),
-    territory: entry.territory,
-  }));
-
-  /** Le tiroir reprend les mêmes entrées, dans le même ordre. */
-  const drawerItems: SideNavItem[] = SITE_NAV.map((entry) => ({
-    label: t(entry.key),
-    href: localize(entry.path),
-    territory: entry.territory,
-  }));
+  /* L'action de l'espace, et sa forme courte sous 1080 px. */
+  const cta = space === 'edu'
+    ? { label: t('v3.eduStart'), short: t('v3.eduStart'), href: localize('/formations') }
+    : space === 'club'
+      ? { label: t('v3.clubJoin'), short: t('v3.clubJoinShort'), href: localize('/club-des-digitos/adhesion') }
+      : { label: t('v3.bookCall'), short: t('v3.bookCallShort'), href: localize('/contact?rdv=1') };
 
   const userInitials = user?.displayName
     ? user.displayName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
@@ -345,26 +301,19 @@ export default function Header({ onSearchOpen }: HeaderProps) {
     </button>
   );
 
+  /* FR · EN des maquettes : la langue courante en gras, le tout est la commande. */
   const languageButton = (
     <button
       type="button"
       onClick={toggleLanguage}
-      className={UTIL_TEXT}
+      className="mm-lang mm-touch-extend"
       aria-label={languageToggleLabel}
       title={languageToggleLabel}
     >
-      {language === 'fr' ? 'EN' : 'FR'}
+      {language === 'fr' ? <><b>FR</b> · EN</> : <>FR · <b>EN</b></>}
     </button>
   );
 
-  /**
-   * La bascule de thème sort de la barre sous 700 px, et se retrouve dans le tiroir.
-   *
-   * C'est une mesure, pas un goût : à 390 px, la pilule offre 322 px de contenu, et le
-   * mot-symbole plus les cinq utilitaires en réclament 356. Le budget de la barre ne dépend
-   * pas de la largeur de la fenêtre — la pilule est bornée par ses marges — donc quelque
-   * chose doit sortir, et c'est le contrôle qu'on touche le moins souvent.
-   */
   const themeButton = (className: string) => (
     <button
       type="button"
@@ -378,19 +327,6 @@ export default function Header({ onSearchOpen }: HeaderProps) {
         ? <Icon name="sun" size={18} strokeWidth={2.2} />
         : <Icon name="moon" size={18} strokeWidth={2.2} />}
     </button>
-  );
-
-  /*
-   * L'ENTRÉE AGENCE VIVAIT ICI, derrière un séparateur, en corail texte — « elle ne se range
-   * pas sous Je te digitalise : c'est une autre promesse et un autre client ». La refonte en
-   * deux pistes lui donne mieux qu'une place dans la barre : une PISTE. `/agence` part en 301
-   * vers `/conception`, et c'est l'entrée « Conception » qui la porte, à poids égal avec
-   * « Apprendre ».
-   *
-   * Le séparateur reste : il sépare toujours la navigation des utilitaires.
-   */
-  const separator = (
-    <span aria-hidden="true" className="w-px h-5 bg-[color:var(--border-hair)]" />
   );
 
   const accountControl = user ? (
@@ -428,6 +364,10 @@ export default function Header({ onSearchOpen }: HeaderProps) {
             <p className="text-small text-ink-2 mt-0.5 truncate">{user.email}</p>
           </div>
           <div className="py-1">
+            <LocalizedLink to="/compte" role="menuitem" className={MENU_ROW}>
+              <Icon name="user" size={16} strokeWidth={2.2} />
+              {t('v3.account')}
+            </LocalizedLink>
             <LocalizedLink to="/mon-espace" role="menuitem" className={MENU_ROW}>
               <Icon name="graduation" size={16} strokeWidth={2.2} />
               {t('studentSpace')}
@@ -452,15 +392,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
         </div>
       )}
     </div>
-  ) : (
-    <LocalizedLink
-      to="/connexion"
-      className="mm-touch-extend hidden wide:inline-flex items-center gap-2 h-9 px-4 rounded-pill text-meta font-semibold text-ink-2 border border-[color:var(--line)] hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
-    >
-      <Icon name="login" size={16} strokeWidth={2.2} />
-      {t('signIn')}
-    </LocalizedLink>
-  );
+  ) : null;
 
   return (
     <>
@@ -503,60 +435,60 @@ export default function Header({ onSearchOpen }: HeaderProps) {
         >
         <DsNavHost>
           <TopBar
-            className="mm-topbar"
-            /* « Hello ! » — le mot-symbole des PAGES WEB, en type pur, pour 0 octet. Le PNG du
-               logo pèse 273 Ko en 1254 × 1254 pour un rendu à 42 px ; il ne survit que sur
-               pastille blanche.
-
-               IL EST DÉSORMAIS UNE CIBLE (AD-23). Il portait son dégradé en permanence et
-               n'était cliquable nulle part : la seule marque du site qui ne ramenait pas à
-               l'accueil, alors que celle du pied de page le faisait déjà. Il a maintenant la
-               couleur des autres commandes de la barre — `--ink-2` au repos — et rend l'arc
-               des cinq teintes, qui se remplit de la gauche vers la droite, au survol.
-
-               UN `<a href>` NU, PAS UN `LocalizedLink` : c'est ce que rendent les six verbes
-               de la même barre (AD-6), et `DsNavHost` ci-dessus confie le clic au routeur.
-               ⌘-clic, clic milieu et la barre d'état au survol gardent leur comportement.
-
-               `aria-label` plutôt que le texte du lien : « Hello ! » est un nom de marque et
-               ne dit pas la destination. */
+            /* La marque : un `<a href>` nu (AD-6, `DsNavHost` confie le clic au routeur),
+               `aria-label` parce que le nom ne dit pas la destination. Sur le Club, le
+               verrouillage reste celui de la personne : « Club des Digitos » est écrit à côté. */
             brand={
               <a
-                href={localize('/')}
+                href={localize(space === 'club' ? '/club-des-digitos' : space === 'edu' ? '/apprendre' : '/')}
                 aria-label={t('home')}
                 aria-current={path === '/' ? 'page' : undefined}
-                className="mm-touch-extend inline-flex items-center h-9 mr-2.5 rounded-pill"
+                className="mm-topbar__logo mm-touch-extend no-underline"
               >
-                <Wordmark brand="hello" size={22} />
+                <Wordmark brand="kit" size={19} badge={space === 'edu' ? 'EDU' : undefined} />
+                {space === 'club' && <span className="sr-only">{t('v3.clubBrand')}</span>}
               </a>
             }
             items={navItems}
             active={activeLabel}
             label={t('menu')}
-            /* Le lien de saut est le PREMIER élément focalisable de la barre. Il ne coûte rien
-               et il est le seul moyen, au clavier, de ne pas retraverser six entrées de
-               navigation à chaque page. Son libellé se traduit : un « Aller au contenu » figé
-               s'afficherait tel quel sur le site anglais. */
+            /* Le lien de saut est le PREMIER élément focalisable de la barre. */
             skipHref="#main-content"
             skipLabel={t('skipToContent')}
-            /* La pilule flotte : ses marges viennent de `.mm-topbar`, qui sait les resserrer
-               à l'état compact. Le rembourrage, lui, tient dans le style en ligne. */
-            style={{ padding: '10px 16px' }}
             trailing={
               <>
-                {searchButton}
-                {languageButton}
-                {themeButton('hidden stack:inline-flex')}
-                {/* La frontière entre la navigation et les utilitaires, visible avant d'être lue. */}
-                <span className="hidden wide:flex items-center">{separator}</span>
-                {accountControl}
+                <span className="mm-only-wide inline-flex items-center gap-1">
+                  {languageButton}
+                  {searchButton}
+                  {themeButton('')}
+                </span>
+                {user ? (
+                  accountControl
+                ) : (
+                  <>
+                    {space !== 'hub' && (
+                      <LocalizedLink
+                        to="/connexion"
+                        className="mm-only-wide mm-touch-extend inline-flex items-center h-9 px-4 rounded-pill text-meta font-semibold text-ink border border-[color:var(--line)] hover:bg-[color:var(--fill-1)] transition-colors duration-ui no-underline"
+                      >
+                        {space === 'club' ? t('v3.clubSignIn') : t('signIn')}
+                      </LocalizedLink>
+                    )}
+                    <Button tone="primary" size="sm" arrow href={cta.href} className="mm-only-wide">
+                      {cta.label}
+                    </Button>
+                    <Button tone="transforme" size="sm" href={cta.href} className="mm-only-narrow">
+                      {cta.short}
+                    </Button>
+                  </>
+                )}
                 <button
                   ref={burgerRef}
                   onClick={() => setDrawerOpen(!drawerOpen)}
                   aria-expanded={drawerOpen}
                   aria-controls="site-drawer"
                   aria-label={t('menu')}
-                  className={cn(UTIL_ICON, 'wide:hidden')}
+                  className={cn(UTIL_ICON, 'mm-only-narrow w-10 h-10 border border-[color:var(--line)]')}
                 >
                   {drawerOpen
                     ? <Icon name="close" size={20} strokeWidth={2.2} />
@@ -593,11 +525,10 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                 label={t('menu')}
                 footer={
                   <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-3">
-                      {/* Le thème quitte la barre sous 700 px : il doit rester atteignable
-                          ici, sinon un visiteur sur petit écran n'a plus aucun moyen d'en
-                          changer. */}
-                      <span className="ml-auto stack:hidden">{themeButton('')}</span>
+                    <div className="flex items-center gap-2">
+                      {languageButton}
+                      {searchButton}
+                      <span className="ml-auto">{themeButton('')}</span>
                     </div>
                     {!user && (
                       <Button tone="primary" href={localize('/connexion')}>

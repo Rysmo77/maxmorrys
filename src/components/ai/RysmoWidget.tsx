@@ -560,7 +560,7 @@ export default function RysmoWidget() {
             {limitReached && (
               <div className="mb-2 flex flex-col gap-1.5">
                 <LocalizedLink
-                  to="/mon-espace/repetiteur?tab=tokens"
+                  to="/mon-espace/assistant?tab=tokens"
                   target="_blank"
                   rel="noopener noreferrer"
                   /* `--action-informe` est le dégradé orange de « Je t'informe », et son encre
@@ -629,7 +629,7 @@ export default function RysmoWidget() {
               </p>
               {quota && (
                 <LocalizedLink
-                  to="/mon-espace/repetiteur?tab=tokens"
+                  to="/mon-espace/assistant?tab=tokens"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[10px] text-ink-2 hover:text-digitalise-txt dark:hover:text-digitalise-txt transition-colors flex items-center gap-1"

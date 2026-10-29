@@ -1,0 +1,141 @@
+{
+  "links": {
+    "school": "Mon école",
+    "club": "Club des Digitos",
+    "payments": "Mes paiements",
+    "notifications": "Notifications",
+    "profile": "Mon profil",
+    "courses": "Voir les formations",
+    "assistant": "Ouvrir l'assistant",
+    "clubHome": "Découvrir le Club",
+    "cohort": "Ma cohorte",
+    "clubFeed": "Revenir au fil",
+    "clubAgenda": "Agenda du Club",
+    "clubMembers": "Membres du Club",
+    "console": "Ce qui bloque",
+    "accounts": "Comptes",
+    "clubAdmin": "Club · communauté"
+  },
+  "hub": {
+    "compte": {
+      "eyebrow": "Mon compte",
+      "title": "Mon compte",
+      "empty": "Un seul compte pour le site, tes formations et le Club.",
+      "body": "Cette page rassemblera tes espaces, tes paiements et tes notifications. En attendant, chaque espace s'ouvre d'ici."
+    }
+  },
+  "edu": {
+    "methode": {
+      "eyebrow": "Edu · Méthode",
+      "title": "La méthode",
+      "empty": "Cette page est en cours d'écriture.",
+      "body": "Elle expliquera comment se déroule une formation : leçons courtes, quiz de module, missions relues et live de cohorte. Le catalogue est déjà ouvert."
+    },
+    "assistant": {
+      "eyebrow": "Edu · Rysmo",
+      "title": "Rysmo IA, ton assistant",
+      "empty": "Cette page est en cours d'écriture.",
+      "body": "Elle présentera l'assistant pédagogique : ce qu'il sait faire, ses quotas, et ce qu'il ne fait pas. Si tu as un compte, il t'attend déjà dans ton espace."
+    },
+    "agenda": {
+      "eyebrow": "Mon école",
+      "title": "Agenda",
+      "empty": "Rien n'est encore programmé ici.",
+      "body": "Les lives de cohorte, les quiz à rendre et les sessions du Club apparaîtront ici dès qu'ils seront datés côté serveur."
+    },
+    "cohorte": {
+      "eyebrow": "Mon école",
+      "title": "Ma cohorte",
+      "empty": "Tu ne fais partie d'aucune cohorte pour l'instant.",
+      "body": "Quand une cohorte ouvrira pour ta formation, tu verras ici son avancement par module, le prochain live et les missions à relire. Aucun nom n'y sera classé."
+    },
+    "live": {
+      "eyebrow": "Ma cohorte",
+      "title": "Live de cohorte",
+      "empty": "Aucun live n'est programmé.",
+      "body": "Le prochain live s'affichera ici avec son heure exacte (GMT) et son lien. Les missions sans retour depuis 48 h y sont relues."
+    },
+    "missions": {
+      "eyebrow": "Mon école",
+      "title": "Missions et relectures",
+      "empty": "Aucune mission à rendre ni à relire.",
+      "body": "Les missions de tes modules et celles de ta cohorte à relire apparaîtront ici. Règle de relecture : ce qui marche, plus une chose à changer."
+    },
+    "quiz": {
+      "eyebrow": "Mon école",
+      "title": "Quiz de module",
+      "empty": "Ce quiz n'est pas encore disponible.",
+      "body": "Les quiz se passent depuis tes formations. Ta réponse comptera pour la validation du module, et l'assistant est en pause pendant le quiz."
+    }
+  },
+  "club": {
+    "sessions": {
+      "eyebrow": "Club des Digitos",
+      "title": "Les sessions",
+      "empty": "Aucune session publiée pour l'instant.",
+      "body": "Les sessions à venir du Club, avec leur date et leur sujet, s'afficheront ici dès qu'elles seront programmées."
+    },
+    "adhesion": {
+      "eyebrow": "Club des Digitos",
+      "title": "Rejoindre le Club",
+      "empty": "Cette page est en cours d'écriture.",
+      "body": "Elle détaillera l'adhésion au Club. L'abonnement se crée depuis ton espace, une fois connecté. Rien n'est prélevé automatiquement."
+    },
+    "defis": {
+      "eyebrow": "Club des Digitos",
+      "title": "Défis",
+      "empty": "Aucun défi en cours.",
+      "body": "Le défi de la semaine et tes participations apparaîtront ici. Pas de classement public : la régularité, pas la comparaison."
+    },
+    "live": {
+      "eyebrow": "Club des Digitos",
+      "title": "Session en direct",
+      "empty": "Aucune session n'est en direct.",
+      "body": "Quand une session du Club commencera, elle s'ouvrira ici. Les prochaines sont dans l'agenda du Club."
+    },
+    "profil": {
+      "eyebrow": "Club des Digitos",
+      "title": "Profil de membre",
+      "empty": "Ce profil n'est pas disponible.",
+      "body": "Le profil d'un membre montrera ce qu'il a choisi de partager. Les signalements et le blocage seront proposés ici."
+    },
+    "publication": {
+      "eyebrow": "Club des Digitos",
+      "title": "Publication",
+      "empty": "Cette publication n'est pas disponible.",
+      "body": "Une publication du fil s'ouvrira ici avec ses commentaires. Reviens au fil pour voir les dernières."
+    }
+  },
+  "console": {
+    "journal": {
+      "eyebrow": "Pilotage",
+      "title": "Journal d'audit",
+      "empty": "Le journal n'est pas encore relevé.",
+      "body": "Chaque action sensible de la console (rôle accordé, quota réinitialisé, suspension) laissera ici une trace datée avec son motif. Rien n'est affiché tant que le journal n'existe pas côté serveur."
+    },
+    "roles": {
+      "eyebrow": "Personnes",
+      "title": "Rôles et accès",
+      "empty": "La table des rôles n'est pas encore exposée.",
+      "body": "Cet écran montrera ce que chaque rôle atteint, depuis la même table que le menu et le garde de route. Le vrai cloisonnement reste dans les règles de sécurité."
+    },
+    "moderation": {
+      "eyebrow": "Espaces · Club",
+      "title": "Club · modération",
+      "empty": "Aucun signalement à traiter.",
+      "body": "Les signalements de publications, de profils et d'opportunités arriveront ici, chacun avec son contexte. Toute action exigera un motif écrit."
+    },
+    "quotas": {
+      "eyebrow": "Espaces · Rysmo",
+      "title": "Rysmo · quotas",
+      "empty": "Les quotas ne sont pas encore relevés ici.",
+      "body": "Cet écran montrera la consommation de l'assistant par palier et permettra de réinitialiser un quota avec un motif écrit."
+    },
+    "infra": {
+      "eyebrow": "Système",
+      "title": "Infrastructure",
+      "empty": "Aucun état de service relevé.",
+      "body": "L'état des Workers, des stockages et des services tiers s'affichera ici une fois qu'une sonde le relèvera. Aucun voyant n'est allumé sans mesure."
+    }
+  }
+}

@@ -125,7 +125,7 @@ export default function TutorPanel() {
         </p>
         <IconButton
           label={t('dashboard.tutorPanelMemory', { tutor })}
-          onClick={() => navigate(path('/mon-espace/repetiteur?tab=memoire'))}
+          onClick={() => navigate(path('/mon-espace/assistant?tab=memoire'))}
         >
           <Icon name="dots" size={17} strokeWidth={2} />
         </IconButton>

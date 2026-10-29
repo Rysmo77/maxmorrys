@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { LogoMark } from './LogoMark';
 
 /**
  * TROIS NOMS, TROIS CHOSES. Ce composant est l'endroit où la distinction tient.
@@ -27,7 +28,15 @@ import type { CSSProperties } from 'react';
  * que l'aplat de repos, qui est aussi le repli.
  */
 export interface WordmarkProps {
-  brand?: 'hello' | 'rysmo' | 'signature';
+  /**
+   * `kit` (passe 2, kit v3) : le verrouillage des maquettes — pastille blanche du logo puis
+   * « Max-Morrys » en Fraunces 900, avec l'étiquette d'espace optionnelle (`badge`). C'est
+   * désormais la marque de TOUTES les barres (site, Edu, Club, Console) ; « Hello ! » n'est
+   * plus posé nulle part par le châssis.
+   */
+  brand?: 'hello' | 'rysmo' | 'signature' | 'kit';
+  /** `kit` : étiquette d'espace à droite du nom (« EDU », « CONSOLE »). */
+  badge?: string;
   size?: number;
   /** L'encre de la partie non colorée. Par défaut, l'encre du corps. */
   tail?: string;
@@ -59,8 +68,18 @@ const base: CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
-export function Wordmark({ brand = 'hello', size = 22, tail, short, arc, style }: WordmarkProps) {
+export function Wordmark({ brand = 'hello', size = 22, tail, short, arc, badge, style }: WordmarkProps) {
   const s: CSSProperties = { ...base, fontSize: `${size}px`, ...style };
+
+  if (brand === 'kit') {
+    return (
+      <span className="mm-lockup" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', ...style }}>
+        <LogoMark size={Math.round(size * 1.6)} plate />
+        {!short && <span style={{ ...base, fontSize: `${size}px`, letterSpacing: '-.03em', color: 'var(--ink)' }}>Max-Morrys</span>}
+        {badge && !short && <small className="mm-lockup__badge">{badge}</small>}
+      </span>
+    );
+  }
 
   if (brand === 'hello') {
     return <span className="mm-arc mm-hello" style={s}>Hello&nbsp;!</span>;

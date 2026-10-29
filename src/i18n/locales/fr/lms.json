@@ -20,7 +20,24 @@
     "bottomClub": "Club",
     "bottomProfile": "Profil",
     "payments": "Paiements",
-    "sectionLearn": "Apprendre"
+    "sectionLearn": "Apprendre",
+    "sectionSchool": "Mon école",
+    "agenda": "Agenda",
+    "cohort": "Ma cohorte",
+    "achievementsShort": "Succès",
+    "assistantShort": "Assistant",
+    "account": "Mon compte",
+    "clubBrand": "Club des Digitos",
+    "clubFeed": "Fil",
+    "clubDiscussions": "Discussions",
+    "clubMembers": "Membres",
+    "clubLeaderboard": "Classement",
+    "clubOpportunities": "Opportunités",
+    "clubChallenges": "Défis",
+    "clubInfo": "Infos",
+    "clubReferral": "Parrainage",
+    "backToSchool": "Aller sur Edu",
+    "more": "Plus"
   },
   "titles": {
     "dashboard": "Tableau de bord",
@@ -33,7 +50,9 @@
     "club": "Club des Digitos",
     "profile": "Mon profil",
     "settings": "Paramètres",
-    "payments": "Mes paiements"
+    "payments": "Mes paiements",
+    "cohortLive": "Live de cohorte",
+    "missions": "Missions et relectures"
   },
   "shell": {
     "expandSidebar": "Étendre la barre latérale",

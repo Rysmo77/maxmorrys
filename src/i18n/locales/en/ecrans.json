@@ -1,0 +1,141 @@
+{
+  "links": {
+    "school": "My school",
+    "club": "Digitos Club",
+    "payments": "My payments",
+    "notifications": "Notifications",
+    "profile": "My profile",
+    "courses": "See the courses",
+    "assistant": "Open the assistant",
+    "clubHome": "Discover the Club",
+    "cohort": "My cohort",
+    "clubFeed": "Back to the feed",
+    "clubAgenda": "Club agenda",
+    "clubMembers": "Club members",
+    "console": "What is blocking",
+    "accounts": "Accounts",
+    "clubAdmin": "Club · community"
+  },
+  "hub": {
+    "compte": {
+      "eyebrow": "My account",
+      "title": "My account",
+      "empty": "One account for the site, your courses and the Club.",
+      "body": "This page will bring together your spaces, your payments and your notifications. Meanwhile, each space opens from here."
+    }
+  },
+  "edu": {
+    "methode": {
+      "eyebrow": "Edu · Method",
+      "title": "The method",
+      "empty": "This page is being written.",
+      "body": "It will explain how a course works: short lessons, module quizzes, reviewed missions and cohort lives. The catalogue is already open."
+    },
+    "assistant": {
+      "eyebrow": "Edu · Rysmo",
+      "title": "Rysmo AI, your assistant",
+      "empty": "This page is being written.",
+      "body": "It will present the learning assistant: what it can do, its quotas, and what it does not do. If you have an account, it is already waiting in your space."
+    },
+    "agenda": {
+      "eyebrow": "My school",
+      "title": "Agenda",
+      "empty": "Nothing is scheduled here yet.",
+      "body": "Cohort lives, quizzes due and Club sessions will appear here as soon as they are dated on the server."
+    },
+    "cohorte": {
+      "eyebrow": "My school",
+      "title": "My cohort",
+      "empty": "You are not part of a cohort yet.",
+      "body": "When a cohort opens for your course, you will see its progress by module, the next live and the missions to review here. No name will ever be ranked."
+    },
+    "live": {
+      "eyebrow": "My cohort",
+      "title": "Cohort live",
+      "empty": "No live is scheduled.",
+      "body": "The next live will show here with its exact time (GMT) and its link. Missions without feedback for 48 hours are reviewed there."
+    },
+    "missions": {
+      "eyebrow": "My school",
+      "title": "Missions and reviews",
+      "empty": "No mission to hand in or review.",
+      "body": "Your module missions and your cohort's missions to review will appear here. Review rule: what works, plus one thing to change."
+    },
+    "quiz": {
+      "eyebrow": "My school",
+      "title": "Module quiz",
+      "empty": "This quiz is not available yet.",
+      "body": "Quizzes are taken from your courses. Your answer will count towards validating the module, and the assistant is paused during the quiz."
+    }
+  },
+  "club": {
+    "sessions": {
+      "eyebrow": "Digitos Club",
+      "title": "Sessions",
+      "empty": "No session published yet.",
+      "body": "Upcoming Club sessions, with their date and topic, will show here as soon as they are scheduled."
+    },
+    "adhesion": {
+      "eyebrow": "Digitos Club",
+      "title": "Join the Club",
+      "empty": "This page is being written.",
+      "body": "It will detail Club membership. The subscription is created from your space once signed in. Nothing is charged automatically."
+    },
+    "defis": {
+      "eyebrow": "Digitos Club",
+      "title": "Challenges",
+      "empty": "No challenge running.",
+      "body": "This week's challenge and your entries will appear here. No public ranking: consistency, not comparison."
+    },
+    "live": {
+      "eyebrow": "Digitos Club",
+      "title": "Live session",
+      "empty": "No session is live.",
+      "body": "When a Club session starts, it will open here. Upcoming ones are in the Club agenda."
+    },
+    "profil": {
+      "eyebrow": "Digitos Club",
+      "title": "Member profile",
+      "empty": "This profile is not available.",
+      "body": "A member's profile will show what they chose to share. Reporting and blocking will be offered here."
+    },
+    "publication": {
+      "eyebrow": "Digitos Club",
+      "title": "Post",
+      "empty": "This post is not available.",
+      "body": "A feed post will open here with its comments. Go back to the feed to see the latest ones."
+    }
+  },
+  "console": {
+    "journal": {
+      "eyebrow": "Overview",
+      "title": "Audit log",
+      "empty": "The log is not recorded yet.",
+      "body": "Every sensitive console action (role granted, quota reset, suspension) will leave a dated trace here with its reason. Nothing is shown until the log exists on the server."
+    },
+    "roles": {
+      "eyebrow": "People",
+      "title": "Roles and access",
+      "empty": "The roles table is not exposed yet.",
+      "body": "This screen will show what each role can reach, from the same table as the menu and the route guard. The real isolation stays in the security rules."
+    },
+    "moderation": {
+      "eyebrow": "Spaces · Club",
+      "title": "Club · moderation",
+      "empty": "No report to handle.",
+      "body": "Reports on posts, profiles and opportunities will arrive here, each with its context. Every action will require a written reason."
+    },
+    "quotas": {
+      "eyebrow": "Spaces · Rysmo",
+      "title": "Rysmo · quotas",
+      "empty": "Quotas are not recorded here yet.",
+      "body": "This screen will show assistant usage by tier and let you reset a quota with a written reason."
+    },
+    "infra": {
+      "eyebrow": "System",
+      "title": "Infrastructure",
+      "empty": "No service status recorded.",
+      "body": "The status of Workers, storage and third-party services will show here once a probe records it. No light is on without a measurement."
+    }
+  }
+}

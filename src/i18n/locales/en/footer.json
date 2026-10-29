@@ -37,5 +37,23 @@
   "alert": "Your account, ready for opening day",
   "alertAction": "Create an account",
   "noEmail": "The letter goes out when there's something worth saying, not every week. The feed is still there if you'd rather follow without giving me your address.",
-  "newsletterEyebrow": "Keep up"
+  "newsletterEyebrow": "Keep up",
+  "v3": {
+    "colLetter": "The letter",
+    "letterText": "One email when I publish something useful. Unsubscribe in one click.",
+    "colMe": "Me",
+    "colServices": "Services",
+    "colContents": "Content",
+    "journey": "My journey",
+    "work": "Work",
+    "contact": "Contact",
+    "commerces": "Shops and small businesses",
+    "custom": "Custom projects",
+    "courses": "Courses",
+    "club": "Digitos Club",
+    "blog": "Blog",
+    "media": "Podcast and videos",
+    "faq": "FAQ",
+    "switchLanguage": "Switch language (FR · EN)"
+  }
 }

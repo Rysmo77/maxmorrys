@@ -1,0 +1,55 @@
+/*
+ * PASSE 2 — LE CHÂSSIS DES MAQUETTES (kit v3, 29/10/2026).
+ *
+ * Ce que les coquilles du produit empruntent au kit et que `kit-v3/components.css` (généré,
+ * jamais édité) ne peut pas dire seul :
+ *   · l'étiquette d'espace du verrouillage de marque (`Wordmark brand="kit"`) ;
+ *   · la barre haute du site au gabarit `mm-topbar` du kit (60 px, pouce sous l'entrée
+ *     active), dont la racine n'est pas portée par la traduction ;
+ *   · la couleur de l'entrée active des colonnes latérales PAR ESPACE (`data-space`) :
+ *     bleu Edu (défaut du kit), violet Club, encre Console.
+ * Aucun flou (AD-26) : la barre est un `.mm-menu`, donc opaque.
+ */
+
+/* ── Verrouillage de marque ─────────────────────────────────────────────── */
+.mm-lockup__badge {
+  font: 700 10px/1 var(--f-mono);
+  letter-spacing: .12em;
+  padding: 5px 7px;
+  border-radius: 7px;
+  background: var(--mm-bleu-c);
+  color: var(--mm-bleu-f);
+}
+[data-space="club"] .mm-lockup__badge { background: var(--mm-violet-c); color: var(--mm-violet-f); }
+[data-space="admin"] .mm-lockup__badge { background: var(--fill-1); color: var(--ink-2); }
+
+/* ── Barre haute du site : gabarit du kit ───────────────────────────────── */
+.mm-topbar.mm-topbar-v3 {
+  height: 60px;
+  gap: 16px;
+  padding: 0 8px 0 14px;
+}
+.mm-topbar-v3 .mm-topbar__nav a { white-space: nowrap; text-decoration: none; }
+.mm-topbar-v3 .mm-topbar__end { margin-left: auto; }
+.mm-topbar-v3 .mm-topbar__nav + .mm-topbar__end { margin-left: 0; }
+
+/* FR · EN : la langue courante en gras, l'autre est la commande. */
+button.mm-lang {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  height: 36px;
+}
+
+/* ── Colonnes latérales : l'actif suit l'espace ─────────────────────────── */
+.mm-sidenav a { text-decoration: none; }
+[data-space="club"] .mm-sidenav a[aria-current] { background: var(--mm-violet-c); color: var(--mm-violet-f); }
+[data-space="club"] .mm-sidenav a .b { background: var(--mm-violet-f); }
+[data-space="admin"] .mm-sidenav a[aria-current] { background: var(--ink-fixed); color: var(--paper-fixed); }
+[data-space="admin"] .mm-sidenav a .b { background: var(--stop); }
+.dk .mm-sidenav a[aria-current] { color: var(--ink); }
+.mm-side__h {
+  margin: 14px 10px 6px;
+  font: 500 12.5px/1 var(--f-body);
+  color: var(--ink-2);
+}

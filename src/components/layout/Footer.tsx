@@ -3,55 +3,25 @@ import { lazy, Suspense, type ComponentType } from 'react';
 import LocalizedLink from '../shared/LocalizedLink';
 import { FacebookIcon, InstagramIcon, LinkedInIcon, TikTokIcon, XIcon, YouTubeIcon } from '../shared/SocialIcons';
 import { SOCIAL_LINKS } from '../seo/seo-config';
-import { contact, corporateUrl, legalName } from '../../lib/brand';
-import { MegaFooter, Wordmark } from '../../design-system';
-import { Icon } from '@ds';
+import { legalName } from '../../lib/brand';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { MegaFooter } from '../../design-system';
 
 /*
-  LE FORMULAIRE EST CHARGÉ PARESSEUSEMENT, ET CE N'EST PAS UNE OPTIMISATION DE CONFORT.
-
-  Il écrit dans Firestore, donc il importe `firebase/firestore`. Le pied de page, lui, est
-  dans le graphe STATIQUE de la première vue : un import direct aurait fait précharger le SDK
-  — 90 Ko gzip — sur toutes les pages du site, pour un champ que la plupart des visiteurs ne
-  rempliront jamais. `tests/unit/first-view-graph.test.ts` a attrapé la régression au premier
-  essai ; c'est exactement le défaut qu'il existe pour empêcher, et il était déjà arrivé.
-
-  Le pied de page est sous la ligne de flottaison : le temps de chargement du morceau est
-  invisible en pratique, et le repli réserve sa hauteur pour qu'aucune ligne ne saute.
-*/
-const NewsletterForm = lazy(() => import('../shared/NewsletterForm'));
-
-/**
- * LE PIED DE PAGE DU SITE — une dalle d'encre, dans les deux modes.
+ * LE PIED DE PAGE DU SITE — gabarit `mm-footer` des maquettes (passe 2, `Main.dc.html`).
  *
- * IL PORTE LA PORTÉE `.dk`, ET C'EST LA SEULE FAÇON HONNÊTE DE LE FAIRE (AD-3).
+ * Quatre colonnes, dans l'ordre des maquettes : La lettre · Moi · Services · Contenus ; le
+ * filet quatre teintes ; le nom géant (« Max-Morrys », la personne) ; puis la ligne légale.
+ * Les liens pointent vers les adresses EXISTANTES — aucune URL publique ne change.
  *
- * Le kit dessine ce pied de page en dur : fond #0A0D11, titres #fff, liens #A7B2BF, et un
- * mot-symbole en variante `night`. Rien de tout ça n'est écrivable ici — la prop de thème
- * n'existe plus, et aucun code hexadécimal n'entre dans un fichier de composant. Le code
- * précédent avait pris l'autre voie : `bg-[color:var(--night-3)] dark:bg-[color:var(--night-2)]`
- * avec du `text-ink-2` par-dessus. En mode CLAIR, `--ink-2` vaut #5A6472 : du gris ardoise sur
- * une dalle presque noire, soit 2,5:1. Le pied de page était illisible la moitié du temps, et
- * personne ne le voyait, parce que tout le monde développe en sombre.
+ * La ligne légale garde TOUS les liens obligatoires (mentions, CGV, CGU, confidentialité,
+ * cookies) : la maquette n'en montre que deux, la loi en demande davantage.
  *
- * « Le thème est une PORTÉE CSS, jamais une variante de composant. » Une région
- * définitivement sombre est donc une région où la portée est posée : `.dk` sur le `<footer>`
- * bascule d'un coup les 78 jetons — l'encre, le verre, les quatre teintes, le corail texte de
- * l'agence, et jusqu'aux cinq teintes de l'arc du mot-symbole, qui prennent leur variante nuit
- * sans qu'on leur passe quoi que ce soit. Aucune couleur n'est écrite, et le mode clair devient
- * lisible.
- *
- * Le mot-symbole est « Max-Morrys » — le variant `signature` de <Wordmark>, en type pur, pour
- * 0 octet, pas « MAX-MORRYS » en capitales. La barre haute garde « Hello ! » : le pied de page
- * signe du nom de la PERSONNE, qui est aussi celui de la ligne d'exploitation et du copyright.
- *
- * IL PORTE L'ARC (AD-23), COMME CELUI DE LA BARRE HAUTE — `arc` sur <Wordmark>. Le mot est à
- * l'encre pleine au repos et les cinq teintes le traversent au survol du LIEN, pilule comprise,
- * `a:focus-visible` donnant au clavier la même réponse. Ce qu'il en coûte est écrit dans la
- * prop : `background-clip:text` impose `-webkit-text-fill-color:transparent`, qui est hérité,
- * donc les couleurs par lettre du variant s'éteignent. C'est le marché — quatre lettres peintes
- * en permanence contre cinq teintes qui balaient le nom entier.
+ * LE FORMULAIRE EST CHARGÉ PARESSEUSEMENT : il importe `firebase/firestore`, et le pied est
+ * dans le graphe statique de la première vue (`tests/unit/first-view-graph.test.ts`).
+ * Le consentement se recueille dans le formulaire (case explicite, jamais pré-cochée).
  */
+const NewsletterForm = lazy(() => import('../shared/NewsletterForm'));
 
 const socialIcons: Record<string, ComponentType<{ className?: string }>> = {
   LinkedIn: LinkedInIcon,
@@ -62,322 +32,121 @@ const socialIcons: Record<string, ComponentType<{ className?: string }>> = {
   X: XIcon,
 };
 
-const footerLinks = {
-  plateforme: [
-    /*
-     * LES DEUX PISTES, CHACUNE PAR SA PAGE MÈRE (CDC du 14/09/2026, §3.2).
-     *
-     * Les deux mères ouvrent leur piste ; les entrées qui suivent sont les portes qu'on
-     * cherche directement, depuis un signet ou un moteur.
-     *
-     * ⚠️ LE LIBELLÉ DE L'OFFRE TPE N'A PAS CHANGÉ AVEC SON ADRESSE. Elle reste « Présence
-     * Digitale » en français et « I'll get you online » en anglais — c'est le VERBE, et
-     * `tests/unit/voix-anglaise.test.ts` épingle la valeur anglaise : le pied de page avait
-     * déjà dérivé une fois vers « Digital Presence », le mot de plaquette que `segments.ts`
-     * refuse jusque dans l'URL. Renommer commercialement l'offre est une décision qui se
-     * prend ailleurs qu'ici.
-     *
-     * L'offre TPE est entrée dans la navigation principale le 13/08/2026 ; elle a changé
-     * d'adresse le 17/09/2026 (`/presence-digitale` → `/conception/commerces-et-tpe`), et
-     * l'ancienne part en 301. Voir docs/AGENCY-POSITIONING.md §9.
-     */
-    { labelKey: 'links.conception', path: '/conception' },
-    { labelKey: 'links.presence', path: '/conception/commerces-et-tpe' },
-    { labelKey: 'links.learn', path: '/apprendre' },
-    { labelKey: 'links.formations', path: '/formations' },
-    { labelKey: 'links.blog', path: '/blog' },
-    /*
-     * LE TERRITOIRE VIOLET, SES DEUX ÉTAGES, DANS L'ORDRE. Le pied de page listait deux
-     * portes du MÊME étage — « Le Podcast du Marketing » et « Le Marketing en Pratique » —
-     * vers deux routes qui redirigent depuis leur fusion en un pôle unique, et ne nommait
-     * jamais le Club. Le gratuit ouvert d'abord, le payant fermé ensuite : c'est l'ordre que
-     * la sous-navigation du territoire tient partout ailleurs.
-     */
-    { labelKey: 'links.pole', path: '/podcast-et-videos' },
-    { labelKey: 'links.club', path: '/club-des-digitos' },
-  ],
-  apropos: [
-    { labelKey: 'links.about', path: '/a-propos' },
-    /* La FAQ descend ici depuis la colonne « Plateforme », qui a gagné les deux pages mères.
-       Onze liens à la verticale y étiraient déjà les quatre cellules une fois — c'est une
-       grille, et sa hauteur est celle de sa plus haute cellule. */
-    { labelKey: 'links.faq', path: '/faq' },
-    { labelKey: 'links.contact', path: '/contact' },
-    /*
-     * ⚠️ « Contact » ET « Prendre rendez-vous » VISAIENT LA MÊME URL, SANS RIEN QUI LES
-     * DISTINGUE. Deux entrées voisines, une seule destination : le second lien ne tenait pas
-     * sa promesse — le dialogue de rendez-vous n'est atteignable qu'APRÈS avoir choisi une
-     * branche sur `/contact`, et rien ne le disait à qui cliquait « Prendre rendez-vous ».
-     *
-     * `?rdv=1` est lu par `Contact.tsx` : il présélectionne la branche « une formation, ou la
-     * communauté » et ouvre le dialogue au montage. Les deux entrées mènent donc à deux
-     * ÉTATS de la même page, ce qui est exactement ce que leurs libellés annoncent.
-     *
-     * `localizedPath` préserve la chaîne de requête (`tests/unit/localized-path-query.test.ts`) :
-     * sous `/en`, l'entrée donne bien `/en/contact?rdv=1`.
-     */
-    { labelKey: 'links.booking', path: '/contact?rdv=1' },
-    /*
-     * « Vérifier un certificat » est au pied de page du kit depuis le début, et la page
-     * n'existait pas : le lien manquait ici, faute de destination. Son lecteur n'est pas
-     * l'apprenante mais un employeur, et le pied de page est exactement l'endroit où il
-     * cherche ce genre d'outil.
-     */
-    { labelKey: 'links.verify', path: '/verifier' },
-    /*
-     * « Flux RSS » est une entrée de la colonne « Utile » dans le kit (`reference/site-shell.jsx:16`).
-     * Il vivait dans une bande pleine largeur de `py-16` en haut du pied de page, avec un
-     * titre en Fraunces 41 px — pour un lien. C'est la seule des deux façons de suivre qui
-     * ne demande rien à personne : elle a sa place ici, pas au-dessus de tout le reste.
-     */
-    { labelKey: 'rss', path: '/rss.xml', external: true },
-  ],
-  legal: [
-    /*
-     * L'AGENCE VIVAIT ICI, et pas dans « Plateforme » : elle vivait hors des quatre verbes, et
-     * le kit la rangeait avec l'entité qui l'opère, en corail — la seule entrée colorée du
-     * pied de page. Elle est devenue une PISTE : « Conception » ouvre la colonne Plateforme,
-     * à poids égal avec « Apprendre ». `/agence` part en 301 vers `/conception`.
-     */
-    { labelKey: 'links.legalNotice', path: '/legal/mentions-legales' },
-    { labelKey: 'links.privacy', path: '/legal/confidentialite' },
-    { labelKey: 'links.cgu', path: '/legal/cgu' },
-    { labelKey: 'links.cgv', path: '/legal/cgv' },
-    { labelKey: 'links.cookies', path: '/legal/cookies' },
-  ],
-};
+type FooterLink = { labelKey: string; path: string };
 
-/** Un lien de colonne : encre secondaire au repos, encre pleine au survol. */
-const COL_LINK =
-  'group inline-flex items-center gap-1 text-meta text-ink-2 hover:text-ink transition-colors duration-ui';
+const COLUMNS: { titleKey: string; links: FooterLink[] }[] = [
+  {
+    titleKey: 'v3.colMe',
+    links: [
+      { labelKey: 'v3.journey', path: '/a-propos' },
+      { labelKey: 'v3.work', path: '/conception/realisations' },
+      { labelKey: 'v3.contact', path: '/contact' },
+    ],
+  },
+  {
+    titleKey: 'v3.colServices',
+    links: [
+      { labelKey: 'v3.commerces', path: '/conception/commerces-et-tpe' },
+      { labelKey: 'v3.custom', path: '/conception/projets-sur-mesure' },
+      { labelKey: 'v3.courses', path: '/formations' },
+      { labelKey: 'v3.club', path: '/club-des-digitos' },
+    ],
+  },
+  {
+    titleKey: 'v3.colContents',
+    links: [
+      { labelKey: 'v3.blog', path: '/blog' },
+      { labelKey: 'v3.media', path: '/podcast-et-videos' },
+      { labelKey: 'v3.faq', path: '/faq' },
+    ],
+  },
+];
+
+const LEGAL: FooterLink[] = [
+  { labelKey: 'links.legalNotice', path: '/legal/mentions-legales' },
+  { labelKey: 'links.cgv', path: '/legal/cgv' },
+  { labelKey: 'links.cgu', path: '/legal/cgu' },
+  { labelKey: 'links.privacy', path: '/legal/confidentialite' },
+  { labelKey: 'links.cookies', path: '/legal/cookies' },
+];
 
 export default function Footer() {
   const { t } = useTranslation('footer');
-  const { t: tShared } = useTranslation('shared');
-
-  const column = (
-    titleKey: string,
-    links: { labelKey: string; path: string; accent?: boolean; external?: boolean }[],
-  ) => (
-    <>
-      <h3 className="mm-eyebrow mb-5">{t(titleKey)}</h3>
-      <ul className="space-y-3">
-        {links.map((link) => (
-          <li key={link.labelKey}>
-            {/* Le flux n'est pas une route de l'application : c'est un fichier servi par
-                l'hébergement. `LocalizedLink` le préfixerait de `/en` et donnerait un 404. */}
-            {link.external ? (
-              <a href={link.path} className={COL_LINK}>
-                {t(link.labelKey)}
-                <Icon name="arrow-up-right" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity duration-ui" strokeWidth={2.2} />
-              </a>
-            ) : (
-            <LocalizedLink
-              to={link.path}
-              // `--mm-corail` fait 2,70:1 sur blanc et 7,17:1 sur l'encre : sous `.dk`, la
-              // version texte pointe d'elle-même sur la teinte pleine (AD-20).
-              className={link.accent ? `${COL_LINK} text-corail-txt hover:text-corail-txt` : COL_LINK}
-            >
-              {t(link.labelKey)}
-              <Icon name="arrow-up-right" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity duration-ui" strokeWidth={2.2} />
-            </LocalizedLink>
-            )}
-          </li>
-        ))}
-      </ul>
-    </>
-  );
+  const { language, toggleLanguage } = useLanguage();
 
   const legal = (
-    <>
-        {/* ── Mentions ────────────────────────────────────────────────────────── */}
-        {/* Le filet, puis la ligne de copyright en monospace — `reference/site-shell.jsx:63-64`. */}
-        <div className="py-4 border-t border-[color:var(--border-hair)] flex flex-col stack:flex-row justify-between items-center gap-3">
-          <p className="mm-num m-0 text-small text-ink-2">
-            {t('copyright', { year: new Date().getFullYear() })}
-          </p>
-          <p className="text-small text-ink-2">
-            {t('operatedByPrefix')}{' '}
-            <a
-              href={corporateUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-ink underline-offset-2 hover:underline"
-            >
-              {legalName}
-            </a>
-          </p>
-        </div>
-
-        {/* La phrase qui remplaçait le formulaire de lettre d'information. Elle tenait dans
-            une bande de `py-16` ; elle tient sur une ligne. Le produit n'a aucun canal
-            d'envoi, et c'est ce qu'elle dit — plutôt qu'un champ qui ne sert à rien. */}
-        <p className="pb-6 m-0 text-small leading-[1.5] text-ink-2">{t('noEmail')}</p>
-    </>
+    <div className="mm-footer__legal flex-col stack:flex-row">
+      <span>
+        © {new Date().getFullYear()} {legalName} · Dakar
+        {LEGAL.map((l) => (
+          <span key={l.labelKey}>
+            {' · '}
+            <LocalizedLink to={l.path} className="text-inherit no-underline hover:underline">
+              {t(l.labelKey)}
+            </LocalizedLink>
+          </span>
+        ))}
+      </span>
+      <button
+        type="button"
+        onClick={toggleLanguage}
+        className="mm-lang text-inherit"
+        aria-label={t('v3.switchLanguage')}
+      >
+        {language === 'fr' ? <><b>FR</b> · EN</> : <>FR · <b>EN</b></>}
+      </button>
+    </div>
   );
 
   return (
-    // `relative z-[1]` : le maillage est fixé à la fenêtre en `z-0`, et le pied de page se
-    // pose dessus. `dk` : voir l'en-tête — la dalle sombre est une portée, pas une couleur.
-    // Kit v3 (AD-27) : le pied de page GÉANT — filet des quatre teintes et nom en Fraunces
-    // sous les colonnes, mentions en dernier. `MegaFooter` pose la portée `.dk` lui-même.
     <MegaFooter
       name="Max-Morrys"
-      className="relative z-[1] bg-night text-[color:var(--text-body)]"
-      innerClassName="px-[18px] stack:px-10"
+      className="mm-footer relative z-[1] bg-night text-[color:var(--text-body)]"
+      innerClassName="px-0 stack:px-0"
       innerStyle={{
         maxWidth: 'calc(var(--site-measure, 1200px) + 2 * var(--site-gutter, 40px))',
         marginInline: 'auto',
       }}
       legal={legal}
     >
-
-      {/*
-        ── LA BANDE DE SUIVI A ÉTÉ SUPPRIMÉE ────────────────────────────────────────
-        Elle occupait `py-16` pleine largeur, avec un titre en `text-dsp` : le pied de page
-        faisait à lui seul trois fois la hauteur de celui du kit, sur les vingt routes.
-
-        Le kit n'en dessine aucune (`reference/site-shell.jsx:40-67`) : un seul bloc de 40 px de gouttière,
-        quatre colonnes, un filet, une ligne de copyright. « Flux RSS » y est simplement une
-        entrée de la colonne « Utile ».
-
-        RIEN N'EST PERDU. Le flux redescend dans la colonne, et la phrase qui explique
-        l'absence de lettre d'information — le produit n'a AUCUN canal d'envoi — passe sous le
-        copyright, où elle tient sur une ligne au lieu d'une bande.
-      */}
-      {/* ── Colonnes ──────────────────────────────────────────────────────────── */}
-      {/*
-        ── LA GOUTTIÈRE DU PIED DE PAGE EST CELLE DU CORPS ─────────────────────────
-        Il portait `max-w-7xl mx-auto px-4 stack:px-6 wide:px-8` : une largeur maximale de 1280 px
-        centrée, avec un rembourrage de 16 → 32 px. Le corps des pages, lui, n'a pas de largeur
-        maximale et prend 18 px sur mobile, 40 en desktop (`--site-pad`).
-
-        Les deux systèmes ne coïncidaient à AUCUNE largeur. Sur un écran de 1440, le contenu de
-        la page commençait à 40 px du bord et celui du pied à 112 : soixante-douze pixels de
-        décalage entre la première colonne du pied et le titre au-dessus, sur les vingt routes.
-
-        Le kit ne se pose pas la question — son pied de page est un bloc de `padding: 40px`
-        dans le même cadre que la page (`reference/site-shell.jsx:84`). C'est ce qu'on reprend : mêmes
-        gouttières, donc mêmes bords.
-      */}
-      {/*
-        ⚠️ ET LA MESURE REVIENT — celle-là même qui a été retirée d'ici.
-
-        Le commentaire ci-dessus raconte le retrait de `max-w-7xl mx-auto` : 1280 px centrés,
-        exactement le chiffre de la planche du kit. Le diagnostic était juste — le pied et le
-        corps « ne coïncidaient à AUCUNE largeur », 72 px de décalage sur les vingt routes —
-        mais la conclusion était inversée. Ce n'était pas la mesure du pied qui était fausse,
-        c'était son ABSENCE dans le corps.
-
-        Le corps l'a désormais, en jeton (`--site-measure`, voir `index.css`), et `PageSite`
-        la sert. Le pied la reprend depuis la MÊME source, avec la même gouttière : les deux
-        bords tombent au pixel, à toutes les largeurs, ce que ni l'un ni l'autre des deux
-        états précédents ne savait faire.
-      */}
-
-        {/*
-          ── LA LETTRE ────────────────────────────────────────────────────────────────
-          UNE BANDE, ET NON UNE CINQUIÈME COLONNE.
-
-          Le kit fixe le pied de page à `1.15fr .95fr .95fr .95fr`, un filet, une ligne de
-          copyright — et il ne prévoit AUCUN bloc de capture, parce qu'il a été écrit quand
-          il n'y avait pas de lettre. Ajouter une colonne aurait déformé une proportion qui
-          fait autorité ; poser une bande au-dessus, avec son propre filet, ajoute sans
-          rien casser. Les quatre colonnes et la ligne de mentions restent au pixel.
-
-          C'est le SEUL point de capture du produit. Le formulaire existait depuis des mois,
-          monté nulle part : la collection `newsletter` ne grandissait donc pas, et tout le
-          canal marketing — six modèles Brevo, deux lettres diffusées, la synchronisation
-          d'audience — attendait cette poignée de pixels.
-
-          Le consentement se recueille ici, jamais ailleurs : case à cocher explicite, jamais
-          pré-cochée, horodatée, et exigée côté serveur par `firestore.rules`. C'est ce qui
-          rend les listes Brevo légales.
-        */}
-        <div className="py-9 border-b border-[color:var(--border-hair)] grid grid-cols-1 gap-6 stack:grid-cols-[1.15fr_.95fr] stack:items-center">
-          <div>
-            <p className="mm-eyebrow m-0 mb-1.5">{t('newsletterEyebrow')}</p>
-            <h2 className="m-0 mb-2 font-display text-[21px] font-black leading-tight tracking-[-.03em] text-ink">
-              {tShared('newsletter.cardTitle')}
-            </h2>
-            <p className="m-0 max-w-[46ch] text-meta leading-relaxed text-ink-2">
-              {tShared('newsletter.cardText')}
-            </p>
-          </div>
+      <div className="mm-footer__cols" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+        <div>
+          <h6>{t('v3.colLetter')}</h6>
+          <p className="m-0 text-[15px] leading-[1.5] max-w-[34ch] text-[color:var(--ink)]">{t('v3.letterText')}</p>
           <Suspense fallback={<div aria-hidden className="h-[104px]" />}>
             <NewsletterForm source="footer" />
           </Suspense>
-        </div>
-
-        {/* Les proportions du kit : `1.15fr .95fr .95fr .95fr`, gouttière 26, et 40 px
-            de rembourrage vertical — `reference/site-shell.jsx:45-46`. */}
-        <div className="py-10 grid grid-cols-1 gap-[26px] stack:grid-cols-2 wide:grid-cols-[1.15fr_.95fr_.95fr_.95fr]">
-
-          {/* Marque */}
-          <div>
-            <LocalizedLink to="/" className="inline-block mb-5">
-              <Wordmark brand="signature" size={26} arc />
-            </LocalizedLink>
-            <p className="max-w-prose text-meta text-ink-2 leading-relaxed mb-4">
-              {t('brandTagline')}
-            </p>
-            {/*
-              LES MOYENS DE JOINDRE.
-
-              Pas d'adresse postale ici : rien ne se retire ni ne se signe sur place, et
-              l'identité de l'opérateur est portée par les mentions légales.
-            */}
-            <ul className="mb-6 space-y-2 text-meta text-ink-2">
-              <li className="flex items-start gap-3">
-                <Icon name="mail" size={16} className="mt-0.5 shrink-0" strokeWidth={2.2} />
-                <a href={`mailto:${contact.email}`} className="hover:text-ink transition-colors duration-ui">
-                  {contact.email}
+          <div className="flex flex-wrap gap-2 mt-[18px]">
+            {SOCIAL_LINKS.map(({ name, url }) => {
+              const SocialIcon = socialIcons[name];
+              return (
+                <a
+                  key={name}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={name}
+                  className="mm-touch-extend w-10 h-10 rounded-pill bg-[color:var(--fill-1)] hover:bg-[color:var(--fill-2)] border border-[color:var(--line)] flex items-center justify-center text-ink-2 hover:text-ink transition-colors duration-ui"
+                >
+                  {SocialIcon && <SocialIcon className="w-4 h-4" />}
                 </a>
-              </li>
-              <li className="flex items-start gap-3">
-                <Icon name="phone" size={16} className="mt-0.5 shrink-0" strokeWidth={2.2} />
-                {/* `tel:` veut le E.164 ; l'affichage garde sa mise en forme lisible. */}
-                <a href={`tel:${contact.phoneE164}`} className="hover:text-ink transition-colors duration-ui">
-                  {contact.phoneDisplay}
-                </a>
-              </li>
-            </ul>
-            <div className="flex flex-wrap gap-3">
-              {SOCIAL_LINKS.map(({ name, url }) => {
-                const Icon = socialIcons[name];
-                return (
-                  <a
-                    key={name}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={name}
-                    /* Puits d'icône : `--fill-1` est une teinte de LUMIÈRE sous `.dk`, pas
-                       d'encre — c'est ce que l'échelle `--fill-*` existe pour garantir. */
-                    className="mm-touch-extend w-9 h-9 rounded-pill bg-[color:var(--fill-1)] hover:bg-[color:var(--fill-2)] flex items-center justify-center text-ink-2 hover:text-ink transition-colors duration-ui"
-                  >
-                    <Icon className="w-4 h-4" />
-                  </a>
-                );
-              })}
-            </div>
+              );
+            })}
           </div>
-
-          {/*
-            ── TROIS COLONNES DE LIENS, UNE PAR CELLULE ─────────────────────────────────
-            La troisième cellule en portait DEUX, « À propos » puis « Légal » empilées sous
-            un `mt-8`. Onze liens à la verticale : mesurée à 478 px, elle étirait les quatre
-            cellules à sa hauteur — c'est une grille — et le pied de page atteignait 650 px
-            là où celui du kit en fait 271. Rien ne l'imposait : la grille a quatre pistes,
-            et « Contact » n'occupait la sienne que pour trois lignes qui ne sont pas des
-            liens. Les moyens de joindre remontent donc dans la cellule de marque, avec
-            l'identité légale qu'ils prolongent, et « Légal » prend la piste libérée.
-          */}
-          <div>{column('columns.platform', footerLinks.plateforme)}</div>
-          <div>{column('columns.about', footerLinks.apropos)}</div>
-          <div>{column('columns.legal', footerLinks.legal)}</div>
         </div>
-
+        {COLUMNS.map((col) => (
+          <div key={col.titleKey}>
+            <h6>{t(col.titleKey)}</h6>
+            <ul>
+              {col.links.map((l) => (
+                <li key={l.labelKey}>
+                  <LocalizedLink to={l.path}>{t(l.labelKey)}</LocalizedLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </MegaFooter>
   );
 }

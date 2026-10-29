@@ -76,6 +76,14 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { to: '/admin/analytics',        labelKey: 'nav.analytics',      titleKey: 'nav.analytics',      icon: 'bars' },
   { to: '/admin/redirections',     labelKey: 'nav.redirects',      titleKey: 'nav.redirects',      icon: 'route' },
   { to: '/admin/parametres',       labelKey: 'nav.settings',       titleKey: 'nav.settings',       icon: 'settings' },
+  /* Passe 2 — les écrans des maquettes sans code ni données à ce jour : route et squelette
+     honnête (état vide), remplis par le lot D. Journal d'audit = FR-063 (préalable de la
+     console mobile, FR-288) ; Rôles = miroir FR-010/FR-289. */
+  { to: '/admin/journal',          labelKey: 'nav.audit',          titleKey: 'nav.audit',          icon: 'shield' },
+  { to: '/admin/roles',            labelKey: 'nav.roles',          titleKey: 'nav.roles',          icon: 'lock' },
+  { to: '/admin/moderation',       labelKey: 'nav.moderation',     titleKey: 'nav.moderation',     icon: 'flag', tone: 'club', space: 'club' },
+  { to: '/admin/quotas',           labelKey: 'nav.quotas',         titleKey: 'nav.quotas',         icon: 'sparkles', space: 'rysmo' },
+  { to: '/admin/infrastructure',   labelKey: 'nav.infra',          titleKey: 'nav.infra',          icon: 'monitor' },
 ];
 
 /** Combien d'écrans la console porte. Compté, jamais écrit à la main. */
@@ -104,11 +112,11 @@ export const ADMIN_SECTIONS: { titleKey: string; paths: string[] }[] = [
   */
   {
     titleKey: 'nav.sectionPilotage',
-    paths: ['/admin', '/admin/analytics'],
+    paths: ['/admin', '/admin/journal', '/admin/analytics'],
   },
   {
     titleKey: 'nav.sectionPeople',
-    paths: ['/admin/utilisateurs', '/admin/rendez-vous'],
+    paths: ['/admin/utilisateurs', '/admin/roles', '/admin/rendez-vous'],
   },
   {
     titleKey: 'nav.sectionMoney',
@@ -118,14 +126,15 @@ export const ADMIN_SECTIONS: { titleKey: string; paths: string[] }[] = [
     titleKey: 'nav.sectionSpaces',
     paths: [
       '/admin/formations', '/admin/temoignages',
-      '/admin/club-digitos',
+      '/admin/club-digitos', '/admin/moderation',
       '/admin/prospects-agence', '/admin/projets',
       '/admin/articles', '/admin/podcasts', '/admin/videos', '/admin/faq', '/admin/annonces',
+      '/admin/quotas',
     ],
   },
   {
     titleKey: 'nav.sectionSystem',
-    paths: ['/admin/messages', '/admin/notifications', '/admin/redirections', '/admin/parametres'],
+    paths: ['/admin/messages', '/admin/infrastructure', '/admin/notifications', '/admin/redirections', '/admin/parametres'],
   },
 ];
 

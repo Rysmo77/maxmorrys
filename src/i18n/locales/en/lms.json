@@ -20,7 +20,24 @@
     "bottomClub": "Club",
     "bottomProfile": "Profile",
     "payments": "Payments",
-    "sectionLearn": "Learn"
+    "sectionLearn": "Learn",
+    "sectionSchool": "My school",
+    "agenda": "Agenda",
+    "cohort": "My cohort",
+    "achievementsShort": "Achievements",
+    "assistantShort": "Assistant",
+    "account": "My account",
+    "clubBrand": "Digitos Club",
+    "clubFeed": "Feed",
+    "clubDiscussions": "Discussions",
+    "clubMembers": "Members",
+    "clubLeaderboard": "Leaderboard",
+    "clubOpportunities": "Opportunities",
+    "clubChallenges": "Challenges",
+    "clubInfo": "Info",
+    "clubReferral": "Referral",
+    "backToSchool": "Go to Edu",
+    "more": "More"
   },
   "titles": {
     "dashboard": "Dashboard",
@@ -33,7 +50,9 @@
     "club": "Digitos Club",
     "profile": "My profile",
     "settings": "Settings",
-    "payments": "My payments"
+    "payments": "My payments",
+    "cohortLive": "Cohort live",
+    "missions": "Missions and reviews"
   },
   "shell": {
     "expandSidebar": "Expand sidebar",

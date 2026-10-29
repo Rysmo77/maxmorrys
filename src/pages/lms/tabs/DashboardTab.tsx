@@ -368,7 +368,7 @@ export default function DashboardTab({
             tone="transforme"
             size="sm"
             fullWidth={false}
-            onClick={() => navigate(path('/mon-espace/repetiteur'))}
+            onClick={() => navigate(path('/mon-espace/assistant'))}
             aria-label={t('dashboard.tutorTitle', { tutor })}
           >
             {t('dashboard.tutorCta')}

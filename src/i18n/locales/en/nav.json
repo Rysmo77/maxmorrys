@@ -34,5 +34,29 @@
   "conceptionCommerces": "Shops & small business",
   "conceptionSurMesure": "Custom projects",
   "conceptionRealisations": "Work",
-  "learnSubnavLabel": "Learn track navigation"
+  "learnSubnavLabel": "Learn track navigation",
+  "v3": {
+    "home": "Home",
+    "journey": "My journey",
+    "services": "Services",
+    "work": "Work",
+    "contents": "Content",
+    "contact": "Contact",
+    "bookCall": "Book a call",
+    "bookCallShort": "Call",
+    "account": "My account",
+    "eduCourses": "Courses",
+    "eduMethod": "Method",
+    "eduAssistant": "Rysmo",
+    "eduVerify": "Verify a certificate",
+    "eduStart": "Get started",
+    "clubBrand": "Digitos Club",
+    "clubHome": "The Club",
+    "clubSessions": "Sessions",
+    "clubPricing": "Pricing",
+    "clubPerson": "Max-Morrys",
+    "clubSignIn": "Sign in",
+    "clubJoin": "Join the Club",
+    "clubJoinShort": "Join"
+  }
 }

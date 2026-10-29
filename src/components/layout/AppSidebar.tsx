@@ -54,7 +54,8 @@ export interface AppSidebarSection {
 
 interface AppSidebarProps {
   sections: AppSidebarSection[];
-  brand: { label: string; href: string };
+  /** `badge` : l'étiquette d'espace du verrouillage (« EDU », « CONSOLE »). */
+  brand: { label: string; href: string; badge?: string };
   /** Le mot-symbole de la surface — `rysmo` pour l'application, `signature` pour la console. */
   wordmark?: WordmarkProps['brand'];
   collapsed: boolean;
@@ -66,7 +67,7 @@ interface AppSidebarProps {
 }
 
 export default function AppSidebar({
-  sections, brand, wordmark = 'rysmo', collapsed, onToggleCollapsed, onItemClick,
+  sections, brand, wordmark = 'kit', collapsed, onToggleCollapsed, onItemClick,
   onOpenCommandPalette, footer, showCollapseButton = true,
 }: AppSidebarProps) {
   const { t } = useTranslation('lms');
@@ -74,12 +75,11 @@ export default function AppSidebar({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="h-14 px-3 flex items-center justify-between border-b border-[color:var(--nav-brd)]">
-        <LocalizedLink to={brand.href} className="flex items-center gap-2 min-w-0">
-          <Wordmark brand={wordmark} size={collapsed ? 17 : 20} short={collapsed} />
-          {!collapsed && (
-            <span className="mm-eyebrow truncate">{brand.label}</span>
-          )}
+      {/* Passe 2 : le verrouillage `mm-side__logo` des maquettes (logo, « Max-Morrys »,
+          étiquette d'espace). Le libellé de l'espace reste lu par les lecteurs d'écran. */}
+      <div className="pt-5 pb-3 px-2 flex items-center justify-between">
+        <LocalizedLink to={brand.href} className="mm-side__logo !p-0 !pl-2 min-w-0 no-underline" aria-label={brand.label}>
+          <Wordmark brand={wordmark} size={collapsed ? 17 : 20} short={collapsed} badge={brand.badge} />
         </LocalizedLink>
         {showCollapseButton && onToggleCollapsed && (
           <button
@@ -117,82 +117,39 @@ export default function AppSidebar({
         </div>
       )}
 
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
+      {/* Passe 2 : la liste `mm-sidenav` du kit (46 px, rayon 14, actif en pastel de
+          l'espace — bleu Edu, violet Club, encre Console : `overrides/passe2-chassis.css`).
+          `NavLink` pose `aria-current="page"`, que le kit lit. */}
+      <nav className="flex-1 overflow-y-auto px-3 py-2">
         {sections.map((section, sIdx) => (
-          <div key={sIdx}>
-            {section.title && !collapsed && (
-              <p className="mm-eyebrow px-3 pb-1">{section.title}</p>
-            )}
-            <ul className="space-y-0.5 list-none m-0 p-0">
+          <div key={sIdx} className="mb-2">
+            {section.title && !collapsed && <h6 className="mm-side__h">{section.title}</h6>}
+            <div className="mm-sidenav">
               {section.items.map((item) => (
-                <li key={item.to}>
-                  <NavLink
-                    to={localize(item.to)}
-                    end={item.end}
-                    onClick={onItemClick}
-                    title={collapsed ? item.label : undefined}
-                    className={({ isActive }) =>
-                      cn(
-                        // 14 px de rayon : la valeur du kit. Elle n'est sur aucun échelon de
-                        // radius.css et ne s'arrondit pas pour autant — si le kit dit 14,
-                        // c'est 14 (AD-1).
-                        'mm-touch-extend flex items-center gap-3 px-3 py-2.5 rounded-[14px] text-meta font-medium transition-colors duration-ui',
-                        collapsed && 'justify-center',
-                        // UNE SEULE classe de couleur par état. `cn()` n'a pas de fusion
-                        // Tailwind dans ce dépôt : deux classes `text-*` sur le même élément
-                        // se départagent par l'ordre de la FEUILLE, pas par celui de l'appel —
-                        // et l'ordre de la feuille n'est écrit nulle part.
-                        // AD-18 : au repos, `--ink-2`. Jamais l'encre tertiaire.
-                        isActive
-                          ? 'text-ink bg-[color:var(--nav-on-bg)] shadow-[var(--nav-on-sh)]'
-                          : item.tone === 'club'
-                            ? 'text-transforme hover:bg-[color:var(--fill-1)]'
-                            : 'text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)]',
-                      )
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        {/* La pastille redit la couleur du territoire que le libellé dit
-                            déjà : rien n'y est porté seul, donc rien à annoncer. */}
-                        {!collapsed && item.tone === 'club' && (
-                          <span
-                            aria-hidden="true"
-                            className="w-2 h-2 rounded-xs shrink-0 bg-[color:var(--mm-violet)]"
-                          />
-                        )}
-                        <Icon
-                          name={item.icon}
-                          size={16}
-                          className={cn('flex-shrink-0', isActive && 'text-forme')}
-                          strokeWidth={2.2}
-                        />
-                        {!collapsed && (
-                          <>
-                            <span className="flex-1 text-left truncate">{item.label}</span>
-                            {item.badge != null && (
-                              <span className="text-small font-bold bg-[color:var(--fill-tag)] text-ink-2 px-1.5 py-0.5 rounded-pill">
-                                {item.badge}
-                              </span>
-                            )}
-                            {item.locked && (
-                              // Le verrou est un ÉTAT, pas une décoration : il se dit. Le
-                              // glyphe est masqué et le mot vit à côté, pour les lecteurs
-                              // d'écran seuls. `--ink-3` ne porte pas de texte (AD-18) — ici
-                              // il ne porte qu'un filet, ce à quoi il est explicitement réservé.
-                              <span className="shrink-0 inline-flex items-center">
-                                <Icon name="lock" size={14} className="text-ink-3" strokeWidth={2.4} />
-                                <span className="sr-only">{t('shell.locked')}</span>
-                              </span>
-                            )}
-                          </>
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                </li>
+                <NavLink
+                  key={item.to}
+                  to={localize(item.to)}
+                  end={item.end}
+                  onClick={onItemClick}
+                  title={collapsed ? item.label : undefined}
+                  className={cn('mm-touch-extend', collapsed && 'justify-center !px-0')}
+                >
+                  <Icon name={item.icon} size={20} className="flex-shrink-0" strokeWidth={2} />
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1 text-left truncate">{item.label}</span>
+                      {item.badge != null && <span className="b">{item.badge}</span>}
+                      {item.locked && (
+                        <span className="shrink-0 inline-flex items-center">
+                          <Icon name="lock" size={14} className="text-ink-2" strokeWidth={2.4} />
+                          <span className="sr-only">{t('shell.locked')}</span>
+                        </span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
               ))}
-            </ul>
+            </div>
           </div>
         ))}
       </nav>

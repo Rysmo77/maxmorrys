@@ -34,5 +34,29 @@
   "conceptionCommerces": "Commerces et TPE",
   "conceptionSurMesure": "Projets sur mesure",
   "conceptionRealisations": "Réalisations",
-  "learnSubnavLabel": "Navigation de la piste Apprendre"
+  "learnSubnavLabel": "Navigation de la piste Apprendre",
+  "v3": {
+    "home": "Accueil",
+    "journey": "Mon parcours",
+    "services": "Services",
+    "work": "Réalisations",
+    "contents": "Contenus",
+    "contact": "Contact",
+    "bookCall": "Réserver un appel",
+    "bookCallShort": "Appel",
+    "account": "Mon compte",
+    "eduCourses": "Formations",
+    "eduMethod": "Méthode",
+    "eduAssistant": "Rysmo",
+    "eduVerify": "Vérifier un certificat",
+    "eduStart": "Commencer",
+    "clubBrand": "Club des Digitos",
+    "clubHome": "Le Club",
+    "clubSessions": "Sessions",
+    "clubPricing": "Tarif",
+    "clubPerson": "Max-Morrys",
+    "clubSignIn": "Se connecter",
+    "clubJoin": "Rejoindre le Club",
+    "clubJoinShort": "Rejoindre"
+  }
 }

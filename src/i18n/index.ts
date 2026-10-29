@@ -77,6 +77,7 @@ export const LAZY_NAMESPACES = [
   'club',
   'conception',
   'contact',
+  'ecrans',
   'faq',
   'legal',
   'lms',

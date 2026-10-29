@@ -96,7 +96,7 @@ export const PORTEES_SUPPORT = [
 export type LibellePortee = (typeof PORTEES_SUPPORT)[number]['label'];
 
 /** Le nombre d'écrans de l'espace d'administration du site. Compté là-bas, pas écrit ici. */
-export const ECRANS_CONSOLE = 21;
+export const ECRANS_CONSOLE = 26; // passe 2 : + journal, rôles, modération, quotas, infrastructure
 
 /** « 5 écrans sur 21 » — le texte se DÉDUIT des deux nombres, il ne s'écrit pas. */
 export const PORTEE_RESUMEE = `${PORTEES_SUPPORT.length} écrans sur ${ECRANS_CONSOLE}`;

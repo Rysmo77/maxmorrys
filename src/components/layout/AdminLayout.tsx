@@ -111,7 +111,7 @@ export default function AdminLayout() {
 
   return (
     <AppShell
-      brand={{ label: panelLabel, href: '/admin' }}
+      brand={{ label: panelLabel, href: '/admin', badge: 'CONSOLE' }}
       bottomNavItems={bottomNavItems}
       /*
         ── LA CONSOLE EST CLAIRE (kit v3, AD-27 — décision du 29/10/2026) ──────────────
@@ -133,7 +133,7 @@ export default function AdminLayout() {
         l'outil de cette personne — d'où la signature, et non « Rysmo », qui est le nom de
         l'application apprenante.
       */
-      wordmark="signature"
+      wordmark="kit"
       titleMap={ADMIN_TITLES}
       sidebarSections={[
         ...ADMIN_SECTIONS.map((s) => ({

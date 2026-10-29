@@ -41,7 +41,7 @@ const COLLAPSED_KEY = 'app:sidebar:collapsed';
  * reflow par image. Le repli est instantané ; personne ne l'a jamais regardé se faire.
  */
 export interface AppShellProps {
-  brand: { label: string; href: string };
+  brand: { label: string; href: string; badge?: string };
   /**
    * Le maillage du fond. `nuit` est celui de la console. Ce n'est PAS une prop de thème
    * (AD-3) : le mode clair/sombre reste la portée `.dk`, et un maillage nuit s'affiche dans
@@ -99,6 +99,8 @@ export interface AppShellProps {
    * `space` : l'espace courant. Il pose `data-space` sur la coquille (les jetons `--space-*`
    * s'y lisent) et affiche le sélecteur d'espaces dans la barre haute, dès 1080 px.
    */
+  /** Passe 2 : rail d'icônes imposé (le Club), indépendant de la préférence repliée. */
+  rail?: boolean;
   space?: SpaceId;
   /** `false` retire le maillage : la console v3 est une surface claire et plate (`bento-2`). */
   mesh?: boolean;
@@ -109,21 +111,23 @@ export interface AppShellProps {
 }
 
 export default function AppShell({
-  brand, territory = 'forme', territoryMap, wordmark = 'rysmo', sidebarSections, bottomNavItems,
+  brand, territory = 'forme', territoryMap, wordmark = 'kit', sidebarSections, bottomNavItems,
   titleMap, beforeOutlet, outletContext, contentClassName, shellClassName,
-  space, mesh = true, headerEnd, sidebarFooter,
+  space, mesh = true, headerEnd, sidebarFooter, rail = false,
 }: AppShellProps) {
   const { t } = useTranslation('lms');
-  const [collapsed, setCollapsed] = useState<boolean>(() => {
+  const [collapsedPref, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem(COLLAPSED_KEY) === '1'; } catch { return false; }
   });
+  /* `rail` (passe 2) : l'espace impose le rail d'icônes (Club, `mm-dash__rail`). */
+  const collapsed = rail || collapsedPref;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    try { localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0'); } catch { /* ignore */ }
-  }, [collapsed]);
+    try { localStorage.setItem(COLLAPSED_KEY, collapsedPref ? '1' : '0'); } catch { /* ignore */ }
+  }, [collapsedPref]);
 
   // Close mobile drawer on route change
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
@@ -189,7 +193,7 @@ export default function AppShell({
           brand={brand}
           wordmark={wordmark}
           collapsed={collapsed}
-          onToggleCollapsed={() => setCollapsed((v) => !v)}
+          onToggleCollapsed={rail ? undefined : () => setCollapsed((v) => !v)}
           onOpenCommandPalette={() => setSearchOpen(true)}
           footer={collapsed ? undefined : sidebarFooter}
         />

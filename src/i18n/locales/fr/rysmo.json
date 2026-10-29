@@ -1,5 +1,5 @@
 {
-  "subtitle": "Répétiteur IA",
+  "subtitle": "Assistant IA",
   "greeting": "Salut {{name}} ! Je suis **{{tutor}}**, ton répétiteur IA. Je suis là pour t'aider à comprendre tes cours, créer des quiz, et recommander des ressources. Comment puis-je t'aider aujourd'hui ?",
   "defaultName": "Étudiant",
   "quickActions": {
