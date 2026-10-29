@@ -1,0 +1,204 @@
+[
+  {
+    "Id": 54,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : thread X hors lot ; promeut des formations (aucune publiée) ; tendances non sourcées."
+  },
+  {
+    "Id": 63,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : LinkedIn sans jeton ; sans série ni cible ; offre Club plaquée sur un contenu outils."
+  },
+  {
+    "Id": 86,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : LinkedIn sans jeton ; offre Formations (aucune publiée) ; « SEO est mort » non sourcé."
+  },
+  {
+    "Id": 114,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : RADAR daté mai 2024, sans source ; LinkedIn sans jeton."
+  },
+  {
+    "Id": 118,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : story (hors lot) ; voix « on/nous » au lieu du je ; renvoie à une semaine thématique passée."
+  },
+  {
+    "Id": 123,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : cite les formations (aucune publiée) ; anecdote non vérifiée ; renvoie à une semaine passée."
+  },
+  {
+    "Id": 129,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : thread X hors lot ; RADAR daté mai 2024 non sourcé."
+  },
+  {
+    "Id": 130,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : OFFRE Formations : aucune formation publiée."
+  },
+  {
+    "Id": 131,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : story OFFRE Formations (aucune publiée) ; ancienne signature « Maîtrise le digital… »."
+  },
+  {
+    "Id": 132,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : OFFRE agence en « nous » ; catalogue seul ≠ pack réel ; ordre Maps → concurrent → pack non respecté."
+  },
+  {
+    "Id": 133,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : LinkedIn sans jeton ; registre mixte (« Dites-nous » / tu)."
+  },
+  {
+    "Id": 135,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : RADAR SGE daté août 2024 ; vouvoiement dans le titre ; LinkedIn sans jeton."
+  },
+  {
+    "Id": 136,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : story (hors lot) ; registre mixte ; semaine thématique passée."
+  },
+  {
+    "Id": 138,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : LinkedIn sans jeton ; outil payant (Surfer SEO) ; promesse « double ton trafic » non sourcée."
+  },
+  {
+    "Id": 139,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : story (hors lot) ; voix « on/nous » ; semaine thématique passée."
+  },
+  {
+    "Id": 142,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : OFFRE « Digital Commerce Local » : offre inexistante ; titre au vouvoiement."
+  },
+  {
+    "Id": 146,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : story PREUVE sans preuve (« Bard », « Google My Business ») ; titre au vouvoiement."
+  },
+  {
+    "Id": 147,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : décrit Rysmo comme prenant des commandes pour les commerces (faux) ; semaine passée."
+  },
+  {
+    "Id": 148,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : LinkedIn sans jeton ; anecdote inventée ; voix « nous »."
+  },
+  {
+    "Id": 149,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : story (hors lot) ; RADAR daté août 2024 ; vouvoiement."
+  },
+  {
+    "Id": 150,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : thread X hors lot ; RADAR daté août 2024 non sourcé."
+  },
+  {
+    "Id": 151,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : OFFRE « formation exclusive » : aucune formation publiée ; vouvoiement dans le titre."
+  },
+  {
+    "Id": 152,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : story OFFRE : formation inexistante citée."
+  },
+  {
+    "Id": 153,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : OFFRE « Digital Commerce Local » : offre inexistante ; promesse « cité par ChatGPT »."
+  },
+  {
+    "Id": 154,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : LinkedIn sans jeton ; registre mixte (vous/tu)."
+  },
+  {
+    "Id": 155,
+    "Status": "rejeté",
+    "Erreurs": "Périmé — trié le 29/10/2026 par mm-agent-mariam : story (hors lot) ; voix « on/nous » ; semaine thématique passée."
+  },
+  {
+    "Id": 143,
+    "Titre": "Vendre sans forcer #1 — Ta fiche Google prête pour les fêtes",
+    "Thematique": "Marketing digital",
+    "Pilier": "Éducation",
+    "Serie": "ATELIER",
+    "Offre": "Non-produit",
+    "Cible": "Commerçants",
+    "Reseau": "fb",
+    "Format_Post": "post",
+    "Date_Publication_Prevue": "2026-11-02T12:00:00+00:00",
+    "Outil": "Google Business Profile",
+    "Brief": "Recyclé de la ligne 143 (août), réécrit le 29/10/2026. Intention : ouvrir le fil rouge « Vendre sans forcer » (préparation des fêtes) par le test Google Maps, dans l'ordre imposé Maps → concurrent. Public : commerçants Dakar/Abidjan, Facebook midi. Preuve : aucune donnée chiffrée, uniquement des gestes vérifiables. CTA unique : commenter métier + quartier.",
+    "Texte": "👋 Les fêtes de fin d'année arrivent. Tes clients vont chercher où acheter… sur leur téléphone.\n\nFais le test maintenant : ouvre Google Maps, tape ton métier et ton quartier. Par exemple « couturière Liberté 6 » ou « pâtisserie Cocody ».\n\nTu apparais ? Et ton voisin, lui, il apparaît ?\n\nSi ta fiche existe, prends dix minutes cette semaine pour trois vérifications :\n\n1. Tes horaires. Si tu ouvres plus tard ou le dimanche en décembre, ajoute des horaires exceptionnels. Un client qui trouve porte close ne revient pas.\n2. Tes photos. Une de ta devanture, une de l'intérieur, trois de tes produits phares. En plein jour, sans filtre.\n3. Ton numéro WhatsApp. Le client doit pouvoir t'écrire en un geste.\n\nPas encore de fiche ? Elle se crée gratuitement, depuis ton téléphone.\n\n💬 Dis-moi en commentaire ton métier et ton quartier : je cherche, et je te dis ce que je vois.",
+    "Hashtags": "#Dakar #CommerceLocal #VendreSansForcer",
+    "Visual_Strategy": "{\"gabarit\":\"poster\",\"accent\":\"turquoise\",\"titre_carte\":\"Ta fiche Google prête pour les fêtes ?\",\"sous_titre\":\"Horaires · Photos · WhatsApp\",\"consignes\":\"Fond uni, une silhouette de téléphone avec une épingle de carte stylisée. Bandeau « Vendre sans forcer #1 » en sourcil monospace. Aucun emoji sur le visuel. Logo Max-Morrys discret. Format selon réseau (fb/ig post 4:5).\"}",
+    "Slides_JSON": "[{\"titre\":\"Ta fiche Google prête pour les fêtes ?\",\"corps\":\"Horaires · Photos · WhatsApp : trois vérifications, dix minutes.\"}]",
+    "Status": "prêt_à_valider",
+    "Erreurs": null,
+    "Visuels_URLs": null,
+    "Blotato_PostSubmissionID": null,
+    "Blotato_PublicUrl": null,
+    "Mots_Cles": null
+  },
+  {
+    "Id": 126,
+    "Titre": "Cercle — Ton astuce WhatsApp qui fait vendre",
+    "Thematique": "Social media",
+    "Pilier": "Communauté",
+    "Serie": "CERCLE",
+    "Offre": "Non-produit",
+    "Cible": "Commerçants",
+    "Reseau": "fb",
+    "Format_Post": "post",
+    "Date_Publication_Prevue": "2026-11-03T12:00:00+00:00",
+    "Outil": "WhatsApp Business",
+    "Brief": "Recyclé de la ligne 126 (août), réécrit le 29/10/2026 (registre tu uniforme, plus de « semaine thématique » datée). Intention : faire parler les commerçants de leurs méthodes WhatsApp avant le rush des fêtes ; matière pour un post de synthèse (prénoms cités seulement avec accord). CTA unique : commenter son astuce.",
+    "Texte": "👋 Question pour toi qui vends sur WhatsApp.\n\nLes fêtes approchent, et les messages vont pleuvoir : « C'est combien ? », « Tu livres à Pikine ? », « Il reste la taille M ? ».\n\nChacun a sa petite méthode pour tenir le rythme sans perdre une vente. Un message d'accueil. Une étiquette « à livrer ». Un statut avec les prix du jour. Une liste de diffusion pour les clients fidèles.\n\nMoi, je veux connaître la tienne.\n\n💬 Écris en commentaire TON astuce WhatsApp, celle qui te fait gagner du temps ou des ventes. Une ligne suffit.\n\nJe rassemble les meilleures dans un prochain post, avec ton prénom si tu es d'accord. Entre commerçants, on apprend plus vite. 🙏",
+    "Hashtags": "#WhatsAppBusiness #CommerceLocal #Dakar",
+    "Visual_Strategy": "{\"gabarit\":\"poster\",\"accent\":\"vert\",\"titre_carte\":\"Ton astuce WhatsApp, c'est quoi ?\",\"sous_titre\":\"Une ligne en commentaire\",\"consignes\":\"Bulle de discussion stylisée vide, à remplir par le public. Sourcil « Cercle ». Aucun emoji sur le visuel. Logo Max-Morrys discret. Format selon réseau (fb/ig post 4:5).\"}",
+    "Slides_JSON": "[{\"titre\":\"Ton astuce WhatsApp, c'est quoi ?\",\"corps\":\"Celle qui te fait gagner du temps ou des ventes. Une ligne en commentaire.\"}]",
+    "Status": "prêt_à_valider",
+    "Erreurs": null,
+    "Visuels_URLs": null,
+    "Blotato_PostSubmissionID": null,
+    "Blotato_PublicUrl": null,
+    "Mots_Cles": null
+  },
+  {
+    "Id": 122,
+    "Titre": "Atelier — Réponses rapides WhatsApp Business, pas à pas",
+    "Thematique": "Social media",
+    "Pilier": "Éducation",
+    "Serie": "ATELIER",
+    "Offre": "Non-produit",
+    "Cible": "Apprenants",
+    "Reseau": "ig",
+    "Format_Post": "carrousel",
+    "Date_Publication_Prevue": "2026-11-04T19:00:00+00:00",
+    "Outil": "Réponses rapides WhatsApp Business",
+    "Brief": "Recyclé de la ligne 122 (story d'août), réécrit en carrousel le 29/10/2026 : retrait des gains inventés (« 5 h/semaine », « 3x plus vite »). Intention : un tutoriel sauvegardable, fonction gratuite. Public : apprenants, Instagram le soir. CTA unique : sauvegarder.",
+    "Texte": "Tu tapes encore « Oui, je prends Wave et Orange Money » à la main, dix fois par jour ?\n\nLes réponses rapides de WhatsApp Business existent pour ça. Tu écris ta réponse une fois, tu lui donnes un raccourci, et tu l'envoies en deux gestes.\n\nLe pas à pas est dans le carrousel. Mon conseil pour démarrer : ce soir, note les trois questions qu'on te pose le plus souvent. Ce sont tes trois premières réponses rapides.\n\nL'appli est gratuite, la fonction aussi.\n\nSauvegarde ce carrousel pour le faire au calme.",
+    "Hashtags": "#WhatsAppBusiness #AstuceWhatsApp #GainDeTemps #MarketingDigital #Dakar #Abidjan #Entrepreneur #MaxMorrys",
+    "Visual_Strategy": "{\"gabarit\":\"poster\",\"accent\":\"turquoise\",\"titre_carte\":\"Le même message, tapé une seule fois\",\"sous_titre\":\"Réponses rapides WhatsApp Business\",\"consignes\":\"Carrousel 7 slides 4:5. Couverture ≤ 7 mots. Slides étapes : numéro en grand, une consigne. Dernière slide « Sauvegarde pour plus tard ». Aucun emoji sur le visuel. Logo Max-Morrys discret. Format selon réseau (fb/ig post 4:5).\"}",
+    "Slides_JSON": "[{\"titre\":\"Le même message, tapé une seule fois\",\"corps\":\"Les réponses rapides de WhatsApp Business, en 4 étapes.\"},{\"titre\":\"Étape 1\",\"corps\":\"Ouvre WhatsApp Business, puis Outils professionnels, puis Réponses rapides.\"},{\"titre\":\"Étape 2\",\"corps\":\"Touche « + » et écris ta réponse : horaires, moyens de paiement, zones de livraison.\"},{\"titre\":\"Étape 3\",\"corps\":\"Donne-lui un raccourci court, par exemple /horaires ou /paiement.\"},{\"titre\":\"Étape 4\",\"corps\":\"Dans une discussion, tape « / » : tes réponses s'affichent. Un geste, et c'est envoyé.\"},{\"titre\":\"Par où commencer\",\"corps\":\"Note les trois questions qu'on te pose le plus. Ce sont tes trois premières réponses rapides.\"},{\"titre\":\"Sauvegarde pour plus tard\",\"corps\":\"Max-Morrys · Atelier WhatsApp.\"}]",
+    "Status": "prêt_à_valider",
+    "Erreurs": null,
+    "Visuels_URLs": null,
+    "Blotato_PostSubmissionID": null,
+    "Blotato_PublicUrl": null,
+    "Mots_Cles": null
+  }
+]

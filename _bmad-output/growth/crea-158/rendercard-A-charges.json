@@ -1,0 +1,46 @@
+[
+ {
+  "name": "rc-A-4x5",
+  "payload": {
+   "kit": "ds",
+   "format": "4:5",
+   "template": "poster",
+   "gabarit": "offre",
+   "territoire": "digitalise",
+   "eyebrow": "Pack Présence Locale",
+   "title": "Tape ton métier et ton quartier sur Google Maps. Tu [apparais] ?",
+   "prix": "250 000 F",
+   "prixUnite": "HT",
+   "prixNote": "Prix de lancement · TVA 18 % en plus",
+   "points": [
+    "Ta fiche Google Maps, complète",
+    "Boutons WhatsApp et appel",
+    "Ton catalogue en ligne"
+   ],
+   "paiement": "Acompte 60 % · Wave, Orange Money ou carte",
+   "cta": "Ton pack en 3 questions"
+  }
+ },
+ {
+  "name": "rc-A-9x16",
+  "payload": {
+   "kit": "ds",
+   "format": "9:16",
+   "template": "poster",
+   "gabarit": "offre",
+   "territoire": "digitalise",
+   "eyebrow": "Pack Présence Locale",
+   "title": "Tape ton métier et ton quartier sur Google Maps. Tu [apparais] ?",
+   "prix": "250 000 F",
+   "prixUnite": "HT",
+   "prixNote": "Prix de lancement · TVA 18 % en plus",
+   "points": [
+    "Ta fiche Google Maps, complète",
+    "Boutons WhatsApp et appel",
+    "Ton catalogue en ligne"
+   ],
+   "paiement": "Acompte 60 % · Wave, Orange Money ou carte",
+   "cta": "Ton pack en 3 questions"
+  }
+ }
+]

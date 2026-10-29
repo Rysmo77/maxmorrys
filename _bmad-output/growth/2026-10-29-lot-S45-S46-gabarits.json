@@ -1,0 +1,137 @@
+[
+ {
+  "Id": 143,
+  "Gabarit": "etapes",
+  "Slides_JSON": "[{\"titre\": \"Ta fiche Google, prête pour les [fêtes] ?\", \"sourcil\": \"Vendre sans forcer · 1\", \"corps\": \"Trois vérifications, dix minutes.\", \"etapes\": [\"Tes horaires de décembre, dimanche compris\", \"Tes photos, en plein jour\", \"Ton numéro WhatsApp, visible\"], \"cta\": \"Ton métier en commentaire\"}]"
+ },
+ {
+  "Id": 126,
+  "Gabarit": "affiche",
+  "Slides_JSON": "[{\"titre\": \"Ton astuce WhatsApp qui fait [vendre] ?\", \"sourcil\": \"Cercle · Commerçants\", \"corps\": \"Les fêtes arrivent, les « C'est combien ? » aussi. Comment tu tiens le rythme ?\", \"cta\": \"Une ligne en commentaire\"}]"
+ },
+ {
+  "Id": 159,
+  "Gabarit": "affiche",
+  "Slides_JSON": "[{\"titre\": \"Gemini peut gérer ta fiche [Google].\", \"sourcil\": \"Radar · Fiche Google\", \"corps\": \"Avis, horaires, état de ta fiche. Annonce Google du 10/06/2026, hors Europe. Relis toujours avant de publier.\"}]"
+ },
+ {
+  "Id": 161,
+  "Gabarit": "coulisses",
+  "Slides_JSON": "[{\"titre\": \"Les prix sont [affichés].\", \"sourcil\": \"Coulisses · Packs commerces\", \"corps\": \"Trois packs commerces, trois prix hors taxes. Tu sais avant d'écrire. Le sur mesure reste sur devis.\"}]"
+ },
+ {
+  "Id": 164,
+  "Gabarit": "etapes",
+  "Slides_JSON": "[{\"titre\": \"3 statuts par semaine. [Pas plus.]\", \"sourcil\": \"Vendre sans forcer · 2\", \"corps\": \"Photo et prix · un colis prêt · horaires et livraison.\", \"etapes\": [\"Lundi : le produit\", \"Mercredi : la preuve\", \"Samedi : le pratique\"], \"cta\": \"On montre, on ne supplie pas\"}]"
+ },
+ {
+  "Id": 165,
+  "Gabarit": "avant_apres",
+  "Slides_JSON": "[{\"titre\": \"Ta légende qui vend [sans forcer].\", \"sourcil\": \"Preuve · Exemple inventé\", \"avant\": [\"« Arrivage !!! »\", \"« Prix imbattables »\", \"« Inbox »\"], \"apres\": [\"Le produit précis\", \"Le prix écrit\", \"Le lieu clair\", \"Une seule action\"]}]"
+ },
+ {
+  "Id": 167,
+  "Gabarit": "affiche",
+  "Slides_JSON": "[{\"titre\": \"Tes 5 produits phares, pas tout le [stock].\", \"sourcil\": \"Vendre sans forcer · 3\", \"corps\": \"Catalogue WhatsApp : photo nette, nom clair, prix toujours.\", \"cta\": \"Lis l'article sur le blog\"}]"
+ },
+ {
+  "Id": 169,
+  "Gabarit": "etapes",
+  "Slides_JSON": "[{\"titre\": \"Ton QR code d'avis Google, en [caisse].\", \"sourcil\": \"Radar · Fiche Google\", \"etapes\": [\"Ouvre ta fiche depuis un ordinateur\", \"Clique sur « Demander des avis »\", \"Télécharge le QR code\", \"Colle-le près de la caisse\"], \"cta\": \"Gratuit · source : Google\"}]"
+ },
+ {
+  "Id": 171,
+  "Gabarit": "offre",
+  "Slides_JSON": "[{\"titre\": \"Les clients des fêtes te [trouvent] ?\", \"sourcil\": \"Pack Présence Locale\", \"prix\": \"250 000 F\", \"prixUnite\": \"HT\", \"prixNote\": \"Prix de lancement · TVA 18 % en plus\", \"points\": [\"Ta fiche Google créée et optimisée\", \"Boutons WhatsApp et appel direct\", \"Catalogue WhatsApp, 20 produits\"], \"paiement\": \"Acompte 60 % · Wave, Orange Money ou carte\", \"cta\": \"Ton pack en 3 questions\"}]"
+ },
+ {
+  "Id": 173,
+  "Gabarit": "avant_apres",
+  "Slides_JSON": "[{\"titre\": \"Ton message d'accueil [WhatsApp].\", \"sourcil\": \"Preuve · Exemple inventé\", \"avant\": [\"« Bonjour. »\", \"Et puis rien\", \"Le client part\"], \"apres\": [\"Qui tu es, où\", \"Tes horaires\", \"Comment commander\"]}]"
+ },
+ {
+  "Id": 175,
+  "Gabarit": "affiche",
+  "Slides_JSON": "[{\"titre\": \"Ta meilleure vente de fin d'[année] ?\", \"sourcil\": \"Cercle · À toi de raconter\", \"corps\": \"Et celle qui a fait un flop. Deux lignes en commentaire : je réponds à chacun.\", \"cta\": \"Raconte en commentaire\"}]"
+ },
+ {
+  "Id": 178,
+  "Gabarit": "etapes",
+  "Slides_JSON": "[{\"titre\": \"Trois questions avant de [publier].\", \"sourcil\": \"Coulisses · Une idée, une action\", \"fond\": \"nuit\", \"etapes\": [\"On comprend en 3 secondes ?\", \"Ça t'aide, même sans rien acheter ?\", \"Je ne demande qu'une seule chose ?\"], \"cta\": \"Réponds 1, 2 ou 3\"}]"
+ },
+ {
+  "Id": 179,
+  "Gabarit": "avant_apres",
+  "Slides_JSON": "[{\"titre\": \"La description de ta fiche [Google].\", \"sourcil\": \"Preuve · Exemple inventé\", \"avant\": [\"« Restaurant. »\", \"« Bienvenue à tous. »\", \"« Cuisine de qualité. »\"], \"apres\": [\"Ce que tu sers\", \"Ton quartier\", \"Sur place, à emporter\", \"Commande WhatsApp\"]}]"
+ },
+ {
+  "Id": 156,
+  "Gabarit": "coulisses",
+  "Slides_JSON": "[{\"titre\": \"Aucun prélèvement [automatique.]\", \"sourcil\": \"Coulisses · Paiement\", \"corps\": \"Wave, Orange Money ou carte. Pour le Club, un lien de paiement 7 jours avant l'échéance. Tu ne le règles pas : rien n'est débité.\"}]"
+ },
+ {
+  "Id": 157,
+  "Gabarit": "chiffre",
+  "Slides_JSON": "[{\"titre\": \"réponses de service gratuites par mois. Ensuite, [payant].\", \"sourcil\": \"Radar · WhatsApp API\", \"chiffre\": \"1 000\", \"corps\": \"Depuis le 01/10/2026. L'appli WhatsApp Business n'est pas concernée.\", \"source\": \"Meta, « Updates to pricing »\"}]"
+ },
+ {
+  "Id": 122,
+  "Gabarit": "etapes",
+  "Slides_JSON": "[{\"titre\": \"Le même message, tapé [une fois].\", \"sourcil\": \"Atelier · WhatsApp Business\", \"territoire\": \"forme\", \"corps\": \"Les réponses rapides de WhatsApp Business, en 4 étapes.\"}, {\"titre\": \"1. Ouvre les outils\", \"sourcil\": \"Atelier · WhatsApp Business\", \"territoire\": \"forme\", \"corps\": \"WhatsApp Business, puis Outils professionnels, puis Réponses rapides.\"}, {\"titre\": \"2. Écris ta [réponse]\", \"sourcil\": \"Atelier · WhatsApp Business\", \"territoire\": \"forme\", \"corps\": \"Touche « + » : horaires, moyens de paiement, zones de livraison.\"}, {\"titre\": \"3. Donne un [raccourci]\", \"sourcil\": \"Atelier · WhatsApp Business\", \"territoire\": \"forme\", \"corps\": \"Court et clair : /horaires ou /paiement.\"}, {\"titre\": \"4. Tape « / »\", \"sourcil\": \"Atelier · WhatsApp Business\", \"territoire\": \"forme\", \"corps\": \"Dans une discussion, tes réponses s'affichent. Un geste, et c'est envoyé.\"}, {\"titre\": \"Par où [commencer] ?\", \"sourcil\": \"Atelier · WhatsApp Business\", \"territoire\": \"forme\", \"corps\": \"Note les trois questions qu'on te pose le plus. Ce sont tes trois premières réponses rapides.\"}, {\"titre\": \"Garde-le pour [plus tard].\", \"sourcil\": \"Atelier · WhatsApp Business\", \"territoire\": \"forme\", \"corps\": \"Fais-le au calme, ce soir.\", \"cta\": \"Enregistre ce carrousel\"}]"
+ },
+ {
+  "Id": 160,
+  "Gabarit": "avant_apres",
+  "Slides_JSON": "[{\"titre\": \"Ta bio Instagram, [avant / après].\", \"sourcil\": \"Preuve · Exemple fictif\", \"corps\": \"Même compte. Une bio qui travaille enfin.\"}, {\"titre\": \"[Avant]\", \"sourcil\": \"Preuve · Exemple fictif\", \"corps\": \"« Passionnée · Entrepreneure · Rêveuse · DM pour infos »\"}, {\"titre\": \"Le [problème]\", \"sourcil\": \"Preuve · Exemple fictif\", \"corps\": \"On ne sait pas ce que tu vends, ni à qui, ni où. « DM pour infos » fait travailler le client.\"}, {\"titre\": \"[Après]\", \"sourcil\": \"Preuve · Exemple fictif\", \"corps\": \"« Tenues de cérémonie sur mesure · Dakar, livraison partout au Sénégal · Commande sur WhatsApp ci-dessous »\"}, {\"titre\": \"Ce qui a [changé]\", \"sourcil\": \"Preuve · Exemple fictif\", \"corps\": \"Ligne 1 : ce que tu fais. Ligne 2 : pour qui et où. Ligne 3 : une seule action.\"}, {\"titre\": \"À [toi].\", \"sourcil\": \"Preuve · Exemple fictif\", \"corps\": \"Réécris ta bio avec ces trois lignes. Elle tient en 150 caractères.\"}, {\"titre\": \"Garde-le pour [plus tard].\", \"sourcil\": \"Preuve · Exemple fictif\", \"corps\": \"Exemple fictif, méthode réelle.\", \"cta\": \"Enregistre ce carrousel\"}]"
+ },
+ {
+  "Id": 162,
+  "Gabarit": "etapes",
+  "Slides_JSON": "[{\"titre\": \"Une seule compétence avant [2027] ?\", \"sourcil\": \"Cercle · Ton choix\", \"etapes\": [\"Des posts qui font réagir\", \"La publicité Facebook\", \"Être trouvé sur Google\", \"Vendre sur WhatsApp\", \"L'IA sans perdre ton style\"], \"cta\": \"Un chiffre en commentaire\"}]"
+ },
+ {
+  "Id": 163,
+  "Gabarit": "offre",
+  "Slides_JSON": "[{\"titre\": \"Apprends le digital avec d'autres, [pas seul].\", \"sourcil\": \"Club des Digitos\", \"prix\": \"1 658 FCFA\", \"prixUnite\": \"/ mois\", \"prixNote\": \"19 900 F payés une fois pour l'année\", \"points\": [\"Des retours sur ton travail\", \"2 lives par mois avec moi\", \"5 questions par jour à Rysmo\"], \"paiement\": \"Wave, Orange Money ou carte\", \"cta\": \"Le lien est dans ma bio\"}]"
+ },
+ {
+  "Id": 166,
+  "Gabarit": "question",
+  "Slides_JSON": "[{\"titre\": \"Par où [commencer] ?\", \"sourcil\": \"Appel gratuit · 30 min\", \"options\": [\"Te former\", \"Ta fiche Google\", \"Une publicité\", \"Faire construire ton projet\"], \"cta\": \"30 min gratuites · lien en bio\"}]"
+ },
+ {
+  "Id": 168,
+  "Gabarit": "citation",
+  "Slides_JSON": "[{\"titre\": \"Une IA qui fait tes devoirs te rend dépendant. Un répétiteur te rend [autonome].\", \"sourcil\": \"Coulisses · Rysmo\", \"auteur\": \"Max-Morrys\", \"role\": \"Pourquoi j'ai construit Rysmo\", \"fond\": \"nuit\"}]"
+ },
+ {
+  "Id": 170,
+  "Gabarit": "etapes",
+  "Slides_JSON": "[{\"titre\": \"Une légende qui vend [sans forcer].\", \"sourcil\": \"Atelier · Légende\", \"corps\": \"4 temps. Un exemple. À garder.\"}, {\"titre\": \"1. L'accroche\", \"sourcil\": \"Atelier · Légende\", \"corps\": \"Parle du problème du client, pas de toi. « Ton cadeau de fin d'année n'est toujours pas trouvé ? »\"}, {\"titre\": \"2. La preuve\", \"sourcil\": \"Atelier · Légende\", \"corps\": \"Une photo réelle, un détail de fabrication, un avis client autorisé.\"}, {\"titre\": \"3. Le pratique\", \"sourcil\": \"Atelier · Légende\", \"corps\": \"Prix, taille, délai, livraison. Tout ce qui évite une question inutile.\"}, {\"titre\": \"4. Une seule action\", \"sourcil\": \"Atelier · Légende\", \"corps\": \"« Écris-moi sur WhatsApp pour réserver. » Une seule. Pas trois.\"}, {\"titre\": \"Ce qu'on [retire]\", \"sourcil\": \"Atelier · Légende\", \"corps\": \"Les « !!! », les « inbox », les promesses vagues. Le client veut des infos.\"}, {\"titre\": \"Garde-le pour [plus tard].\", \"sourcil\": \"Atelier · Légende\", \"corps\": \"Relis ta prochaine légende avec ces 4 temps.\", \"cta\": \"Enregistre ce carrousel\"}]"
+ },
+ {
+  "Id": 172,
+  "Gabarit": "question",
+  "Slides_JSON": "[{\"titre\": \"Qu'est-ce qui t'empêche de [vendre] en ligne ?\", \"sourcil\": \"Cercle · Ton frein\", \"options\": [\"Je ne sais pas quoi publier\", \"Pas le temps\", \"On regarde sans acheter\", \"J'ai peur de déranger\"], \"cta\": \"Une lettre en commentaire\"}]"
+ },
+ {
+  "Id": 174,
+  "Gabarit": "affiche",
+  "Slides_JSON": "[{\"titre\": \"Un agent IA dans ton [WhatsApp] ?\", \"sourcil\": \"Radar · Meta Business Agent\", \"corps\": \"Il arrive par étapes, selon le pays et le compte. Il répond avec ce que tu lui donnes : écris d'abord tes prix et tes horaires. Sources : Neowin, TechCrunch.\"}]"
+ },
+ {
+  "Id": 176,
+  "Gabarit": "etapes",
+  "Slides_JSON": "[{\"titre\": \"Le prompt qui fait de l'IA un [prof].\", \"sourcil\": \"Atelier · IA\", \"territoire\": \"forme\", \"etapes\": [\"Dis ce que tu veux apprendre\", \"Demande le principe et un exemple\", \"Demande à être interrogé\", \"Essaie avant de voir la réponse\"], \"cta\": \"Enregistre ce prompt\"}]"
+ },
+ {
+  "Id": 177,
+  "Gabarit": "offre",
+  "Slides_JSON": "[{\"titre\": \"Bloqué à 22 h ? Ton [répétiteur IA] répond.\", \"sourcil\": \"Rysmo\", \"prix\": \"500 F\", \"prixUnite\": \"/ pack\", \"prixNote\": \"Et 2 questions gratuites chaque jour\", \"points\": [\"Il t'explique\", \"Il te donne un exemple\", \"Il te fait un quiz\"], \"paiement\": \"Wave, Orange Money ou carte\", \"cta\": \"Le lien est dans ma bio\"}]"
+ },
+ {
+  "Id": 180,
+  "Gabarit": "avant_apres",
+  "Slides_JSON": "[{\"titre\": \"L'an prochain, tu ne t'y mets pas [seul].\", \"sourcil\": \"Club des Digitos\", \"avantTitre\": \"Seul\", \"apresTitre\": \"Au Club\", \"avant\": [\"Personne ne te relit\", \"Tu lâches vite\", \"Les occasions passent\"], \"apres\": [\"Des retours sur ton travail\", \"2 lives par mois\", \"Les opportunités partagées\"], \"cta\": \"19 900 F l'année · lien en bio\"}]"
+ }
+]

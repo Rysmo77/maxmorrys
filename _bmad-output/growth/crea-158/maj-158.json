@@ -1,0 +1,10 @@
+[
+ {
+  "Id": 158,
+  "Gabarit": "offre",
+  "Slides_JSON": "[{\"kit\": \"ds\", \"format\": \"4:5\", \"template\": \"poster\", \"gabarit\": \"offre\", \"territoire\": \"digitalise\", \"eyebrow\": \"Pack Présence Locale\", \"title\": \"Tape ton métier et ton quartier sur Google Maps. Tu [apparais] ?\", \"prix\": \"250 000 F\", \"prixUnite\": \"HT\", \"prixNote\": \"Prix de lancement · TVA 18 % en plus\", \"points\": [\"Ta fiche Google Maps, complète\", \"Boutons WhatsApp et appel\", \"Ton catalogue en ligne\"], \"paiement\": \"Acompte 60 % · Wave, Orange Money ou carte\", \"cta\": \"Ton pack en 3 questions\"}]",
+  "Visuels_URLs": "[\"https://media.maxmorrys.me/social-cards/6dfa0145-5a13-4042-9d85-8dccea7c54b8.png\"]",
+  "Visual_Strategy": "Direction A « Le test » validée par Max le 29/10/2026 (Salimata) : kit DS, territoire digitalise, famille offre, 4:5.",
+  "Status": "prêt_à_valider"
+ }
+]
