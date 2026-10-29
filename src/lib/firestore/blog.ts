@@ -31,11 +31,25 @@ export async function getPostBySlug(slug: string, lang: 'fr' | 'en' = 'fr'): Pro
     // `status` doit figurer dans la requête : les règles n'autorisent la lecture
     // anonyme que des documents publiés, et un filtre absent fait échouer le `list`
     // entier en PERMISSION_DENIED — pas seulement les brouillons.
-    const byEn = await getCollection<BlogPost>('blog', where('slug_en', '==', slug), where('status', '==', 'published'), limit(1));
-    if (byEn[0]) return byEn[0];
+    const byEn = await getCollection<BlogPost>('blog', where('slug_en', '==', slug), where('status', '==', 'published'), limit(SLUG_DOUBLONS_MAX));
+    if (byEn.length) return plusRecent(byEn);
   }
-  const results = await getCollection<BlogPost>('blog', where('slug', '==', slug), where('status', '==', 'published'), limit(1));
-  return results[0] ?? null;
+  const results = await getCollection<BlogPost>('blog', where('slug', '==', slug), where('status', '==', 'published'), limit(SLUG_DOUBLONS_MAX));
+  return results.length ? plusRecent(results) : null;
+}
+
+/**
+ * ⚠️ UN SLUG N'EST PAS UNIQUE EN BASE (relevé le 29/10/2026) : trois paires d'articles publiés
+ * partagent le même `slug` FR (ex. `vendre-en-ligne-afrique-francophone-lois-2026`, publiés le
+ * 18/04 et le 04/06). Avec `limit(1)` sans tri, la fiche ouvrait l'un pendant que l'accueil,
+ * trié par `publishedAt`, en affichait l'autre — d'où « 04/06/2026 » sur la carte et « 18 avril
+ * 2026 » sur l'article. On prend le plus récent, comme les listes. Un `orderBy` dans la requête
+ * exigerait un index composite (slug, status, publishedAt) : le tri se fait donc ici.
+ * La vraie correction est en base — renommer le slug des doublons.
+ */
+const SLUG_DOUBLONS_MAX = 5;
+function plusRecent(posts: BlogPost[]): BlogPost {
+  return posts.reduce((a, b) => (String(b.publishedAt ?? '') > String(a.publishedAt ?? '') ? b : a));
 }
 
 export async function getAllPosts(): Promise<BlogPost[]> {

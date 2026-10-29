@@ -30,7 +30,8 @@ import {
  * CE QUE LA MAQUETTE MONTRE AVEC DES « DONNÉES D'EXEMPLE », ET CE QUE LA PAGE EN FAIT
  * · L'aperçu de l'espace membre : le cadre, le rail (les huit onglets RÉELS de `CLUB_NAV`) et
  *   la disposition sont gardés ; les publications, prénoms et compteurs d'exemple sont
- *   remplacés par des blocs schématiques — aucun membre inventé.
+ *   remplacés par une maquette figée (les rubriques réelles, le champ de publication vide) —
+ *   aucun membre inventé, et plus de barres grises qui passaient pour un chargement bloqué.
  * · Le calendrier : `club_sessions` n'est lisible que par les membres (règles). La page dit
  *   où se trouvent les dates et montre le relevé public des sessions tenues.
  * · Les cercles : ils n'existent pas. Les six catégories réelles d'une publication prennent
@@ -51,6 +52,9 @@ const OFFER: { key: string; icon: IconName; tint: string }[] = [
 ];
 
 const well = (tint: string) => ({ background: `color-mix(in srgb, ${tint} 13%, transparent)`, color: tint });
+
+/** Les rubriques montrées dans la carte « Pour toi » de l'aperçu — toutes réelles. */
+const PREVIEW_TABS: ReadonlyArray<string> = ['feed', 'agenda', 'opportunities'];
 
 export default function ClubDigitos() {
   const { t } = useTranslation('club');
@@ -161,29 +165,32 @@ export default function ClubDigitos() {
                     <span className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.14em]">{t('v3.preview.sessionKick')}</span>
                     <b className="!text-[26px]">{t('v3.preview.sessionTitle')}</b>
                   </div>
+                  {/* MAQUETTE FIGÉE, PAS UN CHARGEMENT (audit 29/10/2026, #13) : les barres grises se
+                      lisaient comme une page bloquée. On montre à la place ce qui existe vraiment —
+                      les rubriques réelles de l'espace (`CLUB_NAV`) — sans membre ni chiffre inventé. */}
                   <div className="mm-card !p-5">
                     <b className="block text-[17px] text-ink">{t('v3.preview.forYou')}</b>
-                    {[0, 1, 2].map((i) => (
-                      <div key={i} className="mt-4 flex items-center gap-3">
-                        <div className="min-w-0 flex-1 space-y-2">
-                          <span className="block h-2.5 w-1/3 rounded-pill bg-[color:var(--fill-1)]" />
-                          <span className="block h-3 w-full rounded-pill bg-[color:var(--fill-1)]" />
-                        </div>
-                        <span className="h-12 w-12 flex-none rounded-m bg-[color:var(--fill-1)]" />
-                      </div>
-                    ))}
+                    <ul className="m-0 mt-3 list-none space-y-2 p-0">
+                      {CLUB_NAV.filter((it) => PREVIEW_TABS.includes(it.id)).map((it) => (
+                        <li key={it.id} className="flex items-center gap-3 rounded-m border border-[color:var(--line)] px-3 py-2.5">
+                          <span className="grid h-9 w-9 flex-none place-items-center rounded-m text-transforme" style={{ background: 'color-mix(in srgb, var(--mm-violet) 10%, transparent)' }}>
+                            <Icon name={it.icon} size={17} />
+                          </span>
+                          <span className="min-w-0 flex-1 text-[14px] font-semibold text-ink">{t(`tab.nav.${it.id}`)}</span>
+                          <Icon name="chevron-right" size={16} color="var(--ink-3)" />
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
                 <div className="mm-dpost">
                   <div className="flex items-center gap-3">
                     <span className="mm-avatar" style={{ background: 'var(--fill-1)', color: 'var(--ink-3)' }}><Icon name="user" size={18} /></span>
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <span className="block h-3 w-40 max-w-full rounded-pill bg-[color:var(--fill-1)]" />
-                      <span className="block h-2.5 w-24 rounded-pill bg-[color:var(--fill-1)]" />
-                    </div>
+                    <span className="min-w-0 flex-1 rounded-pill border border-[color:var(--line)] px-4 py-2.5 text-[14px] text-ink-3">
+                      {t('v3.steps.composer')}
+                    </span>
+                    <span className="mm-tag !hidden stack:!inline-flex">{t('v3.steps.publish')}</span>
                   </div>
-                  <span className="mt-4 block h-3 w-full rounded-pill bg-[color:var(--fill-1)]" />
-                  <span className="mt-2 block h-3 w-4/5 rounded-pill bg-[color:var(--fill-1)]" />
                   <div className="mt-4 flex gap-4 text-ink-3">
                     <Icon name="heart" size={18} /><Icon name="comment" size={18} /><Icon name="repeat" size={18} />
                   </div>

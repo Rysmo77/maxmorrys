@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Icon, Tag } from '@ds';
 import { CLIENT_RELATION, VENTURE_RELATION } from '../../lib/brand';
 
@@ -37,7 +38,7 @@ import { CLIENT_RELATION, VENTURE_RELATION } from '../../lib/brand';
  * `ventures.ts` interdit par ailleurs nommément utilisateurs, revenus, traction, levée et
  * partenaires ; `clients.ts` interdit résultats, métriques et témoignages.
  *
- * ⚠️ AUCUN NAMESPACE LU ICI. Catégorie, description et libellé d'appel arrivent déjà traduits
+ * ⚠️ AUCUN NAMESPACE DE ROUTE LU ICI (seul `shared`, toujours chargé, pour la mention client). Catégorie, description et libellé d'appel arrivent déjà traduits
  * de la page. C'est ce qui permet à la même carte d'être montée sur `/conception` (catalogue
  * `conception`) et sur `/conception/realisations` (catalogue `realisations`) sans qu'aucune
  * des deux routes ait à charger celui de l'autre — le piège que `components/agency/` a posé
@@ -130,10 +131,14 @@ interface ClientWorkCardProps {
  * jamais une propriété, et ne cohabite jamais avec celle des ventures.
  */
 export function ClientWorkCard({ href, name, category, cta, description, stack, domain }: ClientWorkCardProps) {
+  /* La mention est traduite (audit 29/10/2026 : « Client product » en anglais sur le site FR).
+     `shared` est le catalogue de base, toujours chargé : aucune route n'a de namespace en plus
+     à déclarer. La constante reste la source, et le repli si la clé manque. */
+  const { t } = useTranslation('shared');
   return (
     <WorkCard
       href={href}
-      relation={CLIENT_RELATION}
+      relation={t('realisations.relationClient', { defaultValue: CLIENT_RELATION })}
       name={name}
       meta={category}
       cta={cta}

@@ -207,7 +207,7 @@ export function MediaCard({
             <span />
           )}
           {badge && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', height: '25px', padding: '0 10px', borderRadius: 'var(--r-pill)', fontSize: '10.5px', fontWeight: 600, background: 'rgba(0,0,0,.5)', color: 'var(--text-invert)', whiteSpace: 'nowrap' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', height: '25px', padding: '0 10px', borderRadius: 'var(--r-pill)', fontSize: '12px', fontWeight: 600, background: 'rgba(0,0,0,.5)', color: 'var(--text-invert)', whiteSpace: 'nowrap' }}>
               {badge}
             </span>
           )}
@@ -223,9 +223,9 @@ export function MediaCard({
             {title}
           </b>
         )}
-        {body && <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.5, margin: '9px 0 0' }}>{body}</p>}
+        {body && <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.5, margin: '9px 0 0' }}>{body}</p>}
         {cost.length > 0 && (
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '13px', fontSize: '11px', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '13px', fontSize: '12px', color: 'var(--text-muted)' }}>
             {cost.map((c, i) => (
               <span key={i}>
                 {c.prefix}

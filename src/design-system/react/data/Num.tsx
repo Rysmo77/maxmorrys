@@ -121,7 +121,15 @@ export function Num({
       <span className="mm-num" title={provenance(source, asOf, loc)}>
         {shown}
       </span>
-      {unit && <span style={{ fontFamily: 'var(--f-body)', fontWeight: 400, marginLeft: '4px' }}>{unit}</span>}
+      {/* L'espace est un VRAI caractère, insécable (audit 29/10/2026) : une marge CSS ne
+          laissait aucun espace dans le DOM (« 250 000FCFA » au lecteur d'écran, au copier-
+          coller) et laissait l'unité partir seule à la ligne. `nowrap` tient « FCFA HT » d'un bloc. */}
+      {unit && (
+        <>
+          {'\u00a0'}
+          <span style={{ fontFamily: 'var(--f-body)', fontWeight: 400, whiteSpace: 'nowrap' }}>{unit}</span>
+        </>
+      )}
       {showAsOf && (
         // --text-muted, jamais --text-faint : l'encre tertiaire ne porte pas de texte (AD-18).
         <span style={{ fontFamily: 'var(--f-body)', fontSize: 'var(--fs-small)', color: 'var(--text-muted)', marginLeft: '6px' }}>

@@ -191,6 +191,11 @@ export interface Formation {
   slug: string;
   /** Slug anglais (URLs /en…). Optionnel : fallback sur `slug` si absent. */
   slug_en?: string;
+  /**
+   * Anciennes adresses de la formation. Alimenté par la console quand le slug change : une
+   * URL déjà partagée retombe sur la fiche, qui redirige vers l'adresse courante.
+   */
+  slugAliases?: string[];
   description: string;
   longDescription: string;
   coverImage: string;

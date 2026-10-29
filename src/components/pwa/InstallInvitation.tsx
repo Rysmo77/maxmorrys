@@ -18,8 +18,9 @@ import { lirePartage, ecrirePartage } from '../../lib/sharedStore';
  *
  *   1. JAMAIS EN MODALE. Une modale interrompt exactement ce qu'on était venu faire. Celle-ci
  *      est un bandeau bas : elle attend, elle ne barre pas la route.
- *   2. PAS AVANT LA DEUXIÈME VISITE. Demander à installer à quelqu'un qui n'a pas encore vu
- *      ce que fait le produit, c'est demander avant d'avoir donné.
+ *   2. PAS AVANT LA DEUXIÈME VISITE, NI AVANT UN PREMIER GESTE. Demander à installer à
+ *      quelqu'un qui n'a pas encore vu ce que fait le produit, c'est demander avant d'avoir
+ *      donné ; et à l'arrivée, le bandeau couvrait le titre.
  *   3. LE LIBELLÉ NE DIT PAS « INSTALLE NOTRE APP ». Il dit ce que ça change pour la
  *      personne. « Notre app » parle du produit ; « tes leçons hors connexion » parle d'elle.
  *
@@ -58,32 +59,60 @@ export default function InstallInvitation() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    let dismissed = false;
-    let visits = 0;
+    let eligible = true;
     try {
-      dismissed = lirePartage(DISMISSED_KEY) === '1';
-      visits = Number(localStorage.getItem(VISITS_KEY) ?? '0');
+      const dismissed = lirePartage(DISMISSED_KEY) === '1';
+      const visits = Number(localStorage.getItem(VISITS_KEY) ?? '0');
+      eligible = !dismissed && visits >= MIN_VISITS;
     } catch {
-      return;
+      eligible = false;
     }
-    if (dismissed || visits < MIN_VISITS) return;
+
+    let event: BeforeInstallPromptEvent | null = null;
+    let interacted = false;
+
     /* Une sollicitation par session, toutes surfaces confondues : si une pop-up contextuelle
        s'est déjà ouverte, l'invitation attend la session suivante. Elle n'est pas dans le
        registre (elle dépend d'un événement du navigateur, pas d'une page), mais elle partage
        son plafond — sinon les deux s'empilaient. */
-    if (lirePartage(POPUP_SESSION_KEY, 'session') === '1') return;
-
-    const onPrompt = (e: Event) => {
-      // On empêche la bannière native du navigateur pour poser la nôtre — la native
-      // apparaît n'importe quand, y compris au milieu d'une leçon.
-      e.preventDefault();
+    const tryShow = () => {
+      if (!eligible || !event || !interacted) return;
       if (lirePartage(POPUP_SESSION_KEY, 'session') === '1') return;
-      setDeferred(e as BeforeInstallPromptEvent);
+      setDeferred(event);
       setVisible(true);
       ecrirePartage(POPUP_SESSION_KEY, '1', 'session');
+      eligible = false;
     };
+
+    /*
+     * LE NAVIGATEUR EST TOUJOURS RETENU, MÊME QUAND ON N'INVITE PAS (audit UI/UX 29/10/2026,
+     * registre #10). L'écouteur ne s'attachait qu'après la deuxième visite : à la première,
+     * Chrome posait sa propre mini-barre « Installer l'app » sur le titre dès l'arrivée.
+     * `preventDefault()` la fait taire dans tous les cas ; notre bandeau, lui, attend.
+     */
+    const onPrompt = (e: Event) => {
+      e.preventDefault();
+      event = e as BeforeInstallPromptEvent;
+      tryShow();
+    };
+
+    /* APRÈS UNE PREMIÈRE ACTION, JAMAIS À L'ARRIVÉE : un défilement réel ou un geste. */
+    const onPointer = () => {
+      interacted = true;
+      tryShow();
+    };
+    const onScroll = () => {
+      if (window.scrollY >= 200) onPointer();
+    };
+
     window.addEventListener('beforeinstallprompt', onPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('pointerdown', onPointer, { passive: true });
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onPrompt);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('pointerdown', onPointer);
+    };
   }, []);
 
   const close = (permanent: boolean) => {

@@ -211,3 +211,25 @@ describe('aucun montant du Club en dur dans le code client', () => {
     });
   }
 });
+
+/*
+ * LA FAQ DÉRIVE LE PRIX DU CLUB DE SA CONSTANTE (audit UI/UX du 29/10/2026, registre #11).
+ * La collection `faq` a annoncé « 10 000 FCFA/an » face aux 19 900 du Club ; une réponse écrit
+ * désormais `{{clubPrice}}`. Le Worker qui pré-rend la FAQ porte un miroir du montant.
+ */
+describe('FAQ — jeton {{clubPrice}}', () => {
+  it('se résout sur CLUB_PRICE_XOF, et garde l’adresse calculée sur le texte brut', async () => {
+    const { resolveFaqItem } = await import('../../src/lib/faq/tokens');
+    const item = resolveFaqItem({ question: "C'est quoi l'adhésion à {{clubPrice}} FCFA/an ?", answer: 'Elle coûte {{clubPrice}} FCFA par an.', slug: undefined });
+    expect(item.answer.replace(/\D/g, '')).toBe(String(CLUB_PRICE_XOF));
+    expect(item.question).not.toContain('{{');
+    expect(item.slug).toBe('c-est-quoi-l-adhesion-a-clubprice-fcfa-an');
+  });
+
+  it('le miroir du Worker (pré-rendu de la FAQ) porte le même montant', () => {
+    const code = readFileSync('worker/apps/site/src/prerender/faq.ts', 'utf8');
+    const m = code.match(/const FAQ_CLUB_PRICE_XOF = ([\d_]+);/);
+    expect(m, 'FAQ_CLUB_PRICE_XOF introuvable dans le Worker').not.toBeNull();
+    expect(Number(m![1].replace(/_/g, ''))).toBe(CLUB_PRICE_XOF);
+  });
+});

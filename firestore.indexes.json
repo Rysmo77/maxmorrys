@@ -335,6 +335,20 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "formations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "slugAliases",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

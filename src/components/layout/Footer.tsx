@@ -81,7 +81,7 @@ export default function Footer() {
         {LEGAL.map((l) => (
           <span key={l.labelKey}>
             {' · '}
-            <LocalizedLink to={l.path} className="text-inherit no-underline hover:underline">
+            <LocalizedLink to={l.path} className="mm-touch-extend text-inherit no-underline hover:underline">
               {t(l.labelKey)}
             </LocalizedLink>
           </span>
@@ -90,7 +90,7 @@ export default function Footer() {
       <button
         type="button"
         onClick={toggleLanguage}
-        className="mm-lang text-inherit"
+        className="mm-lang mm-touch-extend text-inherit"
         aria-label={t('v3.switchLanguage')}
       >
         {language === 'fr' ? <><b>FR</b> · EN</> : <>FR · <b>EN</b></>}

@@ -48,7 +48,10 @@ export default function About() {
 
   const milestones = t('milestones', { returnObjects: true }) as Record<string, Milestone>;
   const badge = milestones.m2023Master;
-  const skills = t('skills.items', { returnObjects: true }) as string[];
+  // Garde de type : tant que le namespace n'est pas enregistré dans la langue active,
+  // `returnObjects` rend la CLÉ (une chaîne) — un `.map` dessus faisait planter `/en/about`.
+  const asList = (v: unknown): string[] => (Array.isArray(v) ? (v as string[]) : []);
+  const skills = asList(t('skills.items', { returnObjects: true }));
 
   return (
     <DsNavHost>
@@ -71,8 +74,9 @@ export default function About() {
           <div>
             <Eyebrow className="text-[color:var(--mm-violet-c)]">{t('hero.eyebrow')}</Eyebrow>
             <h1 className="mm-d m-0 mb-[22px] mt-5 text-[56px] leading-[.86] tracking-[-.05em] wide:text-[clamp(60px,8vw,120px)]">
-              {(t('hero.titleLines', { returnObjects: true }) as string[]).map((line, i) => (
+              {asList(t('hero.titleLines', { returnObjects: true })).map((line, i) => (
                 <span key={line}>
+                  {i > 0 && ' '}
                   {i > 0 && <br />}
                   <NightAccent text={line} />
                 </span>
@@ -123,7 +127,7 @@ export default function About() {
                   <b className="block font-display text-[20px] font-black leading-[1.05] stack:text-[24px]">{m.title}</b>
                   <p className="m-0 mt-[6px] text-ink-2">
                     <span className="hidden stack:inline">{m.desc} </span>
-                    <span className="text-ink-3">{m.lieu}</span>
+                    <span className="text-ink-2">{m.lieu}</span>
                     {proof && (
                       <>
                         {' · '}
@@ -165,6 +169,8 @@ export default function About() {
       </KitSection>
 
       {/* ── 4 · MES PROPRES PROJETS (ventures MY ONOMA) ──────────────────────── */}
+      {/* Audit 29/10/2026 : le texte secondaire était en `--ink-3` à 11–12,5 px sur le pastel
+          `--paper-2` — l'encre tertiaire ne porte pas de texte (AD-18). Passé en `--ink-2`, 13–14,5 px. */}
       <KitSection className="pt-14 wide:pt-24">
         <div className="rounded-xl stack:bg-[color:var(--paper-2)] stack:p-10">
           <Eyebrow className="stack:hidden">{t('ventures.eyebrowShort')}</Eyebrow>
@@ -175,14 +181,14 @@ export default function About() {
               const desc = t(`ventures.items.${v.slug}`, { defaultValue: '' });
               return (
                 <a key={v.slug} href={v.website} target="_blank" rel="noopener noreferrer" className="mm-bento flex flex-col gap-[10px] text-ink no-underline stack:min-h-[220px]">
-                  <span className="mm-n hidden text-[11px] text-ink-3 stack:block">{v.domain}</span>
+                  <span className="mm-n hidden text-[13px] text-ink-2 stack:block">{v.domain}</span>
                   <b className="font-display text-[22px] font-black leading-none stack:text-[30px]">{t(`ventures.names.${v.slug}`, { defaultValue: v.name })}</b>
-                  {desc ? <p className="m-0 text-[14px] text-ink-2">{desc}</p> : <span className="mm-n text-[11px] text-ink-3 stack:hidden">{v.domain}</span>}
+                  {desc ? <p className="m-0 text-[15px] leading-[1.5] text-ink-2">{desc}</p> : <span className="mm-n text-[13px] text-ink-2 stack:hidden">{v.domain}</span>}
                 </a>
               );
             })}
           </div>
-          <p className="m-0 mt-4 hidden text-[12.5px] text-ink-2 stack:block">{t('ventures.note')}</p>
+          <p className="m-0 mt-4 hidden text-[14.5px] leading-[1.55] text-ink-2 stack:block">{t('ventures.note')}</p>
         </div>
       </KitSection>
 
@@ -200,7 +206,7 @@ export default function About() {
                   accent ? 'bg-[color:var(--mm-violet)] text-[color:var(--paper-fixed)]' : 'mm-bento',
                 ].join(' ')}
               >
-                <span className={`mm-n hidden text-[12px] stack:block ${accent ? 'opacity-80' : 'text-ink-3'}`}>{String(n).padStart(2, '0')}</span>
+                <span className={`mm-n hidden text-[13px] stack:block ${accent ? 'opacity-80' : 'text-ink-2'}`}>{String(n).padStart(2, '0')}</span>
                 <b className="font-display text-[24px] font-black leading-[1.02] stack:text-[30px]">{t(`beliefs.b${n}Title`)}</b>
                 <p className={`m-0 hidden stack:block ${accent ? 'opacity-[.88]' : 'text-ink-2'}`}>{t(`beliefs.b${n}Body`)}</p>
               </div>

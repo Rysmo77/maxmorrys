@@ -1,0 +1,90 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AD-28 · PLANCHERS DE LISIBILITÉ ET DE CIBLE — audit UI/UX du 29/10/2026 (#8, #9, #12)
+
+   Mesuré en production par l'audit : 11 éléments à 11 px sur l'accueil desktop, 14 libellés
+   à 10,5 px sur l'accueil mobile, et 30 à 47 cibles sous 44 px par page. Le kit v3 dessine
+   ses étiquettes mono à 10–11 px : c'est une échelle de MAQUETTE, lue à 100 % sur un grand
+   écran, pas sur un téléphone de 6 pouces au soleil de Dakar.
+
+   ── 1 · PLANCHER DE 12 PX POUR LES ÉTIQUETTES ───────────────────────────────────
+   Les jetons d'abord (`--fs-eyebrow`, `--fs-small`, `--fs-caption`), puis les règles du kit
+   qui écrivent la taille EN DUR (`kit-v3/components.css` est généré, jamais édité — d'où
+   cet écart). Restent délibérément hors plancher les COMPTEURS à hauteur fixe (`.mm-badge`
+   17 px, `.mm-dash__rail .b`, `.mm-con__side a .n`) et les touches `kbd` : ce ne sont pas
+   des étiquettes qu'on lit, ce sont des pastilles dont le texte déborderait.
+
+   ── 2 · CIBLES : LIENS DE PIED DE PAGE ───────────────────────────────────────────
+   Les colonnes du pied empilaient des liens de 21 px séparés de 9 px. Un pseudo-élément de
+   44 px aurait chevauché le voisin (pas de 30 px) : on porte donc la LIGNE à 44 px et on
+   retire l'écart — le pas visuel passe de 30 à 44 px pour une hauteur de cible de 44,
+   sans rien changer au dessin du lien. Le souligné de survol est replacé sous le texte.
+
+   ── 3 · MOT-SYMBOLE GÉANT DU PIED, CONTENU ───────────────────────────────────────
+   `clamp(64px, 17vw, 236px)` : à 400 px, 68 px de Fraunces 900 pour « Max-Morrys »
+   demandent plus que la colonne — le mot sortait à droite, coupé par `overflow:hidden`.
+   15vw tient la largeur à toutes les tailles ; le plafond de 236 px reste celui du kit.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --fs-eyebrow: 12px;
+  --fs-small: 12px;
+  --fs-caption: 12px;
+}
+
+.mm-eyebrow,
+.mm-footer h6,
+.mm-truth h5,
+.mm-photo__label,
+.mm-stat__src,
+.mm-video__weight,
+.mm-quote__proof,
+.mm-cover .k,
+.mm-spaces button small,
+.mm-launch__domain,
+.mm-ticker__badge,
+.mm-kpi__src,
+.mm-kpi__delta,
+.mm-ckpi__s,
+.mm-activity__item span,
+.mm-reco__item small,
+.mm-recos__i small,
+.mm-numlist__i small,
+.mm-table th,
+.mm-ctable th,
+.mm-cmd__group h6,
+.mm-cmd__item .dom,
+.mm-con__brand small,
+.mm-con__grp,
+.mm-con__crumb,
+.mm-env,
+.mm-cprod,
+.mm-clog time,
+.mm-statline__d,
+.mm-sidenav a .b,
+.mm-side__logo small,
+.mm-vid__bar,
+.mm-lockup__badge {
+  font-size: 12px;
+}
+
+/* L'étiquette d'espace (EDU · CLUB) grossit de 2 px : son rembourrage rend la différence,
+   pour que le verrouillage ne s'allonge pas — il est déjà le plus serré de la barre à 400 px. */
+.mm-lockup__badge {
+  padding: 4px 6px;
+}
+
+/* ── 2 · Liens des colonnes du pied ───────────────────────────────────────── */
+.mm-footer ul {
+  gap: 0;
+}
+.mm-footer ul a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-aa);
+  background-position: 0 calc(50% + .72em);
+}
+
+/* ── 3 · Mot-symbole géant ────────────────────────────────────────────────── */
+.mm-megafooter .mm-footer__mega {
+  font-size: clamp(48px, 15vw, 236px);
+}

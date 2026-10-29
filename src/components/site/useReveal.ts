@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
+import './reveal.css';
 
 /**
  * LE DÉCLENCHEUR DE SCÈNE — il pose `.play` quand la section entre dans le champ.
@@ -27,7 +28,14 @@ import { useEffect, useRef } from 'react';
 export function useReveal<T extends HTMLElement = HTMLDivElement>() {
   const ref = useRef<T>(null);
 
-  useEffect(() => {
+  /*
+   * `useLayoutEffect`, PAS `useEffect` : tout ce qui suit doit être tranché AVANT la première
+   * peinture. Avec `useEffect`, la section était peinte une première fois à `opacity: 0`, puis
+   * l'observateur répondait une image plus tard, puis la transition et sa cascade ajoutaient
+   * jusqu'à une seconde — l'« écran blanc à l'ouverture » relevé par l'audit du 29/10/2026
+   * sur la fiche réalisation.
+   */
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
 
@@ -37,6 +45,18 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>() {
 
     if (reduced || typeof IntersectionObserver === 'undefined') {
       el.classList.add('play');
+      return;
+    }
+
+    /*
+     * AU-DESSUS DE LA LIGNE DE FLOTTAISON : VISIBLE TOUT DE SUITE. Une section déjà dans le
+     * champ au montage ne passe pas par l'observateur : `.play` est posé sur-le-champ, avec
+     * `.rv-now`, qui ne laisse transitionner que `transform` (`reveal.css`). Le contenu est
+     * donc OPAQUE dès la première image et garde seulement son court glissé d'entrée — le
+     * titre, candidat LCP, n'attend plus la fin d'un fondu.
+     */
+    if (el.getBoundingClientRect().top < window.innerHeight) {
+      el.classList.add('play', 'rv-now');
       return;
     }
 

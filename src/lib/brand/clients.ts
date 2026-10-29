@@ -89,6 +89,34 @@ export interface ClientProject {
    * ne puisse pas être oubliée en chemin.
    */
   outcome?: ClientEvidence;
+  /**
+   * L'étude de cas racontée (audit UI/UX du 29/10/2026, registre #4) : problème, démarche,
+   * citation client. Le résultat chiffré, lui, est `outcome` ci-dessus.
+   *
+   * ⚠️ **Vide partout, à dessein.** Chaque bloc de la fiche ne s'affiche QUE si sa valeur
+   * existe ; aucune phrase de remplacement n'est rendue à la place. Une valeur n'entre ici
+   * qu'écrite ou validée par le porteur — et la citation exige en plus un accord écrit élargi
+   * (`testimonials` figure dans `CLIENT_PUBLICATION_WITHHELD`).
+   */
+  caseStudy?: ClientCaseStudy;
+}
+
+/** Les clés i18n vivent sous `projects.<clé>.*` du namespace `realisations`. */
+export interface ClientCaseStudy {
+  /** Le problème du client, avant la mission. */
+  problemKey?: string;
+  /** La démarche suivie. */
+  approachKey?: string;
+  testimonial?: ClientTestimonial;
+}
+
+export interface ClientTestimonial {
+  /** Clé i18n de la citation, mot pour mot telle que validée par son auteur. */
+  quoteKey: string;
+  /** Nom de la personne citée — un nom propre, pas traduit. */
+  author: string;
+  /** Clé i18n de sa fonction, facultative. */
+  roleKey?: string;
 }
 
 /**

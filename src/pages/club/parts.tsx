@@ -160,10 +160,15 @@ export function SessionsClosed({
         <div className="min-w-0">
           <b className="block text-[17px] leading-[1.25] text-ink">{title}</b>
           <p className="m-0 mt-1.5 text-[14px] leading-[1.55] text-ink-2">{body}</p>
-          <p className="m-0 mt-3 text-[13px] text-ink-2">
-            {heldPre}{' '}
-            <Num value={held} source="server" asOf={heldAsOf ?? asOf} showAsOf={heldAsOf !== null} />
-          </p>
+          {/* Le relevé ne s'affiche que s'il dit quelque chose : « 0 » ou « non relevé » publiés
+              en vitrine se lisaient comme une preuve sociale à zéro (audit 29/10/2026, #13).
+              Aucune date de session n'est lisible publiquement (`club_sessions` = membres). */}
+          {held !== null && held > 0 && (
+            <p className="m-0 mt-3 text-[13px] text-ink-2">
+              {heldPre}{' '}
+              <Num value={held} source="server" asOf={heldAsOf ?? asOf} showAsOf={heldAsOf !== null} />
+            </p>
+          )}
         </div>
       </div>
       {action && <div className="mt-4">{action}</div>}

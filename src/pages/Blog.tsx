@@ -12,9 +12,66 @@ import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useFormat } from '../hooks/useFormat';
 import { getPublishedPosts } from '../lib/firestore';
 import { queryKeys } from '../lib/queryClient';
+import LogoLoader from '../components/states/LogoLoader';
 import { categoryToPole } from '../lib/blogCategories';
 
 const NewsletterForm = lazy(() => import('../components/shared/NewsletterForm'));
+
+/*
+ * PRÉCHARGEMENT AU SURVOL. Le texte de l'article est déjà là — la liste ci-dessous porte les
+ * documents entiers, et `BlogPost` les relit dans le cache (`findCachedPost`). Ce qui manque
+ * encore au clic, c'est le CODE de la page : on le demande dès que le pointeur ou le focus
+ * se pose sur une carte. `import()` est dédoublonné par le bundler, l'appel répété ne coûte rien.
+ */
+const prefetchArticle = () => {
+  void import('./BlogPost');
+};
+
+/**
+ * L'INDEX EN ATTENTE — À LA FORME DE CE QUI ARRIVE (audit du 29/10/2026, registre #5).
+ *
+ * L'ancien squelette posait une dalle de 400 px puis TROIS cartes de 260 px en grille, alors
+ * que la page rend une une (photo 230 → 400 px, texte à côté sur bureau) puis une RANGÉE
+ * défilante de cartes de 290 → 420 px : tout sautait à l'arrivée. Mêmes classes de géométrie
+ * ici que dans le rendu réel. Le logo animé, posé sur la photo de la une, porte le statut ;
+ * les barres sont muettes.
+ */
+function BlogIndexSkeleton({ label }: { label: string }) {
+  return (
+    <>
+      <KitSection className="pt-11 stack:pt-[72px]">
+        <div className="flex flex-col gap-[10px] p-3 stack:grid stack:grid-cols-[1.2fr_1fr] stack:items-center stack:gap-7 stack:p-0">
+          <div className="relative h-[230px] stack:h-[400px]">
+            <div aria-hidden="true" className="h-full"><Skeleton height="100%" radius="var(--r-l)" /></div>
+            <div className="absolute inset-0 grid place-items-center">
+              <LogoLoader label={label} />
+            </div>
+          </div>
+          <div aria-hidden="true" className="grid gap-[10px] px-[6px] stack:gap-[14px] stack:px-0">
+            <Skeleton width={180} height={11} />
+            <div className="h-[24px] w-[90%] stack:h-[50px]"><Skeleton height="100%" /></div>
+            <div className="h-[24px] w-[60%] stack:h-[50px]"><Skeleton height="100%" /></div>
+            <div className="hidden stack:block"><Skeleton height={16} width="80%" /></div>
+          </div>
+        </div>
+      </KitSection>
+      <KitSection className="pt-11 stack:pt-20">
+        <div aria-hidden="true">
+          <div className="mb-[18px] hidden stack:block"><Skeleton width={320} height={44} /></div>
+          <div className="flex gap-3 overflow-hidden pb-[6px] stack:gap-4 stack:pb-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex flex-none basis-[290px] flex-col gap-[10px] p-3 stack:basis-[420px]">
+                <div className="h-[170px] stack:h-[220px]"><Skeleton height="100%" radius="var(--r-l)" /></div>
+                <Skeleton width={140} height={11} />
+                <Skeleton height={22} width="85%" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </KitSection>
+    </>
+  );
+}
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -135,14 +192,7 @@ export default function Blog() {
       </NightHero>
 
       {isLoading ? (
-        <KitSection className="pt-11 stack:pt-[72px]">
-          <div className="grid gap-4">
-            <Skeleton height={400} radius="var(--r-l)" label={t('post.loading')} />
-            <div className="grid gap-4 stack:grid-cols-3">
-              {[0, 1, 2].map((i) => <Skeleton key={i} height={260} radius="var(--r-l)" />)}
-            </div>
-          </div>
-        </KitSection>
+        <BlogIndexSkeleton label={t('post.loading')} />
       ) : isError ? (
         <KitSection className="pt-11 stack:pt-[72px]">
           <EmptyState
@@ -162,6 +212,8 @@ export default function Blog() {
           <KitSection className="pt-11 stack:pt-[72px]">
             <a
               href={path(`/blog/${featured.slug}`)}
+              onPointerEnter={prefetchArticle}
+              onFocus={prefetchArticle}
               className="mm-bento flex flex-col gap-[10px] !rounded-xl p-3 text-inherit no-underline stack:grid stack:grid-cols-[1.2fr_1fr] stack:items-center stack:gap-7 stack:!rounded-none stack:!border-0 stack:!bg-transparent stack:p-0 stack:!shadow-none"
             >
               <Photo
@@ -233,6 +285,8 @@ export default function Blog() {
                     <a
                       key={post.id}
                       href={path(`/blog/${post.slug}`)}
+                      onPointerEnter={prefetchArticle}
+                      onFocus={prefetchArticle}
                       className="mm-bento flex flex-none basis-[290px] snap-start flex-col gap-[10px] !rounded-xl p-3 text-inherit no-underline stack:basis-[420px]"
                     >
                       <Photo

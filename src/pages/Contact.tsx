@@ -175,7 +175,7 @@ export default function Contact() {
             {titleLines.map((l, i) => (
               <span key={i}>
                 {i > 0 && <br className="hidden wide:inline" />}
-                {i > 0 && <span className="wide:hidden"> </span>}
+                {i > 0 && ' '}
                 <NightAccent text={l} />
               </span>
             ))}
@@ -217,7 +217,7 @@ export default function Contact() {
           ))}
           <article className="flex flex-col gap-[10px] rounded-xl bg-[color:var(--surface-ink)] p-6 text-[color:var(--paper-fixed)] outline outline-[3px] outline-offset-[3px] outline-[color:var(--mm-violet)]">
             <span aria-hidden="true" className="h-[14px] w-[14px] rounded-pill bg-[color:var(--mm-violet)]" />
-            <span className="mm-eyebrow opacity-80">{t('site.route.talkEyebrow')}</span>
+            <span className="mm-eyebrow text-[color:var(--paper-fixed)] opacity-80">{t('site.route.talkEyebrow')}</span>
             <h2 className="m-0 font-display text-[26px] font-black leading-[1.02] wide:text-[30px]">{t('site.route.talkTitle')}</h2>
             <span className="text-[14.5px] opacity-80">{t('site.route.talkBody')}</span>
             <KitButton tone="club" size="sm" className="mt-auto self-start" onClick={goBook}>{t('site.route.talkCta')}</KitButton>

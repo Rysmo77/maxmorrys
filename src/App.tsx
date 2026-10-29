@@ -54,7 +54,7 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageMesh from './components/layout/PageMesh';
 import { universeFromPath, universeThemes } from './lib/sectionThemes';
-import { OfflineBanner, PageSkeleton } from './components/states';
+import { OfflineBanner, PageLogoLoader, NavigationLoader, RouteVeil } from './components/states';
 import CookieBanner from './components/shared/CookieBanner';
 import LanguageSuggestionBanner from './components/shared/LanguageSuggestionBanner';
 // Ne s'ouvre que sur action ; il renvoie `null` tant que `open` est faux, donc
@@ -217,20 +217,36 @@ const VerifyCertificate = lazyWithReload(() => import('./pages/VerifyCertificate
  * qui réserve la place au lieu de la promettre.
  */
 function PageLoader() {
+  /*
+   * Le squelette générique a cédé la place au LOGO ANIMÉ (demande de 29/10/2026) : un repli
+   * de route ne sait pas quelle page arrive, et trois cartes grises promettaient une mise en
+   * page qu'aucune page ne tenait. `PageLogoLoader` réserve la hauteur d'un écran (rien ne
+   * saute) et n'apparaît qu'après 180 ms — un chunk déjà en cache ne montre rien. Les pages
+   * qui connaissent leur forme (blog, article) gardent leur squelette à la bonne hauteur.
+   */
   const { t } = useTranslation('common');
-  return <PageSkeleton label={t('loading')} />;
+  return <PageLogoLoader label={t('loading')} />;
 }
+
+/*
+ * La toute première page ne s'anime PAS : elle arrive déjà sous un pré-rendu ou un écran
+ * blanc, et un fondu depuis `opacity: 0` repoussait d'autant l'affichage (LCP compris).
+ * Seules les navigations suivantes glissent.
+ */
+let pageDejaAffichee = false;
 
 /** Transition d'entrée légère à chaque changement de route (fondu/glissé). */
 function PageTransition({ children }: { children: ReactNode }) {
   const location = useLocation();
   const reduced = useReducedMotion();
+  const initial = pageDejaAffichee ? 'initial' : false;
+  useEffect(() => { pageDejaAffichee = true; }, []);
   if (reduced) return <>{children}</>;
   return (
     <motion.div
       key={location.pathname}
       variants={pageVariants}
-      initial="initial"
+      initial={initial}
       animate="animate"
       transition={pageTransition}
     >
@@ -270,6 +286,10 @@ function PublicLayout() {
         seul stylé par le système.
       */}
       <Header onSearchOpen={() => setSearchOpen(true)} />
+      {/* Le logo animé pendant une navigation du routeur de données (après 200 ms). */}
+      <NavigationLoader />
+      {/* La transition de page : voile du territoire + logo, à chaque changement de pathname. */}
+      <RouteVeil />
       {searchOpen && (
         <Suspense fallback={null}>
           <SearchOverlay open onClose={() => setSearchOpen(false)} />

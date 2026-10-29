@@ -126,7 +126,9 @@ export async function notifyWaitlist(data: unknown, context: CallContext): Promi
   const ecritures = inscrits.flatMap((entree) => {
     const langue: Langue = entree.data.language === 'en' ? 'en' : 'fr';
     const uid = texte(entree.data.userId);
-    if (!uid) return [];
+    const marqueur = context.db.buildWrite(`waitlist/${entree.id}`, { notifiedAt: maintenant }, { mask: true });
+    // Inscription anonyme (adresse seule, depuis le 29/10/2026) : pas de boîte in-app, l'e-mail suffit.
+    if (!uid) return [marqueur];
     return [
       context.db.buildWrite(`notifications/${uid}/items/${crypto.randomUUID()}`, {
         userId: uid,
@@ -137,7 +139,7 @@ export async function notifyWaitlist(data: unknown, context: CallContext): Promi
         createdAt: maintenant,
         link: `/formations/${slug}`,
       }, { mask: false }),
-      context.db.buildWrite(`waitlist/${entree.id}`, { notifiedAt: maintenant }, { mask: true }),
+      marqueur,
     ];
   });
 

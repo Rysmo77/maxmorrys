@@ -11,7 +11,7 @@
       "doesn't exist."
     ],
     "truthTitle": "What probably happened",
-    "truthBody": "An address changes when a piece of content is renamed. Old ones get redirected when I know about them — this one slipped through, and I'd rather tell you than let you guess."
+    "truthBody": "An address sometimes changes when a piece of content is renamed or removed. The easiest way back: start again from the blog or the home page — what you were looking for is a few clicks away."
   },
   "forbidden": {
     "seoTitle": "Access denied",

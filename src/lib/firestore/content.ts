@@ -1,5 +1,6 @@
 import { where, orderBy, limit, startAfter } from 'firebase/firestore';
 import { getCollection, createDoc, setDocById, deleteDocById, updateDocById } from './helpers';
+import { resolveFaqItem } from '../faq/tokens';
 import type { Podcast, Video, Appointment, FAQ, Testimonial } from '../../types';
 
 // ── Podcasts ──────────────────────────────────────────────────────────────────
@@ -114,6 +115,16 @@ export async function deleteVideo(id: string): Promise<void> {
 
 export async function getAllFAQ(): Promise<FAQ[]> {
   return getCollection<FAQ>('faq', orderBy('order', 'asc'));
+}
+
+/**
+ * La FAQ des pages PUBLIQUES : jetons résolus (`{{clubPrice}}` → montant de la constante),
+ * adresse figée sur le texte brut. La console lit `getAllFAQ`, jamais celle-ci — elle doit
+ * éditer le jeton, pas le montant.
+ */
+export async function getPublicFAQ(): Promise<FAQ[]> {
+  const items = await getAllFAQ();
+  return items.map(resolveFaqItem);
 }
 
 export async function saveFAQItem(data: Omit<FAQ, 'id'> & { id?: string }): Promise<string> {

@@ -1,0 +1,15 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   `.rv-now` — posé par `useReveal` sur une section DÉJÀ dans le champ au montage.
+
+   Les entrées `.rv`, `.rv-s`, `.rv-l` (brand/motion.css, kit-v3) partent d'une opacité
+   nulle. Au-dessus de la ligne de flottaison, cela fait un écran blanc le temps du fondu et
+   de sa cascade. Ici, seule `transform` transitionne : l'opacité et le masque du titre
+   passent à leur état final dans la même image, le glissé reste.
+
+   `:is()` prend la spécificité de son argument le plus fort : (0,2,0) bat `.rv` (0,1,0)
+   quel que soit l'ordre de chargement des feuilles.
+   ───────────────────────────────────────────────────────────────────────────── */
+.rv-now :is(.rv, .rv-s, .rv-l),
+.rv-now:is(.rv, .rv-s) {
+  transition-property: transform;
+}

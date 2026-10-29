@@ -65,6 +65,7 @@ export function Lines({ lines, accent = 'hl', tone = 'club' }: { lines: string[]
     <>
       {lines.map((l, i) => (
         <span key={i}>
+          {i > 0 && ' '}
           {i > 0 && <br />}
           {accent === 'aplat' ? <NightAccent text={l} /> : <Hl text={l} tone={tone} />}
         </span>

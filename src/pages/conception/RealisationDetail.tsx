@@ -146,7 +146,7 @@ export default function RealisationDetail() {
           <span className="text-[15px] text-ink-2">{categorie}</span>
           {/* ⚠️ « Client product » s'oppose à « A MY ONOMA Venture » et ne cohabite jamais
               avec elle : on annonce un RÔLE tenu, jamais une propriété. */}
-          <Tag tone="neutral">{CLIENT_RELATION}</Tag>
+          <Tag tone="neutral">{ts('realisations.relationClient', { defaultValue: CLIENT_RELATION })}</Tag>
         </div>
       </SiteHero>
 
@@ -154,27 +154,42 @@ export default function RealisationDetail() {
         <div className="mt-2 grid items-start gap-10 wide:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] wide:gap-12">
           {/* ── LA COLONNE DE LECTURE ──────────────────────────────────────── */}
           <div className="min-w-0">
-            {/* CONTEXTE — absent quand aucune description validée n'existe. Le blanc est
-                nommé plutôt que rempli : c'est la même règle que pour la durée, un cran
-                plus bas dans les conséquences. */}
-            <section className="rv" style={rv(5)}>
-              <SiteEyebrow>{t('fiche.contextTitle')}</SiteEyebrow>
-              {project.descriptionKey ? (
+            {/* CONTEXTE — rendu seulement quand une description validée existe. Sans elle, la
+                section entière se tait : l'ancienne phrase « le dépôt ne porte pas de
+                description validée » parlait au visiteur de notre outillage (audit 29/10/2026). */}
+            {project.descriptionKey && (
+              <section className="rv mb-8" style={rv(5)}>
+                <SiteEyebrow>{t('fiche.contextTitle')}</SiteEyebrow>
                 <p className="m-0 max-w-[62ch] text-[16px] leading-[1.6] text-ink-2">
                   {t(`projects.${project.descriptionKey}.description`)}
                 </p>
-              ) : (
-                <p className="m-0 max-w-[62ch] text-[15px] italic leading-[1.6] text-ink-2">
-                  {t('fiche.contextMissing')}
+              </section>
+            )}
+
+            {/* ÉTUDE DE CAS — problème puis démarche, chacun s'il existe (`caseStudy`, vide
+                partout aujourd'hui). Aucune valeur n'est inventée pour remplir le gabarit. */}
+            {project.caseStudy?.problemKey && (
+              <section className="rv mb-8" style={rv(5)}>
+                <SiteEyebrow>{t('fiche.problemTitle')}</SiteEyebrow>
+                <p className="m-0 max-w-[62ch] text-[16px] leading-[1.6] text-ink-2">
+                  {t(`projects.${project.caseStudy.problemKey}`)}
                 </p>
-              )}
-            </section>
+              </section>
+            )}
+            {project.caseStudy?.approachKey && (
+              <section className="rv mb-8" style={rv(6)}>
+                <SiteEyebrow>{t('fiche.approachTitle')}</SiteEyebrow>
+                <p className="m-0 max-w-[62ch] text-[16px] leading-[1.6] text-ink-2">
+                  {t(`projects.${project.caseStudy.approachKey}`)}
+                </p>
+              </section>
+            )}
 
             {/* RÔLE RÉEL — conditionnel. Un dépôt qui ne l'établit pas ne se voit pas
                 attribuer de capabilities inventées ; la règle de déduction est écrite en
                 tête de `src/lib/brand/clients.ts`. */}
             {project.capabilities && project.capabilities.length > 0 && (
-              <section className="rv mt-8" style={rv(6)}>
+              <section className="rv mb-8" style={rv(6)}>
                 <SiteEyebrow>{t('fiche.roleTitle')}</SiteEyebrow>
                 <ul className="flex list-none flex-wrap gap-2 p-0">
                   {project.capabilities.map((cap) => (
@@ -195,7 +210,7 @@ export default function RealisationDetail() {
             {/* PÉRIMÈTRE TECHNIQUE — la stack, telle qu'elle a été relevée dans le dépôt du
                 projet. Conditionnel pour la même raison. */}
             {project.stack && project.stack.length > 0 && (
-              <section className="rv mt-8" style={rv(7)}>
+              <section className="rv mb-8" style={rv(7)}>
                 <SiteEyebrow>{t('fiche.scopeTitle')}</SiteEyebrow>
                 <p className="m-0 max-w-[62ch] text-[15.5px] leading-[1.7] text-ink-2">
                   {project.stack.join(' · ')}
@@ -218,7 +233,7 @@ export default function RealisationDetail() {
               le type. Un résultat non sourçable ne peut donc pas entrer par accident.
             */}
             {project.duration && (
-              <section className="rv mt-8" style={rv(8)}>
+              <section className="rv mb-8" style={rv(8)}>
                 <SiteEyebrow>{t('fiche.durationTitle')}</SiteEyebrow>
                 <p className="m-0 text-[16px] text-ink">
                   <Num
@@ -233,7 +248,7 @@ export default function RealisationDetail() {
             )}
 
             {project.outcome && (
-              <section className="rv mt-8" style={rv(9)}>
+              <section className="rv mb-8" style={rv(9)}>
                 <SiteEyebrow>{t('fiche.outcomeTitle')}</SiteEyebrow>
                 <p className="m-0 text-[16px] text-ink">
                   <Num
@@ -245,6 +260,22 @@ export default function RealisationDetail() {
                   />
                 </p>
               </section>
+            )}
+
+            {/* CITATION CLIENT — seulement si elle existe ET qu'un accord écrit la couvre
+                (`testimonials` est aujourd'hui dans `CLIENT_PUBLICATION_WITHHELD`). */}
+            {project.caseStudy?.testimonial && (
+              <figure className="rv m-0 mb-8 max-w-[62ch]" style={rv(10)}>
+                <SiteEyebrow>{t('fiche.testimonialTitle')}</SiteEyebrow>
+                <blockquote className="m-0 font-display text-[20px] leading-[1.45] text-ink">
+                  {t(`projects.${project.caseStudy.testimonial.quoteKey}`)}
+                </blockquote>
+                <figcaption className="mt-3 text-small text-ink-2">
+                  {project.caseStudy.testimonial.author}
+                  {project.caseStudy.testimonial.roleKey &&
+                    ` — ${t(`projects.${project.caseStudy.testimonial.roleKey}`)}`}
+                </figcaption>
+              </figure>
             )}
 
           </div>

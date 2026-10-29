@@ -47,7 +47,7 @@ export interface QuotaMeterProps {
 export function QuotaMeter({ used = 0, total = 5, source, asOf, suffix = "aujourd'hui", label, maxBars = 10, style }: QuotaMeterProps) {
   const drawBars = total <= maxBars;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '9px', fontSize: '11.5px', color: 'var(--text-muted)', ...style }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '9px', fontSize: '12px', color: 'var(--text-muted)', ...style }}>
       {/* Les barres redisent exactement ce que le libellé énonce : elles sont donc muettes
           pour un lecteur d'écran, qui entendrait sinon cinq éléments vides avant le compte. */}
       {drawBars && (

@@ -31,6 +31,17 @@ import { categoryKey, clientCategories, clientProjects, legalName, corporateUrl 
  */
 
 const PARAM_CATEGORIE = 'categorie';
+
+/**
+ * Seuil d'une puce de filtre (audit UI/UX du 29/10/2026) : onze puces pour quinze projets,
+ * c'était une puce par projet ou presque — un filtre qui ne filtre rien. Seuls les secteurs
+ * qui regroupent au moins deux projets ont une puce ; les autres restent sous « Tout ».
+ * Le paramètre d'URL d'un secteur sans puce reste honoré (et sa puce s'affiche alors).
+ */
+const SEUIL_PUCE = 2;
+const categoriesFiltrables: readonly string[] = clientCategories.filter(
+  (c) => clientProjects.filter((p) => p.category === c).length >= SEUIL_PUCE,
+);
 /** La planche mobile montre sept cartes, puis « Voir les N autres ». */
 const MOBILE_VISIBLES = 7;
 const TONES: PhotoTone[] = ['studio', 'edu', 'club', 'informe'];
@@ -137,11 +148,13 @@ export default function Realisations() {
           <button className="mm-chip" type="button" aria-pressed={!categorieValide} onClick={() => setActive(null)}>
             {t('index.filterAll', { count })}
           </button>
-          {clientCategories.map((c) => (
-            <button key={c} className="mm-chip" type="button" aria-pressed={categorieValide === c} onClick={() => setActive(c)}>
-              {ts(`realisations.categories.${categoryKey(c)}`)}
-            </button>
-          ))}
+          {clientCategories
+            .filter((c) => categoriesFiltrables.includes(c) || c === categorieValide)
+            .map((c) => (
+              <button key={c} className="mm-chip" type="button" aria-pressed={categorieValide === c} onClick={() => setActive(c)}>
+                {ts(`realisations.categories.${categoryKey(c)}`)}
+              </button>
+            ))}
         </div>
 
         <ul aria-label={t('index.gridAria')} className="m-0 grid list-none gap-3 p-0 stack:grid-cols-2 stack:gap-4 wide:grid-cols-3">

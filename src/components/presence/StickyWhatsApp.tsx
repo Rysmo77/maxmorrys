@@ -12,10 +12,12 @@ interface Props {
    * d'envoi. Facultatif — sans lui, le bouton ne s'efface jamais.
    */
   hideNear?: RefObject<HTMLElement | null>;
+  /** `id` de la seule zone où la barre a le droit d'exister (défaut : `packs`). */
+  zoneId?: string;
 }
 
 /**
- * Bouton WhatsApp collant, mobile uniquement.
+ * Bouton WhatsApp collant, sous `wide` (1080 px), cantonné à la zone des packs.
  *
  * La cible vit dans WhatsApp : lui imposer de remonter jusqu'au formulaire pour
  * poser une question fait perdre le contact. Le bouton n'apparaît qu'après le hero,
@@ -31,17 +33,41 @@ interface Props {
  * mènent au même endroit, il n'y a rien à perdre à laisser la place au champ qu'on remplit.
  * ─────────────────────────────────────────────────────────────────────────────────────
  */
-export default function StickyWhatsApp({ message, hideNear }: Props) {
+export default function StickyWhatsApp({ message, hideNear, zoneId = 'packs' }: Props) {
   const { t } = useTranslation('presence');
-  const [pastHero, setPastHero] = useState(false);
+  const [inZone, setInZone] = useState(false);
   const [nearForm, setNearForm] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setPastHero(window.scrollY > 600);
+    /*
+     * LIMITÉ À LA ZONE DES PACKS (audit UI/UX du 29/10/2026, registre #7).
+     *
+     * Visible partout après le héros, la barre recouvrait le test Google Maps et le
+     * sélecteur de pack, et doublait le CTA de devis — deux CTA primaires à l'écran. Elle
+     * ne vit plus que pendant la traversée de `#packs` : elle apparaît quand la section
+     * occupe le bas de l'écran, et se retire AVANT que son bord bas n'arrive sous la barre
+     * (réserve `BAR_RESERVE`), pour ne jamais masquer le dernier « Choisir ».
+     * Sans `#packs` dans la page, repli sur l'ancien seuil « après le héros ».
+     */
+    const BAR_RESERVE = 96;
+    const onScroll = () => {
+      const zone = document.getElementById(zoneId);
+      if (!zone) {
+        setInZone(window.scrollY > 600);
+        return;
+      }
+      const r = zone.getBoundingClientRect();
+      const vh = window.innerHeight;
+      setInZone(r.top < vh * 0.5 && r.bottom > vh + BAR_RESERVE);
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [zoneId]);
 
   useEffect(() => {
     const target = hideNear?.current;
@@ -56,7 +82,7 @@ export default function StickyWhatsApp({ message, hideNear }: Props) {
     return () => io.disconnect();
   }, [hideNear]);
 
-  if (!pastHero || nearForm) return null;
+  if (!inZone || nearForm) return null;
 
   const href = whatsappUrl(message);
 
@@ -68,7 +94,7 @@ export default function StickyWhatsApp({ message, hideNear }: Props) {
    */
   return (
     <div
-      className="fixed inset-x-4 bottom-4 z-40 wide:hidden"
+      className="fixed inset-x-4 bottom-4 z-40 stack:left-auto stack:right-6 stack:bottom-6 wide:hidden"
       style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
     >
       <Button href={href} tone="digitalise" target="_blank">

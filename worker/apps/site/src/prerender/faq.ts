@@ -81,14 +81,34 @@ async function getAllFaq(db: Firestore): Promise<FaqDoc[]> {
   });
 
   return documents
-    .map((document) => ({
-      question: asText(document.data.question) ?? '',
-      answer: asText(document.data.answer) ?? '',
-      category: asText(document.data.category),
-      slug: asText(document.data.slug),
-      order: typeof document.data.order === 'number' ? document.data.order : 0,
-    }))
+    .map((document) => {
+      const question = asText(document.data.question) ?? '';
+      const authored = asText(document.data.slug);
+      return {
+        // Le slug se fige sur le texte BRUT avant la résolution des jetons — comme côté app.
+        slug: authored?.trim() ? authored : slugify(question),
+        question: resolveFaqTokens(question),
+        answer: resolveFaqTokens(asText(document.data.answer) ?? ''),
+        category: asText(document.data.category),
+        order: typeof document.data.order === 'number' ? document.data.order : 0,
+      };
+    })
     .filter((item) => item.question && item.answer);
+}
+
+/**
+ * Jetons de la FAQ — MIROIR de `src/lib/faq/tokens.ts` (le Worker ne peut pas importer `src/`).
+ * Un prix cité par une réponse se dérive de sa constante : la FAQ a annoncé 10 000 FCFA/an
+ * pendant que le Club se vendait 19 900 (audit 29/10/2026). `tests/unit/club-pricing.test.ts`
+ * vérifie que `FAQ_CLUB_PRICE_XOF` égale `CLUB_PRICE_XOF`.
+ */
+const FAQ_CLUB_PRICE_XOF = 19_900;
+const FAQ_TOKENS: Record<string, () => string> = {
+  clubPrice: () => FAQ_CLUB_PRICE_XOF.toLocaleString('fr-FR'),
+};
+
+function resolveFaqTokens(text: string): string {
+  return text.replace(/\{\{\s*(\w+)\s*\}\}/g, (whole, name: string) => FAQ_TOKENS[name]?.() ?? whole);
 }
 
 /** Réduit une réponse à une meta description : phrase entière quand c'est possible. */

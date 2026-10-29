@@ -25,13 +25,18 @@
 .eg1-hero__in { position: relative; z-index: 2; max-width: var(--eg1-max); margin: 0 auto; padding: 36px 0 60px; }
 .eg1-hero__in.is-center { max-width: 900px; text-align: center; padding-bottom: 64px; }
 .eg1-hero .mm-script { display: block; font-size: 34px; }
-.eg1-hero h1 { font-size: 110px; color: var(--paper-fixed); margin: 6px 0 20px; }
+/* `mm-up` serre l'interlettrage à −0,045em : à 128 px en Fraunces 900, l'espace entre mots
+   fondait et « JE TE FORME » se lisait « JETEFORME » (audit 29/10/2026, #10). On rend aux
+   mots leur espace sans toucher à l'interlettrage du kit. */
+.eg1-hero h1 { font-size: 110px; color: var(--paper-fixed); margin: 6px 0 20px; word-spacing: .14em; }
 .eg1-hero h1.is-xl { font-size: 128px; margin-bottom: 26px; }
 .eg1-hero h1.is-m { font-size: 96px; margin-bottom: 18px; }
 .eg1-hero__lede { font-size: 17.5px; line-height: 1.55; margin: 0 0 26px; max-width: 52ch; }
 .eg1-hero__in.is-center .eg1-hero__lede { margin-left: auto; margin-right: auto; max-width: 46ch; }
 .eg1-hero__ctas { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-.eg1-hero__link { color: var(--paper-fixed); font: 600 14px/1 var(--f-body); text-decoration: underline; text-underline-offset: 4px; }
+.eg1-hero__link { color: var(--paper-fixed); font: 600 14px/1 var(--f-body); text-decoration: underline; text-underline-offset: 4px; position: relative; }
+/* Cible portée à 44 px sans toucher au dessin (audit UI/UX du 29/10/2026, #8 : 145 × 14). */
+.eg1-hero__link::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: var(--touch-aa); transform: translateY(-50%); }
 .eg1-hero__foot { display: flex; align-items: flex-end; justify-content: flex-end; gap: 24px; margin-top: 84px; }
 .eg1-trainer {
   display: flex; align-items: center; gap: 12px;

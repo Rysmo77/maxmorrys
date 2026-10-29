@@ -87,3 +87,23 @@
   --ctl-off-bg: var(--menu-off-bg);
   --nav-brd: var(--menu-brd);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   UN MENU OPAQUE N'ENTRE PAS EN FONDU (audit UI/UX du 29/10/2026, #6).
+
+   L'audit a relevé « panneau translucide : le texte du pied de page reste visible derrière
+   les liens » alors que la surface calculée est bien opaque. La cause : `.mm-drop` anime
+   l'OPACITÉ de 0 à 1 sur 380 ms. Pendant l'entrée, le menu EST translucide — et c'est
+   exactement l'instant où l'œil le découvre (et où une sonde le capture). Un menu masque :
+   il glisse, il ne se dévoile pas. `.mm-drop-solid` est l'entrée sans fondu ; posée sur un
+   `.mm-menu`, `.mm-drop` en prend la courbe d'elle-même.
+   ───────────────────────────────────────────────────────────────────────── */
+@keyframes mm-menu-in {
+  from { transform: translateY(-6px); }
+  to   { transform: none; }
+}
+
+.mm-drop-solid,
+.mm-menu.mm-drop {
+  animation: mm-menu-in var(--t-enter) var(--ease-out) both;
+}

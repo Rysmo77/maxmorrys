@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn, debounce } from '../../lib/utils';
 import TranslatedText from './TranslatedText';
 import { queryClient, queryKeys } from '../../lib/queryClient';
-import { getPublishedPosts, getPublishedFormations, getPublishedPodcasts, getPublishedVideos, getAllFAQ } from '../../lib/firestore';
+import { getPublishedPosts, getPublishedFormations, getPublishedPodcasts, getPublishedVideos, getPublicFAQ } from '../../lib/firestore';
 import type { BlogPost, Formation, Podcast, Video as VideoType, FAQ } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -129,7 +129,7 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
       cachedFormations? Promise.resolve(cachedFormations): queryClient.fetchQuery({ queryKey: queryKeys.publishedFormations, queryFn: () => getPublishedFormations() }),
       cachedPodcasts  ? Promise.resolve(cachedPodcasts)  : queryClient.fetchQuery({ queryKey: queryKeys.publishedPodcasts, queryFn: () => getPublishedPodcasts() }),
       cachedVideos    ? Promise.resolve(cachedVideos)    : queryClient.fetchQuery({ queryKey: queryKeys.publishedVideos, queryFn: () => getPublishedVideos() }),
-      cachedFAQ       ? Promise.resolve(cachedFAQ)       : getAllFAQ(),
+      cachedFAQ       ? Promise.resolve(cachedFAQ)       : getPublicFAQ(),
     ]).then(([posts, formations, podcasts, videos, faq]) => {
       cachedPosts = posts;
       cachedFormations = formations;
@@ -376,7 +376,7 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
             <div className="py-6 px-5">
               {recentSearches.length > 0 && (
                 <div className="mb-5">
-                  <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-ink-2 mb-2">{t('search.recentSearches')}</p>
+                  <p className="text-[12px] font-bold tracking-[0.2em] uppercase text-ink-2 mb-2">{t('search.recentSearches')}</p>
                   <div className="space-y-0.5">
                     {recentSearches.map((recent) => (
                       <button
@@ -406,7 +406,7 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
         </div>
 
         {/* Footer hints */}
-        <div className="border-t border-[color:var(--line)] px-4 py-2 flex items-center justify-between text-[11px] text-ink-2">
+        <div className="border-t border-[color:var(--line)] px-4 py-2 flex items-center justify-between text-[12px] text-ink-2">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-[color:var(--line)] rounded">↑↓</kbd>{t('search.navigate')}</span>
             <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-[color:var(--line)] rounded">↵</kbd>{t('search.open')}</span>

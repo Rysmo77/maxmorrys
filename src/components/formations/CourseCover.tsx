@@ -62,12 +62,18 @@ interface CourseCoverProps {
   style?: CSSProperties;
   /** Nom de View Transition (carte → fiche). */
   transitionName?: string;
+  /**
+   * `false` quand le visuel porte déjà le titre incrusté : sans quoi le titre HTML se dessinait
+   * par-dessus le même titre en image, illisible (audit UI/UX 29/10/2026, #10).
+   */
+  showTitle?: boolean;
 }
 
 const TITLE_SIZE = { sm: '26px', md: '36px', lg: '54px' } as const;
 
 export default function CourseCover({
   title, category, slug, id, coverImage, kicker, tag, size = 'md', className, style, transitionName,
+  showTitle = true,
 }: CourseCoverProps) {
   const tint = courseTint({ category, slug, id });
   const { t, s } = splitCourseTitle(title);
@@ -89,10 +95,12 @@ export default function CourseCover({
         {kicker ? <span className="k">{kicker}</span> : <span />}
         {tag ? <span className="mm-tag">{tag}</span> : null}
       </div>
-      <div>
-        <div className="t" style={{ fontSize: TITLE_SIZE[size] }}>{t}</div>
-        {s ? <div className="s mt-[6px]">{s}</div> : null}
-      </div>
+      {showTitle ? (
+        <div>
+          <div className="t" style={{ fontSize: TITLE_SIZE[size] }}>{t}</div>
+          {s ? <div className="s mt-[6px]">{s}</div> : null}
+        </div>
+      ) : null}
     </div>
   );
 }

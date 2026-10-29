@@ -340,12 +340,35 @@
     }
   }
 
-  /* Sous 1080 px, les six verbes passent dans le tiroir. La barre garde son verre, son
-     mot-symbole et ses utilitaires : c'est la même surface, pas une seconde barre. */
-  @media (max-width: 1079.98px) {
+  /* Sous 900 px, les verbes passent dans le tiroir. La barre garde sa surface, son
+     mot-symbole et ses utilitaires : c'est la même surface, pas une seconde barre.
+
+     900 et non plus 1080 (audit UI/UX du 29/10/2026, #6) : entre les deux, la pilule
+     pleine largeur ne portait plus que la marque et le bouton de menu — « une pastille
+     blanche vide » à 1054 px, la largeur d'un portable 11 pouces. Entre 900 et 1080, les
+     verbes reviennent ; la langue, la recherche et le thème restent dans le tiroir
+     (`.mm-only-wide` ne bascule toujours qu'à 1080), ce qui libère la place qu'ils prennent.
+     Budget le plus long — hub FR, six verbes — estimé à ~830 px pour 856 disponibles à
+     900 px, avec la gouttière des verbes ramenée à 9 px et l'écart de la barre à 10. */
+  @media (max-width: 899.98px) {
     .mm-topbar > nav {
       display: none !important;
     }
+  }
+  @media (min-width: 900px) and (max-width: 1079.98px) {
+    .mm-topbar.mm-topbar-v3 {
+      gap: 10px;
+    }
+    /* Spécificité relevée : la règle « sous 1280 px » (11 px), écrite plus bas, gagnerait. */
+    .mm-topbar.mm-topbar-v3 > nav a {
+      padding: 0 9px !important;
+    }
+  }
+
+  /* Sous 420 px, sur Edu et le Club, l'étiquette d'espace + l'action courte + le menu
+     débordaient la pilule (audit du 29/10, #12) : l'action passe dans le tiroir. */
+  @media (max-width: 419.98px) {
+    .mm-topbar .mm-cta-narrow-optional { display: none !important; }
   }
 
   /* Passe 2 : sous 1080 px, la barre ne garde que la marque, l'action courte et le menu. */

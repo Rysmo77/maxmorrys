@@ -1,8 +1,14 @@
 import { FieldValue } from '@mm/firestore-rest';
-import { HttpsError } from '@mm/shared';
+import { HttpsError, sha256Hex } from '@mm/shared';
 
-import { type CallContext, requireAuth } from '../context';
+import type { CallContext } from '../context';
 import { sendEmail } from '../lib/email';
+import {
+  UN_JOUR,
+  empreinteAppelant,
+  fenetreJournaliere,
+  incrementerBorne,
+} from '../lib/rate-limit';
 import { buildWaitlistConfirmation, type FormationCourrier, type Langue } from '../lib/waitlist-mail';
 
 /**
@@ -20,12 +26,19 @@ import { buildWaitlistConfirmation, type FormationCourrier, type Langue } from '
  * écriture à tout le monde pour un compteur. Le Worker, qui écrit par compte de service, est
  * le seul chemin — le même raisonnement que `popupEvent` pour `analytics`.
  *
- * ─── LE COMPTE EST REQUIS, ET C'EST UN CHOIX ───────────────────────────────────────────
+ * ─── AVEC OU SANS COMPTE (révisé le 29/10/2026) ─────────────────────────────────────────
  *
- * Pas de capture d'adresse anonyme. L'état vide du catalogue pousse déjà « crée ton compte »,
- * le canal de notification in-app existe déjà et vise un `uid`, et une liste d'attente
- * anonyme aurait demandé un double opt-in, une déduplication par adresse et un anti-spam par
- * IP. Le compte apporte tout ça d'un coup.
+ * Le compte a d'abord été exigé. L'audit UI/UX du 29/10/2026 a montré le prix de ce choix :
+ * le parcours apprenant finissait sur « crée ton compte pour être prévenu·e » — une impasse
+ * pour qui veut seulement une date. Une adresse suffit désormais, avec les trois garde-fous
+ * que le compte apportait :
+ *   • déduplication par adresse — l'identifiant d'entrée est l'empreinte de l'adresse
+ *     normalisée, rejouer ne gonfle pas le compteur ;
+ *   • plafond par IP (empreinte, jamais en clair) et plafond global journalier — un champ
+ *     anonyme qui déclenche un courrier ne doit pas devenir un canon à e-mails ;
+ *   • aucun courrier commercial : un accusé, puis un seul message à l'ouverture.
+ * L'entrée anonyme n'a pas d'`userId` : `notifyWaitlist` ne lui écrit pas de notification
+ * in-app, seulement l'e-mail.
  *
  * ⚠️ L'accès REST par compte de service contourne `firestore.rules` : les contrôles ci-dessous
  * sont les seuls, il n'y a pas de filet derrière.
@@ -34,10 +47,19 @@ import { buildWaitlistConfirmation, type FormationCourrier, type Langue } from '
 
 /** Inscriptions autorisées par personne et par jour, toutes formations confondues. */
 const LIMITE_JOURNALIERE = 20;
+/** Inscriptions anonymes par IP et par jour. */
+const LIMITE_IP_JOUR = 10;
+/** Inscriptions anonymes par jour, toutes IP confondues — l'alarme d'une campagne. */
+const LIMITE_ANONYME_JOUR = 500;
+
+/** Forme d'adresse acceptée : volontairement simple, le serveur de messagerie tranche le reste. */
+const ADRESSE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface Requete {
   formationId?: unknown;
   language?: unknown;
+  /** Seulement pour un appel anonyme ; ignoré quand un compte est connecté. */
+  email?: unknown;
 }
 
 function texte(v: unknown): string {
@@ -49,8 +71,8 @@ function nombre(v: unknown): number {
 }
 
 export async function joinWaitlist(data: unknown, context: CallContext): Promise<unknown> {
-  const auth = requireAuth(context);
-  const { formationId, language } = (data ?? {}) as Requete;
+  const auth = context.auth;
+  const { formationId, language, email: emailSaisi } = (data ?? {}) as Requete;
 
   if (typeof formationId !== 'string' || !formationId.trim()) {
     throw new HttpsError('invalid-argument', 'formationId est obligatoire.');
@@ -75,14 +97,39 @@ export async function joinWaitlist(data: unknown, context: CallContext): Promise
     throw new HttpsError('failed-precondition', 'Cette formation est déjà ouverte.');
   }
 
-  const email = texte(auth.email).trim();
-  if (!email || !email.includes('@')) {
-    throw new HttpsError('failed-precondition', 'Ton compte ne porte pas d’adresse e-mail.');
+  const email = (auth ? texte(auth.email) : texte(emailSaisi)).trim().toLowerCase();
+  if (!email || email.length > 254 || !ADRESSE.test(email)) {
+    throw new HttpsError(
+      auth ? 'failed-precondition' : 'invalid-argument',
+      auth ? 'Ton compte ne porte pas d’adresse e-mail.' : 'Adresse e-mail invalide.',
+    );
   }
 
-  // Plafond journalier, réservé en transaction pour rester exact sous concurrence.
-  const limite = `_ratelimits/waitlist_${auth.uid}`;
-  const jour = new Date().toISOString().slice(0, 10);
+  const jour = fenetreJournaliere();
+  /*
+   * L'APPELANT ANONYME EST PLAFONNÉ AVANT TOUTE ÉCRITURE D'ENTRÉE : par IP, puis globalement.
+   * L'incrément a lieu même en cas de refus (cf. `incrementerBorne`).
+   */
+  if (!auth) {
+    const empreinte = await empreinteAppelant(context.request);
+    const parIp = await incrementerBorne(
+      context.db, `_ratelimits/waitlist_ip_${empreinte}_${jour}`, LIMITE_IP_JOUR, 2 * UN_JOUR,
+    );
+    if (!parIp.autorise) {
+      throw new HttpsError('resource-exhausted', 'Trop d’inscriptions aujourd’hui. Réessaie demain.');
+    }
+    const global = await incrementerBorne(
+      context.db, `_ratelimits/waitlist_anon_jour_${jour}`, LIMITE_ANONYME_JOUR, 2 * UN_JOUR,
+    );
+    if (!global.autorise) {
+      console.error(`joinWaitlist anonyme : plafond journalier atteint (${global.compte}).`);
+      throw new HttpsError('resource-exhausted', 'Trop d’inscriptions aujourd’hui. Réessaie demain.');
+    }
+  }
+
+  // Plafond journalier par compte (ou par adresse), réservé en transaction.
+  const appelant = auth ? auth.uid : `anon_${(await sha256Hex(email)).slice(0, 32)}`;
+  const limite = `_ratelimits/waitlist_${appelant}`;
 
   /*
    * L'ENTRÉE ET LE COMPTEUR DANS LA MÊME TRANSACTION, ET L'INCRÉMENT SOUS CONDITION.
@@ -92,7 +139,7 @@ export async function joinWaitlist(data: unknown, context: CallContext): Promise
    * cran : le compteur affiché publiquement se serait mis à mentir, dans le sens flatteur, ce
    * qui est précisément la façon dont un chiffre perd sa valeur de preuve.
    */
-  const entryId = `${auth.uid}_${formationId}`;
+  const entryId = `${appelant}_${formationId}`;
   const maintenant = new Date().toISOString();
 
   const dejaInscrit = await context.db.runTransaction(async (tx) => {
@@ -111,7 +158,7 @@ export async function joinWaitlist(data: unknown, context: CallContext): Promise
     tx.set(limite, { date: jour, count: compte + 1 }, { merge: true });
 
     tx.set(`waitlist/${entryId}`, {
-      userId: auth.uid,
+      ...(auth ? { userId: auth.uid } : { anonymous: true }),
       formationId,
       email,
       language: langue,

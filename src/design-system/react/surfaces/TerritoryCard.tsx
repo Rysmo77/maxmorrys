@@ -119,7 +119,7 @@ export function TerritoryCard({
         <div>
           {/* `.mm-eyebrow` porte la monospace : un sourcil est un LIBELLÉ, pas un nombre.
               Un chiffre qui apparaît dedans reste soumis à la règle 6 et passe par <Num>. */}
-          {meta && <div className="mm-eyebrow" style={{ fontSize: '11px', color: 'var(--card-ink-2)', letterSpacing: 'normal', textTransform: 'none' }}>{meta}</div>}
+          {meta && <div className="mm-eyebrow" style={{ fontSize: '12px', color: 'var(--card-ink-2)', letterSpacing: 'normal', textTransform: 'none' }}>{meta}</div>}
           {title && (
             <div style={{
               fontFamily: 'var(--f-display)', fontWeight: 900,
@@ -139,7 +139,7 @@ export function TerritoryCard({
           <div style={{ fontWeight: 700, fontSize: '26px', lineHeight: 1, textAlign: 'right', letterSpacing: '-.03em' }}>
             {big}
             {bigLabel && (
-              <small style={{ display: 'block', fontFamily: 'var(--f-body)', fontSize: '10px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', opacity: 0.58, marginTop: '3px' }}>
+              <small style={{ display: 'block', fontFamily: 'var(--f-body)', fontSize: '12px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', opacity: 0.58, marginTop: '3px' }}>
                 {bigLabel}
               </small>
             )}

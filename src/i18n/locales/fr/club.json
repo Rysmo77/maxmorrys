@@ -410,8 +410,8 @@
           "body": "{{bonus}} questions de plus par jour à l'assistant d'apprentissage."
         }
       },
-      "buildTag": "En construction",
-      "build": "Replays des sessions · digest de la semaine · cercles thématiques. On te le dit tant que ce n'est pas prêt."
+      "buildTag": "Ensuite",
+      "build": "Les replays des sessions, le digest de la semaine et les cercles thématiques s'ajouteront à l'adhésion. Je te préviens le jour où chacun ouvre."
     },
     "steps": {
       "kick": "Comment ça marche",

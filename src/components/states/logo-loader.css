@@ -1,0 +1,168 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   LE LOGO QUI ATTEND — `LogoLoader` (voir le composant pour le pourquoi).
+
+   RÈGLE DE CONSTRUCTION : L'ÉTAT DE BASE EST L'ÉTAT STATIQUE. Sous
+   `prefers-reduced-motion`, `brand/fallback.css` pose `animation:none!important` sur tout
+   le document ; ce qui reste à l'écran est donc exactement ce que ces règles décrivent hors
+   `@keyframes` : la pastille entière, le M entier, le liseré posé au centre. Aucune
+   animation ne part d'une opacité nulle qu'elle seule relèverait — sinon le réglage
+   « réduire les animations » rendrait un loader invisible.
+
+   Mouvement en `transform` et `opacity` seulement (AD-16).
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.mm-ll {
+  --ll-size: 56px;
+  /* Le hub porte les quatre teintes du M ; Edu et Club, la teinte de leur espace. */
+  --ll-paint: linear-gradient(90deg, var(--mm-bleu), var(--mm-orange), var(--mm-teal), var(--mm-violet));
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--ll-size) * .22);
+}
+.mm-ll[data-tone='edu'] { --ll-paint: var(--mm-bleu); }
+.mm-ll[data-tone='club'] { --ll-paint: var(--mm-violet); }
+
+/* L'apparition, une fois le délai écoulé : un fondu court, jamais un saut. */
+.mm-ll__visual {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: inherit;
+  animation: mm-ll-in var(--t-enter) var(--ease-out) both;
+}
+
+/* La pastille blanche du kit — même géométrie que `LogoMark plate` : le PNG a un fond blanc. */
+.mm-ll__plate {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--ll-size);
+  height: var(--ll-size);
+  border-radius: calc(var(--ll-size) * .28);
+  background: var(--paper-fixed);
+  box-shadow: var(--sh-soft);
+  overflow: hidden;
+  animation: mm-ll-breathe 2.4s var(--ease-out) infinite;
+}
+.mm-ll__plate img {
+  display: block;
+  width: 86%;
+  height: 86%;
+}
+
+/* LE TRACÉ. Un voile de papier balaie le M de gauche à droite : il le découvre, le tient,
+   puis revient le couvrir par la gauche. La base le laisse HORS de la pastille. */
+.mm-ll__plate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--paper-fixed);
+  opacity: .84;
+  transform: translateX(101%);
+  animation: mm-ll-wipe 2.4s cubic-bezier(.65, 0, .35, 1) infinite;
+}
+
+/* LE LISERÉ — « Un liseré le balaie. Jamais de rond qui tourne. » (contrat de `Button`). */
+.mm-ll__trait {
+  position: relative;
+  width: calc(var(--ll-size) * 1.1);
+  height: 3px;
+  border-radius: 999px;
+  background: var(--fill-1);
+  overflow: hidden;
+}
+.mm-ll__trait i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 42%;
+  border-radius: inherit;
+  background: var(--ll-paint);
+  /* Au repos : centré. (100 − 42) / 2 / 42 ≈ 69 %. */
+  transform: translateX(69%);
+  animation: mm-ll-sweep 2.4s cubic-bezier(.65, 0, .35, 1) infinite;
+}
+
+.mm-ll--sm { --ll-size: 36px; }
+.mm-ll--lg { --ll-size: 72px; }
+
+/* Le repli de page : il RÉSERVE la place d'un écran pour que le pied de page ne remonte pas
+   sous les yeux pendant qu'un morceau de code arrive. */
+.mm-ll-page {
+  display: grid;
+  place-items: center;
+  min-height: min(70vh, 640px);
+  padding: var(--site-pad, 18px);
+}
+
+/* La pastille flottante des navigations : sous la barre haute, au centre, sans capter le
+   pointeur — elle signale, elle ne bloque rien. */
+.mm-ll-nav {
+  position: fixed;
+  top: calc(var(--header-h, 64px) + 12px);
+  left: 50%;
+  z-index: 80;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+@keyframes mm-ll-in {
+  from { opacity: 0; transform: scale(.94); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes mm-ll-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+@keyframes mm-ll-wipe {
+  0% { transform: translateX(0); }
+  38% { transform: translateX(101%); }
+  76% { transform: translateX(101%); }
+  76.01% { transform: translateX(-101%); }
+  100% { transform: translateX(0); }
+}
+@keyframes mm-ll-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(240%); }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LE VOILE DE TRANSITION — `RouteVeil`. Une feuille OPAQUE (le fond de page teinté du
+   territoire) sous la barre haute (z-40), qui ne capte jamais le pointeur. Entrée 200 ms,
+   retrait 300 ms. Sous `prefers-reduced-motion` le composant ne se monte pas du tout.
+   ───────────────────────────────────────────────────────────────────────────── */
+.mm-veil {
+  --veil-tint: var(--mm-violet);
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: var(--surface-page);
+  background: color-mix(in srgb, var(--veil-tint) 12%, var(--surface-page));
+}
+.mm-veil[data-tint='hub'] { --veil-tint: var(--mm-violet); --ll-paint: linear-gradient(90deg, var(--mm-bleu), var(--mm-orange), var(--mm-teal), var(--mm-violet)); }
+.mm-veil[data-tint='edu'], .mm-veil[data-tint='forme'] { --veil-tint: var(--mm-bleu); }
+.mm-veil[data-tint='informe'] { --veil-tint: var(--mm-orange); }
+.mm-veil[data-tint='club'], .mm-veil[data-tint='transforme'] { --veil-tint: var(--mm-violet); }
+.mm-veil[data-tint='digitalise'] { --veil-tint: var(--mm-teal); }
+.mm-veil[data-tint='agence'] { --veil-tint: var(--mm-corail); }
+.mm-veil:not([data-tint='hub']) .mm-ll { --ll-paint: var(--veil-tint); }
+
+.mm-veil.is-in { animation: mm-veil-in 200ms var(--ease-out) both; }
+.mm-veil.is-out { animation: mm-veil-out 300ms cubic-bezier(.65, 0, .35, 1) both; }
+.mm-veil.is-in .mm-ll { animation: mm-ll-in 200ms var(--ease-out) both; }
+.mm-veil.is-out .mm-ll { animation: mm-veil-logo-out 220ms var(--ease-out) both; }
+
+@keyframes mm-veil-in {
+  from { opacity: 0; transform: translateY(3%); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes mm-veil-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-3%); }
+}
+@keyframes mm-veil-logo-out {
+  to { opacity: 0; transform: scale(.94); }
+}

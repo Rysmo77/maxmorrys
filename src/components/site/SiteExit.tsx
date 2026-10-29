@@ -49,6 +49,13 @@ export function SiteExit({ title, body, cta, href }: SiteExitProps) {
         <b />
         <b />
       </div>
+      {/* VOILE DE LECTURE (audit 29/10/2026) : sous le texte, le maillage bleu ne laissait au
+          blanc qu'un fond gris-bleu moyen. Le voile assombrit la moitié gauche — celle du
+          titre — et laisse respirer le maillage à droite, derrière le bouton. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--night)_78%,transparent)_0%,color-mix(in_srgb,var(--night)_55%,transparent)_60%,color-mix(in_srgb,var(--night)_25%,transparent)_100%)]"
+      />
       <div className="relative flex flex-wrap items-center justify-between gap-6 px-6 py-9 stack:px-12 stack:py-14">
         <div className="min-w-0 flex-1 basis-[280px]">
           <p className="m-0 font-display text-[clamp(26px,3.4vw,40px)] font-black leading-[.95] tracking-[-.035em] text-ink">
@@ -56,7 +63,16 @@ export function SiteExit({ title, body, cta, href }: SiteExitProps) {
           </p>
           <p className="mt-3 mb-0 max-w-[52ch] text-[15px] leading-[1.55] text-ink-2">{body}</p>
         </div>
-        <Button href={href} tone="primary" arrow fullWidth={false}>
+        {/* LA PASTILLE-FLÈCHE : sous `.dk`, la pilule passe en clair (#ECF0F5) mais la
+            pastille garde `--paper` (blanc) et l'encre `--ink` (claire) — flèche claire sur
+            disque blanc, invisible. On la pose en sombre, flèche claire, sur cette dalle. */}
+        <Button
+          href={href}
+          tone="primary"
+          arrow
+          fullWidth={false}
+          className="[&_.mm-btn\_\_arrow]:bg-[var(--text-on-primary)] [&_.mm-btn\_\_arrow]:text-ink"
+        >
           {cta}
         </Button>
       </div>

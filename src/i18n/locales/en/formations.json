@@ -295,6 +295,7 @@
     "factFree": "free, no account",
     "buy": "Buy",
     "cardKicker": "Price · one-off",
+    "priceWas": "Original price:",
     "coverKicker": "Max-Morrys Edu"
   },
   "comingSoon": {
@@ -303,7 +304,8 @@
     "opensOn": "Opens {{date}}.",
     "noDateYet": "The opening date isn’t set yet. I’ll let you know as soon as it is.",
     "notifyMe": "Notify me when it opens",
-    "notifyMeSignedOut": "Create your account to be notified",
+    "emailLabel": "Your email address",
+    "emailPlaceholder": "you@example.com",
     "alreadyIn": "You’re on the list",
     "preorder": "Pre-order now",
     "promise": "One email, on opening day. No newsletter, no follow-ups.",
@@ -312,7 +314,7 @@
     "truthBody_one": "{{count}} module planned. The lessons are being written — they’ll be there on opening day, and access stays for life.",
     "truthBody_other": "{{count}} modules planned. The lessons are being written — they’ll be there on opening day, and access stays for life.",
     "freeLater": "The opening module will be free on opening day: you’ll judge before you pay.",
-    "cardCta": "Coming soon",
+    "cardCta": "Coming soon · notify me",
     "toastJoined": "You’re on the list. I’ll let you know on opening day.",
     "toastAlready": "You were already on the list.",
     "toastError": "Couldn’t add you to the list. Try again in a moment.",
@@ -328,6 +330,7 @@
       "lede": "Paid once, yours for good. Free lessons in each one, so you can judge before you buy.",
       "levelAll": "All",
       "once": "One-off",
+      "plannedPrice": "Planned price",
       "clubNote": "Club member: −{{pct}}% applied at checkout."
     },
     "team": {

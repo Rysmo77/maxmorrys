@@ -49,7 +49,7 @@ export interface StatTileProps {
 export function StatTile({ label, value, source, asOf, unit, showAsOf = true, foot, style }: StatTileProps) {
   return (
     <div className="glass-flat" style={{ padding: '16px', ...style }}>
-      <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>{label}</p>
+      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>{label}</p>
       {/* La taille est portée ici, la face tabulaire et son interlettrage viennent de <Num> :
           c'est lui qui détient le seul accès du dépôt à la monospace, et donc le seul endroit
           où un nombre doit prouver d'où il sort. */}
@@ -59,7 +59,7 @@ export function StatTile({ label, value, source, asOf, unit, showAsOf = true, fo
       {/* --text-muted et non --text-faint : le kit posait la date de relevé sur l'encre
           tertiaire, 2,61:1 sur blanc pur. C'est la ligne qui rend le chiffre crédible ; elle
           ne peut pas être celle qu'on ne lit pas (AD-18). */}
-      {foot && <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>{foot}</p>}
+      {foot && <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>{foot}</p>}
     </div>
   );
 }

@@ -63,7 +63,10 @@ export async function getFormationBySlug(slug: string, lang: 'fr' | 'en' = 'fr')
     if (byEn[0]) return masquerCurriculum(byEn[0]);
   }
   const results = await getCollection<Formation>('formations', where('slug', '==', slug), where('status', '==', 'published'), limit(1));
-  return results[0] ? masquerCurriculum(results[0]) : null;
+  if (results[0]) return masquerCurriculum(results[0]);
+  // Ancienne adresse : la fiche la reconnaît, puis redirige vers `slug` (cf. FormationDetail).
+  const parAlias = await getCollection<Formation>('formations', where('slugAliases', 'array-contains', slug), where('status', '==', 'published'), limit(1));
+  return parAlias[0] ? masquerCurriculum(parAlias[0]) : null;
 }
 
 /** Console d'administration. NE MASQUE PAS le curriculum : la console doit pouvoir l'éditer. */

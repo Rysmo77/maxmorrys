@@ -49,7 +49,7 @@ function TealLines({ lines }: { lines: string[] }) {
       {lines.map((line, i) => (
         <span key={i}>
           {i > 0 && <br className="hidden stack:inline" />}
-          {i > 0 && <span className="stack:hidden"> </span>}
+          {i > 0 && ' '}
           {line.split(/\[([^\]]+)\]/).map((part, j) =>
             j % 2 === 1 ? (
               <span key={j} className="text-[color:var(--mm-teal-t)]">
@@ -262,6 +262,7 @@ export default function Conception() {
           <KitH2 className="mb-5 mt-[14px] hidden stack:block" size="clamp(40px, 5vw, 60px)">
             {(t('method.titleLines', { returnObjects: true }) as string[]).map((l, i) => (
               <span key={i}>
+                {i > 0 && ' '}
                 {i > 0 && <br />}
                 <Hl text={l} tone="edu" />
               </span>

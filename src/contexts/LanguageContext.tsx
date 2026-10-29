@@ -49,34 +49,28 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const { user, userData, refreshUserData } = useAuth();
   const language = getLangFromPath(location.pathname);
   const syncedPrefRef = useRef<Lang | null>(null);
-  const redirectedRef = useRef(false);
 
-  // Au tout premier rendu : honorer un CHOIX EXPLICITE de langue précédent.
-  // Si l'utilisateur a déjà choisi une langue et arrive sur une URL d'une autre
-  // langue, le rediriger vers sa version. Une seule fois par session.
-  useEffect(() => {
-    if (redirectedRef.current) return;
-    redirectedRef.current = true;
-    const explicit = getExplicitLanguage();
-    if (explicit && explicit !== language) {
-      const target = localizedPath(location.pathname, explicit) + location.search + location.hash;
-      navigate(target, { replace: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  /*
+    ⛔ AUCUNE redirection selon la langue mémorisée (audit du 29/10/2026, registre #1).
+    Il existait ici un effet « au premier rendu » qui renvoyait vers la langue du
+    choix explicite (`mm-lang-explicit`) : `/en` servait le français et `/` filait
+    vers `/en` selon ce que le navigateur avait retenu. Le sitemap et les hreflang
+    promettent l'inverse — une URL = une langue, pour tout le monde, robots compris.
+    Le choix explicite ne sert plus qu'à faire taire `LanguageSuggestionBanner`.
+  */
 
   // Synchronise i18next + localStorage + <html lang> quand la langue d'URL change.
   useEffect(() => {
     let cancelled = false;
-    if (i18n.language !== language) {
-      // Les namespaces chargés à la demande n'existent que dans la langue où ils
-      // ont été demandés : il faut les avoir dans la nouvelle AVANT de basculer,
-      // sinon les pages montées affichent des clés brutes (`useSuspense: false`).
-      // `preloadRequestedNamespaces` ne rejette jamais.
-      void preloadRequestedNamespaces(language).then(() => {
-        if (!cancelled) void i18n.changeLanguage(language);
-      });
-    }
+    // Les namespaces chargés à la demande n'existent que dans la langue où ils
+    // ont été demandés : il faut les avoir dans la nouvelle AVANT de basculer,
+    // sinon les pages montées affichent des clés brutes (`useSuspense: false`).
+    // Appelé même quand `i18n.language` est déjà juste : c'est sans coût si tout est
+    // chargé, et ça couvre une page montée avant que l'URL n'ait changé de langue.
+    // `preloadRequestedNamespaces` ne rejette jamais.
+    void preloadRequestedNamespaces(language).then(() => {
+      if (!cancelled && i18n.language !== language) void i18n.changeLanguage(language);
+    });
     try {
       localStorage.setItem(STORAGE_KEY, language);
     } catch { /* stockage indisponible (mode privé) */ }

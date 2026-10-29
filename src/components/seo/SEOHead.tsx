@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import {
@@ -11,6 +11,45 @@ import {
 import { useLanguage } from '../../contexts/LanguageContext';
 import { localizedPath, ogLocale } from '../../i18n/routing';
 import { toLogicalPath } from '../../lib/hosts';
+
+/**
+ * Balises de tête injectées par le Worker (HTML serveur) que `SEOHead` réémet lui-même.
+ *
+ * Helmet ne gère QUE ses propres balises (`data-rh`) : celles du pré-rendu restaient en
+ * place, en tête du `<head>`, et survivaient à toute navigation interne. Après un passage
+ * accueil → `/en/about`, le premier canonical lu pointait encore vers l'accueil et la
+ * description restait en français (audit du 29/10/2026, registre #2).
+ */
+const SERVER_HEAD_SELECTOR = [
+  'meta[name="description"]',
+  'meta[name="robots"]',
+  'link[rel="canonical"]',
+  'link[rel="alternate"][hreflang]',
+  'meta[property^="og:"]',
+  'meta[property^="article:"]',
+  'meta[name^="twitter:"]',
+]
+  .map((sel) => `head ${sel}:not([data-rh])`)
+  .join(', ');
+
+let serverHeadPurged = false;
+
+/** Retire une fois pour toutes les balises du pré-rendu : Helmet prend le relais. */
+function purgeServerHead(): void {
+  if (serverHeadPurged || typeof document === 'undefined') return;
+  serverHeadPurged = true;
+  document.querySelectorAll(SERVER_HEAD_SELECTOR).forEach((el) => el.remove());
+}
+
+/**
+ * Titre complet : suffixe de marque, sauf si le titre la porte déjà.
+ * Plusieurs titres i18n finissent par « | Max-Morrys » (ou « | Max-Morrys Edu ») :
+ * le suffixe systématique produisait « … | Max-Morrys | Max-Morrys ».
+ */
+function buildFullTitle(title: string, isHomePage = false): string {
+  if (isHomePage || title.includes(SITE_NAME)) return title;
+  return `${title} | ${SITE_NAME}`;
+}
 
 interface SEOHeadProps {
   title: string;
@@ -61,7 +100,8 @@ export default function SEOHead({
   /* Le chemin LOGIQUE de la page servie : sur l'Edu, `/` est `/apprendre` — et c'est lui que
      `buildCanonical` sait placer sur son hôte. */
   const basePath = toLogicalPath(pathname);
-  const fullTitle = isHomePage ? title : `${title} | ${SITE_NAME}`;
+  const fullTitle = buildFullTitle(title, isHomePage);
+  useEffect(purgeServerHead, []);
   const canonicalUrl = canonical || buildCanonical(localizedPath(basePath, language));
   // Alternates hreflang : utiliser les chemins explicites (slug localisé) si fournis.
   const frUrl = buildCanonical(frPath ?? localizedPath(basePath, 'fr'));

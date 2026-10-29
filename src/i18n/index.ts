@@ -200,17 +200,37 @@ export function loadNamespaces(
   lang: Lang = currentLang(),
 ): Promise<void> {
   for (const ns of namespaces) requested.add(ns);
-  return Promise.all(namespaces.map((ns) => loadOne(lang, ns))).then(() => undefined);
+  return Promise.all(namespaces.flatMap((ns) => withFallback(lang, ns))).then(() => undefined);
+}
+
+/**
+ * Charge `ns` dans `lang` ET dans la langue de repli.
+ *
+ * `fallbackLng: 'fr'` ne sert à rien si le catalogue français n'est pas enregistré :
+ * en anglais, une clé absente du JSON EN s'affichait BRUTE (`fiche.breadcrumbRoot`,
+ * audit du 29/10/2026) au lieu de retomber sur le français. Le surcoût est un chunk
+ * de quelques Ko par route, pour les seuls visiteurs anglophones.
+ */
+function withFallback(lang: Lang, ns: string): Promise<void>[] {
+  return lang === DEFAULT_LANG
+    ? [loadOne(lang, ns)]
+    : [loadOne(lang, ns), loadOne(DEFAULT_LANG, ns)];
 }
 
 /** Recharge dans `lang` tous les namespaces dynamiques déjà demandés. */
 export function preloadRequestedNamespaces(lang: Lang): Promise<void> {
-  return Promise.all([...requested].map((ns) => loadOne(lang, ns))).then(() => undefined);
+  return Promise.all([...requested].flatMap((ns) => withFallback(lang, ns))).then(() => undefined);
 }
 
 i18n.use(initReactI18next).init({
   resources,
-  lng: DEFAULT_LANG,
+  /*
+    La langue de départ est celle de l'URL, pas `DEFAULT_LANG`. Démarrer en français
+    sur `/en/...` laissait la première page rendre en `fr` des namespaces qui n'avaient
+    été chargés qu'en `en` (`loadNamespaces` lit l'URL) : `returnObjects` rendait des
+    chaînes, et `/en/about` plantait en chargement direct (audit du 29/10/2026).
+  */
+  lng: currentLang(),
   fallbackLng: DEFAULT_LANG,
   supportedLngs: LANGS,
   ns: CORE_NAMESPACES,

@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Icon, Num } from '@ds';
@@ -19,12 +18,11 @@ import { HERO_TOP } from './parts';
  * cette page publique ne peut donc lire aucune date. Elle garde la mise en page — héros,
  * bande « À venir », carte d'engagement — et met, à la place des cartes d'exemple, une carte
  * qui dit où sont les dates. Le seul nombre est l'engagement de l'offre et, à côté, ce qui a
- * été tenu (`public_stats/club`, « non relevé » tant que le relevé n'existe pas).
+ * été tenu (`public_stats/club`) — seulement s'il est relevé ET non nul (audit 29/10/2026).
  */
 export default function ClubSessionsPage() {
   const { t } = useTranslation('ecrans');
   const path = useLocalizedPath();
-  const asOf = useRef(new Date()).current;
   const { data: stats } = useQuery<PublicClubStats | null>({
     queryKey: queryKeys.publicClubStats,
     queryFn: () => getPublicClubStats(),
@@ -70,16 +68,19 @@ export default function ClubSessionsPage() {
         <div className="mt-6 flex flex-col items-start justify-between gap-5 rounded-card border border-[color:var(--line)] bg-bento px-7 py-6 stack:flex-row stack:items-center">
           <div>
             <b className="block text-[17px] text-ink">{t(k('commitment'), { n: LIVE_SESSIONS_PER_MONTH })}</b>
-            <span className="text-[14px] text-ink-2">
-              {t(k('heldPre'), { days: stats?.windowDays ?? 90 })}{' '}
-              <Num
-                value={stats?.liveSessionsHeld ?? null}
-                source="server"
-                asOf={stats ? new Date(stats.asOf) : asOf}
-                showAsOf={Boolean(stats)}
-              />
-              {' · '}{t(k('heldPost'))}
-            </span>
+            {/* Masqué tant qu'il vaut 0 ou n'est pas relevé (audit 29/10/2026, #13). */}
+            {stats && stats.liveSessionsHeld > 0 && (
+              <span className="text-[14px] text-ink-2">
+                {t(k('heldPre'), { days: stats.windowDays })}{' '}
+                <Num
+                  value={stats.liveSessionsHeld}
+                  source="server"
+                  asOf={new Date(stats.asOf)}
+                  showAsOf
+                />
+                {' · '}{t(k('heldPost'))}
+              </span>
+            )}
           </div>
           <a className="mm-btn-club flex-none" href={path('/club-des-digitos/adhesion')}>{t(k('cta'))}</a>
         </div>

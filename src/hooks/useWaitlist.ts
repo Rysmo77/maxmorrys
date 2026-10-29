@@ -30,7 +30,7 @@ import { useAuth } from '../contexts/AuthContext';
  */
 
 const joinWaitlist = httpsCallable<
-  { formationId: string; language: 'fr' | 'en' },
+  { formationId: string; language: 'fr' | 'en'; email?: string },
   { ok: boolean; deja: boolean; waitlistCount: number; mailEnvoye?: boolean }
 >(functions, 'joinWaitlist');
 
@@ -40,7 +40,11 @@ export interface WaitlistState {
   envoi: boolean;
   /** Le compteur tel qu'on le connaît, réactualisé après une inscription réussie. */
   compte: number;
-  rejoindre: () => Promise<'ok' | 'deja' | 'erreur'>;
+  /**
+   * `email` n'est lu que sans compte connecté : depuis le 29/10/2026, une adresse suffit pour
+   * être prévenu·e (le serveur déduplique par adresse et plafonne par IP).
+   */
+  rejoindre: (email?: string) => Promise<'ok' | 'deja' | 'erreur'>;
 }
 
 export function useWaitlist(
@@ -73,11 +77,14 @@ export function useWaitlist(
     return () => { vivant = false; };
   }, [user, formationId]);
 
-  const rejoindre = useCallback(async (): Promise<'ok' | 'deja' | 'erreur'> => {
+  const rejoindre = useCallback(async (email?: string): Promise<'ok' | 'deja' | 'erreur'> => {
     if (!formationId) return 'erreur';
+    if (!user && !email?.trim()) return 'erreur';
     setEnvoi(true);
     try {
-      const { data } = await joinWaitlist({ formationId, language });
+      const { data } = await joinWaitlist(
+        user ? { formationId, language } : { formationId, language, email: email?.trim() },
+      );
       setInscrit(true);
       setCompte(data.waitlistCount);
       return data.deja ? 'deja' : 'ok';
@@ -87,7 +94,7 @@ export function useWaitlist(
     } finally {
       setEnvoi(false);
     }
-  }, [formationId, language]);
+  }, [formationId, language, user]);
 
   return { inscrit, envoi, compte, rejoindre };
 }

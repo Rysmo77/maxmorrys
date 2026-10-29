@@ -321,8 +321,9 @@
     "alt": "Max-Morrys Eyoum, portrait en buste : lunettes rondes, chemise verte, bras croisés, dans un intérieur clair."
   },
   "realisations": {
+    "relationClient": "Projet client",
     "categories": {
-      "consumer-product": "Consumer Product",
+      "consumer-product": "Produit grand public",
       "e-commerce": "E-commerce",
       "fintech": "Fintech",
       "education": "Éducation",

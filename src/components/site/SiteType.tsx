@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { Fragment, type CSSProperties, type ReactNode } from 'react';
 
 /**
  * LE TITRE D'AFFICHAGE — écrit ligne par ligne, jamais replié.
@@ -125,40 +125,45 @@ export function SiteDisplay({ lines, size = 64, as: Tag = 'h1', from = 0, wrap =
         ...style,
       }}
     >
+      {/* Un espace entre les lignes (audit 29/10/2026) : des `<span>` en bloc collés
+          donnaient « Des projetssur mesure » au lecteur d'écran, à la recherche et au
+          copier-coller. Entre deux blocs, l'espace ne se dessine pas — le rendu ne bouge pas. */}
       {lines.map((line, i) => (
-        <span
-          key={line}
-          className="rv-l"
-          style={{
-            '--i': from + i + 1,
-            display: 'block',
-            /*
-             * `--dsp-wrap` vaut `nowrap` partout, SAUF sous 360 px (voir `index.css`). En
-             * dessous, même le plancher de 22 px ne fait pas tenir la plus longue ligne du
-             * site, et il n'y a pas d'étage plus bas : le fichier pose 22 px comme limite de
-             * lisibilité de Fraunces 900. Il reste alors deux issues, et une seule est bonne
-             * — la coupure écrite se replie sur deux lignes visuelles, ou la page entière
-             * défile latéralement. AD-13 protège les coupures VOULUES ; il ne demande pas
-             * qu'on préfère un défilement horizontal à un repli.
-             */
-            whiteSpace: wrap ? 'normal' : 'var(--dsp-wrap, nowrap)',
-            // Un mot plus long que la colonne — une URL, un nom composé — déborde même en
-            // repli. `balance` répartit les lignes d'un titre court, ce que le kit obtient
-            // à la main en écrivant ses coupures.
-            ...(wrap ? { overflowWrap: 'break-word', textWrap: 'balance' } : null),
-          } as CSSProperties}
-        >
-          {arc
-            ? segments(line).map((part, j) =>
-                // Impair = entre crochets. Le fragment ne porte que la peinture ; le
-                // survol lui arrive du titre, par `.mm-arc-host`.
-                j % 2 === 1
-                  ? <span key={j} className="mm-arc">{part}</span>
-                  : part)
-            // Sans arc, les crochets ne s'affichent pas pour autant : le fragment reste
-            // dans la ligne, sans sa peinture.
-            : segments(line).join('')}
-        </span>
+        <Fragment key={line}>
+          {i > 0 && ' '}
+          <span
+            className="rv-l"
+            style={{
+              '--i': from + i + 1,
+              display: 'block',
+              /*
+               * `--dsp-wrap` vaut `nowrap` partout, SAUF sous 360 px (voir `index.css`). En
+               * dessous, même le plancher de 22 px ne fait pas tenir la plus longue ligne du
+               * site, et il n'y a pas d'étage plus bas : le fichier pose 22 px comme limite de
+               * lisibilité de Fraunces 900. Il reste alors deux issues, et une seule est bonne
+               * — la coupure écrite se replie sur deux lignes visuelles, ou la page entière
+               * défile latéralement. AD-13 protège les coupures VOULUES ; il ne demande pas
+               * qu'on préfère un défilement horizontal à un repli.
+               */
+              whiteSpace: wrap ? 'normal' : 'var(--dsp-wrap, nowrap)',
+              // Un mot plus long que la colonne — une URL, un nom composé — déborde même en
+              // repli. `balance` répartit les lignes d'un titre court, ce que le kit obtient
+              // à la main en écrivant ses coupures.
+              ...(wrap ? { overflowWrap: 'break-word', textWrap: 'balance' } : null),
+            } as CSSProperties}
+          >
+            {arc
+              ? segments(line).map((part, j) =>
+                  // Impair = entre crochets. Le fragment ne porte que la peinture ; le
+                  // survol lui arrive du titre, par `.mm-arc-host`.
+                  j % 2 === 1
+                    ? <span key={j} className="mm-arc">{part}</span>
+                    : part)
+              // Sans arc, les crochets ne s'affichent pas pour autant : le fragment reste
+              // dans la ligne, sans sa peinture.
+              : segments(line).join('')}
+          </span>
+        </Fragment>
       ))}
     </Tag>
   );

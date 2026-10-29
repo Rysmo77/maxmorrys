@@ -174,10 +174,13 @@ export default function Home() {
             className="h-[400px] !rounded-xl wide:h-[540px]"
             img={{ src: portrait.src, srcSet: portrait.srcSet, sizes: '(min-width: 1080px) 460px, 100vw', width: portrait.width, height: portrait.height, alt: tShared('portrait.alt') }}
           />
+          {/* La carte « Le podcast » reste DANS la photo (audit 29/10/2026) : posée à
+              `right-[-40px]` / `bottom-[-22px]`, elle débordait sur le texte voisin et se
+              lisait comme un toast flottant au-dessus du contenu. */}
           {latestEpisode && (
             <a
               href={contentPath('podcasts', latestEpisode, language)}
-              className="mm-float bottom-[-22px] right-3 text-ink no-underline wide:bottom-[60px] wide:right-[-40px] wide:max-w-[250px]"
+              className="mm-float bottom-3 right-3 max-w-[calc(100%-24px)] text-ink no-underline wide:bottom-6 wide:right-6 wide:max-w-[250px]"
             >
               <span className="mm-avatar bg-[image:linear-gradient(135deg,var(--mm-orange),var(--mm-corail))] text-[color:var(--ink-fixed)]">
                 <Icon name="mic" size={16} />
@@ -318,7 +321,31 @@ export default function Home() {
               const wideCls = main ? 'wide:basis-[420px]' : dist === 1 ? 'wide:basis-[300px] wide:scale-[.94] wide:opacity-80' : 'wide:basis-[240px] wide:scale-[.88] wide:opacity-[.55]';
               return (
                 <div key={v.id} className={`mm-video flex-none basis-[250px] ${wideCls}`}>
-                  <Photo tone={VIDEO_TONES[i % VIDEO_TONES.length]} img={v.thumbnailUrl ? { src: v.thumbnailUrl, alt: '' } : undefined} />
+                  {/* VIGNETTE ENTIÈRE (audit 29/10/2026) : une miniature 16:9 recadrée en `cover`
+                      dans une tuile 4:5 perdait plus de la moitié de sa largeur (« FACEBOOK »
+                      coupé). Elle est posée entière, en haut, sur un fond flouté d'elle-même —
+                      la même URL, donc un seul téléchargement. */}
+                  <Photo tone={VIDEO_TONES[i % VIDEO_TONES.length]}>
+                    {v.thumbnailUrl && (
+                      <>
+                        <img
+                          src={v.thumbnailUrl}
+                          alt=""
+                          aria-hidden="true"
+                          loading="lazy"
+                          decoding="async"
+                          className="absolute inset-0 scale-110 opacity-60 blur-xl"
+                        />
+                        <img
+                          src={v.thumbnailUrl}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          className="absolute inset-x-0 top-[12%] !h-auto !object-contain"
+                        />
+                      </>
+                    )}
+                  </Photo>
                   {(main || dist === 1) && (
                     <div className={`mm-video__cap ${main ? '' : 'wide:hidden'}`}>
                       <span>

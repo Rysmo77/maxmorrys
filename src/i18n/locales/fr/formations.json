@@ -295,6 +295,7 @@
     "factFree": "libres, sans compte",
     "buy": "Acheter",
     "cardKicker": "Prix · une fois",
+    "priceWas": "Prix initial :",
     "coverKicker": "Max-Morrys Edu"
   },
   "comingSoon": {
@@ -303,7 +304,8 @@
     "opensOn": "Ouverture le {{date}}.",
     "noDateYet": "La date d’ouverture n’est pas encore fixée. Je te préviendrai dès qu’elle l’est.",
     "notifyMe": "Préviens-moi à l’ouverture",
-    "notifyMeSignedOut": "Crée ton compte pour être prévenu·e",
+    "emailLabel": "Ton adresse e-mail",
+    "emailPlaceholder": "ton@adresse.com",
     "alreadyIn": "Tu es sur la liste",
     "preorder": "Précommander maintenant",
     "promise": "Un seul e-mail, le jour de l’ouverture. Pas de lettre, pas de relance.",
@@ -312,7 +314,7 @@
     "truthBody_one": "{{count}} module au programme. Les leçons s’écrivent — elles seront là à l’ouverture, et l’accès restera à vie.",
     "truthBody_other": "{{count}} modules au programme. Les leçons s’écrivent — elles seront là à l’ouverture, et l’accès restera à vie.",
     "freeLater": "Le module d’ouverture sera en accès libre le jour de l’ouverture : tu jugeras avant de payer.",
-    "cardCta": "Bientôt",
+    "cardCta": "Bientôt · me prévenir",
     "toastJoined": "C’est noté. Je te préviens le jour de l’ouverture.",
     "toastAlready": "Tu étais déjà sur la liste.",
     "toastError": "Impossible de t’inscrire à la liste. Réessaie dans un instant.",
@@ -328,6 +330,7 @@
       "lede": "Payées une fois, à toi pour toujours. Des leçons libres dans chacune, pour juger avant d'acheter.",
       "levelAll": "Tous",
       "once": "Une fois",
+      "plannedPrice": "Prix prévu",
       "clubNote": "Membre du Club : −{{pct}} % appliqué au paiement."
     },
     "team": {

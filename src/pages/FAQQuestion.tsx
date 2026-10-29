@@ -12,7 +12,7 @@ import ShareButtons from '../components/shared/ShareButtons';
 import TranslatedText from '../components/shared/TranslatedText';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
-import { getAllFAQ } from '../lib/firestore';
+import { getPublicFAQ } from '../lib/firestore';
 import { faqSlug, findFaqBySlug } from '../lib/faq/slug';
 import { queryKeys } from '../lib/queryClient';
 import { SITE_URL } from '../components/seo/seo-config';
@@ -58,7 +58,7 @@ export default function FAQQuestion() {
    */
   const { data: faqs, isLoading } = useQuery({
     queryKey: queryKeys.faq,
-    queryFn: () => getAllFAQ(),
+    queryFn: () => getPublicFAQ(),
   });
 
   const item = useMemo(() => (faqs ? findFaqBySlug(faqs, slug) : undefined), [faqs, slug]);

@@ -167,7 +167,7 @@ export default function Login() {
             }
           />
           <p className="m-0 mt-2 text-right text-[12.5px]">
-            <a href={path('/mot-de-passe-oublie')} className="text-ink-2">{t('login.forgotPassword')}</a>
+            <a href={path('/mot-de-passe-oublie')} className="mm-touch-extend text-ink-2">{t('login.forgotPassword')}</a>
           </p>
           <button
             type="submit"

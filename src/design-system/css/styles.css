@@ -44,3 +44,4 @@
 @import url("./overrides/ad-27-kit-v3-jetons.css");    /* les jetons du kit v3, ramenés aux noms du dépôt */
 @import url("./overrides/ad-27-kit-v3-produit.css");   /* liens, flèche, pied géant : ce que le kit écrit pour des maquettes */
 @import url("./overrides/passe2-chassis.css");         /* passe 2 : barre du site, marque, actif par espace */
+@import url("./overrides/ad-28-plancher-lisibilite.css"); /* planchers 12 px et 44 px, pied géant contenu (audit 29/10) */

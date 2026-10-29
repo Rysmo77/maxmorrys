@@ -9,7 +9,7 @@ import { Eyebrow, KitButton, KitSection, NightHero } from '../components/site/v3
 import TranslatedText from '../components/shared/TranslatedText';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
-import { getAllFAQ } from '../lib/firestore';
+import { getPublicFAQ } from '../lib/firestore';
 import { faqSlug } from '../lib/faq/slug';
 import { queryKeys } from '../lib/queryClient';
 import type { FAQ as FAQItem } from '../types';
@@ -22,7 +22,7 @@ import type { FAQ as FAQItem } from '../types';
  * catégorie et la liste des questions, à droite l'aperçu de la page réponse de la première
  * question retenue. Au mobile, la liste puis l'aperçu dans une carte.
  *
- * Les questions viennent de la base (`getAllFAQ`), les catégories en sont DÉRIVÉES : aucune
+ * Les questions viennent de la base (`getPublicFAQ`), les catégories en sont DÉRIVÉES : aucune
  * des étiquettes de la planche (« Démarrer », « Paiement »…) n'est écrite ici.
  *
  * Écarts volontaires à la planche :
@@ -49,7 +49,12 @@ function BlueAccent({ text }: { text: string }) {
   );
 }
 
-function Preview({ item, framed }: { item: FAQItem; framed: boolean }) {
+/**
+ * L'aperçu de la question choisie — UN SEUL rendu, responsive par classes (audit 29/10/2026).
+ * Il était monté deux fois (bureau / mobile), l'un masqué par CSS : deux `<h2>` identiques dans
+ * le DOM, vus comme des titres répétés par les robots et les outils d'audit.
+ */
+function Preview({ item }: { item: FAQItem }) {
   const { t } = useTranslation('faq');
   const path = useLocalizedPath();
   const question = useTranslatedText(item.question);
@@ -57,15 +62,18 @@ function Preview({ item, framed }: { item: FAQItem; framed: boolean }) {
   const paragraphs = answer.split(/\n{2,}/).filter(Boolean);
 
   return (
-    <article className={framed ? 'rounded-xl bg-[color:var(--paper-2)] p-5' : ''}>
-      <Eyebrow>{framed ? t('index.previewEyebrow') : t('index.articleEyebrow', { category: item.category })}</Eyebrow>
-      <h2 className={`mm-d mb-[18px] mt-[14px] ${framed ? 'text-[30px]' : 'text-[52px]'}`}>{question}</h2>
+    <article className="rounded-xl bg-[color:var(--paper-2)] p-5 wide:rounded-none wide:bg-transparent wide:p-0">
+      <Eyebrow>
+        <span className="wide:hidden">{t('index.previewEyebrow')}</span>
+        <span className="hidden wide:inline">{t('index.articleEyebrow', { category: item.category })}</span>
+      </Eyebrow>
+      <h2 className="mm-d mb-[18px] mt-[14px] text-[30px] wide:text-[52px]">{question}</h2>
       {paragraphs.map((p, i) => (
-        <p key={i} className={`m-0 mb-4 max-w-[62ch] whitespace-pre-line leading-[1.7] ${framed ? 'text-[16px]' : 'text-[18px]'}`}>
+        <p key={i} className="m-0 mb-4 max-w-[62ch] whitespace-pre-line text-[16px] leading-[1.7] wide:text-[18px]">
           {p}
         </p>
       ))}
-      <div className={`mt-[22px] flex gap-[10px] ${framed ? 'flex-col' : 'flex-wrap'}`}>
+      <div className="mt-[22px] flex flex-col gap-[10px] wide:flex-row wide:flex-wrap">
         <KitButton href={path('/formations')} tone="edu">{t('index.ctaCourses')}</KitButton>
         <KitButton href={path('/conception')} tone="studio">{t('index.ctaServices')}</KitButton>
         <KitButton href={path('/contact?rdv=1')} tone="ghost">{t('index.ctaCall')}</KitButton>
@@ -88,7 +96,7 @@ export default function FAQPage() {
 
   const { data: faqs = null } = useQuery({
     queryKey: queryKeys.faq,
-    queryFn: () => getAllFAQ(),
+    queryFn: () => getPublicFAQ(),
   });
 
   const categories = useMemo(() => [...new Set((faqs ?? []).map((f) => f.category).filter(Boolean))], [faqs]);
@@ -137,7 +145,7 @@ export default function FAQPage() {
             {titleLines.map((l, i) => (
               <span key={i}>
                 {i > 0 && <br className="hidden wide:inline" />}
-                {i > 0 && <span className="wide:hidden"> </span>}
+                {i > 0 && ' '}
                 <BlueAccent text={l} />
               </span>
             ))}
@@ -194,16 +202,7 @@ export default function FAQPage() {
                 {t('index.contactLink')}
               </a>
             </nav>
-            {featured && (
-              <>
-                <div className="hidden wide:block">
-                  <Preview item={featured} framed={false} />
-                </div>
-                <div className="wide:hidden">
-                  <Preview item={featured} framed />
-                </div>
-              </>
-            )}
+            {featured && <Preview item={featured} />}
           </div>
         )}
       </KitSection>

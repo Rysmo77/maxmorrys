@@ -21,9 +21,10 @@ import { podcastPlatform } from '../lib/brand';
  * lecteur, puis « Tous les épisodes » et « Vidéos » côte à côte, avec l'encart data.
  *
  * Ce qui reste tenu :
- * - LE POIDS N'EST PAS MESURÉ (`weightNote`) : la planche promet « le poids de chaque fichier »
- *   et « [N] Mo en 360p » ; le produit n'a que la DURÉE, c'est donc elle qui s'affiche, et
- *   l'aveu reste écrit (il arme la règle 10 de `proof:check`) ;
+ * - LE POIDS N'EST PAS MESURÉ : la planche promet « le poids de chaque fichier » et
+ *   « [N] Mo en 360p » ; le produit n'a que la DURÉE, c'est donc elle seule qui s'affiche. L'ancien
+ *   aveu `weightNote` (note interne vue du public, audit 29/10/2026) est retiré : on se tait sur
+ *   le poids plutôt que de le promettre (la règle 10 de `proof:check` garde la promesse) ;
  * - pas de Spotify ni d'Apple Podcasts inventés : la puce de plateforme ne paraît que si
  *   `podcastPlatform` existe ; « Télécharger » pointe le vrai fichier audio ;
  * - le lecteur est l'élément `<audio>` natif, sans préchargement (`preload="none"`) ;
@@ -135,7 +136,6 @@ export default function MediaPole() {
                   </div>
                 </div>
               </div>
-              <p className="m-0 mt-[10px] text-[13px] text-ink-2">{t('pole.weightNote')}</p>
             </KitSection>
           )}
 

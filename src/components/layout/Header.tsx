@@ -27,7 +27,8 @@ import {
  * · Droite : FR · EN, thème (le bouton reste), recherche, puis l'action de l'espace —
  *   « Réserver un appel » (→ `/contact?rdv=1`, la prise de rendez-vous existante) pour une
  *   personne non connectée sur le site ; avatar et menu de compte une fois connecté.
- * · Sous 1080 px : marque, action courte (« Appel »), bouton de menu ; les entrées passent
+ * · Entre 900 et 1080 px : marque, entrées, action courte, bouton de menu (audit du 29/10, #6).
+ * · Sous 900 px : marque, action courte (« Appel »), bouton de menu ; les entrées passent
  *   dans le tiroir (`SideNav`), avec la langue et le thème.
  *
  * `data-header-compact` reste publié sur `<html>` : `--header-h` en dépend.
@@ -437,7 +438,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                 aria-current={path === accueilPublic(space) ? 'page' : undefined}
                 className="mm-topbar__logo mm-touch-extend no-underline"
               >
-                <Wordmark brand="kit" size={19} badge={space === 'edu' ? 'EDU' : undefined} />
+                <Wordmark brand="kit" size={19} badge={space === 'edu' ? 'EDU' : space === 'club' ? 'CLUB' : undefined} />
                 {space === 'club' && <span className="sr-only">{t('v3.clubBrand')}</span>}
               </a>
             }
@@ -469,7 +470,10 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     <Button tone="primary" size="sm" arrow href={cta.href} className="mm-only-wide">
                       {cta.label}
                     </Button>
-                    <Button tone="transforme" size="sm" href={cta.href} className="mm-only-narrow">
+                    {/* Sous 420 px, sur Edu et le Club, l'étiquette d'espace + l'action courte +
+                        le menu dépassaient la pilule (audit 29/10, #12) : l'action passe alors
+                        dans le tiroir, qui la reprend en tête de son pied. */}
+                    <Button tone="transforme" size="sm" href={cta.href} className={cn('mm-only-narrow', space !== 'hub' && 'mm-cta-narrow-optional')}>
                       {cta.short}
                     </Button>
                   </>
@@ -480,7 +484,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   aria-expanded={drawerOpen}
                   aria-controls="site-drawer"
                   aria-label={t('menu')}
-                  className={cn(UTIL_ICON, 'mm-only-narrow w-10 h-10 border border-[color:var(--line)]')}
+                  className={cn(UTIL_ICON, 'mm-only-narrow w-11 h-11 border border-[color:var(--line)]')}
                 >
                   {drawerOpen
                     ? <Icon name="close" size={20} strokeWidth={2.2} />
@@ -493,10 +497,16 @@ export default function Header({ onSearchOpen }: HeaderProps) {
         </div>
 
         {/*
-          LE TIROIR — 250 px de faux verre entre 700 et 1080 px, pleine largeur en dessous.
+          LE TIROIR — 250 px opaques entre 700 et 1080 px, pleine largeur en dessous.
           C'est la primitive `SideNav` : mêmes pastilles de territoire, même `aria-current`,
           une vraie `<ul>` de vrais `<a href>`. Il se cale sous la hauteur RÉELLE du chrome,
           bannière d'annonce et sous-navigation comprises, sans aucun nombre magique.
+
+          OPAQUE ET PLEINE HAUTEUR (AD-26, audit du 29/10/2026 #6) : `h-` et non `max-h-`,
+          pour que `.mm-drawer { min-height: 100% }` ait une hauteur à remplir — sinon la
+          colonne s'arrêtait sous le dernier lien et le pied de page se lisait au-dessous,
+          sous le seul voile à 38 %. Entrée `mm-drop-solid` : un menu glisse, il ne se
+          dévoile pas en fondu (le fondu le rendait translucide pendant 380 ms).
         */}
         {drawerOpen && (
           <div
@@ -507,7 +517,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
             aria-label={t('menu')}
             /* `right-0` sous 700 px pour que la colonne puisse faire 100 % de large ;
                `right-auto` au-delà, pour qu'elle se ferme sur ses 250 px. */
-            className="absolute top-full left-0 right-0 stack:right-auto wide:hidden max-h-[calc(100dvh-var(--header-h))] overflow-y-auto mm-drop"
+            className="absolute top-full left-0 right-0 stack:right-auto wide:hidden h-[calc(100dvh-var(--header-h))] overflow-y-auto mm-drop-solid"
           >
             <DsNavHost>
               <SideNav
@@ -523,9 +533,14 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                       <span className="ml-auto">{themeButton('')}</span>
                     </div>
                     {!user && (
-                      <Button tone="primary" href={localize('/connexion')}>
-                        {t('signIn')}
-                      </Button>
+                      <>
+                        <Button tone="primary" href={cta.href}>
+                          {cta.label}
+                        </Button>
+                        <Button tone="ghost" href={localize('/connexion')}>
+                          {t('signIn')}
+                        </Button>
+                      </>
                     )}
                   </div>
                 }

@@ -181,12 +181,14 @@ export default function Formations() {
                   const href = path(`/formations/${formation.slug}`);
                   return (
                     <article key={formation.id} className="mm-prod">
+                      {/* Le titre ne s'écrit qu'UNE fois par carte (audit 29/10/2026, #3) : la
+                          couverture porte la catégorie, le <h2> porte le titre. */}
                       <EduCover
-                        title={formation.title}
+                        title={formation.category || formation.title}
                         category={formation.category}
                         slug={formation.slug}
                         id={formation.id}
-                        kicker={`${t('sheet.coverKicker')} · ${formation.category}`}
+                        kicker={t('sheet.coverKicker')}
                         tag={aVenir
                           ? (quand?.kind === 'label' ? quand.value : t('comingSoon.tag'))
                           : free > 0 ? t('index.cardFree', { count: free }) : undefined}
@@ -203,17 +205,23 @@ export default function Formations() {
                           <span>{aVenir ? t('index.statModules') : t('index.statLessons')}</span>
                         </div>
                         <div>
-                          <b><Num value={price} source="db" asOf={asOf} unit="F" showAsOf={false} /></b>
-                          <span>{t('v3.catalog.once')}</span>
+                          {/* Une annonce n'est pas achetable : son prix se dit « prévu », pas « une fois ». */}
+                          <b className={aVenir ? 'text-ink-2' : undefined}><Num value={price} source="db" asOf={asOf} unit="F" showAsOf={false} /></b>
+                          <span>{aVenir ? t('v3.catalog.plannedPrice') : t('v3.catalog.once')}</span>
                         </div>
                       </div>
-                      <div className="px-2 text-[12px] text-ink-2"><PriceApprox xof={price} /></div>
+                      <div className="px-2 text-[13px] text-ink-2"><PriceApprox xof={price} /></div>
                       <div className="mm-prod__cta">
+                        {/* ÉTAT « INDISPONIBLE » : contour neutre, jamais l'orange plein du CTA
+                            d'achat. Il mène à la fiche, où se trouve la liste d'attente. */}
                         <Link
-                          className={aVenir ? 'mm-pill is-sm is-plain' : 'mm-pill is-sm'}
+                          className={aVenir
+                            ? 'mm-pill is-sm is-plain border border-[color:var(--quiet-brd)] !bg-transparent !text-ink-2 shadow-none'
+                            : 'mm-pill is-sm'}
                           to={href}
                           style={{ flex: 1, justifyContent: aVenir ? 'center' : 'space-between' }}
                         >
+                          {aVenir && <Icon name="clock" size={15} />}
                           {aVenir ? t('comingSoon.cardCta') : t('index.seeCourse')}
                           {!aVenir && <i aria-hidden="true"><Icon name="arrow-up-right" size={15} /></i>}
                         </Link>
@@ -224,7 +232,7 @@ export default function Formations() {
               </div>
               {listed.length === 0 && <p className="mt-6 text-ink-2">{t('states.empty')}</p>}
               <p className="m-0 mt-4 text-[13px] text-ink-2">{t('v3.catalog.clubNote', { pct: CLUB_PCT })}</p>
-              <PriceFootnote className="m-0 mt-1" />
+              <PriceFootnote className="m-0 mt-1 !text-[13px]" />
             </>
           )}
         </div>

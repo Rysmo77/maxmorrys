@@ -55,7 +55,7 @@ function TealLines({ lines }: { lines: string[] }) {
       {lines.map((line, i) => (
         <span key={i}>
           {i > 0 && <br className="hidden stack:inline" />}
-          {i > 0 && <span className="stack:hidden"> </span>}
+          {i > 0 && ' '}
           {line.split(/\[([^\]]+)\]/).map((part, j) =>
             j % 2 === 1 ? (
               <span key={j} className="text-[color:var(--mm-teal-t)]">
@@ -187,20 +187,29 @@ export default function PresenceDigitale() {
                     <Num value={pack.price} source="db" asOf={CATALOGUE_REVISED_AT} unit="FCFA" />
                   </span>
                 )}
-                <b className="mm-n block text-[36px] tracking-[-.03em] stack:text-[40px]">
-                  <Num value={amount} source="db" asOf={CATALOGUE_REVISED_AT} unit={t('v3.packs.ht')} />
+                {/* LE PRIX TIENT SUR UNE LIGNE (audit 29/10/2026 : « HT » orphelin à 40 px fixes
+                    dans une carte de 210 px). Taille fluide, groupe insécable, et l'unité à la
+                    moitié du corps du chiffre — c'est le chiffre qui se lit. */}
+                <b className="mm-n block whitespace-nowrap text-[clamp(28px,8vw,36px)] tracking-[-.03em] stack:text-[clamp(22px,2.9vw,40px)]">
+                  <Num value={amount} source="db" asOf={CATALOGUE_REVISED_AT} />
+                  {'\u00a0'}
+                  <span className="font-sans text-[.5em] font-normal tracking-normal">{t('v3.packs.ht')}</span>
                 </b>
                 {promo && <span className="mm-tag self-start bg-[color:var(--mm-orange)] text-[color:var(--ink-fixed)]">{t('v3.packs.promo')}</span>}
                 {doitMentionnerLaTaxe(tax.etat) && tax.tva > 0 && (
                   <span className="mm-n text-[12.5px] text-ink-2">{t('v3.packs.tax', { rate })}</span>
                 )}
-                <KitButton
-                  tone={isSel ? 'studio' : 'ghost'}
-                  className="mt-2"
-                  onClick={() => choose(pack.key)}
-                >
-                  {isSel ? t('v3.packs.selected') : t('v3.packs.choose')}
-                </KitButton>
+                {/* Choisi, le bouton ne redit pas l'état (l'étiquette « Sélectionné » le porte
+                    déjà) : il propose l'étape suivante, le devis (audit 29/10/2026). */}
+                {isSel ? (
+                  <KitButton href="#devis" tone="studio" arrow className="mt-2">
+                    {t('v3.packs.selected')}
+                  </KitButton>
+                ) : (
+                  <KitButton tone="ghost" className="mt-2" onClick={() => choose(pack.key)}>
+                    {t('v3.packs.choose')}
+                  </KitButton>
+                )}
               </article>
             );
           })}

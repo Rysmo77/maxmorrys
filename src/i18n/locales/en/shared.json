@@ -321,6 +321,7 @@
     "alt": "Max-Morrys Eyoum, head-and-shoulders portrait: round glasses, green shirt, arms crossed, in a bright interior."
   },
   "realisations": {
+    "relationClient": "Client product",
     "categories": {
       "consumer-product": "Consumer Product",
       "e-commerce": "E-commerce",

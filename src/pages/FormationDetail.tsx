@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Icon, LogoMark, Num, Skeleton, useToast } from '@ds';
@@ -90,8 +90,9 @@ export default function FormationDetail() {
   const aVenir = Boolean(formation && estAVenir(formation));
   const attente = useWaitlist(aVenir ? formation?.id : undefined, language, formation?.waitlistCount ?? 0);
 
+  const [emailListe, setEmailListe] = useState('');
   const rejoindreListe = async () => {
-    const r = await attente.rejoindre();
+    const r = await attente.rejoindre(user ? undefined : emailListe);
     if (r === 'ok') addToast('success', t('comingSoon.toastJoined'));
     else if (r === 'deja') addToast('info', t('comingSoon.toastAlready'));
     else addToast('error', t('comingSoon.toastError'));
@@ -116,6 +117,12 @@ export default function FormationDetail() {
         <Link className="mm-pill is-plain mt-6" to={path('/formations')}>{t('detail.notFoundLink')}</Link>
       </div>
     );
+  }
+
+  /* Ancienne adresse (`slugAliases`) : on remplace l'URL par l'adresse courante. */
+  const slugCourant = language === 'en' ? formation.slug_en || formation.slug : formation.slug;
+  if (slug && slug !== formation.slug && slug !== formation.slug_en) {
+    return <Navigate to={path(`/formations/${slugCourant}`)} replace />;
   }
 
   const title = tFormation?.title || formation.title;
@@ -229,10 +236,36 @@ export default function FormationDetail() {
                 >
                   {attente.inscrit === true ? t('comingSoon.alreadyIn') : t('comingSoon.notifyMe')}
                 </button>
+              ) : attente.inscrit === true ? (
+                <p className="m-0 text-[14px] font-semibold text-[color:var(--paper-fixed)]" role="status">
+                  {t('comingSoon.alreadyIn')}
+                </p>
               ) : (
-                <Link className={precommande ? 'mm-pill is-plain' : 'mm-pill'} to={path('/inscription')}>
-                  {t('comingSoon.notifyMeSignedOut')}
-                </Link>
+                /* Sans compte : une adresse suffit (audit UI/UX du 29/10/2026, registre #3). */
+                <form
+                  className="flex w-full max-w-[460px] flex-wrap items-center gap-2"
+                  onSubmit={(e) => { e.preventDefault(); void rejoindreListe(); }}
+                >
+                  <label htmlFor="waitlist-email" className="sr-only">{t('comingSoon.emailLabel')}</label>
+                  <input
+                    id="waitlist-email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    inputMode="email"
+                    value={emailListe}
+                    onChange={(e) => setEmailListe(e.target.value)}
+                    placeholder={t('comingSoon.emailPlaceholder')}
+                    className="h-12 min-w-0 flex-1 rounded-full border border-[color:color-mix(in_srgb,var(--paper-fixed)_35%,transparent)] bg-[color:color-mix(in_srgb,var(--paper-fixed)_10%,transparent)] px-5 text-[15px] text-[color:var(--paper-fixed)] placeholder:text-[color:color-mix(in_srgb,var(--paper-fixed)_60%,transparent)]"
+                  />
+                  <button
+                    type="submit"
+                    className={precommande ? 'mm-pill is-plain' : 'mm-pill'}
+                    disabled={attente.envoi}
+                  >
+                    {t('comingSoon.notifyMe')}
+                  </button>
+                </form>
               ))}
               {!aVenir && firstFree && (
                 <Link to={path(`/cours/${formation.slug}`)} className="text-[14px] font-semibold text-[color:var(--paper-fixed)] underline underline-offset-4">
@@ -281,11 +314,22 @@ export default function FormationDetail() {
         <div className="relative z-[2] mx-auto mt-10 max-w-[1360px] pb-[34px]">
           <div className="mm-count flex-wrap" style={{ justifyContent: 'space-between' }}>
             <div>
-              <span className="mm-eyebrow" style={{ color: 'var(--mm-orange-c)' }}>{t('sheet.cardKicker')}</span>
+              <span className="mm-eyebrow" style={{ color: 'var(--mm-orange-c)' }}>
+                {aVenir ? t('v3.catalog.plannedPrice') : t('sheet.cardKicker')}
+              </span>
               <b className="mt-1.5 block text-[22px] leading-[1.2]">
                 <Num value={price} source="db" asOf={asOf} unit="F" showAsOf={false} />
+                {/* Prix barré SÉPARÉ du prix réel (audit 29/10/2026, #11) : une espace dans le
+                    texte, l'unité, et un libellé pour les lecteurs d'écran — sans quoi la ligne
+                    se lisait « 55 000F70 000 ». */}
                 {formation.promoPrice ? (
-                  <s className={`ml-2 text-[14px] ${muted}`}><Num value={formation.price} source="db" asOf={asOf} showAsOf={false} /></s>
+                  <>
+                    {' '}
+                    <s className={`ml-1 text-[14px] ${muted}`}>
+                      <span className="sr-only">{t('sheet.priceWas')} </span>
+                      <Num value={formation.price} source="db" asOf={asOf} unit="F" showAsOf={false} />
+                    </s>
+                  </>
                 ) : null}
                 {!aVenir && (
                   <small className={`ml-1 text-[13px] font-medium ${muted}`}>

@@ -11,6 +11,8 @@ import { useTranslatedText } from '../hooks/useTranslatedContent';
 import { getPostBySlug, getPublishedPosts, incrementBlogViews } from '../lib/firestore';
 import { markdownToHtml, withArticleToc, type ArticleHeading } from '../lib/markdown';
 import { queryClient, queryKeys } from '../lib/queryClient';
+import { findCachedPost } from '../lib/blogCache';
+import LogoLoader from '../components/states/LogoLoader';
 import { useFormat } from '../hooks/useFormat';
 import { categoryToPole } from '../lib/blogCategories';
 import { HOUSE_AUTHOR, isHouseAuthor, portrait } from '../lib/author';
@@ -69,6 +71,44 @@ function Sommaire({ headings, actif }: { headings: ArticleHeading[]; actif: stri
   );
 }
 
+/**
+ * L'ARTICLE EN ATTENTE — À SA VRAIE HAUTEUR (audit du 29/10/2026, registre #5).
+ *
+ * L'ancien squelette posait quelques barres grises dans une section nue : sans la dalle de
+ * nuit, la page se réduisait au pied de page pendant ~2 s, puis la dalle arrivait et tout
+ * sautait. Celui-ci reprend la DALLE (`NightHero`, mêmes marges, même titre sur deux lignes
+ * à 40 px puis ~76 px) et la colonne de lecture de 68 ch : quand le contenu arrive, rien ne
+ * bouge. Le logo animé dit ce qui charge ; les barres, elles, sont muettes (`aria-hidden`).
+ */
+function ArticleSkeleton({ label }: { label: string }) {
+  return (
+    <>
+      <NightHero mesh="club" className="pb-[30px] stack:pb-14">
+        <div className="relative z-[1] mx-auto box-border flex w-full max-w-[860px] flex-col px-5 pt-9 stack:items-center stack:px-4 stack:pt-[88px]">
+          <div aria-hidden="true" className="flex w-full flex-col gap-[14px] stack:items-center">
+            <Skeleton width={200} height={12} />
+            <div className="h-[40px] w-[92%] stack:h-[72px] stack:w-[86%]"><Skeleton height="100%" radius="var(--r-s)" /></div>
+            <div className="h-[40px] w-[64%] stack:h-[72px] stack:w-[58%]"><Skeleton height="100%" radius="var(--r-s)" /></div>
+            <Skeleton width={240} height={14} style={{ marginTop: '6px' }} />
+          </div>
+        </div>
+      </NightHero>
+      <KitSection width={1180} className="pt-[30px] stack:pt-14">
+        <div className="mx-auto max-w-[68ch]">
+          <div className="mb-8 flex justify-center">
+            <LogoLoader label={label} />
+          </div>
+          <div aria-hidden="true" className="grid gap-3">
+            {[100, 100, 94, 100, 72, 0, 100, 97, 100, 64].map((w, i) =>
+              w === 0 ? <span key={i} className="h-3" /> : <Skeleton key={i} height={16} width={`${w}%`} />,
+            )}
+          </div>
+        </div>
+      </KitSection>
+    </>
+  );
+}
+
 export default function BlogPost() {
   const { t } = useTranslation('blog');
   const { formatDate } = useFormat();
@@ -76,12 +116,15 @@ export default function BlogPost() {
   const { language } = useLanguage();
   const navigate = useNavigate();
   const path = useLocalizedPath();
-  const [post, setPost] = useState<BlogPostType | null | undefined>(undefined);
+  // Un article déjà en mémoire est rendu dès la PREMIÈRE image, sans passer par le squelette.
+  const [post, setPost] = useState<BlogPostType | null | undefined>(() =>
+    slug ? findCachedPost(slug, language) : undefined,
+  );
   const [relatedPosts, setRelatedPosts] = useState<BlogPostType[]>([]);
 
   useEffect(() => {
     if (!slug) return;
-    getPostBySlug(slug, language).then((data) => {
+    const recevoir = (data: BlogPostType | null) => {
       setPost(data);
       if (data) {
         trackViewItem({ id: data.id, name: data.title, category: data.category, content_type: 'article' });
@@ -103,7 +146,20 @@ export default function BlogPost() {
           })
           .catch(() => null);
       }
-    }).catch(() => setPost(null));
+    };
+    /*
+     * DÉJÀ EN MÉMOIRE → AFFICHÉ SANS REQUÊTE. Venu de l'index, de l'accueil ou d'« À lire
+     * ensuite », l'article est dans une liste que TanStack Query garde, corps compris.
+     */
+    const enCache = findCachedPost(slug, language);
+    if (enCache) {
+      recevoir(enCache);
+      return;
+    }
+    /* Arrivée directe : la liste d'« À lire ensuite » part EN MÊME TEMPS que l'article, au
+       lieu d'attendre sa réponse — un aller-retour de moins avant la fin de la page. */
+    void queryClient.prefetchQuery({ queryKey: queryKeys.blogPosts, queryFn: () => getPublishedPosts() });
+    getPostBySlug(slug, language).then(recevoir).catch(() => setPost(null));
   }, [slug, language]);
 
   useContentEngagement({
@@ -133,16 +189,7 @@ export default function BlogPost() {
   const titreActif = useActiveHeading(ancres);
 
   if (post === undefined) {
-    return (
-      <KitSection className="pt-14">
-        <div className="mx-auto grid max-w-[68ch] gap-4">
-          <Skeleton width={220} height={12} label={t('post.loading')} />
-          <Skeleton height={44} width="82%" />
-          <Skeleton height={44} width="58%" />
-          {[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} height={14} width={i % 3 === 2 ? '72%' : '100%'} />)}
-        </div>
-      </KitSection>
-    );
+    return <ArticleSkeleton label={t('post.loading')} />;
   }
 
   if (!post) {

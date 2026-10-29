@@ -63,6 +63,8 @@ export {
   type ClientProject,
   type ClientCapability,
   type ClientEvidence,
+  type ClientCaseStudy,
+  type ClientTestimonial,
   type ClientPublicationGranted,
   type ClientPublicationWithheld,
 } from './clients';

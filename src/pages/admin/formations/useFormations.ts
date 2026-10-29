@@ -234,9 +234,17 @@ export function useFormations() {
       const slug = form.slug || slugify(form.title);
       const slug_en = form.slug_en || await generateSlugEn(form.title);
       const existing = editingId ? list.find((f) => f.id === editingId) : null;
+      /*
+       * CHANGER LE SLUG NE CASSE PAS L'ANCIENNE ADRESSE : elle passe dans `slugAliases`, et la
+       * fiche publique redirige vers la nouvelle (cas du slug tronqué « …-le-succ », 29/10/2026).
+       */
+      const aliases = new Set(existing?.slugAliases ?? []);
+      if (existing?.slug && existing.slug !== slug) aliases.add(existing.slug);
+      aliases.delete(slug);
       const data = {
         title: form.title.trim(),
         slug,
+        slugAliases: [...aliases],
         slug_en,
         description: form.description.trim(),
         longDescription: form.longDescription,

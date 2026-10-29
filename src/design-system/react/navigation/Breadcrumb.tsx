@@ -32,7 +32,7 @@ const LIST: CSSProperties = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
-  fontSize: '11.5px',
+  fontSize: '12px',
   letterSpacing: 'normal',
   textTransform: 'none',
 };

@@ -140,7 +140,6 @@
     ],
     "lede": "Every episode and every video shows its length: you know before you press play how much time it takes.",
     "ledeShort": "Each file shows its length before you play it.",
-    "weightNote": "File sizes aren't measured at upload yet: only the length is shown.",
     "tabsAria": "Content type",
     "tabArticles": "Articles",
     "tabMedia": "Podcast and videos",

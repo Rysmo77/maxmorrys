@@ -25,7 +25,7 @@ const STEP: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   fontFamily: 'var(--f-body)',
-  fontSize: '11px',
+  fontSize: '12px',
   fontWeight: 600,
   padding: '5px 10px',
   borderRadius: 'var(--r-pill)',

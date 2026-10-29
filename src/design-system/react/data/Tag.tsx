@@ -47,7 +47,7 @@ export function Tag({ tone = 'neutral', children, className, style }: TagProps) 
       style={{
         display: 'inline-flex', alignItems: 'center', gap: '5px',
         height: '27px', padding: '0 11px',
-        borderRadius: 'var(--r-pill)', fontSize: '11px', fontWeight: 600,
+        borderRadius: 'var(--r-pill)', fontSize: '12px', fontWeight: 600,
         // Fond et encre seulement : ni transform, ni mise en page. Une étiquette qui change
         // d'état ne doit pas déplacer la ligne qui la porte.
         transition: 'background var(--t-ui) var(--ease),color var(--t-ui) var(--ease)',

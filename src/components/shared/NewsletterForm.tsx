@@ -96,17 +96,22 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
       classe posée directement ne matcherait rien.
     */
     <div className={`flex items-start gap-2.5${tone === 'dark' ? ' mm-on-color' : ''}`}>
-      <input
-        id={consentId}
-        type="checkbox"
-        checked={consent}
-        onChange={(e) => setConsent(e.target.checked)}
-        className={`mt-0.5 h-4 w-4 shrink-0 rounded border ${
-          tone === 'dark'
-            ? 'border-white/40 bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] text-forme'
-            : 'border-[color:var(--line)] text-forme'
-        }`}
-      />
+      {/* La case dessine 16 px ; l'enveloppe `<label>` porte la cible à 44 (`.mm-touch-extend`,
+          pseudo-élément centré) sans toucher au dessin — audit UI/UX du 29/10/2026, #8. Un
+          pseudo-élément ne se pose pas sur un `<input>` (élément remplacé), d'où l'enveloppe. */}
+      <label htmlFor={consentId} className="mm-touch-extend mt-0.5 inline-flex shrink-0 cursor-pointer">
+        <input
+          id={consentId}
+          type="checkbox"
+          checked={consent}
+          onChange={(e) => setConsent(e.target.checked)}
+          className={`h-4 w-4 shrink-0 rounded border ${
+            tone === 'dark'
+              ? 'border-white/40 bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] text-forme'
+              : 'border-[color:var(--line)] text-forme'
+          }`}
+        />
+      </label>
       <label
         htmlFor={consentId}
         className={`text-xs leading-relaxed ${

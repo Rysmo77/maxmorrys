@@ -201,6 +201,7 @@ export default function Apprendre() {
                     slug={f.slug}
                     id={f.id}
                     coverImage={f.coverImage}
+                    showTitle={!f.coverImage}
                     kicker={f.category ? `Max-Morrys Edu · ${f.category}` : 'Max-Morrys Edu'}
                     tag={soon ? k('courses.soon') : free > 0 ? k('courses.free', { count: free }) : undefined}
                   />
@@ -216,13 +217,19 @@ export default function Apprendre() {
                     {price > 0 && (
                       <div>
                         <b><Num value={price} unit="F" source="db" asOf={asOf} showAsOf={false} /></b>
-                        <span>{k('courses.once')} · <PriceApprox xof={price} /></span>
+                        <span>{soon ? k('courses.plannedPrice') : k('courses.once')} · <PriceApprox xof={price} /></span>
                       </div>
                     )}
                   </div>
                   <div className="mm-prod__cta">
                     {soon ? (
-                      <LocalizedLink to={`/formations/${f.slug}`} className="mm-pill is-sm is-plain">{k('courses.notify')}</LocalizedLink>
+                      /* État « indisponible » : contour neutre, pas l'orange plein de l'achat. */
+                      <LocalizedLink
+                        to={`/formations/${f.slug}`}
+                        className="mm-pill is-sm is-plain border border-[color:var(--quiet-brd)] !bg-transparent !text-ink-2 shadow-none"
+                      >
+                        {k('courses.notify')}
+                      </LocalizedLink>
                     ) : (
                       <PillLink to={`/formations/${f.slug}`} small>{k('courses.see')}</PillLink>
                     )}
