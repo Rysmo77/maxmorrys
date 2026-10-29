@@ -186,7 +186,7 @@ export default function ClubReferral({ data }: { data: ClubData }) {
         provenTitle={t('referral.truth.provenTitle')}
         withheldTitle={t('referral.truth.withheldTitle')}
         proven={[t('referral.truth.proven1'), t('referral.truth.proven2')]}
-        withheld={[t('referral.truth.withheld1'), t('referral.truth.withheld2')]}
+        withheld={[t('referral.truth.withheld1')]}
       />
     </motion.div>
   );

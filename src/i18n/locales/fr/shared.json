@@ -258,7 +258,7 @@
       "queued": "en file",
       "queueEmptyBody": "Rien n'attend de partir. Ce que tu fais sans réseau s'écrit ici, et reste là même si tu recharges.",
       "queueBody": "La file part au retour du réseau, sans rien te demander. Un parcours interrompu et repris des jours plus tard reste un parcours valide.",
-      "queueBodyLocal": "Ces gestes sont écrits sur cet appareil et survivent au rechargement. Je ne les renvoie pas encore tout seul : quand le réseau revient, refais-les — la liste est là pour que tu saches lesquels, et rien ne s'efface tant que tu ne l'as pas fait.",
+      "queueBodyLocal": "Ces gestes sont gardés sur cet appareil, même après un rechargement. Quand le réseau revient, refais-les : la liste reste là jusqu'à ce que ce soit fait.",
       "ago": "il y a %s",
       "unitMinutes": "min",
       "unitHours": "h",
@@ -273,9 +273,7 @@
       "unread_one": "{{count}} non lue",
       "unread_other": "{{count}} non lues",
       "allRead": "Tout est lu",
-      "markAll": "Tout marquer comme lu",
-      "truthTitle": "Pourquoi cet écran compte autant",
-      "truthBody": "C'est le seul canal sortant du produit : aucun e-mail ne part encore. Une relance qui n'arrive pas ici n'arrive nulle part."
+      "markAll": "Tout marquer comme lu"
     }
   },
   "share": {

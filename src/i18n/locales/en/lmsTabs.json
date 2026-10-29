@@ -225,8 +225,8 @@
     "errorTitle": "I couldn't read your payments",
     "errorBody": "The read stopped before it came back: network down, or database unreachable. Your payments are still recorded, it's the display that's missing. Run the read again.",
     "errorRetry": "Read my payments again",
-    "truthTitle": "What this screen doesn't do",
-    "truthBody": "A refund isn't triggered here: it goes through the payment provider that took the money. And the amount that counts is the one recomputed server-side at the time of the charge, not the one shown on the row."
+    "truthTitle": "For a refund",
+    "truthBody": "A refund is requested from the payment provider that took the payment: Wave, Orange Money or the card you used."
   },
   "profile": {
     "photoTitle": "Profile photo",

@@ -124,7 +124,6 @@ export default function ClubAdhesionPage() {
               <p className="m-0 mt-3 text-[12.5px] leading-[1.5] text-ink-3">{t(k('methodsNote'))}</p>
               <a className="mm-btn-club mt-3 w-full" href={path('/mon-espace/club')}>{t(k('cta'))}</a>
             </PriceCard>
-            <p className="m-0 mt-3.5 text-center text-[13px] text-ink-3">{t(k('honesty'))}</p>
           </div>
         </div>
       </SiteBand>

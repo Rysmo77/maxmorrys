@@ -165,7 +165,6 @@ export default function Home() {
             <li key={c.slug}>{c.name}</li>
           ))}
         </ul>
-        <p className="m-0 mt-[14px] hidden text-[12px] text-ink-3 stack:block">{t('clients.note')}</p>
       </KitSection>
 
       {/* ── 3 · À PROPOS ─────────────────────────────────────────────────────── */}

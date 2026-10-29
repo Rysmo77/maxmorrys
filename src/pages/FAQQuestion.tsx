@@ -208,11 +208,6 @@ export default function FAQQuestion() {
             <p className="m-0 text-meta text-ink-2">{t('question.neighboursEmpty')}</p>
           )}
 
-          <GlassPanel level="truth" className="rv mt-[18px]" style={{ ['--i' as string]: 8 }}>
-            <SiteEyebrow style={{ marginBottom: '6px' }}>{t('question.truthTitle')}</SiteEyebrow>
-            <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('question.truthBody')}</p>
-          </GlassPanel>
-
           <p className="rv mt-6" style={{ ['--i' as string]: 9 }}>
             <a href={path('/faq')} className="text-meta text-ink-2">{t('question.backToIndex')}</a>
           </p>

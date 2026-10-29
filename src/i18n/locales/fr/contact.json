@@ -96,7 +96,7 @@
   },
   "booking": {
     "successTitle": "Demande envoyée !",
-    "successBody": "Ta demande est enregistrée. Je regarde le créneau et je reviens vers toi : rien n'est confirmé tant que je ne l'ai pas fait, et le produit n'envoie aucun e-mail automatique.",
+    "successBody": "Ta demande est enregistrée. Je regarde le créneau et je reviens vers toi pour le confirmer.",
     "dateLabel": "Date *",
     "timeLabel": "Heure *",
     "submitting": "Envoi..."

@@ -24,8 +24,6 @@
       "for this role."
     ],
     "scopeTitle": "What the support role reaches",
-    "truthTitle": "What this page is, exactly",
-    "truthBody": "A route guard is client code: it hides, it doesn't forbid. The real separation lives in the database rules — this page only says what they already refused.",
     "textBefore": "Your role is ",
     "textAfter": ". It reaches exactly five screens, and this isn't one of them."
   }

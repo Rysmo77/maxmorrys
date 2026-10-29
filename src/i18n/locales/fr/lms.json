@@ -387,7 +387,7 @@
     "memoryManage": "Gérer",
     "limitsTitle": "Ce que {{tutor}} ne fait pas",
     "limit1": "Il ne fait pas tes missions à ta place.",
-    "limit2": "Il ne valide pas une leçon : seul le serveur le fait.",
+    "limit2": "Il ne valide pas une leçon à ta place : c'est ta mission rendue qui la valide.",
     "limit3": "Il te renvoie vers la leçon quand la réponse y est.",
     "closeSection": "Fermer"
   },

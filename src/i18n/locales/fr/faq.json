@@ -32,8 +32,6 @@
     "neighboursEmpty": "C'est la seule question de cette catégorie, pour l'instant.",
     "shareLabel": "Copier l'adresse de cette question",
     "shareCopied": "Adresse copiée.",
-    "shareFailed": "La copie n'a pas abouti. L'adresse est dans la barre du navigateur.",
-    "truthTitle": "Ce que cette page corrige",
-    "truthBody": "L'index seul ne donnait à aucune question d'URL partageable ni de position propre en recherche. Une page par question, avec son fil et ses données structurées, ferme cet écart."
+    "shareFailed": "La copie n'a pas abouti. L'adresse est dans la barre du navigateur."
   }
 }

@@ -11,8 +11,8 @@
       "{{count}} projets,",
       "[livrés.]"
     ],
-    "lede": "Des sites et des plateformes, livrés à leurs clients. Les noms et le rôle tenu seuls, tant qu'un client n'a pas donné son accord écrit pour une étude de cas.",
-    "ledeShort": "Les noms seuls, sans accord écrit pour une étude de cas.",
+    "lede": "Des sites et des plateformes, livrés à leurs clients : le nom du projet, son secteur et le rôle que nous avons tenu.",
+    "ledeShort": "Des sites et des plateformes, livrés à leurs clients.",
     "filterAria": "Filtrer les réalisations par catégorie",
     "filterAll": "Tout · {{count}}",
     "gridAria": "Réalisations clientes",
@@ -20,7 +20,6 @@
     "shotAlt": "Capture de la page d'accueil de {{name}}",
     "more_one": "Voir l'autre",
     "more_other": "Voir les {{count}} autres",
-    "note": "Étude de cas détaillée uniquement avec accord écrit du client. Aucun chiffre de résultat publié sans source.",
     "ctaTitle": "Le prochain projet, c'est le vôtre ?",
     "ctaButton": "Réserver un appel"
   },
@@ -48,30 +47,6 @@
     "nextStepTitle": "Un projet de cette nature ?",
     "nextStepBody": "Décrivez-nous ce que vous voulez construire. Nous répondons par un cadrage écrit avant toute proposition.",
     "nextStepCta": "Parler de votre projet"
-  },
-  "authorization": {
-    "eyebrow": "Autorisation de publication",
-    "title": "Ce que le client nous autorise à publier",
-    "body": "Cette fiche paraît avec l'accord de son client. L'accord porte sur ce qui se vérifie de l'extérieur, et sur rien d'autre.",
-    "provenTitle": "Ce que l'accord couvre",
-    "withheldTitle": "Ce qu'il ne couvre pas",
-    "granted": {
-      "name": "Le nom du produit et son secteur",
-      "role": "Le rôle que nous avons tenu",
-      "stack": "La stack employée, relevée dans le dépôt",
-      "liveLink": "L'adresse publique, que vous pouvez ouvrir"
-    },
-    "withheld": {
-      "results": "Aucun résultat obtenu — l'accord ne le couvre pas",
-      "growthFigures": "Aucun chiffre de croissance, de trafic ni d'audience",
-      "testimonials": "Aucun témoignage, aucune citation de client",
-      "contractTerms": "Aucune information contractuelle : montant, calendrier, périmètre négocié"
-    }
-  },
-  "debt": {
-    "title": "Deux informations manquent sur cette fiche",
-    "body": "Le cahier des charges demande la durée de la mission et un résultat mesurable. Le dépôt ne documente ni l'une ni l'autre, et l'accord de publication ne couvre pas le second. Nous ne les inventons pas : leurs emplacements existent dans les données, vides, et la fiche les affichera dès qu'une durée sera relevée et qu'un résultat sera publiquement vérifiable, sourcé et autorisé.",
-    "footer": "Cet encart disparaît avec son objet. C'est ce qui lui donne une fin."
   },
   "units": {
     "weeks": "semaines",

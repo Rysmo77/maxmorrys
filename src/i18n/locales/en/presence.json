@@ -414,7 +414,7 @@
     "copy": "Copy the quote link",
     "copied": "Link copied",
     "truthTitle": "What this document contains, and what it does not",
-    "truthBody": "No personal data: not your phone, not your email. The link can be forwarded as is. The amounts, however, are read back from the current price list every time this page opens — if the list moves, this document moves with it. I'd rather write that here than let you find out at signing.",
+    "truthBody": "No personal data: not your phone, not your email. The link can be forwarded as is. Amounts follow the current price list: if it changes, this summary changes with it.",
     "loading": "Loading the quote",
     "commitmentLine": "{{months}}-month commitment",
     "planNote": "It isn't decided now: you take it after go-live, once you can see what it does. These amounts are not part of what's due at signing."

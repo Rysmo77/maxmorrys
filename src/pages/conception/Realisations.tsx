@@ -178,7 +178,6 @@ export default function Realisations() {
             {t('index.more', { count: caches })}
           </KitButton>
         )}
-        <p className="m-0 mt-[18px] hidden text-[13px] text-ink-2 stack:block">{t('index.note')}</p>
       </KitSection>
 
       {/* La dalle d'appel de la planche — la sortie vers `/contact` de la page. */}

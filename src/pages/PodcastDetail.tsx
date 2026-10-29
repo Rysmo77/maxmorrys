@@ -259,12 +259,6 @@ export default function PodcastDetail() {
               </div>
             </div>
 
-            {/* L'aveu du poids manquant — la règle 6 appliquée à ce qu'on n'a pas. */}
-            <GlassPanel level="truth" className="mt-4 max-w-prose">
-              <SiteEyebrow style={{ marginBottom: '6px' }}>{t('detail.weightTitle')}</SiteEyebrow>
-              <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('detail.weightBody')}</p>
-            </GlassPanel>
-
             <SiteEyebrow style={{ marginTop: '26px' }}>{t('detail.about')}</SiteEyebrow>
             <div
               className="mm-prose prose-article"

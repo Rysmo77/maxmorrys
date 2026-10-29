@@ -197,7 +197,7 @@
           },
           "validate": {
             "title": "Il ne valide pas une leçon",
-            "body": "Seul le serveur valide, quand ta mission est rendue."
+            "body": "C'est ta mission rendue qui valide la leçon."
           },
           "lesson": {
             "title": "Il reste sur la leçon",
@@ -398,7 +398,6 @@
       },
       "methodsNote": "Tu choisis ton moyen sur la page de paiement sécurisée, après connexion à ton espace.",
       "cta": "Rejoindre le Club",
-      "honesty": "Ni nombre de membres ni témoignage affiché : on te montre ce qui est garanti.",
       "empty": "Cette page est en cours d'écriture.",
       "body": "L'abonnement se crée depuis ton espace, une fois connecté."
     },

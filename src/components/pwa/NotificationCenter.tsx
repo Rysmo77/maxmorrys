@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, GlassPanel, Icon, Skeleton, type IconName } from '@ds';
+import { Button, EmptyState, Icon, Skeleton, type IconName } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
 import { markAllNotificationsRead, markNotificationRead, subscribeNotifications } from '../../lib/firestore';
 import type { AppNotification, NotificationType } from '../../types';
@@ -130,23 +130,6 @@ export default function NotificationCenter() {
           );
         })}
       </ul>
-
-      {/*
-        L'AVEU RESTE À L'ÉCRAN QUAND LA BOÎTE SE REMPLIT.
-
-        Il ne vivait que dans l'état vide : dès la première notification, la phrase qui dit
-        « aucun e-mail ne part » disparaissait — c'est-à-dire exactement au moment où
-        quelqu'un commence à recevoir des choses ici et pourrait croire qu'il en reçoit
-        ailleurs. La maquette (`screens-pwa.jsx` § PwaNotifications) le pose en permanence,
-        sous la liste, et c'est le sens de l'écran : « une relance qui n'arrive pas ici
-        n'arrive nulle part ».
-      */}
-      <GlassPanel level="truth" style={{ marginTop: 'var(--sp-18)' }}>
-        <p className="mm-eyebrow" style={{ margin: '0 0 6px' }}>{t('pwa.notifications.truthTitle')}</p>
-        <p style={{ margin: 0, fontSize: 'var(--fs-meta-2)', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          {t('pwa.notifications.truthBody')}
-        </p>
-      </GlassPanel>
     </section>
   );
 }

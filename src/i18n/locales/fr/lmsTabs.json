@@ -225,8 +225,8 @@
     "errorTitle": "Je n'ai pas pu lire tes paiements",
     "errorBody": "La lecture s'est arrêtée avant de revenir : réseau coupé, ou base injoignable. Tes paiements restent enregistrés, c'est leur affichage qui manque. Relance la lecture.",
     "errorRetry": "Relire mes paiements",
-    "truthTitle": "Ce que cet écran ne fait pas",
-    "truthBody": "Un remboursement ne se déclenche pas ici : il passe par le prestataire de paiement qui a encaissé. Et le montant qui fait foi est celui recalculé côté serveur au moment du débit, pas celui affiché sur la ligne."
+    "truthTitle": "Pour un remboursement",
+    "truthBody": "Un remboursement se demande auprès du prestataire de paiement qui a encaissé : Wave, Orange Money ou la carte utilisée."
   },
   "profile": {
     "photoTitle": "Photo de profil",

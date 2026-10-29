@@ -414,7 +414,7 @@
     "copy": "Copier le lien du devis",
     "copied": "Lien copié",
     "truthTitle": "Ce que ce document contient, et ne contient pas",
-    "truthBody": "Aucune donnée personnelle : ni ton téléphone, ni ton e-mail. Le lien peut être transféré tel quel. En revanche les montants sont relus dans la grille courante à chaque ouverture — si la grille bouge, ce document bouge avec elle. Je préfère l'écrire ici plutôt que te le faire découvrir à la signature.",
+    "truthBody": "Aucune donnée personnelle : ni ton téléphone, ni ton e-mail. Le lien peut être transféré tel quel. Les montants suivent la grille de prix en vigueur : si elle change, ce récapitulatif change avec elle.",
     "loading": "Chargement du devis",
     "commitmentLine": "Engagement {{months}} mois",
     "planNote": "Il ne se décide pas maintenant : tu le prends après la mise en ligne, une fois que tu vois ce que ça donne. Ces montants ne sont pas compris dans ce qui est dû à la signature."

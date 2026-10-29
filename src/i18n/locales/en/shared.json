@@ -258,7 +258,7 @@
       "queued": "queued",
       "queueEmptyBody": "Nothing is waiting to go out. What you do without network is written here, and it stays through a reload.",
       "queueBody": "The queue goes out when the network comes back, without asking you anything. A run broken off and picked up days later is still a valid run.",
-      "queueBodyLocal": "These are written on this device and survive a reload. I don't send them back on my own yet: when the network returns, do them again — the list is here so you know which ones, and nothing clears until you have.",
+      "queueBodyLocal": "These are kept on this device, even after a reload. When the network returns, do them again: the list stays here until you have.",
       "ago": "%s ago",
       "unitMinutes": "min",
       "unitHours": "h",
@@ -273,9 +273,7 @@
       "unread_one": "{{count}} unread",
       "unread_other": "{{count}} unread",
       "allRead": "All read",
-      "markAll": "Mark all as read",
-      "truthTitle": "Why this screen matters so much",
-      "truthBody": "It's the only outbound channel the product has: no email goes out yet. A nudge that doesn't arrive here arrives nowhere."
+      "markAll": "Mark all as read"
     }
   },
   "share": {

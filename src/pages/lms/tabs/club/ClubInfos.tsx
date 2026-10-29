@@ -147,9 +147,8 @@ export default function ClubInfos({ data }: ClubInfosProps) {
       {/* Repris de `ClubGaranti` : ce qui est tenu, et ce qui ne l'est pas encore. */}
       <TruthPanel
         provenTitle={t('infos.truth.provenTitle')}
-        withheldTitle={t('infos.truth.withheldTitle')}
         proven={[t('infos.truth.proven1'), t('infos.truth.proven2')]}
-        withheld={[t('infos.truth.withheld1')]}
+        withheld={[]}
       />
     </motion.div>
   );

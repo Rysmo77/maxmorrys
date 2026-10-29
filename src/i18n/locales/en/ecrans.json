@@ -197,7 +197,7 @@
           },
           "validate": {
             "title": "It doesn't validate a lesson",
-            "body": "Only the server validates, once your mission is handed in."
+            "body": "Handing in your mission is what completes the lesson."
           },
           "lesson": {
             "title": "It stays on the lesson",
@@ -398,7 +398,6 @@
       },
       "methodsNote": "You pick your method on the secure payment page, after signing in to your space.",
       "cta": "Join the Club",
-      "honesty": "No member count, no testimonial: we show you what is guaranteed.",
       "empty": "This page is being written.",
       "body": "The membership is created from your space, once signed in."
     },

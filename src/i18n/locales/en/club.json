@@ -71,8 +71,7 @@
       "withheldTitle": "What it doesn't earn you",
       "proven1": "The discount is applied by the server at payment time, never by the browser.",
       "proven2": "The referral counter only counts completed signups, not links sent.",
-      "withheld1": "No money for you: the discount goes to the person you refer. You earn XP and the Ambassador badge, and nothing else.",
-      "withheld2": "No share counter: a copied link leaves no trace, and a number there would be made up."
+      "withheld1": "No money for you: the discount goes to the person you refer. You earn XP and the Ambassador badge, and nothing else."
     }
   },
   "infos": {
@@ -86,10 +85,8 @@
     "share": "Share",
     "truth": {
       "provenTitle": "What this news feed proves",
-      "withheldTitle": "What this feed doesn't count",
       "proven1": "Every post carries its publication date and category, exactly as stored.",
-      "proven2": "Publishing here depends on me alone: the schedule is kept, or it isn't, and the dates show it.",
-      "withheld1": "No read or share counts: nothing measures them, and an invented counter is caught at a glance."
+      "proven2": "Publishing here depends on me alone: the schedule is kept, or it isn't, and the dates show it."
     }
   },
   "leaderboard": {
@@ -104,10 +101,8 @@
     "rankExplain": "Your rank comes from the XP you earn across the Club: posting, commenting, learning.",
     "truth": {
       "provenTitle": "What this leaderboard actually says",
-      "withheldTitle": "What it doesn't do yet",
       "proven1": "Ranks and XP are read from the database, with no rounding and no weighting.",
-      "proven2": "It shows the top twenty. Beyond that, your rank isn't displayed rather than estimated.",
-      "withheld1": "No comparison by joining wave: the model stores no join date, so someone who joined yesterday is ranked against someone who joined a year ago. That's a known gap, written here rather than hidden."
+      "proven2": "It shows the top twenty. Beyond that, your rank isn't displayed rather than estimated."
     }
   },
   "opportunities": {
@@ -143,7 +138,7 @@
       "withheldTitle": "What isn't checked",
       "proven1": "Every listing carries the name of whoever posted it and its date, exactly as stored.",
       "proven2": "Only the author of a listing can take it down.",
-      "withheld1": "Budgets shown are the ones announced by whoever posts. The platform does not verify them, and that's written here rather than hidden.",
+      "withheld1": "Budgets shown are the ones announced by whoever posts: the platform does not verify them.",
       "withheld2": "Contact details aren't checked either: they go out as typed."
     },
     "warning": "The Club does not check the offers posted here. Never pay to apply: a real job never asks you for money."
@@ -215,15 +210,6 @@
       "tag": "Being built",
       "title": "What depends on the members",
       "body": "How busy the feed is. How good the help is. How many gigs the others share. That, I can't promise you — it gets built, and you're part of it."
-    },
-    "truth": {
-      "provenTitle": "What this screen is, exactly",
-      "withheldTitle": "What I don't show",
-      "proven1": "This screen hides the Club; it doesn't forbid it. The real separation lives in the database rules: without an active subscription they refuse to read the posts, the agenda, the directory, the opportunities and the exclusive info.",
-      "proven2": "Nobody makes themselves a member from the browser: the rules only accept creating a subscription with the status « pending », and refuse any change of status. Only the admin activates.",
-      "proven3": "The price shown is the one the server charges, and it lives in exactly one place in the code.",
-      "withheld1": "No member count. The Club opened in {{opened}}: the number would be small, so making an argument of it would mislead you, and you'd check it on the first screen after paying.",
-      "withheld2": "No testimonials and no star ratings. What's said inside belongs to the people inside, and a rating on a closed club can't be verified."
     },
     "noDebit": "One payment for a year. No automatic debit, whatever the payment method."
   },

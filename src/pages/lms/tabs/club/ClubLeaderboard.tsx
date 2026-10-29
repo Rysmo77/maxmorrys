@@ -119,9 +119,8 @@ export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
 
       <TruthPanel
         provenTitle={t('leaderboard.truth.provenTitle')}
-        withheldTitle={t('leaderboard.truth.withheldTitle')}
         proven={[t('leaderboard.truth.proven1'), t('leaderboard.truth.proven2')]}
-        withheld={[t('leaderboard.truth.withheld1')]}
+        withheld={[]}
       />
     </motion.div>
   );

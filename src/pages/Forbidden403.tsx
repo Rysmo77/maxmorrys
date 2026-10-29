@@ -97,11 +97,6 @@ export default function Forbidden403() {
           </ul>
         </GlassPanel>
 
-        <GlassPanel level="night" padding={18} className="rv mt-4" style={{ ['--i' as string]: 6 }}>
-          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('forbidden.truthTitle')}</SiteEyebrow>
-          <p className="m-0 text-meta-2 text-ink-2 leading-[1.55]">{t('forbidden.truthBody')}</p>
-        </GlassPanel>
-
         <div className="mt-5 flex flex-col stack:flex-row gap-3">
           <Button href={path('/mon-espace')} tone="primary" size="sm" fullWidth={false}>
             {t('forbidden.space')}

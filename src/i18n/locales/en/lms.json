@@ -387,7 +387,7 @@
     "memoryManage": "Manage",
     "limitsTitle": "What {{tutor}} won't do",
     "limit1": "It won't do your missions for you.",
-    "limit2": "It doesn't complete a lesson: only the server does.",
+    "limit2": "It doesn't complete a lesson for you: handing in your mission does.",
     "limit3": "It points you back to the lesson when the answer is there.",
     "closeSection": "Close"
   },

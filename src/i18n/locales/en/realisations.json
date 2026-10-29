@@ -11,8 +11,8 @@
       "{{count}} projects,",
       "[delivered.]"
     ],
-    "lede": "Websites and platforms, delivered to their clients. Names and the role we played only, until a client gives written consent for a case study.",
-    "ledeShort": "Names only, without written consent for a case study.",
+    "lede": "Websites and platforms, delivered to their clients: the project's name, its sector and the role we played.",
+    "ledeShort": "Websites and platforms, delivered to their clients.",
     "filterAria": "Filter projects by category",
     "filterAll": "All · {{count}}",
     "gridAria": "Client projects",
@@ -20,7 +20,6 @@
     "shotAlt": "Screenshot of the {{name}} home page",
     "more_one": "See the other one",
     "more_other": "See the other {{count}}",
-    "note": "Detailed case studies only with the client's written consent. No result figures published without a source.",
     "ctaTitle": "Is the next project yours?",
     "ctaButton": "Book a call"
   },
@@ -48,30 +47,6 @@
     "nextStepTitle": "A project of this kind?",
     "nextStepBody": "Tell us what you want to build. We answer with a written scope before any proposal.",
     "nextStepCta": "Talk about your project"
-  },
-  "authorization": {
-    "eyebrow": "Publication consent",
-    "title": "What the client lets us publish",
-    "body": "This page is published with its client's consent. That consent covers what can be checked from the outside, and nothing else.",
-    "provenTitle": "What the consent covers",
-    "withheldTitle": "What it does not cover",
-    "granted": {
-      "name": "The product name and its sector",
-      "role": "The role we held",
-      "stack": "The stack we used, read from the repository",
-      "liveLink": "The public address, which you can open"
-    },
-    "withheld": {
-      "results": "No outcome achieved — the consent does not cover it",
-      "growthFigures": "No growth, traffic or audience figure",
-      "testimonials": "No testimonial, no client quote",
-      "contractTerms": "No contractual information: amount, schedule, negotiated scope"
-    }
-  },
-  "debt": {
-    "title": "Two things are missing from this page",
-    "body": "The specification asks for the engagement length and a measurable outcome. The repository documents neither, and the publication consent does not cover the second. We do not invent them: their slots exist in the data, empty, and this page will show them as soon as a length is recorded and an outcome is publicly verifiable, sourced and cleared.",
-    "footer": "This panel disappears with the gap it names. That is what gives it an end."
   },
   "units": {
     "weeks": "weeks",

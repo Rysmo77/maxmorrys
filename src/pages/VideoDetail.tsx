@@ -361,11 +361,6 @@ export default function VideoDetail() {
               </div>
             )}
 
-            <GlassPanel level="truth" className="mt-4 max-w-prose">
-              <SiteEyebrow style={{ marginBottom: '6px' }}>{t('detail.weightTitle')}</SiteEyebrow>
-              <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('detail.weightBodyVideo')}</p>
-            </GlassPanel>
-
             <SiteEyebrow style={{ marginTop: '26px' }}>{t('detail.about')}</SiteEyebrow>
             <div
               className="mm-prose prose-article"

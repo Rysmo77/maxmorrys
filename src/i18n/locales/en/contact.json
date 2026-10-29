@@ -96,7 +96,7 @@
   },
   "booking": {
     "successTitle": "Request sent!",
-    "successBody": "Your request is saved. I'll look at the slot and come back to you: nothing is confirmed until I do, and the product sends no automatic email.",
+    "successBody": "Your request is saved. I'll look at the slot and come back to you to confirm it.",
     "dateLabel": "Date *",
     "timeLabel": "Time *",
     "submitting": "Sending..."

@@ -32,8 +32,6 @@
     "neighboursEmpty": "It's the only question in this category, for now.",
     "shareLabel": "Copy this question's address",
     "shareCopied": "Address copied.",
-    "shareFailed": "The copy didn't go through. The address is in your browser bar.",
-    "truthTitle": "What this page fixes",
-    "truthBody": "The index on its own gave no question a shareable URL or a search position of its own. One page per question, with its trail and its structured data, closes that gap."
+    "shareFailed": "The copy didn't go through. The address is in your browser bar."
   }
 }

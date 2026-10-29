@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Breadcrumb, Button, Icon, Num, Tag, TruthPanel } from '@ds';
+import { Breadcrumb, Button, Icon, Num, Tag } from '@ds';
 import SEOHead from '../../components/seo/SEOHead';
 import JsonLd from '../../components/seo/JsonLd';
 import { SITE_URL, buildCanonical } from '../../components/seo/seo-config';
@@ -13,8 +13,6 @@ import { SiteHero } from '../../components/site/v3/SiteHero';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 import NotFound from '../NotFound';
 import {
-  CLIENT_PUBLICATION_GRANTED,
-  CLIENT_PUBLICATION_WITHHELD,
   CLIENT_RELATION,
   categoryKey,
   clientProjects,
@@ -22,7 +20,6 @@ import {
   getClientProject,
   legalName,
 } from '../../lib/brand';
-import { Bento } from '../../components/site/v3/Bento';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -31,26 +28,13 @@ import { Bento } from '../../components/site/v3/Bento';
  * Le CDC demande sept choses sur cette fiche : contexte, rôle réel, périmètre technique,
  * stack, durée, résultat mesurable, autorisation de publication.
  *
- * ── CINQ SONT LÀ. DEUX N'Y SONT PAS, ET LA PAGE LE DIT ───────────────────────────────
+ * ── DURÉE ET RÉSULTAT : AFFICHÉS S'ILS EXISTENT, SINON RIEN ─────────────────────────
  *
- * Le dépôt ne documente NI la durée d'une mission, NI un résultat mesurable — et
- * `src/lib/brand/clients.ts` interdit par ailleurs toute métrique non publique. Deux sorties
- * existaient : écrire des phrases qui donnent le change (« une mission au long cours »,
- * « une plateforme qui tourne »), ou dire l'absence et sa raison.
- *
- * C'est la seconde, selon le motif de NOTE DE DETTE que la page `/agence` a déjà porté une
- * fois : « une note de dette disait l'absence et sa raison, plutôt que de la maquiller :
- * c'est ce qui lui a donné une date de fin. Les accords sont obtenus, la note a disparu avec
- * son objet. » Les champs `duration` et `outcome` existent dans les données, VIDES ; le jour
- * où l'un est relevé et autorisé, son bloc s'affiche et l'encart perd son objet.
- *
- * ── L'AUTORISATION EST AFFICHÉE, PAS SUPPOSÉE ────────────────────────────────────────
- *
- * Les accords clients sont obtenus. Ce qu'ils NE couvrent PAS est écrit en tête de
- * `src/pages/Agence.tsx` : « aucun résultat, aucun chiffre de croissance, aucun témoignage ».
- * Cette phrase vivait dans un commentaire, donc nulle part. `CLIENT_PUBLICATION_GRANTED` et
- * `CLIENT_PUBLICATION_WITHHELD` en font une donnée, et le panneau de vérité la rend : le
- * visiteur voit le périmètre de l'accord en même temps que ce qu'il autorise.
+ * Les champs `duration` et `outcome` existent dans les données, vides pour l'instant. Le
+ * jour où l'un est relevé et autorisé, son bloc s'affiche. En attendant, la fiche se tait :
+ * la note de dette et le panneau d'autorisation ont été retirés le 29/10/2026 (décision
+ * produit) — ils parlaient du dépôt et du contrat au visiteur. Le périmètre de l'accord
+ * reste une donnée, dans `CLIENT_PUBLICATION_GRANTED` / `_WITHHELD` de `clients.ts`.
  *
  * ── UN SLUG INCONNU REND LA VRAIE PAGE 404 ───────────────────────────────────────────
  *
@@ -263,28 +247,9 @@ export default function RealisationDetail() {
               </section>
             )}
 
-            {/*
-              LA NOTE DE DETTE. Elle dit l'absence ET sa raison — la raison est la moitié qui
-              compte : « je n'ai rien d'honnête à en dire » se lit tout autrement qu'un blanc
-              silencieux. Et elle porte sa condition de disparition, ce qui lui donne une fin.
-            */}
-            <Bento padding={20} className="rv mt-8 max-w-[64ch]" style={rv(10)}>
-              <div className="flex items-start gap-3">
-                <span aria-hidden="true" className="mt-0.5 shrink-0 text-ink-2">
-                  <Icon name="info" size={18} />
-                </span>
-                <div className="min-w-0">
-                  <p className="m-0 font-display text-[17px] font-black tracking-[-.03em] text-ink">
-                    {t('debt.title')}
-                  </p>
-                  <p className="mt-2 mb-0 text-meta leading-[1.6] text-ink-2">{t('debt.body')}</p>
-                  <p className="mt-2 mb-0 text-small leading-[1.5] text-ink-2">{t('debt.footer')}</p>
-                </div>
-              </div>
-            </Bento>
           </div>
 
-          {/* ── L'ASIDE : l'aperçu, le lien, l'autorisation ─────────────────── */}
+          {/* ── L'ASIDE : l'aperçu et le lien ─────────────────── */}
           <aside className="min-w-0">
             <div className="rv" style={rv(5)}>
               <RealisationPreview url={project.website} domain={project.domain} name={project.name} />
@@ -306,22 +271,6 @@ export default function RealisationDetail() {
               <Icon name="arrow-up-right" size={16} />
               <span className="sr-only">— {t('fiche.visitAria', { name: project.name })}</span>
             </a>
-
-            <div className="rv mt-6" style={rv(7)}>
-              <SiteEyebrow>{t('authorization.eyebrow')}</SiteEyebrow>
-              <p className="m-0 mb-3 text-meta leading-[1.6] text-ink-2">{t('authorization.body')}</p>
-              {/*
-                Le panneau de vérité rend les deux listes de `clients.ts`. Elles ne sont pas
-                retapées ici : une liste d'autorisations recopiée dans une surface diverge de
-                celle qui fait foi le jour où l'accord change, et personne ne le voit.
-              */}
-              <TruthPanel
-                provenTitle={t('authorization.provenTitle')}
-                withheldTitle={t('authorization.withheldTitle')}
-                proven={CLIENT_PUBLICATION_GRANTED.map((cle) => t(`authorization.granted.${cle}`))}
-                withheld={CLIENT_PUBLICATION_WITHHELD.map((cle) => t(`authorization.withheld.${cle}`))}
-              />
-            </div>
           </aside>
         </div>
       </PageSite>
