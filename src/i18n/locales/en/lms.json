@@ -1,4 +1,8 @@
 {
+  "sidebarCohort": {
+    "title": "Your cohort",
+    "empty": "No one yet: only people who have joined the cohort show up here."
+  },
   "nav": {
     "sectionCommunity": "Community",
     "sectionAccount": "Account",
@@ -40,6 +44,7 @@
     "more": "More"
   },
   "titles": {
+    "quiz": "Module quiz",
     "dashboard": "Dashboard",
     "courses": "My courses",
     "rysmo": "Rysmo",

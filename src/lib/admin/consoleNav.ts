@@ -146,16 +146,21 @@ export const ADMIN_UNGROUPED = ADMIN_NAV
 /**
  * La barre d'onglets mobile de la console (kit v3, `mm-cm__tabs`).
  *
- * La maquette pose « Bloque · Modération · Edu · Journal · Plus ». Deux de ces onglets
- * n'ont pas d'écran : la modération vit dans un onglet de l'écran Club (pas de route à
- * elle) et le journal d'audit n'existe pas (FR-267). On garde la forme — cinq écrans
- * réels, le reste par le menu de la barre haute — sans inventer de destination.
- * Chaque entrée DOIT exister dans `ADMIN_NAV`, et l'accès reste filtré par `adminAccess`.
+ * L'ordre est celui de la maquette (`Console-*-mobile.dc.html`) : Bloque · Modération · Edu ·
+ * Journal · Plus. « Bloque » est la file de ce qui attend (la vue d'ensemble) ; « Plus »
+ * n'est pas une adresse, il ouvre le tiroir qui porte TOUS les autres écrans — d'où
+ * `more: true` et l'absence de `to`.
+ * Chaque autre entrée DOIT exister dans `ADMIN_NAV`, et l'accès reste filtré par `adminAccess`.
  */
-export const ADMIN_BOTTOM_NAV: Pick<AdminNavItem, 'to' | 'labelKey' | 'icon' | 'end'>[] = [
-  { to: '/admin',              labelKey: 'nav.bottomQueue',    icon: 'dashboard', end: true },
-  { to: '/admin/utilisateurs', labelKey: 'nav.bottomAccounts', icon: 'users' },
-  { to: '/admin/transactions', labelKey: 'nav.bottomMoney',    icon: 'card' },
-  { to: '/admin/formations',   labelKey: 'nav.bottomEdu',      icon: 'graduation' },
-  { to: '/admin/club-digitos', labelKey: 'nav.bottomClub',     icon: 'crown' },
+export interface AdminBottomNavItem extends Pick<AdminNavItem, 'labelKey' | 'icon' | 'end'> {
+  to?: string;
+  more?: boolean;
+}
+
+export const ADMIN_BOTTOM_NAV: AdminBottomNavItem[] = [
+  { to: '/admin',            labelKey: 'nav.bottomQueue',      icon: 'dashboard', end: true },
+  { to: '/admin/moderation', labelKey: 'nav.bottomModeration', icon: 'flag' },
+  { to: '/admin/formations', labelKey: 'nav.bottomEdu',        icon: 'graduation' },
+  { to: '/admin/journal',    labelKey: 'nav.bottomAudit',      icon: 'shield' },
+  { more: true,              labelKey: 'nav.bottomMore',       icon: 'menu' },
 ];

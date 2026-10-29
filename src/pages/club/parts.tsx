@@ -1,4 +1,3 @@
-import './club-kit.css';
 import type { ReactNode } from 'react';
 import { Icon, Num, type IconName } from '@ds';
 import { CLUB_PRICE_XOF, clubReferralPrice } from '../../lib/club/pricing';

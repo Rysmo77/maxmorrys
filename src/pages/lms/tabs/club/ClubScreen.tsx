@@ -1,4 +1,3 @@
-import '../../../club/club-kit.css';
 import type { ReactNode } from 'react';
 import { Icon } from '@ds';
 import LocalizedLink from '../../../../components/shared/LocalizedLink';

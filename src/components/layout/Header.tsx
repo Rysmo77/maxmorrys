@@ -88,6 +88,9 @@ function publicSpaceOf(path: string): PublicSpace {
   const under = (p: string) => path === p || path.startsWith(p + '/');
   if (under('/club-des-digitos')) return 'club';
   if (under('/apprendre') || under('/formations')) return 'edu';
+  /* Les écrans de compte sont ceux de l'Edu (maquette `Edu-Connexion`) : c'est là qu'on se
+     connecte pour retrouver sa leçon, sa cohorte et Rysmo. */
+  if (under('/connexion') || under('/inscription') || under('/mot-de-passe-oublie')) return 'edu';
   return 'hub';
 }
 

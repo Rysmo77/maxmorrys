@@ -106,8 +106,8 @@ export default function AdminLayout() {
     visible s'il n'est pas atteignable.
   */
   const bottomNavItems: BottomNavItem[] = ADMIN_BOTTOM_NAV
-    .filter((item) => isAdmin || isSupportAllowedPath(item.to))
-    .map(({ to, labelKey, icon, end }) => ({ to, label: t(labelKey), icon, end }));
+    .filter((item) => item.more || isAdmin || isSupportAllowedPath(item.to ?? ''))
+    .map(({ to, labelKey, icon, end, more }) => ({ to: to ?? '', label: t(labelKey), icon, end, more }));
 
   return (
     <AppShell

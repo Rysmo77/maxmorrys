@@ -20,6 +20,7 @@ import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
 import EduCover from '../components/edu/g2/EduCover';
 import EduPreFooter from '../components/edu/g2/EduPreFooter';
 import { splitTitle } from '../components/edu/g2/coverTint';
+import { CLUB_MEMBER_FORMATION_DISCOUNT } from '../lib/club/pricing';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -50,8 +51,6 @@ import { splitTitle } from '../components/edu/g2/coverTint';
  *    précommande si elle est ouverte pour CETTE formation —, modules sans dépliage.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-/** Miroir de `CLUB_MEMBER_FORMATION_DISCOUNT` (Worker). */
-const CLUB_DISCOUNT = 0.2;
 
 export default function FormationDetail() {
   const { t } = useTranslation('formations');
@@ -131,7 +130,7 @@ export default function FormationDetail() {
   const missions = allLessons.filter((l) => l.type === 'mission').length;
   const firstFree = allLessons.find((l) => l.isFree);
   const price = formation.promoPrice ?? formation.price;
-  const clubPrice = Math.round(price * (1 - CLUB_DISCOUNT));
+  const clubPrice = Math.round(price * (1 - CLUB_MEMBER_FORMATION_DISCOUNT));
   const asOf = new Date();
   const onBuy = () => trackAddToCart({ id: formation.id, name: formation.title, category: formation.category, price, currency: 'XOF' });
   const levelLabel = t(`level.${formation.level}`, { defaultValue: formation.level });

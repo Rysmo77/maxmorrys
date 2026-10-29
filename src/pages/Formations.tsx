@@ -16,6 +16,7 @@ import EduCover from '../components/edu/g2/EduCover';
 import FloatingCovers from '../components/edu/g2/FloatingCovers';
 import TeamQuoteCard from '../components/edu/g2/TeamQuoteCard';
 import EduPreFooter from '../components/edu/g2/EduPreFooter';
+import { CLUB_MEMBER_FORMATION_DISCOUNT } from '../lib/club/pricing';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -40,13 +41,13 @@ import EduPreFooter from '../components/edu/g2/EduPreFooter';
  *    et `rating` restés en base, jamais affichés).
  *  · « Membre du Club : −20 % » : c'est la constante du serveur
  *    (`worker/apps/api/src/lib/bictorys.ts`, `CLUB_MEMBER_FORMATION_DISCOUNT = 0.2`), appliquée
- *    par `resolveCheckoutTotal`. Miroir assumé : si elle change, changer `CLUB_PCT` ici.
+ *    par `resolveCheckoutTotal`. Son miroir côté app est UNIQUE : `lib/club/pricing.ts`.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 const LEVELS = ['debutant', 'intermediaire', 'avance'] as const;
 type Level = (typeof LEVELS)[number];
-/** Miroir de `CLUB_MEMBER_FORMATION_DISCOUNT` (Worker), en pourcentage. */
-const CLUB_PCT = 20;
+/** `CLUB_MEMBER_FORMATION_DISCOUNT` (miroir unique du Worker), en pourcentage. */
+const CLUB_PCT = Math.round(CLUB_MEMBER_FORMATION_DISCOUNT * 100);
 
 export default function Formations() {
   const { t } = useTranslation('formations');

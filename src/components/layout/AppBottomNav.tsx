@@ -38,25 +38,31 @@ export interface BottomNavItem {
   icon: IconName;
   end?: boolean;
   badge?: number | null;
+  /** Onglet « Plus » : il n'a pas d'adresse, il ouvre le tiroir de la coquille (`onMore`). */
+  more?: boolean;
 }
 
 interface AppBottomNavProps {
   items: BottomNavItem[];
+  onMore?: () => void;
 }
 
-export default function AppBottomNav({ items }: AppBottomNavProps) {
+/** L'ancre de l'onglet « Plus » : interceptée au clic, elle ne navigue jamais. */
+const MORE_HREF = '#menu';
+
+export default function AppBottomNav({ items, onMore }: AppBottomNavProps) {
   const { t } = useTranslation('lms');
   const localize = useLocalizedPath();
   const path = toCanonicalPath(useLocation().pathname);
 
   const isOn = (item: BottomNavItem) =>
-    item.end ? path === item.to : path === item.to || path.startsWith(item.to + '/');
+    item.more ? false : item.end ? path === item.to : path === item.to || path.startsWith(item.to + '/');
 
   const active = items.find(isOn)?.label;
 
   const tabs: TabBarItem[] = items.map((item) => ({
     label: item.label,
-    href: localize(item.to),
+    href: item.more ? MORE_HREF : localize(item.to),
     icon: (
       <span className="relative block">
         <Icon name={item.icon} size={21} strokeWidth={2.2} />
@@ -73,6 +79,18 @@ export default function AppBottomNav({ items }: AppBottomNavProps) {
     // `stack:hidden` : au-delà de 700 px, c'est la navigation latérale qui prend le relais.
     // Le conteneur disparaît avec elle, donc la barre fixée aussi.
     <DsNavHost className="stack:hidden">
+      {/* `display: contents` : l'enveloppe n'existe que pour intercepter le clic sur « Plus »,
+          la primitive `TabBar` ne connaissant que des adresses. */}
+      <div
+        style={{ display: 'contents' }}
+        onClickCapture={(e) => {
+          const a = (e.target as HTMLElement).closest('a');
+          if (a?.getAttribute('href') === MORE_HREF) {
+            e.preventDefault();
+            onMore?.();
+          }
+        }}
+      >
       <TabBar
         items={tabs}
         active={active}
@@ -81,6 +99,7 @@ export default function AppBottomNav({ items }: AppBottomNavProps) {
         // la zone sûre est comptée dans son `bottom`, et `AppShell` réserve 110 px.
         variant="float"
       />
+      </div>
     </DsNavHost>
   );
 }

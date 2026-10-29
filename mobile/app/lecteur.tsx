@@ -20,7 +20,7 @@ export default function Lecteur() {
   const t = useToken();
   const p = useLocalSearchParams<{ titre?: string; module?: string }>();
   return (
-    <Screen dark territory="nuit" espace="edu" maillage={false} retour="Leçon" titre={texte(p.titre) ?? 'Lecteur'}>
+    <Screen dark /* ok-ds — ouvre la portée de thème de l'écran, l'équivalent RN de `.dk` */ territory="nuit" espace="edu" maillage={false} retour="Leçon" titre={texte(p.titre) ?? 'Lecteur'}>
       <Surface level="ink" style={{ marginTop: 10, aspectRatio: 16 / 9, alignItems: 'center', justifyContent: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 28, opacity: 0.45 }}>
           <Body style={{ color: t('paperFixed'), fontSize: 15 }}>−15</Body>

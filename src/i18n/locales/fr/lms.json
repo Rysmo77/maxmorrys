@@ -1,4 +1,8 @@
 {
+  "sidebarCohort": {
+    "title": "Ta cohorte",
+    "empty": "Personne n'apparaît encore : seuls ceux qui ont rejoint la cohorte s'affichent ici."
+  },
   "nav": {
     "sectionCommunity": "Communauté",
     "sectionAccount": "Compte",
@@ -40,6 +44,7 @@
     "more": "Plus"
   },
   "titles": {
+    "quiz": "Quiz du module",
     "dashboard": "Tableau de bord",
     "courses": "Mes formations",
     "rysmo": "Rysmo",

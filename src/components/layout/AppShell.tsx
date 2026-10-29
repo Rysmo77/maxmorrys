@@ -158,7 +158,13 @@ export default function AppShell({
   }, [mobileOpen]);
 
   const canonicalPath = toCanonicalPath(location.pathname);
-  const pageTitle = titleMap?.[canonicalPath] ?? deriveTitleFromPath(canonicalPath);
+  /* Exact d'abord, puis une clé joker `/parent/*` : `/mon-espace/quiz/:id` prend le titre
+     de sa route au lieu d'afficher son identifiant (« M1 »). Le joker est explicite pour
+     qu'aucune sous-page nommée (`/mon-espace/club/fil`) ne perde son titre dérivé. */
+  const parent = canonicalPath.slice(0, canonicalPath.lastIndexOf('/'));
+  const pageTitle = titleMap?.[canonicalPath]
+    ?? titleMap?.[`${parent}/*`]
+    ?? deriveTitleFromPath(canonicalPath);
   /*
    * La correspondance est PAR PRÉFIXE, pas exacte. `/mon-espace/cours/:slug` (le lecteur) et
    * `/mon-espace/club/fil` doivent hériter du maillage de leur section : une table de chemins
@@ -295,7 +301,7 @@ export default function AppShell({
         </main>
       </div>
 
-      {hasBottomNav && <AppBottomNav items={bottomNavItems!} />}
+      {hasBottomNav && <AppBottomNav items={bottomNavItems!} onMore={() => setMobileOpen(true)} />}
 
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>

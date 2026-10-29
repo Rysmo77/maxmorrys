@@ -11,8 +11,12 @@ import { Verite } from '../../ecrans/Verite';
  * ce qu'il filtre dès que la liste existera — et le corps dit qu'il n'y a rien à filtrer.
  * Aucun montant n'est écrit à la place.
  */
-/* « Remboursé » de la maquette n'est pas repris : les CGV (art. 6) excluent tout remboursement. */
-const STATUTS = ['Tout', 'Payé', 'En attente'] as const;
+/*
+ * « Remboursé » est un STATUT que l'admin lit, pas une promesse faite au client : un
+ * remboursement exceptionnel reste un acte admin légitime, et la liste doit pouvoir le
+ * montrer. Les CGV (art. 6, aucun droit au remboursement) ne sont pas en cause ici.
+ */
+const STATUTS = ['Tout', 'Payé', 'En attente', 'Remboursé'] as const;
 
 export default function ConsoleTransactions() {
   const [statut, setStatut] = useState<string>('Tout');

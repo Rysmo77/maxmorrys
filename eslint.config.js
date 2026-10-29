@@ -9,6 +9,8 @@ export default tseslint.config(
     ignores: [
       'dist',
       'worker/**/node_modules',
+      /* Maquettes et outils de capture de la refonte (lecture seule, non suivis par le build). */
+      '.design-ref/**',
       /*
        * `.claude/worktrees/` PORTE UNE COPIE COMPLETE DU DEPOT, kit de design inclus.
        *

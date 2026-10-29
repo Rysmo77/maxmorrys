@@ -8,8 +8,6 @@ export { PageSite, SiteBand } from './PageSite';
 export type { PageSiteProps } from './PageSite';
 export { SiteDisplay, SiteEyebrow } from './SiteType';
 export type { SiteDisplayProps } from './SiteType';
-export { AuthPage } from './AuthPage';
-export type { AuthPageProps } from './AuthPage';
 export { LegalPage, LEGAL_DOCS } from './LegalPage';
 export type { LegalPageProps, LegalDoc } from './LegalPage';
 export { TerritoryRow, useTerritoryLayout } from './TerritoryRow';
