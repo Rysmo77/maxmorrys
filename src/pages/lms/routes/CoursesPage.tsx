@@ -9,6 +9,7 @@ export default function CoursesPage() {
       enrolledFormations={ctx.enrolledFormations}
       loadingEnrollments={ctx.loadingEnrollments}
       certificates={ctx.certificates}
+      isClubActive={ctx.isClubActive}
     />
   );
 }

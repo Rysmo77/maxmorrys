@@ -83,5 +83,106 @@
     "title": "Tu ne sais pas par où commencer ?",
     "body": "Écris-moi. Je réponds moi-même, et je te dirai si ce que je fais répond à ta question — ou si ce n'est pas la peine.",
     "cta": "Me poser la question"
+  },
+  "v3": {
+    "seoTitle": "Max-Morrys Edu — formations courtes au digital",
+    "seoDescription": "Marketing digital, SEO, IA : des formations courtes payées une fois en Wave, Orange Money ou carte, à toi pour toujours, avec une mission par leçon.",
+    "hero": {
+      "script": "Formations courtes au digital",
+      "titleLines": [
+        "Je te forme",
+        "au digital."
+      ],
+      "lede": "Marketing digital, SEO, IA. Tu paies en Wave, en Orange Money ou par carte, l'accès s'ouvre tout de suite, et il est à toi pour toujours.",
+      "ctaCourses": "Voir les formations",
+      "ctaMethod": "Découvrir la méthode",
+      "trainer": "Formateur depuis 2024",
+      "scroll": "Défiler"
+    },
+    "why": {
+      "eyebrow": "Pourquoi ces formations",
+      "title": "Apprendre en faisant, sur ton vrai projet.",
+      "body": "Chaque leçon se termine par une mission : ta fiche Google, ton offre, ton premier post. À la fin, tu n'as pas un cahier de notes, tu as quelque chose en ligne.",
+      "cta": "Voir la méthode"
+    },
+    "trainer": {
+      "eyebrow": "Ton formateur",
+      "title": "Max-Morrys, de Douala",
+      "titleHl": "à Dakar.",
+      "body1": "Économiste de formation, marketeur digital de métier. Responsable marketing digital chez Eyone Medical, fondateur de MY ONOMA, formateur depuis 2024.",
+      "body2": "J'enseigne ce que j'applique tous les jours, avec les outils et les moyens de paiement d'ici.",
+      "cta": "Mon parcours"
+    },
+    "skills": {
+      "title": "Ce que tu vas apprendre",
+      "lede": "Six compétences, réparties dans les formations. Chacune se termine par une mission.",
+      "items": {
+        "niche": {
+          "title": "Trouver ta niche",
+          "body": "Choisir un client que tu peux servir dès cette semaine."
+        },
+        "offer": {
+          "title": "Écrire une offre qui se lit",
+          "body": "Une promesse, un prix, une preuve que tu peux montrer."
+        },
+        "google": {
+          "title": "Être trouvé·e sur Google",
+          "body": "Fiche d'établissement, mots-clés de quartier, avis réels."
+        },
+        "publish": {
+          "title": "Publier sans t'épuiser",
+          "body": "Un calendrier tenable, trois formats qui marchent."
+        },
+        "whatsapp": {
+          "title": "Vendre sur WhatsApp",
+          "body": "Catalogue, réponses rapides, paiement Wave."
+        },
+        "measure": {
+          "title": "Mesurer ce qui compte",
+          "body": "Trois chiffres qui décident, pas trente."
+        }
+      }
+    },
+    "courses": {
+      "title": "Les formations",
+      "lede": "Chaque formation se paie une fois et reste à toi. Ses leçons libres se lisent sans compte.",
+      "tabsLabel": "Catégories",
+      "all": "Tout",
+      "free_one": "{{count}} leçon libre",
+      "free_other": "{{count}} leçons libres",
+      "soon": "Bientôt",
+      "level": "Niveau",
+      "lessons": "Leçons",
+      "once": "Une fois",
+      "see": "Voir la formation",
+      "notify": "Me prévenir",
+      "all_cta": "Tout le catalogue",
+      "emptyTitle": "Aucune formation n'est publiée pour l'instant.",
+      "emptyBody": "Inscris-toi plus bas : tu reçois un e-mail le jour où la première ouvre."
+    },
+    "rysmo": {
+      "title": "Rysmo IA, ton assistant",
+      "sub": "Il répond sur la leçon que tu as sous les yeux.",
+      "demoQ": "Ma fiche Google a peu d'avis. Comment en avoir plus sans les acheter ?",
+      "demoA": "Demande-les juste après un service réussi, avec un message court et le lien direct vers ta fiche. Tu veux que je t'aide à l'écrire pour ta boutique ?",
+      "demoTag": "conversation d'exemple · quota visible avant chaque question",
+      "more": "Ce que fait Rysmo IA"
+    },
+    "club": {
+      "eyebrow": "Club des Digitos",
+      "title": "Seul·e, on apprend. Au Club, on avance.",
+      "body": "Membre du Club : −{{discount}} % sur chaque formation et {{bonus}} questions Rysmo IA de plus par jour.",
+      "cta": "Découvrir le Club"
+    },
+    "truth": {
+      "title": "Ce que je n'affiche pas",
+      "body": "Ni note ni nombre d'inscrits : la plateforme vient d'ouvrir, je n'ai rien d'honnête à en dire. Les avis apparaîtront après modération."
+    },
+    "mission": {
+      "eyebrow": "La mission",
+      "title": "Rendre le digital apprenable, payable et vérifiable.",
+      "body": "Pas de jargon, pas de promesse de revenus. Des méthodes qui marchent avec un téléphone, une connexion moyenne et un budget de commerçant.",
+      "cta": "Voir la méthode"
+    }
   }
 }

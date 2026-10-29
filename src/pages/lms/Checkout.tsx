@@ -3,15 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { httpsCallable } from 'firebase/functions';
 import { writeBatch, doc, collection } from 'firebase/firestore';
-import { Button, EmptyState, Field, Icon, LessonRow, Mesh, Num, Skeleton, StepDots, useToast } from '@ds';
+import { Button, EmptyState, Field, Icon, Num, Skeleton, Wordmark, useToast } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage, useLocalizedPath } from '../../contexts/LanguageContext';
 import { localizedPath } from '../../i18n/routing';
-import { SiteDisplay, SiteEyebrow, useReveal } from '../../components/site';
+import { useReveal } from '../../components/site';
 import DsNavHost from '../../components/layout/DsNavHost';
 import { PriceApprox, PriceFootnote } from '../../components/shared/PriceApprox';
 import { getFormationBySlug } from '../../lib/firestore';
-import CourseCover from '../../components/formations/CourseCover';
+import EduCover from '../../components/edu/g2/EduCover';
+import PayStepper from '../../components/edu/g2/PayStepper';
 import { functions } from '../../config/firebase';
 import { db } from '../../config/db';
 import type { Formation } from '../../types';
@@ -90,10 +91,12 @@ const createBictorysCharge = httpsCallable<
 
 /** Les trois moyens que la page hébergée accepte. Aucun logo de marque : pas de dégradé
  *  tiers à faire entrer par l'échappatoire d'AD-2 pour une ligne qui ne se clique pas. */
+/* Les pastilles des opérateurs : leurs initiales sur un aplat du système (aucune couleur de
+   marque tierce en dur — AD-2). */
 const METHODS = [
-  { key: 'Wave', glyph: 'send' as const },
-  { key: 'Om', glyph: 'card' as const },
-  { key: 'Card', glyph: 'card' as const },
+  { key: 'Wave', mark: 'W', bg: 'var(--mm-bleu-f)' },
+  { key: 'Om', mark: 'OM', bg: 'var(--mm-orange-f)' },
+  { key: 'Card', mark: 'CB', bg: 'var(--ink-fixed)' },
 ];
 
 export default function Checkout() {
@@ -208,7 +211,7 @@ export default function Checkout() {
   if (!formation) {
     return (
       <Frame>
-        <SiteDisplay lines={t('checkout.notFoundLines', { returnObjects: true }) as string[]} size={30} />
+        <h1 className="mm-d m-0 text-[34px]">{t('checkout.notFoundTitle')}</h1>
         <Bento padding={20} className="mt-[18px]">
           <EmptyState
             glyph={<Icon name="book" size={26} color="var(--text-muted)" />}
@@ -239,7 +242,7 @@ export default function Checkout() {
     const quand = ouverture(formation);
     return (
       <Frame>
-        <SiteDisplay lines={t('checkout.notFoundLines', { returnObjects: true }) as string[]} size={30} />
+        <h1 className="mm-d m-0 text-[34px]">{formation ? formation.title : t('checkout.notFoundTitle')}</h1>
         <Bento padding={20} className="mt-[18px]">
           <EmptyState
             glyph={<Icon name="lock" size={26} color="var(--warn)" />}
@@ -393,214 +396,171 @@ export default function Checkout() {
 
   if (success) {
     return (
-      <Frame>
-        <SiteDisplay lines={t('checkout.successLines', { returnObjects: true }) as string[]} size={30} />
-        <p className="text-lede text-ink-2 mt-3">{t('checkout.successText', { title: formation.title })}</p>
-        <Button tone="digitalise" href={path(`/cours/${formation.slug}`)} className="mt-5">
-          {t('checkout.startCourse')}
-        </Button>
-        <Button tone="quiet" fullWidth href={path('/formations')} className="mt-2.5">
-          {t('checkout.seeOtherFormations')}
-        </Button>
+      <Frame step={3}>
+        <section className="mm-card mx-auto max-w-[620px]" style={{ padding: '34px' }}>
+          <h1 className="mm-d m-0 mb-1.5 text-[36px] wide:text-[44px]">{t('checkout.successLines.0')}</h1>
+          <p className="m-0 text-ink-2">{t('checkout.successText', { title: formation.title })}</p>
+          <div className="mt-6 flex flex-col gap-2.5">
+            <a className="mm-pill" href={path(`/cours/${formation.slug}`)} style={{ justifyContent: 'space-between' }}>
+              {t('checkout.startCourse')}
+              <i aria-hidden="true"><Icon name="arrow-up-right" size={15} /></i>
+            </a>
+            <a className="mm-pill is-plain" href={path('/formations')} style={{ justifyContent: 'center' }}>{t('checkout.seeOtherFormations')}</a>
+          </div>
+        </section>
       </Frame>
     );
   }
 
   return (
-    <Frame back={{ href: path(`/formations/${formation.slug}`), label: t('checkout.backToFormation') }}
-      center={t('checkout.stepOf', { current: 2, total: 3 })} wide>
-      <div ref={reveal} className="grid items-start gap-6 wide:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]">
-        <section className="mm-card min-w-0" style={{ padding: '26px' }}>
-        <StepDots
-          total={3}
-          current={2}
-          label={t('checkout.stepsLabel')}
-          steps={[t('checkout.step1'), t('checkout.step2'), t('checkout.step3')]}
-          style={{ marginBottom: '20px' }}
-        />
+    <Frame step={2} back={{ href: path(`/formations/${formation.slug}`), label: t('checkout.backToFormation') }}>
+      <div ref={reveal} className="grid items-start gap-7 wide:grid-cols-[1.2fr_.8fr]">
+        <section className="mm-card min-w-0" style={{ padding: '34px' }}>
+          <h1 className="mm-d m-0 mb-1.5 text-[34px] wide:text-[44px]">
+            {isFree ? t('checkout.freeTitleLines.0') : t('checkoutV3.title')}
+          </h1>
+          <p className="m-0 mb-6 text-ink-2">{isFree ? t('checkout.freeSubtitle') : t('checkoutV3.subtitle')}</p>
 
-        <SiteDisplay
-          lines={t(isFree ? 'checkout.freeTitleLines' : 'checkout.titleLines', { returnObjects: true }) as string[]}
-          size={30}
-        />
+          <div className="flex flex-col gap-3">
+            {!isFree && (
+              <>
+                {/*
+                  ── LES MOYENS DE PAIEMENT : ANNONCÉS, PAS CHOISIS ─────────────────────────
+                  La maquette dessine trois boutons radio et un champ « Numéro Wave ». Aucun des
+                  deux ne transporterait rien : `createBictorysCharge` omet `payment_type`, et
+                  c'est la page hébergée de l'opérateur qui fait choisir (voir l'en-tête). Les
+                  trois lignes gardent le dessin de la maquette, SANS pastille de sélection et
+                  sans champ de numéro.
+                */}
+                <ul className="m-0 flex list-none flex-col gap-3 p-0" aria-label={t('checkout.methodsTitle')}>
+                  {METHODS.map((m) => (
+                    <li key={m.key} className="flex items-center gap-3.5 rounded-[18px] border border-[color:var(--line)] bg-bento p-4">
+                      <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-xs text-[14px] font-black" style={{ background: m.bg, color: 'var(--paper-fixed)' }}>
+                        {m.mark}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <b className="block text-ink">{t(`checkout.method${m.key}`)}</b>
+                        <span className="block text-[13px] text-ink-2">{t(`checkout.method${m.key}Note`)}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="m-0 text-[13px] text-ink-2">{t('checkout.methodsNote')}</p>
 
-        {!isFree && (
-          <>
-            {/* ── Les moyens acceptés — annoncés, pas choisis. Voir l'en-tête du fichier. */}
-            <SiteEyebrow style={{ marginTop: '22px' }}>{t('checkout.methodsTitle')}</SiteEyebrow>
-            <ul className="rv m-0 grid list-none gap-2 p-0 stack:grid-cols-3" style={{ ['--i' as string]: 3 }}>
-              {METHODS.map((m) => (
-                <li key={m.key} className="flex items-center gap-3 rounded-m border border-[color:var(--line)] bg-bento-2 px-3 py-3">
-                  <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-xs bg-[color:var(--fill-1)] text-ink">
-                    <Icon name={m.glyph} size={16} />
-                  </span>
-                  <span className="min-w-0">
-                    <b className="block text-[14px] text-ink">{t(`checkout.method${m.key}`)}</b>
-                    <span className="block text-small text-ink-2">{t(`checkout.method${m.key}Note`)}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="rv text-small text-ink-2 mt-1.5" style={{ ['--i' as string]: 3 }}>{t('checkout.methodsNote')}</p>
+                <div className="flex flex-wrap items-end gap-2.5">
+                  <div className="min-w-[200px] flex-1">
+                    <Field
+                      label={t('checkout.couponLabel')}
+                      value={couponCode}
+                      onChange={(v) => { setCouponCode(v); setCouponError(''); }}
+                      placeholder={t('checkout.couponPlaceholder')}
+                      hint={quoting ? t('checkout.couponChecking') : t('checkout.couponHint')}
+                      error={couponError || undefined}
+                      autoComplete="off"
+                      style={{ marginTop: 0 }}
+                    />
+                  </div>
+                  {/* Le code se valide sur demande, pas à la frappe : un devis par lettre saisie,
+                      et une erreur affichée pendant qu'on tape. */}
+                  <Button
+                    tone="quiet"
+                    size="sm"
+                    fullWidth={false}
+                    loading={quoting}
+                    disabled={quoting || !couponCode.trim()}
+                    onClick={() => void applyCoupon()}
+                  >
+                    {t('checkout.couponApply')}
+                  </Button>
+                </div>
+                {quote?.couponApplied && (
+                  <p className="m-0 text-small text-ok">
+                    {t('checkout.couponApplied')}{' '}
+                    <Num value={quote.couponDiscount} unit="FCFA" source="server" asOf={readAt} showAsOf={false} />
+                  </p>
+                )}
+                {/* « Le coupon n'a pas joué » n'est pas « le coupon est refusé » : la remise
+                    membre, plus généreuse, l'emporte. */}
+                {quote?.clubApplied && quote.couponDiscount > 0 && (
+                  <p className="m-0 text-small text-ink-2">{t('checkout.couponBeatenByClub')}</p>
+                )}
+              </>
+            )}
 
-            <div className="rv" style={{ ['--i' as string]: 4 }}>
-              <Field
-                label={t('checkout.couponLabel')}
-                value={couponCode}
-                onChange={(v) => { setCouponCode(v); setCouponError(''); }}
-                placeholder={t('checkout.couponPlaceholder')}
-                hint={quoting ? t('checkout.couponChecking') : t('checkout.couponHint')}
-                error={couponError || undefined}
-                autoComplete="off"
-              />
-              {/*
-                LE CODE SE VALIDE SUR DEMANDE, PAS À LA FRAPPE.
-                Un devis par caractère saisi, c'est une requête pour chaque lettre d'un code
-                à huit signes, et surtout une erreur « code invalide » affichée pendant qu'on
-                le tape. La demande explicite laisse finir d'écrire.
-              */}
-              <Button
-                tone="quiet"
-                size="sm"
-                fullWidth={false}
-                loading={quoting}
-                disabled={quoting || !couponCode.trim()}
-                onClick={() => void applyCoupon()}
-                style={{ marginTop: '10px' }}
-              >
-                {t('checkout.couponApply')}
-              </Button>
-              {quote?.couponApplied && (
-                <p className="mt-2 mb-0 text-small text-ok">
-                  {t('checkout.couponApplied')}{' '}
-                  <Num value={quote.couponDiscount} unit="FCFA" source="server" asOf={readAt} showAsOf={false} />
-                </p>
-              )}
-              {/*
-                ⚠️ « Le coupon n'a pas joué » n'est pas « le coupon est refusé ». Quand la
-                remise membre est la plus généreuse, le code saisi reste valide mais sans
-                effet : le dire évite de laisser croire à un refus, et évite surtout de faire
-                chercher un autre code à quelqu'un qui a déjà la meilleure remise.
-              */}
-              {quote?.clubApplied && quote.couponDiscount > 0 && (
-                <p className="mt-2 mb-0 text-small text-ink-2">{t('checkout.couponBeatenByClub')}</p>
-              )}
-            </div>
-          </>
-        )}
-
-        <Button
-          tone={isFree ? 'digitalise' : 'forme'}
-          onClick={() => void handleSubmit()}
-          loading={submitting}
-          className="rv mt-5"
-          style={{ ['--i' as string]: 6 }}
-        >
-          {/* Le libellé et le montant sont deux morceaux, pas une phrase interpolée : le
-              montant doit passer par <Num> pour porter sa provenance, et une chaîne
-              « Payer {{amount}} » l'aurait rendu en corps, sans source. */}
-          {isFree ? t('checkout.confirmFree') : t('checkout.payLabel')}
-          {!isFree && <Num value={finalPrice} unit="FCFA" source="db" asOf={readAt} />}
-        </Button>
-
-        <p className="rv text-small text-ink-2 text-center mt-2.5" style={{ ['--i' as string]: 7 }}>
-          {isFree ? t('checkout.secureGuarantee') : t('checkout.leaveNote')}
-        </p>
+            <button
+              type="button"
+              className="mm-pill"
+              onClick={() => void handleSubmit()}
+              disabled={submitting}
+              aria-busy={submitting || undefined}
+              style={{ justifyContent: 'space-between', width: '100%' }}
+            >
+              {/* Le libellé et le montant sont deux morceaux : le montant passe par <Num>. */}
+              <span>
+                {isFree ? t('checkout.confirmFree') : <>{t('checkout.payLabel')} <Num value={finalPrice} unit="F" source="db" asOf={readAt} showAsOf={false} /></>}
+              </span>
+              <i aria-hidden="true"><Icon name="arrow-up-right" size={15} /></i>
+            </button>
+            <span className="text-[12px] text-ink-3">
+              {isFree ? t('checkout.secureGuarantee') : t('checkoutV3.legal')}
+            </span>
+          </div>
         </section>
 
-        {/* Le récapitulatif passe en tête sur téléphone : on voit ce qu'on paie avant
-            de choisir comment. */}
-        <aside className="order-first min-w-0 wide:sticky wide:top-4 wide:order-none">
-            {/* ── Le récapitulatif chiffré ───────────────────────────────────────
-                Chaque montant passe par <Num source="db"> : il vient du catalogue Firestore, et
-                `readAt` est l'instant où le navigateur l'a lu. La date de relevé n'est pas une
-                décoration — c'est ce qui distingue « le prix est 95 000 » de « le prix ÉTAIT
-                95 000 quand j'ai ouvert la page ». */}
-            <div
-              className="mm-card rv" style={{ ['--i' as string]: 2, padding: '14px 14px 20px' }}
-              role="group" aria-label={t('checkout.summaryLabel')}
-            >
-              <CourseCover
-                title={formation.title}
-                category={formation.category}
-                slug={formation.slug}
-                id={formation.id}
-                coverImage={formation.coverImage}
-                kicker={formation.category}
-                size="sm"
-              />
-              <p className="font-black text-ink text-body m-0 mt-4 px-1">{formation.title}</p>
+        {/* Le récapitulatif passe en tête sur téléphone : on voit ce qu'on paie avant comment. */}
+        <aside className="order-first min-w-0 wide:sticky wide:top-6 wide:order-none">
+          <div className="mm-card flex flex-col gap-3.5" role="group" aria-label={t('checkout.summaryLabel')}>
+            <EduCover
+              title={formation.title}
+              category={formation.category}
+              slug={formation.slug}
+              id={formation.id}
+              kicker={`Max-Morrys Edu · ${formation.category}`}
+              titleSize={40}
+              titleWidth={300}
+              style={{ height: '170px' }}
+            />
+            <b className="text-[19px] leading-[1.2]">{formation.title}</b>
+            <span className="text-[13px] text-ink-2">
+              {t('checkoutV3.facts', { count: lessonCount })}
+              {formation.certificateEnabled ? ` · ${t('checkoutV3.factCert')}` : ''}
+              {` · ${t('checkoutV3.factLifetime')}`}
+            </span>
 
-              <div className="mt-3">
-                <LessonRow state="plain" icon={<Icon name="clock" size={14} />} title={t('checkout.durationLabel')} meta={formation.duration} />
-                <LessonRow
-                  state="plain" icon={<Icon name="book" size={14} />} title={t('checkout.lessonsLabel')}
-                  meta={<Num value={lessonCount} source="db" asOf={readAt} />}
-                />
-                <LessonRow state="plain" icon={<Icon name="medal" size={14} />} title={t('checkout.certificateIncluded')} last />
-              </div>
-
+            <div className="grid grid-cols-[1fr_auto] gap-x-0 gap-y-2 border-t border-[color:var(--line)] pt-3 text-[14px]">
+              <span>{t('checkoutV3.price')}</span>
+              <b><Num value={formation.price} unit="F" source="db" asOf={readAt} showAsOf={false} /></b>
               {formation.promoPrice !== undefined && formation.promoPrice < formation.price && (
                 <>
-                  <div className="flex items-center justify-between gap-3 mt-4">
-                    <span className="text-meta text-ink-2">{t('checkout.originalPrice')}</span>
-                    <s className="text-ink-2"><Num value={formation.price} source="db" asOf={readAt} /></s>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 mt-2">
-                    <span className="text-meta text-ok font-medium">{t('checkout.discount')}</span>
-                    <span className="text-ok"><Num value={-(formation.price - formation.promoPrice)} source="db" asOf={readAt} /></span>
-                  </div>
+                  <span>{t('checkout.discount')}</span>
+                  <b className="text-[color:var(--mm-teal-t)]"><Num value={-(formation.price - formation.promoPrice)} unit="F" source="db" asOf={readAt} showAsOf={false} /></b>
                 </>
               )}
-
-              {/*
-                LA REMISE MEMBRE, ANNONCÉE AVANT LE TOTAL ET NON APRÈS.
-
-                Elle ne se demande pas : elle est constatée par le serveur à l'ouverture de
-                l'écran. Posée sous le total, elle se lirait comme une justification ; posée
-                au-dessus, elle explique le nombre qui suit.
-
-                `source="server"` et non `'db'` : ce montant est CALCULÉ par le serveur sur
-                l'appartenance de la personne, il n'est lu dans aucun catalogue.
-              */}
-              {quote?.clubApplied && (
-                <div className="flex items-baseline justify-between gap-3 mt-2.5">
-                  <span className="text-meta text-ok">{t('checkout.clubDiscount')}</span>
-                  <span className="text-ok">
-                    − <Num value={quote.clubDiscount} unit="FCFA" source="server" asOf={readAt} showAsOf={false} />
-                  </span>
-                </div>
+              {quote?.couponApplied && !quote.clubApplied && (
+                <>
+                  <span>{t('checkoutV3.couponLine')}</span>
+                  <b className="text-[color:var(--mm-teal-t)]">− <Num value={quote.couponDiscount} unit="F" source="server" asOf={readAt} showAsOf={false} /></b>
+                </>
               )}
-
-              <div className="h-px bg-[color:var(--border-hair)] my-[13px]" />
-
-              <div className="flex items-baseline justify-between gap-3">
-                <b className="text-body">{t('checkout.total')}</b>
-                {isFree
-                  ? <b className="text-ttl text-ok">{t('checkout.free')}</b>
-                  : (
-                    /*
-                      LE DERNIER ÉCRAN AVANT LE DÉBIT est celui où « combien ça me coûte
-                      vraiment » se pose le plus fort, et c'est `finalPrice` qu'on convertit —
-                      le montant coupon déduit, pas le prix catalogue. Convertir autre chose que
-                      ce qui sera prélevé serait pire que ne rien convertir du tout.
-                    */
-                    <span className="text-right">
-                      <b style={{ fontSize: '23px' }}><Num value={finalPrice} unit="FCFA" source="db" asOf={readAt} /></b>
-                      <span className="block text-meta-2 font-semibold text-ink-2">
-                        <PriceApprox xof={finalPrice} />
-                      </span>
-                    </span>
-                  )}
-              </div>
-              {/* La phrase du kit, et elle n'est pas cosmétique : c'est le serveur qui recalcule
-                  le montant et applique le coupon. Ce total-ci est une lecture, pas un engagement. */}
-              <p className="text-small text-ink-2 m-0 mt-1.5">{t('checkout.serverComputed')}</p>
-              {/* La note de change se pose ICI et pas ailleurs sur cette page : à l'instant du
-                  paiement, « le prélèvement se fait en francs CFA » est une information, pas une
-                  mention légale. C'est aussi le seul endroit où la règle est LUE au clavier. */}
-              {!isFree && <PriceFootnote className="m-0 mt-1" />}
+              {/* La remise membre est CONSTATÉE par le serveur, jamais demandée ; elle se pose
+                  au-dessus du total, qu'elle explique. `source="server"` : calculée, pas lue. */}
+              {quote?.clubApplied && (
+                <>
+                  <span>{t('checkoutV3.clubLine')}</span>
+                  <b className="text-[color:var(--mm-teal-t)]">− <Num value={quote.clubDiscount} unit="F" source="server" asOf={readAt} showAsOf={false} /></b>
+                </>
+              )}
+              <span className="border-t border-[color:var(--line)] pt-2 font-bold">{t('checkoutV3.total')}</span>
+              <b className="border-t border-[color:var(--line)] pt-2 text-right text-[20px]">
+                {isFree ? t('checkout.free') : <Num value={finalPrice} unit="F" source="db" asOf={readAt} showAsOf={false} />}
+              </b>
             </div>
+            {/* La contrevaleur porte sur le montant QUI SERA DÉBITÉ, coupon déduit. */}
+            {!isFree && <span className="text-right text-[12.5px] font-semibold text-ink-2"><PriceApprox xof={finalPrice} /></span>}
+            {quote?.clubApplied && <span className="text-[12.5px] text-ink-2">{t('checkoutV3.clubAuto')}</span>}
+            <span className="text-[12.5px] text-ink-2">{t('checkout.serverComputed')}</span>
+            {!isFree && <PriceFootnote className="m-0" />}
+          </div>
         </aside>
       </div>
     </Frame>
@@ -608,33 +568,35 @@ export default function Checkout() {
 }
 
 /**
- * La coquille d'un écran de PILE : maillage, gouttière de 18 px, barre haute à bouton retour.
- * Pas de barre d'onglets — le kit est formel, seuls `Espace`, `Lecteur`, `Rysmo`, `Club` et
- * `MesNotes` en portent une, et un tunnel de commande n'en est pas.
+ * Le cadre plein écran de la maquette `Edu-Paiement` : fond `--paper-2`, une rangée haute
+ * (marque · étapes 1-2-3 · « Paiement sécurisé »), le contenu sur 1180 px.
  */
 function Frame({
-  children, back, center, wide = false,
+  children, back, step = 2,
 }: {
   children: React.ReactNode;
   back?: { href: string; label: string };
-  center?: string;
-  /** Le tunnel principal passe à deux colonnes (paiement · récapitulatif) au-delà du pli. */
-  wide?: boolean;
+  step?: 1 | 2 | 3;
 }) {
+  const { t } = useTranslation('lms');
   return (
-    <div className="relative min-h-screen isolate overflow-hidden px-[18px] pt-4 pb-16">
-      <Mesh territory="forme" />
-      <DsNavHost className={wide ? 'relative z-[3] mx-auto w-full max-w-[1040px]' : 'relative z-[3] mx-auto w-full max-w-[520px]'}>
-        {back && (
-          <div className="flex items-center gap-3 h-12 mb-2">
-            <a href={back.href} aria-label={back.label} className="mm-touch-extend inline-grid place-items-center w-touch h-touch rounded-full text-ink-2">
-              <Icon name="back" size={19} strokeWidth={2.4} />
-            </a>
-            {center && <span className="flex-1 text-center text-meta font-semibold text-ink-2">{center}</span>}
-            <span className="w-touch" aria-hidden="true" />
-          </div>
-        )}
-        {children}
+    <div className="min-h-screen" style={{ background: 'var(--paper-2)' }}>
+      <DsNavHost className="mx-auto w-full max-w-[1180px] px-4 stack:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 py-[26px]">
+          <a href={back?.href ?? '/'} aria-label={back?.label} className="flex items-center gap-2.5 text-ink no-underline">
+            <Wordmark brand="kit" badge="EDU" />
+          </a>
+          <PayStepper
+            current={step}
+            labels={[t('checkoutV3.step1'), t('checkoutV3.step2'), t('checkoutV3.step3')]}
+            className="order-last w-full justify-center stack:order-none stack:w-auto"
+          />
+          <span className="flex items-center gap-1.5 text-[13px] text-ink-2">
+            <Icon name="lock" size={14} />
+            {t('checkout.securePayment')}
+          </span>
+        </div>
+        <div className="pb-[60px] pt-5">{children}</div>
       </DsNavHost>
     </div>
   );

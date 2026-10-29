@@ -4,10 +4,9 @@ import type { StudentLayoutContext } from '../../../components/layout/StudentLay
 
 export default function AchievementsPage() {
   const ctx = useOutletContext<StudentLayoutContext>();
-  if (!ctx.userId) return null;
   return (
     <AchievementsTab
-      userId={ctx.userId}
+      userId={ctx.userId ?? ''}
       certificates={ctx.certificates}
       setCertificates={ctx.setCertificates}
       loadingCerts={ctx.loadingCerts}

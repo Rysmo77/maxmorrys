@@ -1,118 +1,266 @@
+import { useEffect, useState, type FormEvent } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Icon } from '@ds';
+import { Icon, Num, Skeleton } from '@ds';
 import RysmoStoreTab from '../tabs/RysmoStoreTab';
 import RysmoMemoryTab from '../tabs/RysmoMemoryTab';
-import SpaceSplit from '../components/SpaceSplit';
-import TutorPanel from '../components/TutorPanel';
-import { useMediaQuery } from '../../../hooks/useMediaQuery';
 import { useAuth } from '../../../contexts/AuthContext';
 import { tutorName } from '../../../lib/naming';
+import { clearConversation, loadConversation, openRysmo, type RysmoMessage } from '../../../lib/rysmo/conversation';
+import { useRysmoQuota } from '../../../components/edu/g4/useRysmoQuota';
+import { EduCard, EduHead, EduPage } from '../../../components/edu/g4/EduParts';
 import type { StudentLayoutContext } from '../../../components/layout/StudentLayout';
 
-type RysmoSubTab = 'tokens' | 'memoire';
+type RysmoSubTab = 'packs' | 'memoire' | null;
 
 /**
- * ═══════════════════════════════════════════════════════════════════════════════
- * L'ÉCRAN DU RÉPÉTITEUR — `handoff_tableaux_de_bord` § RepetiteurDesktop.
+ * RYSMO IA — maquette `Edu-Rysmo` (+ `-mobile`), passe 2 lot B.
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * LES DEUX COLONNES SONT INVERSÉES PAR RAPPORT À LA MAQUETTE, ET C'EST DÉLIBÉRÉ.
+ * Trois colonnes au bureau, comme la maquette : les questions de la session, la
+ * conversation, puis le quota, la mémoire et « ce que Rysmo IA ne fait pas ».
  *
- * La maquette met la CONVERSATION dans la colonne de travail et le nom + la mémoire
- * dans le panneau de 340. La reprendre littéralement demanderait un second moteur de
- * dialogue sur cet écran : `RysmoWidget` est le SEUL du produit, monté une fois dans
- * `App.tsx`, et c'est lui qui tient le fil, le quota et l'appel au modèle. En écrire
- * un deuxième ici, c'est deux fils à synchroniser et deux endroits où décompter un
- * quota qui, lui, n'existe qu'une fois côté serveur.
+ * ⚠️ LE MOTEUR RESTE UNIQUE. `RysmoWidget` (monté une fois dans `App.tsx`) tient le fil,
+ * le quota et l'appel au modèle ; cette page LIT le fil (`loadConversation`, relu à
+ * intervalle court) et ENVOIE par `openRysmo(question)`. Écrire un second moteur ici, c'est
+ * deux fils à synchroniser et deux décomptes d'un quota qui n'existe qu'une fois, côté
+ * serveur. Le fil vit dans le stockage de SESSION : la colonne de gauche ne prétend donc
+ * pas à un historique — elle montre la conversation de cette session, et rien d'autre.
  *
- * Ce que la maquette ACHÈTE avec cette disposition est écrit dans son sélecteur :
- * « mémoire et renommage visibles pendant la conversation ». Les deux colonnes
- * échangées, cette phrase reste vraie au mot près — la conversation vit dans le
- * panneau (`TutorPanel`, qui la lit et la relance), la mémoire et le renommage dans
- * la colonne de travail. Aucun des deux n'est un écran qu'on ouvre.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * LES SOUS-ONGLETS PASSENT AU DESIGN SYSTEM.
- *
- * Ils étaient une barre faite à la main — dix classes utilitaires, un `hover:` qui
- * doublait la règle du kit, et un `bg-surface-sheet` posé en dur. `Segmented` est le
- * composant que le système destine exactement à ça (`ProfilDesktop` l'emploie deux
- * fois), il porte son propre nom accessible, son anneau de focus et son état actif.
- *
- * ⚠️ L'ÉTAT RESTE DANS L'URL. `?tab=memoire` est ce que `TutorPanel` vise quand on
- * ouvre la mémoire depuis le tableau de bord, et ce qu'un lien partagé doit pouvoir
- * porter. `Segmented` ne fait que l'écrire.
- * ═══════════════════════════════════════════════════════════════════════════════
+ * Les packs et la mémoire gardent leurs écrans complets (`?tab=packs`, `?tab=memoire`,
+ * cible des liens du tableau de bord), ouverts sous la grille.
  */
 export default function RysmoPage() {
   const { t } = useTranslation('lms');
   const ctx = useOutletContext<StudentLayoutContext>();
-  const { userData } = useAuth();
+  const { user, userData } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const active: RysmoSubTab = searchParams.get('tab') === 'memoire' ? 'memoire' : 'tokens';
+  const raw = searchParams.get('tab');
+  const sub: RysmoSubTab = raw === 'memoire' ? 'memoire' : raw === 'packs' || raw === 'tokens' ? 'packs' : null;
 
   const tutor = tutorName(userData);
+  const uid = user?.uid;
+  const { quota, asOf, loading } = useRysmoQuota(uid);
+  const memoryOn = userData?.preferences?.aiMemoryConsent !== false;
 
-  /* Le panneau relève le quota par un appel serveur à son montage : il est DÉMONTÉ
-     sous 1080 px, pas caché. Une classe `hidden` aurait laissé partir l'appel sur
-     téléphone, où le widget flottant porte déjà la conversation. */
-  const isWide = useMediaQuery('(min-width: 1080px)');
+  const [thread, setThread] = useState<RysmoMessage[]>(() => (uid ? loadConversation(uid) : []));
+  const [draft, setDraft] = useState('');
 
-  const OPTIONS = [t('rysmoPage.tabTokens'), t('rysmoPage.tabMemory')];
-  const setActive = (label: string) => {
-    const tab: RysmoSubTab = label === OPTIONS[1] ? 'memoire' : 'tokens';
-    setSearchParams(tab === 'tokens' ? {} : { tab }, { replace: true });
+  /* Le widget écrit le fil en stockage de session ; on le relit, sans second moteur. */
+  useEffect(() => {
+    if (!uid) return;
+    const read = () => setThread(loadConversation(uid));
+    read();
+    const id = window.setInterval(read, 1500);
+    window.addEventListener('focus', read);
+    return () => { window.clearInterval(id); window.removeEventListener('focus', read); };
+  }, [uid]);
+
+  const ask = (question: string) => {
+    const q = question.trim();
+    if (!q) return;
+    openRysmo(q);
+    setDraft('');
   };
+  const onSubmit = (e: FormEvent) => { e.preventDefault(); ask(draft); };
+  const newQuestion = () => {
+    if (uid) clearConversation(uid);
+    setThread([]);
+    openRysmo();
+  };
+  const openSub = (tab: Exclude<RysmoSubTab, null>) => setSearchParams({ tab }, { replace: true });
+
+  const firstQuestion = thread.find((m) => m.role === 'user')?.content ?? '';
+  const SUGGESTIONS = [t('rysmoPage.suggest1'), t('rysmoPage.suggest2'), t('rysmoPage.suggest3')];
+
+  /* ── Colonne 1 : la session ─────────────────────────────────────────────── */
+  const history = (
+    <section className="mm-card hidden wide:block" style={{ padding: 12 }}>
+      <button className="mm-btn is-sm is-quiet mb-2 w-full" type="button" onClick={newQuestion}>
+        {t('rysmoPage.newQuestion')}
+      </button>
+      {thread.length > 0 ? (
+        <div className="rounded-m px-[14px] py-[13px]" style={{ background: 'var(--mm-violet-c)' }}>
+          <b className="block text-[14px] leading-[1.3]" style={{ overflowWrap: 'anywhere' }}>
+            {firstQuestion.length > 70 ? `${firstQuestion.slice(0, 70)}…` : firstQuestion || t('rysmoPage.currentThread')}
+          </b>
+          <span className="text-[12px] text-ink-2">{t('rysmoPage.thisSession')}</span>
+        </div>
+      ) : (
+        <p className="m-0 px-[14px] py-[13px] text-[13px] leading-[1.5] text-ink-2">{t('rysmoPage.historyEmpty')}</p>
+      )}
+    </section>
+  );
+
+  /* ── Colonne 2 : la conversation ────────────────────────────────────────── */
+  const conversation = (
+    <section className="mm-card flex flex-col gap-4 wide:min-h-[640px]" style={{ padding: 24 }}>
+      <div className="flex items-center gap-[10px] border-b pb-[14px]" style={{ borderColor: 'var(--line)' }}>
+        <b className="text-[16px]">{t('rysmoPage.conversation')}</b>
+        <button type="button" className="mm-chip ml-auto" style={{ height: 30, fontSize: 12 }} onClick={() => openRysmo()}>
+          {t('rysmoPage.openWindow')}
+        </button>
+      </div>
+      {thread.length === 0 ? (
+        <Bubble from="ai">{t('rysmoPage.greeting', { tutor })}</Bubble>
+      ) : (
+        thread.map((m, i) => <Bubble key={`${m.role}-${i}`} from={m.role === 'user' ? 'me' : 'ai'}>{m.content}</Bubble>)
+      )}
+      <div className="mm-chips" style={{ marginTop: 'auto' }}>
+        {SUGGESTIONS.map((s) => (
+          <button key={s} className="mm-chip" type="button" style={{ height: 34, fontSize: 12.5 }} onClick={() => ask(s)}>
+            {s}
+          </button>
+        ))}
+      </div>
+      <form
+        onSubmit={onSubmit}
+        className="flex h-[58px] items-center gap-[10px] rounded-pill pl-5 pr-2"
+        style={{ border: '1px solid var(--line)', background: 'var(--paper-2)' }}
+      >
+        <label className="sr-only" htmlFor="rysmo-ask">{t('rysmoPage.askLabel', { tutor })}</label>
+        <input
+          id="rysmo-ask"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder={t('rysmoPage.askLabel', { tutor })}
+          className="min-w-0 flex-1 border-0 bg-transparent text-[15px] text-ink outline-none"
+        />
+        {quota && asOf && (
+          <span className="whitespace-nowrap text-[12px] text-ink-3">
+            <Num value={quota.dayRemaining} source="server" asOf={asOf} /> {t('rysmoPage.remaining', { count: quota.dayRemaining })}
+          </span>
+        )}
+        <button
+          className="mm-iconbtn"
+          type="submit"
+          aria-label={t('rysmoPage.send', { tutor })}
+          disabled={!draft.trim()}
+          style={{ width: 44, height: 44, background: 'var(--mm-violet-f)', color: 'var(--paper-fixed)', border: 0 }}
+        >
+          <Icon name="send" size={17} />
+        </button>
+      </form>
+    </section>
+  );
+
+  /* ── Colonne 3 : quota, mémoire, limites ────────────────────────────────── */
+  const aside = (
+    <div className="flex flex-col gap-5">
+      <EduCard title={t('rysmoPage.quotaTitle')}>
+        {loading ? (
+          <Skeleton height={60} radius="var(--r-m)" label={t('rysmoPage.quotaTitle')} />
+        ) : quota && asOf ? (
+          <>
+            <div className="flex items-baseline gap-2">
+              <Num value={quota.dayRemaining} source="server" asOf={asOf} style={{ fontSize: 40, letterSpacing: '-.05em', fontWeight: 600 }} />
+              <span className="text-ink-2">
+                / <Num value={quota.dailyLimit} source="server" asOf={asOf} /> {t('rysmoPage.today')}
+              </span>
+            </div>
+            {quota.dailyLimit > 0 && quota.dailyLimit <= 10 && (
+              <span className="mm-quota my-3" aria-hidden="true">
+                {Array.from({ length: quota.dailyLimit }, (_, i) => (
+                  <i key={i} className={i < quota.dayRemaining ? 'on' : undefined} style={{ ['--i' as string]: i, width: '100%' }} />
+                ))}
+              </span>
+            )}
+            {quota.packBalance > 0 && (
+              <p className="m-0 mt-2 text-[13px] text-ink-2">
+                {t('rysmoPage.packBalance')} : <Num value={quota.packBalance} source="server" asOf={asOf} />
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="m-0 text-[13px] text-ink-2">{t('rysmoPage.quotaUnknown')}</p>
+        )}
+        <p className="m-0 mt-2 text-[13px] text-ink-2">{t('rysmoPage.quotaNote')}</p>
+        <button
+          type="button"
+          onClick={() => openSub('packs')}
+          className="mt-4 flex w-full items-center justify-between rounded-m border-0 p-[14px] text-left text-ink"
+          style={{ background: 'var(--paper-2)', cursor: 'pointer' }}
+        >
+          <span>
+            <b className="block text-[14px]">{t('rysmoPage.packsTitle')}</b>
+            <span className="text-[12.5px] text-ink-2">{t('rysmoPage.packsBody')}</span>
+          </span>
+          <Icon name="chevron-right" size={18} />
+        </button>
+      </EduCard>
+      <EduCard title={t('rysmoPage.memoryTitle', { tutor })}>
+        <p className="m-0 mb-[14px] text-[13.5px] text-ink-2">{t('rysmoPage.memoryBody', { tutor })}</p>
+        <div className="flex items-center justify-between">
+          <span className="mm-tag">{memoryOn ? t('rysmoPage.memoryOn') : t('rysmoPage.memoryOff')}</span>
+          <button className="mm-btn is-sm is-quiet" type="button" onClick={() => openSub('memoire')}>{t('rysmoPage.memoryManage')}</button>
+        </div>
+      </EduCard>
+      <EduCard style={{ background: 'var(--paper-2)' }}>
+        <h3 style={{ fontSize: 16 }}>{t('rysmoPage.limitsTitle', { tutor })}</h3>
+        <ul className="m-0 mt-[10px] flex flex-col gap-[6px] pl-[18px] text-[13.5px] text-ink-2">
+          <li>{t('rysmoPage.limit1')}</li>
+          <li>{t('rysmoPage.limit2')}</li>
+          <li>{t('rysmoPage.limit3')}</li>
+        </ul>
+      </EduCard>
+    </div>
+  );
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 wide:max-w-none wide:px-pane">
-      <SpaceSplit asideLabel={tutor} aside={isWide ? <TutorPanel /> : null}>
-        <div className="space-y-6">
-          {/*
-            LE TITRE A ÉTÉ RETIRÉ D'ICI, POUR DEUX RAISONS QUI SE CUMULAIENT.
+    <EduPage>
+      <EduHead eyebrow={t('rysmoPage.eyebrow')} title={tutor} />
+      <div className="grid grid-cols-1 items-start gap-5 wide:[grid-template-columns:270px_minmax(0,1fr)_320px]">
+        {history}
+        {conversation}
+        {aside}
+      </div>
 
-            1 · Il écrivait « Rysmo » EN DUR. C'est le nom de l'APPLICATION, pas celui du
-                répétiteur qui vit dedans — celui-là s'appelle « Répétiteur » par défaut et
-                chaque personne peut le renommer (AD-12, `lib/naming`). `AppShell` rend déjà le
-                titre de cette page depuis `titleMap['/mon-espace/repetiteur'] = tutorName(userData)` :
-                quelqu'un qui avait appelé le sien « Coach » lisait donc « Coach » dans la barre
-                haute et « Rysmo » quinze centimètres plus bas, sur le même écran.
-
-            2 · C'était un SECOND `<h1>` sur la page. `NotesTab` et `DashboardTab` documentent
-                tous deux avoir écarté le leur pour cette raison ; celui-ci avait survécu.
-
-            Le glyphe et le sous-titre restent : ils situent l'écran sans le renommer.
-          */}
-          <div className="mm-promo flex items-center gap-4" style={{ padding: '22px' }}>
-            <span
-              aria-hidden="true"
-              className="grid h-12 w-12 shrink-0 place-items-center rounded-m bg-[image:var(--action-digitalise)] text-[color:var(--paper-fixed)]"
-            >
-              <Icon name="bot" size={24} />
-            </span>
-            <p className="m-0 text-body text-[color:var(--ink-fixed)]">{t('rysmoPage.subtitle')}</p>
+      {sub && (
+        <section className="mt-8" aria-label={sub === 'memoire' ? t('rysmoPage.tabMemory') : t('rysmoPage.tabTokens')}>
+          <div className="mb-4 flex items-center gap-3">
+            <h2 className="mm-d m-0 text-[28px]">{sub === 'memoire' ? t('rysmoPage.tabMemory') : t('rysmoPage.tabTokens')}</h2>
+            <button type="button" className="mm-chip ml-auto" onClick={() => setSearchParams({}, { replace: true })}>
+              <Icon name="close" size={14} /> {t('rysmoPage.closeSection')}
+            </button>
           </div>
-          <div className="mm-tabs max-w-full overflow-x-auto" role="group" aria-label={t('rysmoPage.tabsLabel', { tutor })}>
-            {OPTIONS.map((label, i) => (
-              <button
-                key={label}
-                type="button"
-                aria-pressed={(active === 'memoire') === (i === 1)}
-                onClick={() => setActive(label)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {sub === 'memoire' ? <RysmoMemoryTab enrolledFormations={ctx.enrolledFormations} /> : <RysmoStoreTab />}
+        </section>
+      )}
+    </EduPage>
+  );
+}
 
-          {active === 'tokens' ? (
-            <RysmoStoreTab />
-          ) : (
-            <RysmoMemoryTab enrolledFormations={ctx.enrolledFormations} />
-          )}
-        </div>
-      </SpaceSplit>
+interface BubbleProps {
+  from: 'me' | 'ai';
+  children: string;
+}
+
+/** Les bulles de la maquette : encre à droite pour toi, carte à gauche pour l'assistant. */
+function Bubble({ from, children }: BubbleProps) {
+  if (from === 'me') {
+    return (
+      <div
+        className="self-end whitespace-pre-wrap text-[15px] leading-[1.5]"
+        style={{ maxWidth: '70%', padding: '14px 18px', borderRadius: '20px 20px 6px 20px', background: 'var(--ink-fixed)', color: 'var(--paper-fixed)' }}
+      >
+        {children}
+      </div>
+    );
+  }
+  return (
+    <div className="flex gap-[10px]" style={{ maxWidth: 'calc(70% + 40px)' }}>
+      <span
+        aria-hidden="true"
+        className="grid h-[34px] w-[34px] flex-none place-items-center rounded-m"
+        style={{ background: 'linear-gradient(135deg, var(--mm-violet-f), var(--mm-violet-n))', color: 'var(--paper-fixed)' }}
+      >
+        <Icon name="sparkles" size={16} />
+      </span>
+      <div
+        className="whitespace-pre-wrap text-[15px] leading-[1.55]"
+        style={{ padding: '14px 18px', borderRadius: '20px 20px 20px 6px', background: 'var(--bento)', border: '1px solid var(--line)' }}
+      >
+        {children}
+      </div>
     </div>
   );
 }

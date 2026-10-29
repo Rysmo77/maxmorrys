@@ -1,36 +1,10 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, Field, GlassPanel, Icon, IconButton, LessonRow, Num, SearchPill, Skeleton, Tag } from '@ds';
-import SpaceSplit from '../components/SpaceSplit';
+import { Button, Field, Icon, Num, SearchPill, Skeleton, Tag } from '@ds';
 import { useFormat } from '../../../hooks/useFormat';
+import { openRysmo } from '../../../lib/rysmo/conversation';
 import type { Note } from '../../../lib/firestore';
-
-import Bento from '../../../components/formations/Bento';
-/**
- * ═══════════════════════════════════════════════════════════════════════════════
- * L'ÉCRAN « MES NOTES » — le cinquième des écrans qui portent la barre d'onglets.
- *
- * Recomposé sur `ui_kits/plateforme/ScreensNotes.js` § MesNotes : un compte en tête, une
- * étiquette qui dit qui les lit, la liste en lignes, et l'encart de vérité en pied.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * CE QUI A DISPARU, ET POURQUOI
- *
- * · « LA PRISE DE NOTES AUGMENTE LA RÉTENTION DE 40 % ». Un chiffre d'étude que le produit ne
- *   mesure pas, ne cite pas, et ne peut pas prouver. Il est remplacé par ce que les notes
- *   font réellement ici : elles survivent au cours et suivent d'un appareil à l'autre.
- *
- * · LES DEUX COMMANDES AU SURVOL. Modifier et supprimer n'apparaissaient qu'au survol
- *   (`opacity-0 group-hover:opacity-100`) : sur un écran tactile, où il n'y a pas de survol,
- *   les deux commandes étaient invisibles et atteintes par accident. Elles sont désormais
- *   posées en permanence, à la taille de cible exigée.
- *
- * POURQUOI LA LIGNE N'EST PAS CLIQUABLE. Le contrat de <LessonRow> demande de ne pas mettre
- * de contrôle dans son `trailing` ; le kit en met un lui-même sur l'écran de mémoire. Il est
- * tranché ici par le HTML : une ligne cliquable est un `<button>`, et un bouton de
- * suppression à l'intérieur d'un bouton est invalide. La ligne reste donc inerte, et porte
- * ses deux commandes nommées.
- * ═══════════════════════════════════════════════════════════════════════════════
- */
+import { CardEmpty, EduCard, EduHead, EduPage } from '../../../components/edu/g4/EduParts';
 
 interface NotesTabProps {
   notes: Note[];
@@ -51,6 +25,18 @@ interface NotesTabProps {
   addToast: (type: 'success' | 'error', message: string) => void;
 }
 
+/**
+ * MES NOTES — maquette `Edu-Notes` (+ `-mobile`), passe 2 lot B.
+ *
+ * Trois colonnes au bureau : la liste (recherche + compte), la note ouverte (ou le
+ * formulaire, à la même place), et le panneau « Cette note ». Sous 1080 px, les colonnes
+ * s'empilent : liste, note, panneau.
+ *
+ * Écarts assumés à la maquette, faute de producteur : pas d'onglets par thème (une note
+ * ne porte pas de thème en base), pas d'horodatage vidéo, ni « Partager au Club », ni
+ * « Exporter » — des boutons qui ne feraient rien. « Demander à Rysmo IA de relire » est
+ * réel : il ouvre l'assistant avec la note en question.
+ */
 export default function NotesTab({
   notes,
   filteredNotes,
@@ -71,9 +57,10 @@ export default function NotesTab({
 }: NotesTabProps) {
   const { t } = useTranslation('lmsTabs');
   const { formatDate } = useFormat();
-
-  /* La date du relevé : l'instant de la lecture qui a produit cette liste. */
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const asOf = new Date();
+
+  const selected = filteredNotes.find((n) => n.id === selectedId) ?? filteredNotes[0] ?? null;
 
   const handleSave = async () => {
     const result = await onSaveNote();
@@ -86,152 +73,160 @@ export default function NotesTab({
 
   const handleDelete = async (noteId: string) => {
     const success = await onDeleteNote(noteId);
-    if (success) addToast('success', t('notes.toastDeleted'));
-    else if (success === false) addToast('error', t('notes.toastDeleteError'));
+    if (success) {
+      addToast('success', t('notes.toastDeleted'));
+      setSelectedId(null);
+    } else if (success === false) addToast('error', t('notes.toastDeleteError'));
   };
 
-  /* ── Le formulaire prend tout l'écran : écrire une note n'est pas une tâche de côté. ── */
-  if (showNoteForm) {
-    return (
-      <div className="mx-auto max-w-4xl px-[18px] py-6">
-        <p className="mm-eyebrow m-0">{t('notes.screenTitle')}</p>
-        {/* <h2> et non <h1> : le titre de la page reste « Mes notes », porté par la barre
-            haute. Celui-ci nomme la SECTION ouverte par-dessus la liste. */}
-        <h2 className="mt-[6px] font-display text-dsp-xs text-ink">
-          {editingNote ? t('notes.editTitle') : t('notes.newTitle')}
-        </h2>
+  const askRysmo = (note: Note) => {
+    openRysmo(t('notes.askRysmoPrompt', { title: note.title, content: note.content.slice(0, 1200) }));
+  };
 
-        <Bento tone="hero" padding={22} className="mt-[18px]">
-          <Field
-            label={t('notes.titleLabel')}
-            value={noteForm.title}
-            onChange={(v) => setNoteForm((p) => ({ ...p, title: v }))}
-            placeholder={t('notes.titlePlaceholder')}
-            maxLength={200}
-            style={{ marginTop: 0 }}
-          />
-          <Field
-            as="textarea"
-            label={t('notes.contentLabel')}
-            value={noteForm.content}
-            onChange={(v) => setNoteForm((p) => ({ ...p, content: v }))}
-            placeholder={t('notes.contentPlaceholder')}
-            rows={10}
-          />
-          <div className="mt-[17px] flex gap-[8px]">
-            <Button tone="quiet" onClick={() => setShowNoteForm(false)}>{t('notes.cancel')}</Button>
-            <Button
-              tone="forme"
-              onClick={() => void handleSave()}
-              disabled={savingNote || !noteForm.title.trim()}
-              loading={savingNote}
-            >
-              {savingNote ? t('notes.saving') : t('notes.save')}
-            </Button>
-          </div>
-        </Bento>
+  /* ── Colonne 1 : la liste ─────────────────────────────────────────────── */
+  const list = (
+    <section className="mm-card" style={{ padding: 14 }}>
+      <SearchPill
+        label={t('notes.searchLabel')}
+        labelHidden
+        placeholder={t('notes.searchPlaceholder')}
+        value={noteSearch}
+        onChange={setNoteSearch}
+        height={44}
+        icon={<Icon name="search" size={16} strokeWidth={2.4} />}
+      />
+      <div className="mm-tabs mb-[10px] mt-[10px] flex" role="group" aria-label={t('notes.searchLabel')}>
+        <button type="button" aria-pressed="true" style={{ flex: 1 }}>
+          {t('notes.allTab')} · <Num value={loadingNotes ? null : notes.length} source="db" asOf={asOf} />
+        </button>
       </div>
-    );
-  }
-
-  return (
-    <div className="mx-auto max-w-4xl px-[18px] py-6 wide:max-w-none wide:px-pane">
-      {/*
-        ── L'ENCART DE VÉRITÉ DEVIENT LE PANNEAU PERMANENT ─────────────────────────
-        `handoff_tableaux_de_bord` ne dessine pas cet écran. Il donne en revanche la règle
-        qui décide ce qu'un panneau de 340 px a le droit de porter : « une page sans panneau
-        n'affiche pas un panneau vide », et le seul gain réel de la largeur est de faire
-        d'une chose qu'on OUVRE une chose qu'on VOIT.
-
-        L'encart de vérité était en bas, après la liste. Il se lisait donc une fois, le
-        premier jour, puis jamais — c'est-à-dire qu'il disparaissait à mesure que la liste
-        grandissait, exactement au moment où sa mise en garde commence à servir. C'est
-        l'argument que `NotificationCenter` écrit déjà pour son propre aveu : « il ne vivait
-        que dans l'état vide ; dès la première notification, la phrase qui dit "aucun e-mail
-        ne part" disparaissait ».
-
-        En colonne, il reste. Et il ne coûte rien : c'est du texte traduit, pas une lecture.
-        En dessous de 1080 px, `SpaceSplit` le remet là où il était — sous la liste.
-      */}
-      <SpaceSplit
-        asideLabel={t('notes.truthTitle')}
-        aside={(
-          <GlassPanel level="truth">
-            <p className="mm-eyebrow m-0 mb-[6px]">{t('notes.truthTitle')}</p>
-            <p className="m-0 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
-              {t('notes.truthBody')}
-            </p>
-          </GlassPanel>
-        )}
-      >
-
-      {/* Le titre de l'écran est celui de la barre haute de `AppShell`, alimentée par
-          `titleMap` — donc pour chaque route sans exception. En rendre un second ici donnait
-          DEUX <h1> par écran et le même mot écrit deux fois à quinze centimètres d'intervalle.
-          C'est la décision déjà prise pour les dix-neuf écrans de console (`ConsolePage`). */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="m-0 text-meta-2" style={{ color: 'var(--text-muted)' }}>
-            <Num value={notes.length} source="db" asOf={asOf} /> {t('notes.countLabel')}
-          </p>
-        </div>
-        <Tag>{t('notes.privateTag')}</Tag>
-      </div>
-
-      <div className="mt-[14px] flex flex-wrap items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <SearchPill
-            label={t('notes.searchLabel')}
-            labelHidden
-            placeholder={t('notes.searchPlaceholder')}
-            value={noteSearch}
-            onChange={setNoteSearch}
-            height={48}
-            icon={<Icon name="search" size={17} strokeWidth={2.4} />}
-          />
-        </div>
-        <Button tone="forme" size="sm" fullWidth={false} onClick={openNewNote}>{t('notes.newNote')}</Button>
-      </div>
-
       {loadingNotes ? (
-        <div className="mt-[14px] grid gap-[8px]">
-          {[0, 1, 2].map((i) => <Skeleton key={i} height={62} radius="var(--r-m)" label={t('notes.loadingLabel')} />)}
+        <div className="grid gap-2">
+          {[0, 1, 2].map((i) => <Skeleton key={i} height={58} radius="var(--r-m)" label={t('notes.loadingLabel')} />)}
         </div>
       ) : filteredNotes.length === 0 ? (
-        <Bento tone="hero" padding={22} className="mt-[14px]">
-          <EmptyState
-            glyph={<Icon name="comment" size={26} style={{ color: 'var(--mm-bleu)' }} />}
-            glyphBackground="color-mix(in srgb, var(--mm-bleu) 14%, transparent)"
-            title={t('notes.emptyTitle')}
-            body={t('notes.emptyText')}
-            action={<Button tone="forme" onClick={openNewNote}>{t('notes.createFirst')}</Button>}
-          />
-        </Bento>
+        <p className="m-0 px-2 py-3 text-[13px] text-ink-2">{noteSearch ? t('notes.noMatch') : t('notes.emptyTitle')}</p>
       ) : (
-        <Bento padding="6px 18px" className="mt-[14px]">
-          {filteredNotes.map((note, i) => (
-            <LessonRow
-              key={note.id}
-              state="plain"
-              icon={<Icon name="comment" size={14} />}
-              title={note.title}
-              meta={formatDate(note.updatedAt)}
-              last={i === filteredNotes.length - 1}
-              trailing={
-                <span className="flex flex-shrink-0 gap-[8px]">
-                  <IconButton label={`${t('notes.edit')} : ${note.title}`} onClick={() => openEditNote(note)}>
-                    <Icon name="pencil" size={15} />
-                  </IconButton>
-                  <IconButton label={`${t('notes.delete')} : ${note.title}`} onClick={() => void handleDelete(note.id)}>
-                    <Icon name="trash" size={15} style={{ color: 'var(--stop)' }} />
-                  </IconButton>
-                </span>
-              }
-            />
-          ))}
-        </Bento>
+        <ul className="m-0 list-none p-0">
+          {filteredNotes.map((note) => {
+            const on = !showNoteForm && selected?.id === note.id;
+            return (
+              <li key={note.id}>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedId(note.id); setShowNoteForm(false); }}
+                  aria-current={on ? 'true' : undefined}
+                  className="block w-full rounded-m border-0 p-[14px] text-left text-ink"
+                  style={{ background: on ? 'var(--mm-bleu-c)' : 'transparent', cursor: 'pointer' }}
+                >
+                  <b className="block text-[14.5px]">{note.title}</b>
+                  <span className="text-[12.5px] text-ink-2">{formatDate(note.updatedAt)}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       )}
-      </SpaceSplit>
-    </div>
+    </section>
+  );
+
+  /* ── Colonne 2 : la note ouverte, ou le formulaire ────────────────────── */
+  const center = showNoteForm ? (
+    <section className="mm-card" style={{ padding: 30 }}>
+      <h2 className="mm-d mb-4 text-[28px] stack:text-[36px]">{editingNote ? t('notes.editTitle') : t('notes.newTitle')}</h2>
+      <Field
+        label={t('notes.titleLabel')}
+        value={noteForm.title}
+        onChange={(v) => setNoteForm((p) => ({ ...p, title: v }))}
+        placeholder={t('notes.titlePlaceholder')}
+        maxLength={200}
+        style={{ marginTop: 0 }}
+      />
+      <Field
+        as="textarea"
+        label={t('notes.contentLabel')}
+        value={noteForm.content}
+        onChange={(v) => setNoteForm((p) => ({ ...p, content: v }))}
+        placeholder={t('notes.contentPlaceholder')}
+        rows={12}
+      />
+      <div className="mt-[17px] flex gap-2">
+        <Button tone="quiet" fullWidth={false} onClick={() => setShowNoteForm(false)}>{t('notes.cancel')}</Button>
+        <Button
+          tone="forme"
+          fullWidth={false}
+          onClick={() => void handleSave()}
+          disabled={savingNote || !noteForm.title.trim()}
+          loading={savingNote}
+        >
+          {savingNote ? t('notes.saving') : t('notes.save')}
+        </Button>
+      </div>
+    </section>
+  ) : selected ? (
+    <article className="mm-card wide:min-h-[620px]" style={{ padding: 30 }}>
+      <div className="mb-[18px] flex flex-wrap items-center gap-2">
+        <Tag>{t('notes.privateTag')}</Tag>
+        <span className="ml-auto text-[12px] text-ink-3">
+          {t('notes.savedLabel')} · {formatDate(selected.updatedAt)}
+        </span>
+      </div>
+      <h2 className="mm-d mb-4 text-[28px] stack:text-[36px]">{selected.title}</h2>
+      <div className="whitespace-pre-wrap text-[16px] leading-[1.7]" style={{ maxWidth: '62ch' }}>{selected.content}</div>
+    </article>
+  ) : (
+    <section className="mm-card wide:min-h-[620px]" style={{ padding: 30 }}>
+      <CardEmpty
+        icon="comment"
+        title={t('notes.emptyTitle')}
+        body={t('notes.emptyText')}
+        action={<Button tone="forme" size="sm" fullWidth={false} onClick={openNewNote}>{t('notes.createFirst')}</Button>}
+      />
+    </section>
+  );
+
+  /* ── Colonne 3 : cette note ───────────────────────────────────────────── */
+  const aside = (
+    <>
+      {selected && !showNoteForm && (
+        <EduCard title={t('notes.thisNote')}>
+          <div className="flex flex-col gap-2">
+            <button type="button" className="mm-btn is-sm" style={{ background: 'var(--mm-violet-f)', color: 'var(--paper-fixed)' }} onClick={() => askRysmo(selected)}>
+              {t('notes.askRysmo')}
+            </button>
+            <button type="button" className="mm-btn is-sm is-quiet" onClick={() => openEditNote(selected)}>
+              <Icon name="pencil" size={15} /> {t('notes.edit')}
+            </button>
+            <button type="button" className="mm-btn is-sm is-quiet" style={{ color: 'var(--stop)' }} onClick={() => void handleDelete(selected.id)}>
+              <Icon name="trash" size={15} /> {t('notes.delete')}
+            </button>
+          </div>
+        </EduCard>
+      )}
+      <EduCard style={{ background: 'var(--paper-2)' }}>
+        <h3 style={{ fontSize: 16 }}>{t('notes.truthTitle')}</h3>
+        <p className="m-0 mt-2 text-[13.5px] text-ink-2">{t('notes.truthBody')}</p>
+      </EduCard>
+    </>
+  );
+
+  return (
+    <EduPage>
+      <EduHead
+        eyebrow={t('notes.eyebrow')}
+        title={t('notes.screenTitle')}
+        aside={
+          <button type="button" className="mm-pill is-sm" onClick={openNewNote}>
+            {t('notes.newNote')}
+            <i><Icon name="plus" size={15} /></i>
+          </button>
+        }
+      />
+      <div className="grid grid-cols-1 items-start gap-5 wide:[grid-template-columns:300px_minmax(0,1fr)_300px]">
+        {list}
+        {center}
+        <div className="flex flex-col gap-5">{aside}</div>
+      </div>
+    </EduPage>
   );
 }

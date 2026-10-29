@@ -318,5 +318,81 @@
     "toastError": "Couldn’t add you to the list. Try again in a moment.",
     "catalogTitle": "Nothing is open yet.",
     "catalogBody": "The courses below are announced, not live yet. You can see their outline and price, and ask to be notified the day they open."
+  },
+  "v3": {
+    "coverKickerShort": "Edu",
+    "catalog": {
+      "script": "The catalogue",
+      "title1": "Every",
+      "title2": "course.",
+      "lede": "Paid once, yours for good. Free lessons in each one, so you can judge before you buy.",
+      "levelAll": "All",
+      "once": "One-off",
+      "clubNote": "Club member: −{{pct}}% applied at checkout."
+    },
+    "team": {
+      "eyebrow": "Team training",
+      "title": "Training your whole team?",
+      "body": "A course tailored to your company, on quote. Tell me how many of you there are and what you want to be able to do.",
+      "company": "Company",
+      "size": "Number of people",
+      "goal": "What the team needs to be able to do",
+      "cta": "Request a quote",
+      "send": "Send the request",
+      "teamPrefix": "Team:",
+      "sentTitle": "Request saved.",
+      "sentBody": "The request for {{company}} is saved. I'll reply by email with a proposal."
+    },
+    "pre": {
+      "newsTitle": "New courses, first.",
+      "newsBody": "The letter, every two weeks: what was published, new courses included. Nothing else.",
+      "emailLabel": "Your email",
+      "subscribe": "Subscribe",
+      "guideTitle": "What guides every course.",
+      "g1Title": "Short and concrete",
+      "g1Body": "Short lessons, designed to be applied to your real project.",
+      "g2Title": "Paid once",
+      "g2Body": "Wave, Orange Money or card. Access is yours for good, no hidden subscription.",
+      "g3Title": "Verifiable",
+      "g3Body": "Every certificate has a public code. An employer checks it without creating an account.",
+      "ctaTitle": "Ready to start?",
+      "ctaBody": "Start with the free lessons, no account needed.",
+      "ctaButton": "See the courses"
+    },
+    "sheet": {
+      "back": "Courses",
+      "factMissions": "missions",
+      "readFree": "Read a free lesson",
+      "previewOf": "Preview · {{title}}",
+      "clubPrice": "Club member:",
+      "methods": "Wave · Orange Money · card",
+      "methodsNote": "access on confirmation, yours for good",
+      "noAccount": "no account needed",
+      "certTitle": "Verifiable certificate",
+      "certNote": "issued server-side",
+      "learnTitle": "By the end, you'll be able to",
+      "learnNote_one": "{{count}} module, in the order you follow it.",
+      "learnNote_other": "{{count}} modules, in the order you follow them.",
+      "program_one": "{{lessons}} lessons, in {{count}} module.",
+      "program_other": "{{lessons}} lessons, in {{count}} modules.",
+      "programSoon_one": "{{count}} module in the programme.",
+      "programSoon_other": "{{count}} modules in the programme.",
+      "freeTag_one": "{{count}} free lesson, no account",
+      "freeTag_other": "{{count}} free lessons, no account",
+      "free": "free",
+      "certEyebrow": "Certificate of completion",
+      "yourName": "Your name",
+      "certCode": "verifiable by code, no account",
+      "certRule": "Issued once every lesson is validated server-side.",
+      "trainerRole": "Your trainer · Dakar",
+      "trainerBio": "Digital marketing lead and trainer. He writes and updates every lesson himself.",
+      "faqTitle": "Questions before buying",
+      "faq": {
+        "q1": "How do I pay?",
+        "a1": "Wave, Orange Money or card, on the secure payment page. Access opens as soon as the payment is confirmed.",
+        "q2": "Does it work on my phone?",
+        "a2": "Yes. Lessons run in your phone's browser, and in the Rysmo app."
+      }
+    }
   }
 }

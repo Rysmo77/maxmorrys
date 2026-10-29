@@ -58,46 +58,273 @@
   },
   "edu": {
     "methode": {
-      "eyebrow": "Edu · Method",
       "title": "The method",
-      "empty": "This page is being written.",
-      "body": "It will explain how a course works: short lessons, module quizzes, reviewed missions and cohort lives. The catalogue is already open."
+      "seoTitle": "The method — learn by doing | Max-Morrys Edu",
+      "seoDescription": "You read before you pay, practise on your real project, your cohort reviews, and your certificate can be checked by code.",
+      "script": "The method",
+      "titleLines": [
+        "Learn",
+        "by doing."
+      ],
+      "lede": "A simple method: you read before you pay, you practise on your real project, your cohort reviews, and your certificate can be verified.",
+      "ctaCourses": "See the courses",
+      "steps": {
+        "eyebrow": "Four steps",
+        "title": "From the first lesson to the certificate.",
+        "read": {
+          "title": "You read before you pay",
+          "body": "Free lessons in every course, no account needed. You judge for yourself."
+        },
+        "practice": {
+          "title": "You practise, Rysmo IA supports you",
+          "body": "Every lesson ends with a mission on your real project. Rysmo IA answers about the open lesson."
+        },
+        "cohort": {
+          "title": "Your cohort reviews, Max hosts",
+          "body": "People who started the same month review your mission. One live session a month for your cohort."
+        },
+        "cert": {
+          "title": "You get a verifiable certificate",
+          "body": "Issued once every lesson is validated server-side. Verifiable by code."
+        }
+      },
+      "lesson": {
+        "eyebrow": "A typical lesson",
+        "title": "Under 12 minutes, one thing to do.",
+        "body1": "Each lesson fits in a bus ride. The video's file size is shown before you play it, and you can keep it offline.",
+        "body2": "What validates a lesson isn't having watched it: it's having done the mission.",
+        "parts": {
+          "text": {
+            "title": "The text",
+            "body": "Readable without sound, in a few minutes."
+          },
+          "mission": {
+            "title": "The mission",
+            "body": "One thing to do, on your project."
+          },
+          "rysmo": {
+            "title": "Rysmo IA",
+            "body": "Your questions about this lesson."
+          },
+          "review": {
+            "title": "The review",
+            "body": "By your cohort, if you want."
+          }
+        }
+      },
+      "cohort": {
+        "eyebrow": "The cohort",
+        "title": "Your own pace. Never alone.",
+        "body": "Your cohort is the people who started the same course the same month as you. You join if you want, you leave whenever you want.",
+        "ticks": {
+          "review": "You review each other's missions",
+          "live": "Max hosts one live session a month for your cohort, with replay",
+          "progress": "You see where the others are, with no ranking"
+        },
+        "module": "Module {{n}}",
+        "legend": "Where a cohort stands, module by module · orange is your module",
+        "illustration": "illustration"
+      },
+      "diff": {
+        "title": "What makes the difference",
+        "items": {
+          "mission": {
+            "title": "Mission or nothing",
+            "body": "A lesson is only validated once its mission is handed in."
+          },
+          "review": {
+            "title": "Peer review",
+            "body": "You review two missions, others review yours."
+          },
+          "live": {
+            "title": "Cohort live",
+            "body": "A monthly session, questions from your cohort."
+          },
+          "rysmo": {
+            "title": "Rysmo IA alongside",
+            "body": "Your questions about the open lesson, quota visible."
+          },
+          "offline": {
+            "title": "Offline",
+            "body": "Keep lessons on your phone, file size shown."
+          },
+          "cert": {
+            "title": "Verifiable certificate",
+            "body": "A public code, no account, impossible to alter."
+          }
+        }
+      }
     },
     "assistant": {
-      "eyebrow": "Edu · Rysmo",
-      "title": "Rysmo AI, your assistant",
-      "empty": "This page is being written.",
-      "body": "It will present the learning assistant: what it can do, its quotas, and what it does not do. If you have an account, it is already waiting in your space."
+      "title": "Rysmo IA, your assistant",
+      "seoTitle": "Rysmo IA, the course assistant | Max-Morrys Edu",
+      "seoDescription": "Rysmo IA answers about the lesson in front of you, at any hour. Your daily quota is shown before every question.",
+      "script": "Your assistant",
+      "heroTitle": "Rysmo IA.",
+      "lede": "It answers about the lesson in front of you, at any hour. Your daily quota is shown before every question.",
+      "cta": "Start a course",
+      "demoLabel": "Example exchange with Rysmo IA",
+      "demoHead": "Rysmo IA · on the open lesson",
+      "demoQ": "Here's my description: “Cheap, fast dry cleaning, Dakar.”",
+      "demoA": "Too vague for a customer. Name your neighbourhood and what you do best: your turnaround, delivery, what sets you apart.",
+      "demoTag": "example conversation",
+      "quota": {
+        "eyebrow": "How many questions",
+        "title": "A clear quota, shown upfront.",
+        "perDay": "questions a day",
+        "base": {
+          "label": "With your account",
+          "body": "Included, on every lesson of your courses."
+        },
+        "club": {
+          "label": "Club member",
+          "body": "{{base}} + {{bonus}} more with the Club membership."
+        },
+        "pack": {
+          "label": "Top-up pack",
+          "unit": "extra questions",
+          "body": "Use them whenever you like. Packs and their prices are shown in your space, before any payment."
+        },
+        "reset": "The quota resets every day at midnight, Dakar time."
+      },
+      "limits": {
+        "eyebrow": "The limits",
+        "title": "What Rysmo IA doesn't do.",
+        "items": {
+          "missions": {
+            "title": "It doesn't do your missions",
+            "body": "It helps you do them, it doesn't hand them in for you."
+          },
+          "validate": {
+            "title": "It doesn't validate a lesson",
+            "body": "Only the server validates, once your mission is handed in."
+          },
+          "lesson": {
+            "title": "It stays on the lesson",
+            "body": "It points you back to the lesson when the answer is already there."
+          },
+          "memory": {
+            "title": "It doesn't remember without you",
+            "body": "Memory stays off until you turn it on."
+          }
+        }
+      }
     },
     "agenda": {
       "eyebrow": "My school",
       "title": "Agenda",
-      "empty": "Nothing is scheduled here yet.",
-      "body": "Cohort lives, quizzes due and Club sessions will appear here as soon as they are dated on the server."
+      "empty": "Nothing planned yet.",
+      "body": "Dated Club sessions and events show up here. Cohort lives will be added as soon as they are scheduled.",
+      "bodyNoClub": "Cohort lives and Club sessions will show up here as soon as they are dated.",
+      "upcomingTitle": "Coming up",
+      "remindersTitle": "Reminders",
+      "remindersEmpty": "No reminders yet.",
+      "remindersBody": "Reminders before a live are not available yet. Your space notifications stay on.",
+      "prevWeek": "Previous week",
+      "nextWeek": "Next week",
+      "clubHint": "Club sessions show up here once you are a member.",
+      "clubLink": "Discover the Club"
     },
     "cohorte": {
       "eyebrow": "My school",
       "title": "My cohort",
-      "empty": "You are not part of a cohort yet.",
-      "body": "When a cohort opens for your course, you will see its progress by module, the next live and the missions to review here. No name will ever be ranked."
+      "empty": "No cohort is open for your course yet.",
+      "body": "Once it opens, each module will show how many members have reached it — everyone at their own pace, with no ranking and no names.",
+      "liveEyebrow": "Cohort live · with Max-Morrys",
+      "liveNone": "No live scheduled",
+      "liveNoneBody": "The next live will show here with its date, time (GMT) and link as soon as it is scheduled.",
+      "liveRoom": "Live room",
+      "liveAgenda": "See my agenda",
+      "progressTitle": "Where the cohort stands",
+      "progressMeta": "everyone at their own pace",
+      "reviewTitle": "Missions to review",
+      "reviewTabTodo": "To review",
+      "reviewTabDone": "Reviewed",
+      "reviewTabAll": "All",
+      "reviewEmpty": "No mission to review.",
+      "reviewBody": "Missions handed in by your cohort will land here. Feedback = what works + one thing to change.",
+      "myMissionsTitle": "My missions",
+      "myMissionsEmpty": "No mission under review.",
+      "myMissionsBody": "The missions you hand in to your cohort and their feedback will show here.",
+      "myMissionsLink": "See my missions",
+      "membersTitle": "Members",
+      "membersEmpty": "Nobody yet.",
+      "membersBody": "Only people who have joined the cohort will appear here.",
+      "rulesTitle": "Cohort rules",
+      "rule1": "We review the mission, not the person.",
+      "rule2": "Feedback = what works + one thing to change.",
+      "rule3": "What is said in a live stays in the cohort."
     },
     "live": {
       "eyebrow": "My cohort",
       "title": "Cohort live",
-      "empty": "No live is scheduled.",
-      "body": "The next live will show here with its exact time (GMT) and its link. Missions without feedback for 48 hours are reviewed there."
+      "empty": "No live right now.",
+      "body": "When a live is scheduled, you will find it in your agenda with its exact time (GMT), and the room will open here.",
+      "agenda": "See my agenda",
+      "programTitle": "On the agenda",
+      "programEmpty": "No running order yet.",
+      "programBody": "The running order is published with the live: welcome, reviews, your questions, the next mission.",
+      "reviewEyebrow": "Reviewed live",
+      "reviewTitle": "A mission reviewed in front of the cohort",
+      "reviewBody": "Always with the person's consent. What works, one thing to change, and why.",
+      "questionsTab": "Questions",
+      "chatTab": "Chat",
+      "questionsEmpty": "No questions yet.",
+      "chatEmpty": "The chat is closed.",
+      "questionsBody": "Questions and chat open when a live is scheduled. The most upvoted go first.",
+      "askPlaceholder": "Your question for Max",
+      "askNote": "The most upvoted questions go first."
     },
     "missions": {
       "eyebrow": "My school",
       "title": "Missions and reviews",
-      "empty": "No mission to hand in or review.",
-      "body": "Your module missions and your cohort's missions to review will appear here. Review rule: what works, plus one thing to change."
+      "empty": "No mission to hand in for now.",
+      "body": "Every module ends with a mission on your real project. They show up here once you take a course.",
+      "allDone": "All your missions are done.",
+      "crumbLabel": "Mission breadcrumb",
+      "crumbMission": "Mission",
+      "lesson": "Lesson {{n}}",
+      "eyebrowXp": "Mission {{n}} · +{{xp}} XP",
+      "contentSoon": "The brief for this mission is on its way.",
+      "mine": "My mission",
+      "todo": "to do",
+      "done": "done",
+      "depositSoon": "Handing in your mission from your space isn't open yet. Do it on your project, then complete it from the lesson.",
+      "openLesson": "Open the lesson",
+      "allTitle": "All your missions",
+      "reviewsTitle": "Feedback from your cohort",
+      "reviewsEmpty": "No feedback yet. Peer reviews will open with cohorts: what works, plus one thing to change.",
+      "turnTitle": "Your turn: nothing to review",
+      "turnBody": "When your cohort hands in its missions, the ones to review will show up here."
     },
     "quiz": {
       "eyebrow": "My school",
       "title": "Module quiz",
-      "empty": "This quiz is not available yet.",
-      "body": "Quizzes are taken from your courses. Your answer will count towards validating the module, and the assistant is paused during the quiz."
+      "empty": "This quiz isn't available yet.",
+      "body": "A quiz opens here when the module you're taking has one. Your courses are under My courses.",
+      "crumbLabel": "Quiz breadcrumb",
+      "crumbCourses": "My courses",
+      "crumbQuiz": "Quiz",
+      "module": "Module {{n}} · {{title}}",
+      "question": "Question {{n}} / {{total}}",
+      "correct": "correct",
+      "answersLabel": "Possible answers",
+      "right": "Correct.",
+      "wrong": "Not quite. The right answer: {{answer}}",
+      "next": "Next question",
+      "finish": "See my result",
+      "result": "Your result",
+      "pass": "No mistakes. Save it in the lesson to complete the module.",
+      "passDone": "No mistakes. This quiz is already completed in your course.",
+      "fail": "You need every answer right to pass. You can retake it as often as you like.",
+      "restart": "Start over",
+      "source": "Module quiz scoring",
+      "reviewModule": "Review the module",
+      "save": "Complete it in the lesson",
+      "trackTitle": "Your progress",
+      "rule": "Getting every answer right completes the quiz. You can retake it as often as you like.",
+      "rysmoTitle": "Rysmo AI, after the quiz",
+      "rysmoBody": "Answer on your own first. Once the quiz is done, Rysmo AI can explain your mistakes on the lesson."
     }
   },
   "club": {

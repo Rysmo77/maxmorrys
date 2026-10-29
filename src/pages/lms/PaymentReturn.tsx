@@ -2,9 +2,9 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { Button, Icon, Mesh, Num, Tag, type TagTone } from '@ds';
+import { Icon, Num, Tag, type TagTone } from '@ds';
 import { db } from '../../config/db';
-import { SiteDisplay, useReveal } from '../../components/site';
+import { useReveal } from '../../components/site';
 import DsNavHost from '../../components/layout/DsNavHost';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 import { trackPurchase } from '../../lib/tracking';
@@ -14,7 +14,7 @@ import { getClubSubscription } from '../../lib/firestore';
 import { estMembreActif } from '../../lib/club/membership';
 import type { Transaction } from '../../types';
 
-import Bento from '../../components/formations/Bento';
+import PayStepper from '../../components/edu/g2/PayStepper';
 /**
  * L'ATTENTE DE PAIEMENT — LE PREMIER DES DEUX SEULS MOMENTS SCÉNARISÉS DU SYSTÈME.
  *
@@ -62,7 +62,7 @@ export default function PaymentReturn() {
   const { t } = useTranslation('lms');
   const [searchParams] = useSearchParams();
   const transactionId = searchParams.get('transactionId');
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const path = useLocalizedPath();
   const reveal = useReveal<HTMLDivElement>();
 
@@ -150,6 +150,7 @@ export default function PaymentReturn() {
 
   const issue = ISSUE[status];
   const asOf = transaction?.createdAt ? new Date(transaction.createdAt) : new Date();
+  const prenom = (userData?.displayName || user?.displayName || '').trim().split(/\s+/)[0] ?? '';
 
   const statusLabel = {
     loading: t('paymentReturn.statusChecking'),
@@ -158,17 +159,21 @@ export default function PaymentReturn() {
     failed: t('paymentReturn.statusFailed'),
   }[status];
 
-  const titleLines = {
-    loading: t('paymentReturn.verifyingTitleLines', { returnObjects: true }),
-    pending: t('paymentReturn.pendingTitleLines', { returnObjects: true }),
-    completed: t('paymentReturn.confirmedTitleLines', { returnObjects: true }),
-    failed: t('paymentReturn.failedTitleLines', { returnObjects: true }),
-  }[status] as string[];
+  /* Le titre en capitales de la maquette : « C'est parti, Aïssatou. » avec le prénom RÉEL
+     du compte, et sans prénom quand on ne le connaît pas — jamais un prénom d'exemple. */
+  const title = {
+    loading: (t('paymentReturn.verifyingTitleLines', { returnObjects: true }) as string[]).join(' '),
+    pending: (t('paymentReturn.pendingTitleLines', { returnObjects: true }) as string[]).join(' '),
+    completed: prenom ? t('welcomeV3.titleNamed', { name: prenom }) : t('welcomeV3.title'),
+    failed: (t('paymentReturn.failedTitleLines', { returnObjects: true }) as string[]).join(' '),
+  }[status];
 
   const lede = {
     loading: t('paymentReturn.verifyingText'),
     pending: t('paymentReturn.pendingText'),
-    completed: t('paymentReturn.confirmedText', { title: transaction?.formationTitle ?? '' }),
+    completed: transaction?.formationTitle
+      ? t('welcomeV3.lede', { title: transaction.formationTitle })
+      : t('welcomeV3.ledeNoTitle'),
     failed: t('paymentReturn.failedText'),
   }[status];
 
@@ -179,198 +184,157 @@ export default function PaymentReturn() {
     failed: t('paymentReturn.failedFoot'),
   }[status];
 
-  let actions: ReactNode = null;
-  if (status === 'completed') {
-    actions = (
-      <>
-        {transaction?.formationSlug && (
-          <Button tone="digitalise" href={path(`/cours/${transaction.formationSlug}`)} className="rv" style={{ ['--i' as string]: 6, marginTop: '20px' }}>
-            {t('paymentReturn.startCourse')}
-          </Button>
-        )}
-        <Button tone="quiet" fullWidth href={path('/mon-espace')} className="rv" style={{ ['--i' as string]: 7, marginTop: '10px' }}>
-          {t('paymentReturn.goToSpace')}
-        </Button>
-      </>
-    );
-  } else if (status === 'failed') {
-    /*
-      ── LE CHEMIN DE REPRISE, QUI AVAIT DISPARU DE L'ÉCRAN D'ÉCHEC ────────────────────────
-      La maquette (`screens-pay-end.jsx` § Echec) donne comme action PRIMAIRE « Réessayer »,
-      et en secondaire « Revenir à la formation ». Ici, le primaire renvoyait au CATALOGUE et
-      le secondaire au formulaire de contact : quelqu'un dont le paiement vient d'échouer
-      devait retrouver seul sa formation, puis refaire tout le tunnel. La clé
-      `paymentReturn.retry` existait, et n'était appelée nulle part.
-
-      Le pied de l'écran dit « ta commande reste ouverte 24 h » — encore faut-il une porte
-      pour y revenir. Elle mène au tunnel de la formation concernée quand on la connaît ; à
-      défaut seulement, au catalogue.
-    */
-    const retryHref = transaction?.formationSlug
-      ? path(`/checkout/${transaction.formationSlug}`)
-      : path('/formations');
-    actions = (
-      <>
-        <Button tone="forme" href={retryHref} className="rv" style={{ ['--i' as string]: 6, marginTop: '20px' }}>
-          {transaction?.formationSlug ? t('paymentReturn.retry') : t('paymentReturn.backToFormations')}
-        </Button>
-        {transaction?.formationSlug && (
-          <Button tone="quiet" fullWidth href={path(`/formations/${transaction.formationSlug}`)} className="rv" style={{ ['--i' as string]: 7, marginTop: '10px' }}>
-            {t('paymentReturn.backToFormation')}
-          </Button>
-        )}
-        <Button tone="quiet" fullWidth href={path('/contact')} className="rv" style={{ ['--i' as string]: 8, marginTop: '10px' }}>
-          {t('paymentReturn.contactUs')}
-        </Button>
-      </>
-    );
-  } else {
-    actions = (
-      <Button tone="quiet" fullWidth href={path('/mon-espace')} className="rv" style={{ ['--i' as string]: 6, marginTop: '20px' }}>
-        {t('paymentReturn.goToSpace')}
-      </Button>
-    );
-  }
-
-  /*
-   * ── LE RETOUR VERS L'APPLICATION ─────────────────────────────────────────────────────
-   * Quelqu'un qui règle depuis son téléphone revient ICI, dans le navigateur. L'application
-   * ne lit rien dans Firestore : `rysmo://acces` lui fait relire la transaction par
-   * `appTransaction`, et elle n'annonce l'accès que si le serveur le constate.
-   *
-   * Un schéma propre, pas un lien universel : iOS n'ouvre pas une application depuis un lien
-   * du MÊME domaine que la page affichée. Montré sur téléphone seulement, et jamais après un
-   * échec — il n'y aurait rien à ouvrir.
-   */
+  /* L'application native : un lien profond, seulement sur téléphone et hors échec. */
   const surTelephone = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const lienApp = transactionId && surTelephone && status !== 'failed'
     ? `rysmo://acces?transactionId=${encodeURIComponent(transactionId)}`
     : null;
-  if (lienApp) {
+
+  let actions: ReactNode;
+  if (status === 'completed') {
     actions = (
-      <>
-        {actions}
-        <Button tone="quiet" fullWidth href={lienApp} className="rv" style={{ ['--i' as string]: 8, marginTop: '10px' }}>
-          {t('paymentReturn.openApp')}
-        </Button>
-        <p className="text-meta-2 text-ink-3 mt-2 mb-0">{t('paymentReturn.openAppHint')}</p>
-      </>
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+        <a href={path('/mon-espace')} className="text-[14px] font-semibold">{t('welcomeV3.later')}</a>
+        {transaction?.formationSlug && (
+          <a className="mm-pill" href={path(`/cours/${transaction.formationSlug}`)}>
+            {t('paymentReturn.startCourse')}
+            <i aria-hidden="true"><Icon name="arrow-up-right" size={15} /></i>
+          </a>
+        )}
+      </div>
+    );
+  } else if (status === 'failed') {
+    /* Le chemin de reprise : le tunnel de la formation concernée quand on la connaît. */
+    const retryHref = transaction?.formationSlug ? path(`/checkout/${transaction.formationSlug}`) : path('/formations');
+    actions = (
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+        <a href={path('/contact')} className="text-[14px] font-semibold">{t('paymentReturn.contactUs')}</a>
+        <div className="flex flex-wrap gap-2.5">
+          {transaction?.formationSlug && (
+            <a className="mm-pill is-plain" href={path(`/formations/${transaction.formationSlug}`)}>{t('paymentReturn.backToFormation')}</a>
+          )}
+          <a className="mm-pill" href={retryHref}>
+            {transaction?.formationSlug ? t('paymentReturn.retry') : t('paymentReturn.backToFormations')}
+            <i aria-hidden="true"><Icon name="arrow-up-right" size={15} /></i>
+          </a>
+        </div>
+      </div>
+    );
+  } else {
+    actions = (
+      <div className="mt-5 flex justify-end">
+        <a className="mm-pill is-plain" href={path('/mon-espace')}>{t('paymentReturn.goToSpace')}</a>
+      </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen isolate overflow-hidden flex items-center justify-center px-[18px] py-16">
-      <Mesh territory="forme" />
-
-      <DsNavHost className="relative z-[3] w-full max-w-[440px]">
+    <div className="min-h-screen pb-[60px]" style={{ background: 'var(--paper-2)' }}>
+      <DsNavHost>
         <div ref={reveal}>
-          {/*
-            Le glyphe du kit : 70 px, rayon 22, et les deux anneaux quand on attend.
-
-            ⚠️ L'ANNEAU N'EST PAS SUR LA TUILE — IL EN SORT. `.pulse::before` le dessine en
-            `2px solid currentColor` et l'anime jusqu'à `scale(1.85)` : à mi-course il a déjà
-            quitté les 70 px et se propage sur LE FOND DE PAGE. `color: var(--text-invert)`
-            le peignait donc en blanc sur `--surface-page`, qui est blanc — le premier des
-            deux moments scénarisés du produit ne se voyait pas en thème clair.
-
-            Le kit pose `color:'#009FE3'` sur ce même conteneur (`ScreensPay.js:31`) : le bleu
-            de l'opérateur, choisi précisément parce qu'il se lit HORS de la tuile. On prend
-            `--mm-bleu`, la teinte du territoire de la tuile, et le seul bleu du système qui
-            bascule seul — `#0057BC` en clair (5,7:1), `#6FB1FF` en nuit (8,66:1). Une valeur
-            fixe échouerait dans l'un des deux modes, comme celle-ci échouait dans l'autre.
-
-            Le glyphe, lui, garde son encre blanche : elle est portée par le `<Icon>`, sur la
-            surface colorée qui ne bascule pas.
-          */}
-          {/* L'attente porte le moment signature du kit (`mm-payring`) : deux anneaux qui
-              sortent de la tuile, en boucle tant que le paiement n'est pas confirmé. Les
-              anneaux prennent `--mm-bleu`, la seule teinte qui se lit hors de la tuile dans
-              les deux thèmes (voir plus haut). */}
-          <div
-            className={issue.pulse ? 'mm-payring rv-s' : 'rv-s'}
-            aria-hidden="true"
-            style={issue.pulse ? { color: 'var(--mm-bleu)', marginLeft: '-13px' } : undefined}
+          {/* ── LA BANDE DE NUIT ─────────────────────────────────────────────── */}
+          <section
+            className="dk relative isolate overflow-hidden px-6 pb-16 pt-7 text-center"
+            style={{ background: 'var(--night)', borderRadius: '0 0 36px 36px' }}
           >
-            <div
-              style={{
-                width: '70px', height: '70px', borderRadius: '22px', background: issue.bg,
-                display: 'grid', placeItems: 'center', position: 'relative',
-                boxShadow: 'var(--sh-bleu)',
-              }}
-            >
-              <Icon name={issue.glyph} size={30} color="var(--text-invert)" strokeWidth={issue.glyph === 'check' ? 3.4 : 2.4} />
+            <div className="mm-mesh m-edu" style={{ opacity: 0.6 }}><b /><b /><b /></div>
+            <div className="relative flex justify-center">
+              <PayStepper
+                current={status === 'completed' ? 3 : 2}
+                labels={[t('checkoutV3.step1'), t('checkoutV3.step2'), t('checkoutV3.step3')]}
+                tone="night"
+              />
             </div>
-          </div>
-
-          {/* L'attente doit s'ANNONCER, pas seulement pulser : un anneau n'est rien pour qui
-              ne le voit pas. */}
-          {issue.pulse && <span className="sr-only" role="status" aria-live="polite">{t('paymentReturn.waitingAria')}</span>}
-
-          <SiteDisplay lines={titleLines} size={30} as="h1" style={{ marginTop: '24px' }} />
-
-          <p className="rv text-lede text-ink-2 mt-3" style={{ ['--i' as string]: 4 }}>{lede}</p>
-
-          <Bento padding={17} className="rv mt-[22px]" style={{ ['--i' as string]: 5 }}>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-meta text-ink-2">{t('paymentReturn.reference')}</span>
-              {/* Une référence de transaction est une donnée de base : elle passe par <Num>,
-                  qui est le seul chemin du dépôt vers la monospace. */}
-              <Num value={transaction?.id ?? transactionId} source="db" asOf={asOf} style={{ fontSize: '13px' }} />
+            <div className="relative pt-14">
+              {/* L'attente garde le moment signature du kit (`mm-payring`) : deux anneaux qui
+                  sortent de la pastille tant que le paiement n'est pas confirmé. */}
+              <span
+                className={issue.pulse ? 'mm-payring mm-tag' : 'mm-tag'}
+                style={{
+                  background: `color-mix(in srgb, ${status === 'failed' ? 'var(--stop)' : 'var(--mm-teal-f)'} 20%, transparent)`,
+                  color: status === 'failed' ? 'var(--stop)' : 'var(--mm-teal-n)',
+                }}
+              >
+                <Icon name={issue.glyph} size={13} />
+                {statusLabel}
+                {status === 'completed' && typeof transaction?.amount === 'number' && (
+                  <> · <Num value={transaction.amount} unit={transaction.currency === 'XOF' || !transaction.currency ? 'F' : transaction.currency} source="server" asOf={asOf} showAsOf={false} /></>
+                )}
+              </span>
+              {issue.pulse && <span className="sr-only" role="status" aria-live="polite">{t('paymentReturn.waitingAria')}</span>}
+              {status === 'completed' && (
+                <span className="mm-script mt-[22px] block text-[28px] wide:text-[34px]">{t('welcomeV3.script')}</span>
+              )}
+              <h1 className="mm-up mx-auto my-3.5 max-w-[14ch] text-[color:var(--paper-fixed)]" style={{ fontSize: 'clamp(48px, 8vw, 110px)' }}>
+                {title}
+              </h1>
+              <p className="mx-auto my-0 max-w-[46ch] text-[17px] text-[color:color-mix(in_srgb,var(--paper-fixed)_80%,transparent)]">{lede}</p>
             </div>
-            <div className="flex items-center justify-between gap-3 mt-2.5">
-              <span className="text-meta text-ink-2">{t('paymentReturn.statusLabel')}</span>
-              <Tag tone={issue.tone}>{statusLabel}</Tag>
-            </div>
-            {/* Le montant RÉELLEMENT débité, écrit par la fonction serveur au moment de la
-                charge. Il n'apparaît que quand il existe : un zéro inventé serait pire. */}
-            {typeof transaction?.amount === 'number' && (
-              <div className="flex items-center justify-between gap-3 mt-2.5">
-                <span className="text-meta text-ink-2">{t('paymentReturn.amountDebited')}</span>
-                <Num value={transaction.amount} unit={transaction.currency || 'XOF'} source="server" asOf={asOf} style={{ fontSize: '13px' }} />
+          </section>
+
+          <div className="relative mx-auto -mt-[30px] max-w-[760px] px-4 stack:px-6">
+            {status === 'completed' ? (
+              /*
+                ── LES TROIS RÉGLAGES DE LA MAQUETTE, SANS FAUX INTERRUPTEUR ──────────────
+                Rythme, cohorte, rappels WhatsApp : aucun des trois n'a de producteur. Pas de
+                champ de rythme sur le compte, aucune cohorte en base, aucun envoi WhatsApp.
+                Les cartes gardent leur place et leur ordre, mais disent ce qui est vrai
+                aujourd'hui au lieu d'offrir des commandes qui ne retiendraient rien.
+              */
+              <div className="flex flex-col gap-3.5">
+                {(['rhythm', 'cohort', 'reminders'] as const).map((k, i) => (
+                  <div key={k} className="mm-card" style={{ padding: '24px' }}>
+                    <span className="text-[12px] text-ink-3">{t('welcomeV3.stepOf', { n: i + 1 })}</span>
+                    <div className="flex items-start justify-between gap-3.5">
+                      <div>
+                        <b className="mb-1 mt-1.5 block text-[19px] leading-[1.2]">{t(`welcomeV3.${k}Title`)}</b>
+                        <p className="m-0 text-[14px] text-ink-2">{t(`welcomeV3.${k}Body`)}</p>
+                      </div>
+                      <span className="mm-tag shrink-0">{t('welcomeV3.notYet')}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mm-card" style={{ padding: '24px' }}>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-meta text-ink-2">{t('paymentReturn.reference')}</span>
+                  <Num value={transaction?.id ?? transactionId} source="db" asOf={asOf} style={{ fontSize: '13px' }} />
+                </div>
+                <div className="mt-2.5 flex items-center justify-between gap-3">
+                  <span className="text-meta text-ink-2">{t('paymentReturn.statusLabel')}</span>
+                  <Tag tone={issue.tone}>{statusLabel}</Tag>
+                </div>
+                {typeof transaction?.amount === 'number' && (
+                  <div className="mt-2.5 flex items-center justify-between gap-3">
+                    <span className="text-meta text-ink-2">{t('paymentReturn.amountDebited')}</span>
+                    <Num value={transaction.amount} unit={transaction.currency || 'XOF'} source="server" asOf={asOf} style={{ fontSize: '13px' }} />
+                  </div>
+                )}
               </div>
             )}
-          </Bento>
 
-          {actions}
+            {actions}
 
-          {/*
-            ── LA PASSERELLE VERS LE CLUB — du contenu d'écran, jamais une pop-up ────────────
+            {lienApp && (
+              <div className="mt-3 text-right">
+                <a className="mm-pill is-plain" href={lienApp}>{t('paymentReturn.openApp')}</a>
+                <p className="m-0 mt-2 text-meta-2 text-ink-3">{t('paymentReturn.openAppHint')}</p>
+              </div>
+            )}
 
-            Deux raisons indépendantes, et chacune suffit : `/paiement/**` est dans
-            `CHECKOUT_PATHS` du registre — « rien ne doit JAMAIS s'y afficher » — et surtout
-            cet écran est monté sous `LmsLayout`, où `PopupManager` n'existe pas. La fenêtre
-            ne pourrait pas s'ouvrir même si le registre l'autorisait.
+            {/* La passerelle vers le Club : du contenu d'écran, jamais une pop-up, et seulement
+                sur un FAIT (abonnement lu et inactif). Aucun chiffre. */}
+            {status === 'completed' && clubActif === false && (
+              <div className="mm-card mt-3.5" style={{ padding: '20px' }}>
+                <p className="m-0 text-meta font-bold text-ink">{t('paymentReturn.clubTitle')}</p>
+                <p className="m-0 mt-1.5 text-meta-2 leading-[1.55] text-ink-2">{t('paymentReturn.clubBody')}</p>
+                <a className="mm-pill is-plain is-sm mt-3" href={path('/club-des-digitos')}>{t('paymentReturn.clubCta')}</a>
+              </div>
+            )}
 
-            CE N'EST PAS UN TROISIÈME BOUTON. L'écran en porte déjà deux, et son objet tient
-            en quatre mots : c'est payé, va apprendre. Le panneau se pose APRÈS les actions,
-            en encre secondaire, et ne demande rien — il nomme une porte.
-
-            ⚠️ IL NE S'AFFICHE QUE SUR UN FAIT. Tant que l'abonnement n'a pas été lu,
-            `clubActif` vaut `null` et rien ne s'affiche : un panneau qui apparaît puis
-            disparaît sur l'écran de succès d'un paiement serait pire que pas de panneau.
-
-            ⚠️ AUCUN CHIFFRE ICI. `/club-des-digitos` affiche le prix trois fois ; le répéter
-            sur l'écran de quelqu'un qui vient de payer transformerait une porte en relance.
-          */}
-          {status === 'completed' && clubActif === false && (
-            <Bento padding={17} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
-              <p className="m-0 text-meta font-bold text-ink">{t('paymentReturn.clubTitle')}</p>
-              <p className="m-0 mt-1.5 text-meta-2 leading-[1.55] text-ink-2">
-                {t('paymentReturn.clubBody')}
-              </p>
-              <Button
-                tone="quiet"
-                size="sm"
-                fullWidth={false}
-                href={path('/club-des-digitos')}
-                style={{ marginTop: '12px' }}
-              >
-                {t('paymentReturn.clubCta')}
-              </Button>
-            </Bento>
-          )}
-
-          <p className="rv text-small text-ink-2 text-center mt-3.5" style={{ ['--i' as string]: 9 }}>{foot}</p>
+            <p className="m-0 mt-3.5 text-[12.5px] text-ink-2">{foot}</p>
+          </div>
         </div>
       </DsNavHost>
     </div>

@@ -318,5 +318,81 @@
     "toastError": "Impossible de t’inscrire à la liste. Réessaie dans un instant.",
     "catalogTitle": "Rien n’est encore ouvert.",
     "catalogBody": "Les formations ci-dessous sont annoncées, pas encore en ligne. Tu peux voir leur programme et leur tarif, et demander à être prévenu·e le jour de l’ouverture."
+  },
+  "v3": {
+    "coverKickerShort": "Edu",
+    "catalog": {
+      "script": "Le catalogue",
+      "title1": "Toutes les",
+      "title2": "formations.",
+      "lede": "Payées une fois, à toi pour toujours. Des leçons libres dans chacune, pour juger avant d'acheter.",
+      "levelAll": "Tous",
+      "once": "Une fois",
+      "clubNote": "Membre du Club : −{{pct}} % appliqué au paiement."
+    },
+    "team": {
+      "eyebrow": "Formation d'équipe",
+      "title": "Former toute ton équipe ?",
+      "body": "Une formation adaptée à ton entreprise, sur devis. Dis-moi combien de personnes tu veux former et ce qu'elles doivent savoir faire.",
+      "company": "Entreprise",
+      "size": "Nombre de personnes",
+      "goal": "Ce que l'équipe doit savoir faire",
+      "cta": "Demander un devis",
+      "send": "Envoyer la demande",
+      "teamPrefix": "Équipe :",
+      "sentTitle": "Demande enregistrée.",
+      "sentBody": "La demande pour {{company}} est enregistrée. Je te réponds par e-mail avec une proposition."
+    },
+    "pre": {
+      "newsTitle": "Les nouvelles formations, en premier.",
+      "newsBody": "La lettre, toutes les deux semaines : ce qui a été publié, nouvelles formations comprises. Rien d'autre.",
+      "emailLabel": "Ton e-mail",
+      "subscribe": "M'inscrire",
+      "guideTitle": "Ce qui guide chaque formation.",
+      "g1Title": "Court et concret",
+      "g1Body": "Des leçons courtes, pensées pour être appliquées sur ton vrai projet.",
+      "g2Title": "Payé une fois",
+      "g2Body": "Wave, Orange Money ou carte. L'accès est à toi pour toujours, pas d'abonnement caché.",
+      "g3Title": "Vérifiable",
+      "g3Body": "Chaque certificat a un code public. Un employeur le vérifie sans créer de compte.",
+      "ctaTitle": "Prêt·e à commencer ?",
+      "ctaBody": "Commence par les leçons libres, sans compte.",
+      "ctaButton": "Voir les formations"
+    },
+    "sheet": {
+      "back": "Formations",
+      "factMissions": "missions",
+      "readFree": "Lire une leçon libre",
+      "previewOf": "Aperçu · {{title}}",
+      "clubPrice": "membre du Club :",
+      "methods": "Wave · Orange Money · carte",
+      "methodsNote": "accès dès la confirmation, à toi pour toujours",
+      "noAccount": "sans compte",
+      "certTitle": "Certificat vérifiable",
+      "certNote": "délivré côté serveur",
+      "learnTitle": "À la fin, tu sauras faire",
+      "learnNote_one": "{{count}} module, dans l'ordre où tu le suis.",
+      "learnNote_other": "{{count}} modules, dans l'ordre où tu les suis.",
+      "program_one": "{{lessons}} leçons, en {{count}} module.",
+      "program_other": "{{lessons}} leçons, en {{count}} modules.",
+      "programSoon_one": "{{count}} module au programme.",
+      "programSoon_other": "{{count}} modules au programme.",
+      "freeTag_one": "{{count}} leçon libre, sans compte",
+      "freeTag_other": "{{count}} leçons libres, sans compte",
+      "free": "libre",
+      "certEyebrow": "Certificat de réussite",
+      "yourName": "Ton nom",
+      "certCode": "vérifiable par code, sans compte",
+      "certRule": "Délivré quand toutes les leçons sont validées côté serveur.",
+      "trainerRole": "Ton formateur · Dakar",
+      "trainerBio": "Responsable marketing digital et formateur. C'est lui qui écrit et met à jour chaque leçon.",
+      "faqTitle": "Questions avant d'acheter",
+      "faq": {
+        "q1": "Comment je paie ?",
+        "a1": "Wave, Orange Money ou carte, sur la page de paiement sécurisée. L'accès s'ouvre dès que le paiement est confirmé.",
+        "q2": "Ça marche sur mon téléphone ?",
+        "a2": "Oui. Les leçons se suivent dans le navigateur de ton téléphone, et dans l'application Rysmo."
+      }
+    }
   }
 }

@@ -1,50 +1,41 @@
-import { useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState, type ReactNode } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import {
-  Breadcrumb, Button, EmptyState, GlassPanel, Icon, LessonRow, Mesh, Num,
-  ProgressBar, Skeleton, Tag, type IconName,
+  Button, EmptyState, GlassPanel, Icon, LessonRow, Num,
+  Skeleton, Tag, type IconName,
 } from '@ds';
 import { Sheet } from '@/components/dialogs';
-import { SiteDisplay, SiteEyebrow, useReveal } from '../../components/site';
+import { SiteDisplay } from '../../components/site';
 import DsNavHost from '../../components/layout/DsNavHost';
+import LocalizedLink from '../../components/shared/LocalizedLink';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 import { markdownToHtml } from '../../lib/markdown';
 import type { Formation, Lesson } from '../../types';
 import { useCoursePlayer } from './hooks/useCoursePlayer';
 import { estAVenir, ouverture } from '../../types/formationRelease';
 import { useFormat } from '../../hooks/useFormat';
+import QuizCard from '../../components/edu/g3/QuizCard';
+import { flattenLessons, parseQuizContent } from '../../components/edu/g3/quiz';
 
 import Bento from '../../components/formations/Bento';
 /**
- * LE LECTEUR DE LEÇON (`ScreensSpace.js` · `Lecteur`).
+ * LE LECTEUR DE LEÇON — maquette `Edu-Lecon` (kit v3, passe 2 lot B).
  *
- * ═════════════════════════════════════════════════════════════════════════════
- * LA BARRE DE PROGRESSION EST LA VRAIE, ET C'EST LE PIÈGE PRINCIPAL DE CET ÉCRAN.
+ * Deux colonnes : la leçon (fil, média, titre, onglets, contenu, mission du module, navigation
+ * précédente / suivante) et, à droite, le module ouvert puis l'entrée de Rysmo IA. Le lecteur vit
+ * HORS de `StudentLayout` (route `/cours/:slug`, plein écran) : il porte son propre retour.
  *
- * Le kit dessine `.bar-fill` sous la vidéo. `brand/motion.css` lui fait jouer `barfill` :
- * une animation de 8 % À 38 %, EN 3,4 s, QUELLE QUE SOIT LA VALEUR RÉELLE. C'est une
- * progression fabriquée — sur une planche, elle donne l'impression que ça avance ; en
- * production, elle mentirait à quelqu'un qui a fait 2 % ou 90 %.
+ * Ce que la maquette dessine et que le produit n'a pas, donc absent :
+ *   · la barre de temps de la vidéo (une `<iframe>` YouTube/Vimeo ne dit ni position ni durée :
+ *     une barre qu'on ne peut pas renseigner serait un nombre non sourcé) ;
+ *   · les onglets « Mes notes » et « Discussion au Club » par leçon (aucun lien leçon → note ou
+ *     fil n'existe en base) ; seuls « La leçon » et « Ressources » sont repris ;
+ *   · la conversation d'exemple de Rysmo : la carte mène à l'assistant, qui relève son quota.
+ * La progression affichée est la VRAIE (leçons cochées, `source="db"`), jamais une animation.
  *
- * `ProgressBar` est donc utilisé partout, avec `value={progress}` calculé sur les leçons
- * réellement cochées, `source="db"` et `asOf` = l'instant de la lecture Firestore. Il porte
- * `prog-fill`, le marqueur que `ds:check` reconnaît comme la SEULE exception d'AD-16 : c'est
- * le seul endroit du système où une largeur s'anime, parce qu'un dégradé étiré en `scaleX`
- * n'est pas le même dégradé.
- *
- * La barre de lecture de la VIDÉO, elle, disparaît : le produit rend une `<iframe>` YouTube
- * ou Vimeo, dont on ne connaît ni la position ni la durée. Une barre de temps qu'on ne peut
- * pas renseigner est exactement le nombre non sourcé que la règle 6 refuse.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * CE QUE LE KIT DESSINE ET QUE LE PRODUIT N'A PAS
- *
- * La `ChipRow` « Vidéo · Transcription · Mes notes · Ressources » suppose quatre vues par
- * leçon. Une `Lesson` a UN `type` et un seul contenu ; il n'y a ni transcription, ni panneau
- * de notes dans le lecteur. Quatre onglets dont trois vides, ce n'est pas une recomposition,
- * c'est une promesse. Ils ne sont pas repris.
- * ═════════════════════════════════════════════════════════════════════════════
+ * `?lecon=<id>` ouvre directement une leçon : c'est par là que l'écran de quiz de module
+ * renvoie, pour enregistrer un sans-faute dans la formation.
  */
 
 /** Le glyphe de chaque type de leçon. Un seul jeu d'icônes, celui du système. */
@@ -124,196 +115,23 @@ function CourseOutline({
   );
 }
 
+
 /* ─────────────────────────────────────────────────────────────────────────────
-   Le quiz — inchangé dans sa logique, reposé sur les primitives.
+   La mission — contenu de la leçon `type: 'mission'`, validée par la personne.
    ───────────────────────────────────────────────────────────────────────────── */
 
-interface QuizQuestion {
-  question: string;
-  options: { text: string; correct: boolean }[];
-}
-
-/**
- * Parse quiz content from markdown format:
- * ## Question text
- * - [ ] Wrong answer
- * - [x] Correct answer
- * - [ ] Wrong answer
- */
-function parseQuizContent(content: string): QuizQuestion[] {
-  const questions: QuizQuestion[] = [];
-  const blocks = content.split(/^##\s+/m).filter(Boolean);
-  for (const block of blocks) {
-    const lines = block.trim().split('\n');
-    const question = lines[0].trim();
-    const options: { text: string; correct: boolean }[] = [];
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      const correctMatch = line.match(/^-\s*\[x\]\s*(.+)/i);
-      const wrongMatch = line.match(/^-\s*\[\s*\]\s*(.+)/);
-      if (correctMatch) options.push({ text: correctMatch[1].trim(), correct: true });
-      else if (wrongMatch) options.push({ text: wrongMatch[1].trim(), correct: false });
-    }
-    if (question && options.length >= 2) {
-      questions.push({ question, options });
-    }
-  }
-  return questions;
-}
-
-function QuizRenderer({ content, onComplete, readAt }: { content: string; onComplete: () => void; readAt: Date }) {
-  const { t } = useTranslation('lms');
-  const questions = parseQuizContent(content);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [submitted, setSubmitted] = useState(false);
-
-  const score = submitted
-    ? Object.entries(answers).filter(([qi, ai]) => questions[Number(qi)]?.options[ai]?.correct).length
-    : 0;
-
-  const handleReset = useCallback(() => {
-    setAnswers({});
-    setSubmitted(false);
-  }, []);
-
-  if (questions.length === 0) {
-    return (
-      <EmptyState
-        glyph={<Icon name="info" size={26} color="var(--text-muted)" />}
-        body={t('player.quizPreparing')}
-      />
-    );
-  }
-
-  return (
-    <div className="p-[18px] space-y-7">
-      <div className="flex items-center gap-3">
-        <span aria-hidden="true" className="w-10 h-10 rounded-m grid place-items-center bg-[color:var(--fill-1)]">
-          <Icon name="info" size={19} color="var(--mm-orange-t)" />
-        </span>
-        <div>
-          <p className="font-display text-ttl text-ink m-0">{t('player.quizTitle', { count: questions.length })}</p>
-          {/* Le score est un nombre CALCULÉ SUR CET ÉCRAN : sa source est le barème du quiz,
-              pas la base. Il se cite, comme tout le reste. */}
-          {submitted && (
-            <p className="m-0 text-meta font-semibold">
-              <Num
-                value={`${score}/${questions.length}`}
-                source={{ cite: t('player.quizTitle', { count: questions.length }) }}
-                asOf={readAt}
-              />
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* L'avancement compte les réponses DONNÉES sur cet écran — un relevé local, pas un
-          score : il ne dit rien de juste ou de faux avant la validation. */}
-      <div className="flex items-center gap-3">
-        <span className="text-small font-semibold text-ink-2">
-          {t('player.quizAnswered', { done: Object.keys(answers).length, total: questions.length })}
-        </span>
-        <div className="mm-progress flex-1" aria-hidden="true">
-          <i style={{ ['--p' as string]: Object.keys(answers).length / questions.length }} />
-        </div>
-      </div>
-
-      {questions.map((q, qi) => (
-        <fieldset key={qi} className="m-0 space-y-2.5 rounded-card border border-[color:var(--line)] bg-bento-2 p-4">
-          <legend className="sr-only">{`${qi + 1}. ${q.question}`}</legend>
-          <p aria-hidden="true" className="mm-d m-0 mb-3 text-[22px] text-ink">{qi + 1}. {q.question}</p>
-          <div className="space-y-2" role="group" aria-label={t('player.quizAnswersLabel')}>
-            {q.options.map((opt, oi) => {
-              const selected = answers[qi] === oi;
-              let border = 'var(--ctl-off-brd)';
-              let background = 'var(--ctl-off-bg)';
-              if (submitted) {
-                if (opt.correct) { border = 'var(--ok)'; background = 'color-mix(in srgb, var(--ok) 8%, transparent)'; }
-                else if (selected) { border = 'var(--stop)'; background = 'color-mix(in srgb, var(--stop) 8%, transparent)'; }
-              } else if (selected) {
-                border = 'var(--ctl-sel-brd)';
-                background = 'color-mix(in srgb, var(--mm-bleu) 8%, transparent)';
-              }
-              return (
-                <button
-                  key={oi}
-                  type="button"
-                  disabled={submitted}
-                  aria-pressed={selected}
-                  onClick={() => setAnswers((prev) => ({ ...prev, [qi]: oi }))}
-                  className="mm-press mm-touch-extend w-full text-left flex items-center gap-2"
-                  style={{
-                    padding: '13px 16px', borderRadius: 'var(--r-m)',
-                    borderStyle: 'solid', borderWidth: '1.5px', borderColor: border, background,
-                    fontFamily: 'var(--f-body)', fontSize: 'var(--fs-meta)', color: 'var(--text-body)',
-                    opacity: submitted && !opt.correct && !selected ? 0.6 : undefined,
-                    transition: 'transform var(--t-tap) var(--ease),background var(--t-ui) var(--ease),border-color var(--t-ui) var(--ease)',
-                  }}
-                >
-                  <b
-                    aria-hidden="true"
-                    className="grid h-7 w-7 shrink-0 place-items-center rounded-xs bg-[color:var(--fill-1)] text-[12px]"
-                  >
-                    {String.fromCharCode(65 + oi)}
-                  </b>
-                  <span style={{ flex: 1 }}>{opt.text}</span>
-                  {submitted && opt.correct && <Icon name="check" size={15} color="var(--ok)" />}
-                  {submitted && selected && !opt.correct && <Icon name="close" size={15} color="var(--stop)" />}
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-      ))}
-
-      <div className="flex gap-2.5 pt-2">
-        {!submitted ? (
-          <Button tone="forme" size="sm" onClick={() => setSubmitted(true)} disabled={Object.keys(answers).length < questions.length}>
-            {t('player.validateAnswers')}
-          </Button>
-        ) : (
-          <>
-            <Button tone="quiet" size="sm" onClick={handleReset}>
-              <Icon name="repeat" size={15} /> {t('player.restart')}
-            </Button>
-            {score === questions.length && (
-              <Button tone="digitalise" size="sm" onClick={onComplete}>
-                <Icon name="check" size={15} color="var(--paper-fixed)" /> {t('player.markCompleted')}
-              </Button>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function MissionRenderer({ content, title, onComplete, isComplete }: { content: string; title: string; onComplete: () => void; isComplete: boolean }) {
+function MissionBody({ content, onComplete, isComplete }: { content: string; onComplete: () => void; isComplete: boolean }) {
   const { t } = useTranslation('lms');
   return (
-    <div className="p-[18px]">
-      <div className="flex items-center gap-3 mb-5">
-        <span aria-hidden="true" className="w-10 h-10 rounded-m grid place-items-center bg-[color:var(--fill-1)]">
-          <Icon name="target" size={19} color="var(--mm-orange-t)" />
-        </span>
-        <div>
-          <SiteEyebrow style={{ margin: 0 }}>{t('player.mission')}</SiteEyebrow>
-          <p className="font-display text-ttl text-ink m-0">{title}</p>
-        </div>
-      </div>
-
+    <div>
       {content ? (
-        <div
-          className="mm-prose prose-article mb-7"
-          dangerouslySetInnerHTML={{ __html: markdownToHtml(content) }}
-        />
+        <div className="mm-prose prose-article mb-6" style={{ maxWidth: '68ch' }} dangerouslySetInnerHTML={{ __html: markdownToHtml(content) }} />
       ) : (
-        <p className="text-ink-2 italic mb-7">{t('player.missionContentSoon')}</p>
+        <p className="text-ink-2 italic mb-6">{t('player.missionContentSoon')}</p>
       )}
-
       {isComplete
         ? <Tag tone="ok"><Icon name="check" size={13} /> {t('player.missionAccomplished')}</Tag>
-        : <Button tone="informe" size="sm" onClick={onComplete}><Icon name="check" size={15} color="var(--ink-fixed)" /> {t('player.missionDone')}</Button>}
+        : <Button tone="informe" size="sm" fullWidth={false} onClick={onComplete}><Icon name="check" size={15} color="var(--ink-fixed)" /> {t('player.missionDone')}</Button>}
     </div>
   );
 }
@@ -325,10 +143,11 @@ function MissionRenderer({ content, title, onComplete, isComplete }: { content: 
 export default function CoursePlayer() {
   const { t } = useTranslation('lms');
   const { slug } = useParams();
+  const [params] = useSearchParams();
   const path = useLocalizedPath();
   const { formatDate } = useFormat();
-  const reveal = useReveal<HTMLDivElement>();
   const [mobileOutlineOpen, setMobileOutlineOpen] = useState(false);
+  const [tab, setTab] = useState<'lesson' | 'resources'>('lesson');
 
   const {
     formation, enrollment, loading, saving, completedLessons,
@@ -336,13 +155,22 @@ export default function CoursePlayer() {
     totalLessons, progress, readAt, positionOf, toggleComplete,
   } = useCoursePlayer(slug);
 
+  /* `?lecon=<id>` : l'écran de quiz de module renvoie ici pour enregistrer un sans-faute. */
+  const wanted = params.get('lecon');
+  useEffect(() => {
+    if (!wanted || !formation) return;
+    const hit = flattenLessons(formation).find((l) => l.lesson.id === wanted);
+    if (hit) setActiveLesson(hit.lesson);
+  }, [wanted, formation, setActiveLesson]);
+
+  useEffect(() => { setTab('lesson'); }, [activeLesson?.id]);
+
   if (loading) {
     return (
       <Frame>
         <Skeleton width="40%" height={14} label={t('certificate.loadingAria')} />
-        <Skeleton width="85%" height={34} style={{ marginTop: '10px' }} />
-        <Skeleton height={178} radius="var(--r-media)" style={{ marginTop: '16px' }} />
-        <Skeleton height={8} radius="5px" style={{ marginTop: '20px' }} />
+        <Skeleton height={440} radius="var(--r-media)" style={{ marginTop: '16px' }} />
+        <Skeleton width="70%" height={34} style={{ marginTop: '20px' }} />
         <Skeleton height={220} radius="var(--r-l)" style={{ marginTop: '14px' }} />
       </Frame>
     );
@@ -364,20 +192,8 @@ export default function CoursePlayer() {
     );
   }
 
-  /*
-    ══════════════════════════════════════════════════════════════════════════════════════
-    UNE FORMATION À VENIR N'A RIEN À LIRE, MÊME POUR QUI L'A PRÉCOMMANDÉE.
-
-    C'est le cas qui arrive VRAIMENT : on précommande, on est donc inscrit, et on revient
-    ouvrir le lecteur avant l'ouverture. Sans cet écran, `useCoursePlayer` ne trouverait
-    aucune leçon à activer — la couche d'accès aux données les a retirées — et le lecteur
-    s'ouvrirait sur un sommaire vide et un panneau blanc, ce qui se lit comme une panne.
-
-    Le verrou est DÉRIVÉ de la formation, pas posé sur l'inscription : il tombe tout seul le
-    jour où l'administration retire le drapeau, sans qu'aucune inscription n'ait à être
-    reprise une à une.
-    ══════════════════════════════════════════════════════════════════════════════════════
-  */
+  /* Une formation à venir n'a rien à lire, même pour qui l'a précommandée : le verrou est
+     DÉRIVÉ de la formation et tombe tout seul le jour de l'ouverture. */
   if (estAVenir(formation)) {
     const quand = ouverture(formation);
     return (
@@ -388,15 +204,9 @@ export default function CoursePlayer() {
             glyph={<Icon name="lock" size={26} color="var(--warn)" />}
             title={t('player.comingSoonTitle')}
             body={quand
-              ? t('player.comingSoonBodyDated', {
-                date: quand.kind === 'date' ? formatDate(quand.value) : quand.value,
-              })
+              ? t('player.comingSoonBodyDated', { date: quand.kind === 'date' ? formatDate(quand.value) : quand.value })
               : t('player.comingSoonBody')}
-            action={(
-              <Button tone="quiet" fullWidth href={path(`/formations/${formation.slug}`)}>
-                {t('player.seeFormation')}
-              </Button>
-            )}
+            action={<Button tone="quiet" fullWidth href={path(`/formations/${formation.slug}`)}>{t('player.seeFormation')}</Button>}
             style={{ padding: 0 }}
           />
         </Bento>
@@ -404,19 +214,8 @@ export default function CoursePlayer() {
     );
   }
 
-  /*
-    ── L'APERÇU GRATUIT, QUI N'EXISTAIT PAS ────────────────────────────────────────────────
-    Trois surfaces le promettent — le chapô du catalogue (« le module d'ouverture de chacune
-    est en accès libre : tu juges avant de payer »), l'étiquette « Gratuit » du programme et
-    le bouton « Commencer le module gratuit » de la carte de prix. Le lecteur, lui, exigeait
-    une inscription et renvoyait tout le monde au mur, y compris sur une formation dont des
-    leçons portent `isFree: true`. Le champ existait au modèle et n'était lu NULLE PART.
-
-    Il n'y a rien à ouvrir côté sécurité : `firestore.rules` autorise déjà la lecture d'une
-    formation publiée par n'importe qui. C'était donc un mur d'interface, pas un cloisonnement.
-
-    Sans inscription et sans leçon gratuite, le mur reste — il est alors la vérité.
-  */
+  /* L'aperçu gratuit : sans inscription, seules les leçons `isFree` s'ouvrent. Sans inscription
+     et sans leçon gratuite, le mur reste — il est alors la vérité. */
   const freeLessons = (formation.modules ?? []).flatMap((m) => m.lessons ?? []).filter((l) => l.isFree);
   const preview = !enrollment && freeLessons.length > 0;
 
@@ -430,12 +229,7 @@ export default function CoursePlayer() {
             title={t('player.enrollmentRequiredTitle')}
             body={
               <>
-                <Trans
-                  ns="lms"
-                  i18nKey="player.notEnrolledText"
-                  values={{ title: formation.title }}
-                  components={{ strong: <strong className="text-ink" /> }}
-                />{' '}
+                <Trans ns="lms" i18nKey="player.notEnrolledText" values={{ title: formation.title }} components={{ strong: <strong className="text-ink" /> }} />{' '}
                 {t('player.enrollPrompt')}
               </>
             }
@@ -444,9 +238,7 @@ export default function CoursePlayer() {
                 <Button tone="forme" href={path(`/formations/${formation.slug}`)}>
                   {t('player.seeFormation')} <Icon name="forward" size={16} color="var(--paper-fixed)" />
                 </Button>
-                <Button tone="quiet" fullWidth href={path('/formations')} className="mt-2.5">
-                  {t('player.allFormations')}
-                </Button>
+                <Button tone="quiet" fullWidth href={path('/formations')} className="mt-2.5">{t('player.allFormations')}</Button>
               </>
             }
             style={{ padding: 0 }}
@@ -456,7 +248,30 @@ export default function CoursePlayer() {
     );
   }
 
+  /* ── Repères dérivés du programme ─────────────────────────────────────────── */
+  const all = flattenLessons(formation);
+  const at = activeLesson ? all.findIndex((l) => l.lesson.id === activeLesson.id) : -1;
+  const here = at >= 0 ? all[at] : null;
   const position = activeLesson ? positionOf(activeLesson.id) : null;
+  const num = position ? `${position.moduleIndex + 1}.${position.lessonIndex + 1}` : null;
+  const opens = (l: Lesson) => !preview || l.isFree;
+  const prev = at > 0 ? all.slice(0, at).reverse().find((l) => opens(l.lesson)) ?? null : null;
+  const next = at >= 0 ? all.slice(at + 1).find((l) => opens(l.lesson)) ?? null : null;
+  const moduleLessons = here ? all.filter((l) => l.moduleId === here.moduleId) : [];
+  /* La mission du module ouvert, s'il en a une et qu'elle n'est pas déjà à l'écran. */
+  const mission = here && activeLesson?.type !== 'mission'
+    ? moduleLessons.find((l) => l.lesson.type === 'mission') ?? null
+    : null;
+  const isDone = activeLesson ? completedLessons.includes(activeLesson.id) : false;
+  const resources = activeLesson?.resources ?? [];
+  const questions = activeLesson?.type === 'quiz' ? parseQuizContent(activeLesson.content) : [];
+
+  const finishAndNext = async () => {
+    if (!activeLesson) return;
+    if (!isDone && enrollment) await toggleComplete(activeLesson.id);
+    if (next) setActiveLesson(next.lesson);
+  };
+
   const outline = (
     <CourseOutline
       formation={formation}
@@ -464,121 +279,41 @@ export default function CoursePlayer() {
       toggleModule={toggleModule}
       completedLessons={completedLessons}
       activeLesson={activeLesson}
-      setActiveLesson={setActiveLesson}
+      setActiveLesson={(lesson) => { setActiveLesson(lesson); setMobileOutlineOpen(false); }}
       readAt={readAt}
       preview={preview}
     />
   );
 
   return (
-    <Frame back={{ href: path('/mon-espace'), label: t('player.mySpace') }}>
-      <Breadcrumb
-        label={t('player.breadcrumbLabel')}
-        items={[{ label: t('player.mySpace'), href: path('/mon-espace') }, { label: formation.title }]}
-        className="mb-3"
-      />
-
-      <div ref={reveal} className="grid wide:grid-cols-[1fr_340px] gap-6 items-start">
+    <Frame back={{ href: path('/mon-espace/cours'), label: t('playerV3.crumbCourses') }}>
+      <div className="grid items-start gap-[22px] wide:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0">
-          {/* L'aperçu dit ce qu'il est, et ce qu'il n'est pas — dont le fait que la
-              progression ne s'enregistre pas : la découvrir après coup serait pire. */}
+          {/* ── Le fil ─────────────────────────────────────────────────────── */}
+          <nav aria-label={t('player.breadcrumbLabel')} className="mb-[14px] flex flex-wrap items-center gap-[10px] text-[13px] text-ink-2">
+            <LocalizedLink to="/mon-espace/cours" className="text-inherit no-underline">{t('playerV3.crumbCourses')}</LocalizedLink>
+            <span aria-hidden="true">›</span>
+            <span>{formation.title}</span>
+            {here && (<><span aria-hidden="true">›</span><span>{t('playerV3.module', { n: here.moduleIndex })}</span></>)}
+            {at >= 0 && (
+              <span className="ml-auto">
+                {t('playerV3.lesson')} <Num value={at + 1} source="db" asOf={readAt} /> / <Num value={all.length} source="db" asOf={readAt} />
+              </span>
+            )}
+          </nav>
+
           {preview && (
             <GlassPanel level="truth" className="mb-4">
               <p className="mm-eyebrow m-0 mb-[6px]">{t('player.previewEyebrow')}</p>
               <p className="m-0 text-meta-2 text-ink-2 leading-[1.5]">{t('player.previewBody')}</p>
-              <Button
-                href={path(`/formations/${formation.slug}`)}
-                tone="forme"
-                size="sm"
-                fullWidth={false}
-                className="mt-3"
-              >
+              <Button href={path(`/formations/${formation.slug}`)} tone="forme" size="sm" fullWidth={false} className="mt-3">
                 {t('player.previewCta')}
               </Button>
             </GlassPanel>
           )}
 
-          {position && (
-            <SiteEyebrow>
-              {t('player.moduleLesson', { module: position.moduleIndex + 1, lesson: position.lessonIndex + 1 })}
-            </SiteEyebrow>
-          )}
-
-          {/* Le titre de la leçon vient de la base : il peut faire soixante caractères, et
-              `SiteDisplay` pose `white-space: nowrap` sur chaque ligne par contrat (AD-13,
-              titres ÉCRITS ligne à ligne). Un titre de données prend donc la même face
-              d'affichage, mais il se replie. */}
-          {activeLesson
-            ? <h1 className="mm-d m-0 mt-1.5 text-[clamp(26px,3.4vw,38px)] text-ink">{activeLesson.title}</h1>
-            : <SiteDisplay lines={t('player.selectLines', { returnObjects: true }) as string[]} size={30} />}
-
-          {/* ── La leçon ─────────────────────────────────────────────────── */}
-          {activeLesson ? (
-            <Bento padding={0} className="rv mt-4 overflow-hidden" style={{ ['--i' as string]: 3 }}>
-              {activeLesson.type === 'video' ? (
-                <div className="aspect-video bg-[color:var(--surface-night)] grid place-items-center">
-                  {activeLesson.videoUrl ? (
-                    <iframe
-                      src={activeLesson.videoUrl}
-                      title={t('player.videoLabel')}
-                      className="w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <EmptyState
-                      glyph={<Icon name="play" size={26} color="var(--text-invert)" />}
-                      glyphBackground="color-mix(in srgb, var(--text-invert) 12%, transparent)"
-                      body={<span style={{ color: 'var(--text-invert)' }}>{t('player.videoSoon')}</span>}
-                    />
-                  )}
-                </div>
-              ) : activeLesson.type === 'quiz' ? (
-                <QuizRenderer key={activeLesson.id} content={activeLesson.content} readAt={readAt} onComplete={() => void toggleComplete(activeLesson.id)} />
-              ) : activeLesson.type === 'mission' ? (
-                <MissionRenderer
-                  key={activeLesson.id}
-                  content={activeLesson.content}
-                  title={activeLesson.title}
-                  onComplete={() => void toggleComplete(activeLesson.id)}
-                  isComplete={completedLessons.includes(activeLesson.id)}
-                />
-              ) : (
-                <div className="p-[18px] min-h-[260px]">
-                  {activeLesson.content ? (
-                    <div
-                      className="mm-prose prose-article"
-                      dangerouslySetInnerHTML={{ __html: markdownToHtml(activeLesson.content) }}
-                    />
-                  ) : (
-                    <p className="text-ink-2 italic">{t('player.lessonContentSoon')}</p>
-                  )}
-                </div>
-              )}
-
-              {activeLesson.type !== 'quiz' && activeLesson.type !== 'mission' && (
-                <div className="p-[18px] border-t border-[color:var(--border-hair)] flex flex-col stack:flex-row stack:items-center justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-ink m-0">{activeLesson.title}</p>
-                    <p className="text-meta text-ink-2 m-0">{activeLesson.duration}</p>
-                  </div>
-                  {/* `loading` fait balayer un liseré sur le libellé, qui RESTE. Jamais un rond
-                      qui tourne : c'est le contrat de `Button`, et c'est ce qui remplace ici
-                      les deux `Loader2` de l'ancienne version. */}
-                  <Button
-                    tone={completedLessons.includes(activeLesson.id) ? 'quiet' : 'primary'}
-                    size="sm"
-                    loading={saving}
-                    onClick={() => void toggleComplete(activeLesson.id)}
-                  >
-                    {completedLessons.includes(activeLesson.id) && <Icon name="check" size={15} />}
-                    {completedLessons.includes(activeLesson.id) ? t('player.lessonDone') : t('player.markLessonCompleted')}
-                  </Button>
-                </div>
-              )}
-            </Bento>
-          ) : (
-            <Bento padding={20} className="rv mt-4" style={{ ['--i' as string]: 3 }}>
+          {!activeLesson ? (
+            <Bento padding={20}>
               <EmptyState
                 glyph={<Icon name="play" size={26} color="var(--text-muted)" />}
                 title={t('player.selectLessonTitle')}
@@ -586,96 +321,249 @@ export default function CoursePlayer() {
                 style={{ padding: 0 }}
               />
             </Bento>
-          )}
+          ) : (
+            <>
+              {/* ── Le média : la vidéo réelle, ou la surface de la maquette sans faux lecteur ── */}
+              {activeLesson.type === 'video' && (
+                activeLesson.videoUrl ? (
+                  <div className="overflow-hidden rounded-media bg-[color:var(--night)]" style={{ aspectRatio: '16 / 9' }}>
+                    <iframe
+                      src={activeLesson.videoUrl}
+                      title={t('player.videoLabel')}
+                      className="h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="relative grid place-items-center overflow-hidden rounded-media"
+                    style={{ height: 'clamp(220px, 34vw, 440px)', background: 'linear-gradient(150deg, var(--night) 0%, var(--mm-bleu-f) 55%, var(--mm-violet-f))' }}
+                  >
+                    <span className="mm-photo__label" style={{ left: '24px', top: '22px', bottom: 'auto' }}>{t('player.videoSoon')}</span>
+                    <span aria-hidden="true" className="grid place-items-center rounded-pill" style={{ width: '84px', height: '84px', background: 'color-mix(in srgb, var(--paper-fixed) 92%, transparent)', color: 'var(--ink-fixed)' }}>
+                      <Icon name="play" size={28} />
+                    </span>
+                  </div>
+                )
+              )}
 
-          {/* ── Le programme ─────────────────────────────────────────────── */}
-          <div className="rv mt-5" style={{ ['--i' as string]: 5 }}>
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="font-display text-ttl text-ink m-0">{t('player.programTitle')}</p>
-                <p className="text-small text-ink-2 m-0">
-                  {t('player.programMeta', {
-                    modules: formation.modules?.length ?? 0,
-                    lessons: totalLessons,
-                    done: completedLessons.length,
-                  })}
-                </p>
+              <div className="mt-5 flex items-end justify-between gap-4">
+                <h1 className="mm-d m-0" style={{ fontSize: 'clamp(28px, 3.4vw, 40px)' }}>
+                  {num ? `${num} · ` : ''}{activeLesson.title}
+                </h1>
+                {isDone && <Tag tone="ok"><Icon name="check" size={13} /> {t('player.lessonDone')}</Tag>}
               </div>
-              {progress === 100 && <Tag tone="ok">{t('player.finished')}</Tag>}
-            </div>
 
-            {/*
-              LA VRAIE VALEUR. `readout` rend le pourcentage par <Num>, donc en monospace
-              tabulaire, avec sa provenance au survol : « Lu en base · relevé du … ».
-            */}
-            <ProgressBar
-              value={progress}
-              source="db"
-              asOf={readAt}
-              readout
-              label={t('player.progressLabel')}
-              style={{ marginTop: '10px' }}
-            />
-          </div>
+              <div className="mm-tabs max-w-full overflow-x-auto" role="tablist" aria-label={t('playerV3.tabsLabel')} style={{ margin: '18px 0' }}>
+                <button type="button" role="tab" aria-selected={tab === 'lesson'} aria-pressed={tab === 'lesson'} onClick={() => setTab('lesson')}>
+                  {t('playerV3.tabLesson')}
+                </button>
+                <button type="button" role="tab" aria-selected={tab === 'resources'} aria-pressed={tab === 'resources'} onClick={() => setTab('resources')}>
+                  {t('playerV3.tabResources')} · <Num value={resources.length} source="db" asOf={readAt} />
+                </button>
+              </div>
 
-          {/* Sous 1024 px, le programme vit dans la feuille du bas : ici, seul le grand écran
-              l'a dans la colonne de droite. */}
-          <div className="wide:hidden mt-3.5">{outline}</div>
+              {tab === 'resources' ? (
+                resources.length === 0 ? (
+                  <p className="m-0 text-ink-2" style={{ fontSize: '15px' }}>{t('playerV3.resourcesEmpty')}</p>
+                ) : (
+                  <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                    {resources.map((r) => (
+                      <li key={r.id}>
+                        <a href={r.url} target="_blank" rel="noreferrer" className="mm-card flex items-center gap-3 no-underline" style={{ padding: '14px 16px', color: 'var(--ink)' }}>
+                          <Icon name="download" size={18} />
+                          <span className="flex-1 font-semibold">{r.title}</span>
+                          {r.size && <span className="text-ink-2" style={{ fontSize: '13px' }}>{r.size}</span>}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              ) : activeLesson.type === 'quiz' ? (
+                questions.length === 0 ? (
+                  <EmptyState glyph={<Icon name="info" size={26} color="var(--text-muted)" />} body={t('player.quizPreparing')} />
+                ) : (
+                  <QuizCard
+                    key={activeLesson.id}
+                    questions={questions}
+                    readAt={readAt}
+                    labels={{
+                      question: (n, total) => t('playerV3.quizQuestion', { n, total }),
+                      correctCount: t('playerV3.quizCorrect'),
+                      answersLabel: t('player.quizAnswersLabel'),
+                      right: t('playerV3.quizRight'),
+                      wrong: (answer) => t('playerV3.quizWrong', { answer }),
+                      next: t('playerV3.quizNext'),
+                      finish: t('playerV3.quizFinish'),
+                      resultTitle: t('playerV3.quizResult'),
+                      resultPass: t('playerV3.quizPass'),
+                      resultFail: t('playerV3.quizFail'),
+                      restart: t('player.restart'),
+                      scoreSource: t('playerV3.quizSource'),
+                    }}
+                    passAction={enrollment && !isDone ? (
+                      <Button tone="digitalise" size="sm" fullWidth={false} loading={saving} onClick={() => void toggleComplete(activeLesson.id)}>
+                        <Icon name="check" size={15} color="var(--paper-fixed)" /> {t('player.markCompleted')}
+                      </Button>
+                    ) : undefined}
+                  />
+                )
+              ) : activeLesson.type === 'mission' ? (
+                <MissionBody
+                  key={activeLesson.id}
+                  content={activeLesson.content}
+                  onComplete={() => void toggleComplete(activeLesson.id)}
+                  isComplete={isDone}
+                />
+              ) : activeLesson.content ? (
+                <div className="mm-prose prose-article" style={{ maxWidth: '68ch', fontSize: '16.5px', lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: markdownToHtml(activeLesson.content) }} />
+              ) : (
+                <p className="text-ink-2 italic">{t('player.lessonContentSoon')}</p>
+              )}
+
+              {/* ── La mission du module ─────────────────────────────────────── */}
+              {mission && (
+                <div
+                  className="mt-6 flex flex-col gap-5 stack:flex-row stack:items-center stack:justify-between"
+                  style={{ borderRadius: '22px', background: 'var(--mm-orange-f)', color: 'var(--ink-fixed)', padding: '22px' }}
+                >
+                  <div>
+                    <span className="mm-eyebrow" style={{ color: 'var(--ink-fixed)' }}>
+                      {t('playerV3.missionEyebrow', { n: `${mission.moduleIndex}.${mission.lessonIndex}` })}
+                    </span>
+                    <b className="mt-2 block" style={{ font: '900 24px/1.1 var(--f-display)' }}>{mission.lesson.title}</b>
+                  </div>
+                  <div className="flex flex-none flex-col gap-2">
+                    <button
+                      type="button"
+                      className="mm-pill is-ink is-sm"
+                      disabled={!opens(mission.lesson)}
+                      onClick={() => setActiveLesson(mission.lesson)}
+                    >
+                      {t('playerV3.missionOpen')}
+                      <i><Icon name="arrow-up-right" size={14} /></i>
+                    </button>
+                    <LocalizedLink to="/mon-espace/assistant" className="text-center" style={{ font: '600 13px/1 var(--f-body)', color: 'var(--ink-fixed)' }}>
+                      {t('playerV3.askRysmo')}
+                    </LocalizedLink>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Précédente / terminée · suivante ─────────────────────────── */}
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+                {prev ? (
+                  <button
+                    type="button"
+                    onClick={() => setActiveLesson(prev.lesson)}
+                    className="mm-press inline-flex items-center gap-2 rounded-pill"
+                    style={{ height: '46px', padding: '0 20px', border: '1px solid var(--line)', background: 'transparent', color: 'var(--ink)', font: '600 14px/1 var(--f-body)', cursor: 'pointer' }}
+                  >
+                    <Icon name="back" size={15} />
+                    {`${prev.moduleIndex}.${prev.lessonIndex} · ${prev.lesson.title}`}
+                  </button>
+                ) : <span />}
+                {activeLesson.type !== 'quiz' && activeLesson.type !== 'mission' && enrollment ? (
+                  <button type="button" className="mm-pill" onClick={() => void finishAndNext()} disabled={saving}>
+                    {next ? t('playerV3.doneNext') : isDone ? t('player.lessonDone') : t('player.markLessonCompleted')}
+                    <i><Icon name="arrow-up-right" size={14} /></i>
+                  </button>
+                ) : next ? (
+                  <button type="button" className="mm-pill" onClick={() => setActiveLesson(next.lesson)}>
+                    {t('playerV3.next')}
+                    <i><Icon name="arrow-up-right" size={14} /></i>
+                  </button>
+                ) : null}
+              </div>
+            </>
+          )}
         </div>
 
-        <aside className="hidden wide:block wide:sticky wide:top-6">{outline}</aside>
+        {/* ── Colonne de droite : le module ouvert, puis Rysmo IA ─────────────── */}
+        <div className="flex flex-col gap-5">
+          <section className="mm-card">
+            <div className="mb-[14px] flex items-center gap-[10px]">
+              <h3>{here ? t('playerV3.moduleTitle', { n: here.moduleIndex, title: here.moduleTitle }) : t('player.programTitle')}</h3>
+              <button type="button" className="mm-more" aria-label={t('player.courseOutline')} onClick={() => setMobileOutlineOpen(true)} style={{ cursor: 'pointer' }}>
+                <Icon name="list" size={15} />
+              </button>
+            </div>
+            <div className="mb-[10px] flex items-center gap-[10px]">
+              <div className="mm-progress" style={{ flex: 1 }} role="progressbar" aria-label={t('player.progressLabel')} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+                <i style={{ ['--p' as string]: Math.min(1, Math.max(0, progress / 100)) }} />
+              </div>
+              <span style={{ fontSize: '12.5px' }}>
+                <Num value={completedLessons.length} source="db" asOf={readAt} /> / <Num value={totalLessons} source="db" asOf={readAt} />
+              </span>
+            </div>
+            {(here ? moduleLessons : all.slice(0, 8)).map((l) => {
+              const done = completedLessons.includes(l.lesson.id);
+              const active = l.lesson.id === activeLesson?.id;
+              const locked = !opens(l.lesson);
+              return (
+                <button
+                  key={l.lesson.id}
+                  type="button"
+                  disabled={locked}
+                  aria-current={active ? 'true' : undefined}
+                  onClick={() => setActiveLesson(l.lesson)}
+                  className="flex w-full items-center gap-3 rounded-m text-left"
+                  style={{
+                    padding: '11px 12px', border: 0, cursor: locked ? 'not-allowed' : 'pointer', fontSize: '14px',
+                    background: active ? 'var(--mm-bleu-c)' : 'transparent', color: active ? 'var(--mm-bleu-f)' : 'var(--ink)',
+                    opacity: locked ? 0.55 : 1,
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="grid flex-none place-items-center rounded-pill"
+                    style={{
+                      width: '24px', height: '24px',
+                      background: done ? 'var(--mm-teal-f)' : active ? 'var(--mm-bleu-f)' : 'var(--paper-2)',
+                      color: done || active ? 'var(--paper-fixed)' : 'var(--ink-3)',
+                    }}
+                  >
+                    <Icon name={locked ? 'lock' : done ? 'check' : LESSON_GLYPH[l.lesson.type] ?? 'doc'} size={12} />
+                  </span>
+                  <span className="text-ink-2" style={{ fontSize: '12px' }}>{`${l.moduleIndex}.${l.lessonIndex}`}</span>
+                  <span className="flex-1 font-semibold">{l.lesson.title}</span>
+                </button>
+              );
+            })}
+          </section>
+
+          <section className="mm-card">
+            <h3>{num ? t('playerV3.rysmoTitle', { n: num }) : t('playerV3.rysmoName')}</h3>
+            <p className="m-0 mt-2 text-ink-2" style={{ fontSize: '14px', lineHeight: 1.55 }}>{t('playerV3.rysmoBody')}</p>
+            <LocalizedLink to="/mon-espace/assistant" className="mm-pill is-sm mt-4">
+              {t('playerV3.askRysmo')}
+              <i><Icon name="arrow-up-right" size={14} /></i>
+            </LocalizedLink>
+          </section>
+        </div>
       </div>
 
-      {/* Déclencheur de la feuille, petit écran seulement. */}
-      <button
-        type="button"
-        onClick={() => setMobileOutlineOpen(true)}
-        className="mm-press mm-touch-extend wide:hidden fixed bottom-6 right-6 z-40 inline-flex items-center gap-2"
-        style={{
-          minHeight: 'var(--touch-btn)', padding: '0 20px', borderRadius: 'var(--r-pill)',
-          background: 'var(--action-forme)', color: 'var(--paper-fixed)', border: 0,
-          fontFamily: 'var(--f-body)', fontWeight: 700, fontSize: '13.5px',
-          boxShadow: 'var(--sh-bleu)', cursor: 'pointer',
-        }}
-      >
-        <Icon name="list" size={16} color="var(--paper-fixed)" />
-        {t('player.courseOutline')}
-      </button>
-
       <Sheet open={mobileOutlineOpen} onClose={() => setMobileOutlineOpen(false)} title={t('player.courseOutline')}>
-        <CourseOutline
-          formation={formation}
-          expandedModules={expandedModules}
-          toggleModule={toggleModule}
-          completedLessons={completedLessons}
-          activeLesson={activeLesson}
-          setActiveLesson={(lesson) => { setActiveLesson(lesson); setMobileOutlineOpen(false); }}
-          readAt={readAt}
-        />
+        {outline}
       </Sheet>
     </Frame>
   );
 }
 
 /**
- * La coquille d'un écran de PILE — le lecteur porte la barre d'onglets dans le kit, mais
- * dans ce produit il vit HORS de `StudentLayout` (route `/cours/:slug`, sous `LmsLayout`) :
- * il n'a donc ni colonne latérale ni barre d'onglets à hériter, et un bouton retour à porter.
+ * La coquille d'un écran plein écran : le lecteur vit HORS de `StudentLayout` (route
+ * `/cours/:slug`), sans colonne ni barre d'onglets à hériter — il porte donc son retour.
  */
-function Frame({
-  children, back,
-}: {
-  children: React.ReactNode;
-  back?: { href: string; label: string };
-}) {
+function Frame({ children, back }: { children: ReactNode; back?: { href: string; label: string } }) {
   return (
-    <div className="relative min-h-screen isolate overflow-x-clip px-[18px] pt-4 pb-16">
-      <Mesh territory="forme" />
-      <DsNavHost className="relative z-[3] w-full max-w-[1120px] mx-auto">
+    <div className="relative min-h-screen bg-[color:var(--paper)] px-[18px] pb-16 pt-4 wide:px-8">
+      <DsNavHost className="relative mx-auto w-full max-w-[1360px]">
         {back && (
-          <div className="flex items-center h-12 mb-1">
-            <a href={back.href} aria-label={back.label} className="mm-touch-extend inline-grid place-items-center w-touch h-touch rounded-full text-ink-2">
-              <Icon name="back" size={19} strokeWidth={2.4} />
+          <div className="mb-1 flex h-12 items-center">
+            <a href={back.href} className="mm-touch-extend inline-flex items-center gap-2 text-ink-2 no-underline" style={{ fontSize: '13px', fontWeight: 600 }}>
+              <Icon name="back" size={17} strokeWidth={2.4} />
+              {back.label}
             </a>
           </div>
         )}

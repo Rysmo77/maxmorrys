@@ -58,46 +58,273 @@
   },
   "edu": {
     "methode": {
-      "eyebrow": "Edu · Méthode",
       "title": "La méthode",
-      "empty": "Cette page est en cours d'écriture.",
-      "body": "Elle expliquera comment se déroule une formation : leçons courtes, quiz de module, missions relues et live de cohorte. Le catalogue est déjà ouvert."
+      "seoTitle": "La méthode — apprendre en faisant | Max-Morrys Edu",
+      "seoDescription": "Tu lis avant de payer, tu pratiques sur ton vrai projet, ta cohorte relit, et ton certificat se vérifie par code.",
+      "script": "La méthode",
+      "titleLines": [
+        "Apprendre",
+        "en faisant."
+      ],
+      "lede": "Une méthode simple : tu lis avant de payer, tu pratiques sur ton vrai projet, ta cohorte relit, et ton certificat se vérifie.",
+      "ctaCourses": "Voir les formations",
+      "steps": {
+        "eyebrow": "Quatre temps",
+        "title": "De la première leçon au certificat.",
+        "read": {
+          "title": "Tu lis avant de payer",
+          "body": "Des leçons libres dans chaque formation, sans compte. Tu juges sur pièce."
+        },
+        "practice": {
+          "title": "Tu pratiques, Rysmo IA t'accompagne",
+          "body": "Chaque leçon finit par une mission sur ton vrai projet. Rysmo IA répond sur la leçon ouverte."
+        },
+        "cohort": {
+          "title": "Ta cohorte relit, Max anime",
+          "body": "Les personnes qui ont commencé le même mois relisent ta mission. Un live par mois pour ta cohorte."
+        },
+        "cert": {
+          "title": "Tu obtiens un certificat vérifiable",
+          "body": "Délivré quand toutes les leçons sont validées côté serveur. Vérifiable par code."
+        }
+      },
+      "lesson": {
+        "eyebrow": "Une leçon type",
+        "title": "Moins de 12 minutes, une chose à faire.",
+        "body1": "Chaque leçon tient sur un trajet en car rapide. Le poids de la vidéo est affiché avant de la lancer, et tu peux la garder hors connexion.",
+        "body2": "Ce qui valide une leçon, ce n'est pas d'avoir regardé : c'est d'avoir fait la mission.",
+        "parts": {
+          "text": {
+            "title": "Le texte",
+            "body": "Lisible sans le son, en quelques minutes."
+          },
+          "mission": {
+            "title": "La mission",
+            "body": "Une chose à faire, sur ton projet."
+          },
+          "rysmo": {
+            "title": "Rysmo IA",
+            "body": "Tes questions sur cette leçon."
+          },
+          "review": {
+            "title": "La relecture",
+            "body": "Par ta cohorte, si tu veux."
+          }
+        }
+      },
+      "cohort": {
+        "eyebrow": "La cohorte",
+        "title": "Chacun son rythme. Personne tout seul.",
+        "body": "Ta cohorte, ce sont les personnes qui ont commencé la même formation le même mois que toi. Tu la rejoins si tu veux, tu la quittes quand tu veux.",
+        "ticks": {
+          "review": "Tu relis les missions de ta cohorte, elle relit la tienne",
+          "live": "Max anime un live par mois pour ta cohorte, avec replay",
+          "progress": "Tu vois où en sont les autres, sans classement"
+        },
+        "module": "Module {{n}}",
+        "legend": "Où en est une cohorte, module par module · l'orange, c'est ton module",
+        "illustration": "illustration"
+      },
+      "diff": {
+        "title": "Ce qui fait la différence",
+        "items": {
+          "mission": {
+            "title": "Mission ou rien",
+            "body": "Une leçon n'est validée qu'avec sa mission rendue."
+          },
+          "review": {
+            "title": "Relecture croisée",
+            "body": "Tu relis deux missions, on relit la tienne."
+          },
+          "live": {
+            "title": "Live de cohorte",
+            "body": "Un rendez-vous mensuel, des questions de ta cohorte."
+          },
+          "rysmo": {
+            "title": "Rysmo IA à côté",
+            "body": "Tes questions sur la leçon ouverte, quota visible."
+          },
+          "offline": {
+            "title": "Hors connexion",
+            "body": "Garde les leçons sur ton téléphone, poids affiché."
+          },
+          "cert": {
+            "title": "Certificat vérifiable",
+            "body": "Un code public, sans compte, impossible à modifier."
+          }
+        }
+      }
     },
     "assistant": {
-      "eyebrow": "Edu · Rysmo",
       "title": "Rysmo IA, ton assistant",
-      "empty": "Cette page est en cours d'écriture.",
-      "body": "Elle présentera l'assistant pédagogique : ce qu'il sait faire, ses quotas, et ce qu'il ne fait pas. Si tu as un compte, il t'attend déjà dans ton espace."
+      "seoTitle": "Rysmo IA, l'assistant des formations | Max-Morrys Edu",
+      "seoDescription": "Rysmo IA répond sur la leçon que tu as sous les yeux, à n'importe quelle heure. Ton quota du jour est visible avant chaque question.",
+      "script": "Ton assistant",
+      "heroTitle": "Rysmo IA.",
+      "lede": "Il répond sur la leçon que tu as sous les yeux, à n'importe quelle heure. Ton quota du jour est visible avant chaque question.",
+      "cta": "Commencer une formation",
+      "demoLabel": "Exemple d'échange avec Rysmo IA",
+      "demoHead": "Rysmo IA · sur la leçon ouverte",
+      "demoQ": "Voici ma description : « Pressing pas cher, rapide, Dakar. »",
+      "demoA": "Trop vague pour un client. Précise ton quartier et ce que tu fais de mieux : ton délai, la livraison, ce qui te distingue.",
+      "demoTag": "conversation d'exemple",
+      "quota": {
+        "eyebrow": "Combien de questions",
+        "title": "Un quota clair, affiché avant.",
+        "perDay": "questions par jour",
+        "base": {
+          "label": "Avec ton compte",
+          "body": "Incluses, sur toutes les leçons de tes formations."
+        },
+        "club": {
+          "label": "Membre du Club",
+          "body": "{{base}} + {{bonus}} de plus avec l'abonnement au Club."
+        },
+        "pack": {
+          "label": "Pack de recharge",
+          "unit": "questions en plus",
+          "body": "Utilisables quand tu veux. Les packs et leurs prix s'affichent dans ton espace, avant tout paiement."
+        },
+        "reset": "Le quota revient chaque jour à minuit, heure de Dakar."
+      },
+      "limits": {
+        "eyebrow": "Les limites",
+        "title": "Ce que Rysmo IA ne fait pas.",
+        "items": {
+          "missions": {
+            "title": "Il ne fait pas tes missions",
+            "body": "Il t'aide à les faire, il ne les rend pas à ta place."
+          },
+          "validate": {
+            "title": "Il ne valide pas une leçon",
+            "body": "Seul le serveur valide, quand ta mission est rendue."
+          },
+          "lesson": {
+            "title": "Il reste sur la leçon",
+            "body": "Il te renvoie à la leçon quand la réponse y est déjà."
+          },
+          "memory": {
+            "title": "Il ne se souvient pas sans toi",
+            "body": "La mémoire est désactivée tant que tu ne l'actives pas."
+          }
+        }
+      }
     },
     "agenda": {
       "eyebrow": "Mon école",
       "title": "Agenda",
-      "empty": "Rien n'est encore programmé ici.",
-      "body": "Les lives de cohorte, les quiz à rendre et les sessions du Club apparaîtront ici dès qu'ils seront datés côté serveur."
+      "empty": "Rien de prévu pour l'instant.",
+      "body": "Les sessions et événements du Club datés apparaissent ici. Les lives de cohorte s'y ajouteront dès qu'ils seront programmés.",
+      "bodyNoClub": "Les lives de cohorte et les sessions du Club apparaîtront ici dès qu'ils seront datés.",
+      "upcomingTitle": "À venir",
+      "remindersTitle": "Rappels",
+      "remindersEmpty": "Pas encore de rappels.",
+      "remindersBody": "Les rappels avant un live ne sont pas encore disponibles. Les notifications de ton espace restent actives.",
+      "prevWeek": "Semaine précédente",
+      "nextWeek": "Semaine suivante",
+      "clubHint": "Les sessions du Club apparaissent ici quand tu en es membre.",
+      "clubLink": "Découvrir le Club"
     },
     "cohorte": {
       "eyebrow": "Mon école",
       "title": "Ma cohorte",
-      "empty": "Tu ne fais partie d'aucune cohorte pour l'instant.",
-      "body": "Quand une cohorte ouvrira pour ta formation, tu verras ici son avancement par module, le prochain live et les missions à relire. Aucun nom n'y sera classé."
+      "empty": "Aucune cohorte n'est ouverte pour ta formation.",
+      "body": "Quand elle ouvrira, chaque module montrera combien de membres y sont arrivés — chacun à son rythme, sans classement ni nom.",
+      "liveEyebrow": "Live de cohorte · avec Max-Morrys",
+      "liveNone": "Aucun live programmé",
+      "liveNoneBody": "Le prochain live s'affichera ici avec sa date, son heure (GMT) et son lien, dès qu'il sera programmé.",
+      "liveRoom": "Salle du live",
+      "liveAgenda": "Voir mon agenda",
+      "progressTitle": "Où en est la cohorte",
+      "progressMeta": "chacun à son rythme",
+      "reviewTitle": "Missions à relire",
+      "reviewTabTodo": "À relire",
+      "reviewTabDone": "Déjà relues",
+      "reviewTabAll": "Toutes",
+      "reviewEmpty": "Aucune mission à relire.",
+      "reviewBody": "Les missions rendues par ta cohorte arriveront ici. Un retour = ce qui marche + une chose à changer.",
+      "myMissionsTitle": "Mes missions",
+      "myMissionsEmpty": "Aucune mission en relecture.",
+      "myMissionsBody": "Les missions que tu rends à ta cohorte et leurs retours s'afficheront ici.",
+      "myMissionsLink": "Voir mes missions",
+      "membersTitle": "Membres",
+      "membersEmpty": "Personne pour l'instant.",
+      "membersBody": "Seuls ceux qui ont rejoint la cohorte apparaîtront ici.",
+      "rulesTitle": "Les règles de la cohorte",
+      "rule1": "On relit la mission, pas la personne.",
+      "rule2": "Un retour = ce qui marche + une chose à changer.",
+      "rule3": "Ce qui se dit en live reste dans la cohorte."
     },
     "live": {
       "eyebrow": "Ma cohorte",
       "title": "Live de cohorte",
-      "empty": "Aucun live n'est programmé.",
-      "body": "Le prochain live s'affichera ici avec son heure exacte (GMT) et son lien. Les missions sans retour depuis 48 h y sont relues."
+      "empty": "Aucun live en cours.",
+      "body": "Quand un live sera programmé, tu le retrouveras dans ton agenda avec son heure exacte (GMT), et la salle s'ouvrira ici.",
+      "agenda": "Voir mon agenda",
+      "programTitle": "Au programme",
+      "programEmpty": "Pas encore de programme.",
+      "programBody": "Le déroulé est publié avec le live : accueil, relectures, tes questions, la mission suivante.",
+      "reviewEyebrow": "Relue en direct",
+      "reviewTitle": "Une mission relue devant la cohorte",
+      "reviewBody": "Toujours avec l'accord de la personne. Ce qui marche, une chose à changer, et pourquoi.",
+      "questionsTab": "Questions",
+      "chatTab": "Discussion",
+      "questionsEmpty": "Aucune question pour l'instant.",
+      "chatEmpty": "La discussion est fermée.",
+      "questionsBody": "Les questions et la discussion s'ouvrent quand un live est programmé. Les plus votées passent en premier.",
+      "askPlaceholder": "Ta question pour Max",
+      "askNote": "Les questions les plus votées passent en premier."
     },
     "missions": {
       "eyebrow": "Mon école",
       "title": "Missions et relectures",
-      "empty": "Aucune mission à rendre ni à relire.",
-      "body": "Les missions de tes modules et celles de ta cohorte à relire apparaîtront ici. Règle de relecture : ce qui marche, plus une chose à changer."
+      "empty": "Aucune mission à rendre pour l'instant.",
+      "body": "Chaque module finit par une mission sur ton vrai projet. Elles apparaissent ici dès que tu suis une formation.",
+      "allDone": "Toutes tes missions sont faites.",
+      "crumbLabel": "Fil de la mission",
+      "crumbMission": "Mission",
+      "lesson": "Leçon {{n}}",
+      "eyebrowXp": "Mission {{n}} · +{{xp}} XP",
+      "contentSoon": "Les consignes de cette mission arrivent.",
+      "mine": "Ma mission",
+      "todo": "à faire",
+      "done": "faite",
+      "depositSoon": "Le dépôt de ta mission dans l'espace n'est pas encore ouvert. Fais-la sur ton projet, puis valide-la depuis la leçon.",
+      "openLesson": "Ouvrir la leçon",
+      "allTitle": "Toutes tes missions",
+      "reviewsTitle": "Retours de ta cohorte",
+      "reviewsEmpty": "Aucun retour pour l'instant. Les relectures entre pairs ouvriront avec les cohortes : ce qui marche, plus une chose à changer.",
+      "turnTitle": "À ton tour : rien à relire",
+      "turnBody": "Quand ta cohorte rendra ses missions, celles à relire s'afficheront ici."
     },
     "quiz": {
       "eyebrow": "Mon école",
       "title": "Quiz de module",
       "empty": "Ce quiz n'est pas encore disponible.",
-      "body": "Les quiz se passent depuis tes formations. Ta réponse comptera pour la validation du module, et l'assistant est en pause pendant le quiz."
+      "body": "Un quiz s'ouvre ici quand le module que tu suis en contient un. Tes formations sont dans Mes formations.",
+      "crumbLabel": "Fil du quiz",
+      "crumbCourses": "Mes formations",
+      "crumbQuiz": "Quiz",
+      "module": "Module {{n}} · {{title}}",
+      "question": "Question {{n}} / {{total}}",
+      "correct": "justes",
+      "answersLabel": "Réponses possibles",
+      "right": "Juste.",
+      "wrong": "Pas tout à fait. La bonne réponse : {{answer}}",
+      "next": "Question suivante",
+      "finish": "Voir mon résultat",
+      "result": "Ton résultat",
+      "pass": "Sans faute. Enregistre-le dans la leçon pour valider le module.",
+      "passDone": "Sans faute. Ce quiz est déjà validé dans ta formation.",
+      "fail": "Il faut toutes les bonnes réponses pour valider. Tu peux le refaire autant de fois que tu veux.",
+      "restart": "Recommencer",
+      "source": "Barème du quiz du module",
+      "reviewModule": "Revoir le module",
+      "save": "Valider dans la leçon",
+      "trackTitle": "Ton parcours",
+      "rule": "Toutes les bonnes réponses valident le quiz. Tu peux le refaire autant de fois que tu veux.",
+      "rysmoTitle": "Rysmo IA, après le quiz",
+      "rysmoBody": "Réponds d'abord seul. Une fois le quiz fini, Rysmo IA peut t'expliquer tes erreurs sur la leçon."
     }
   },
   "club": {

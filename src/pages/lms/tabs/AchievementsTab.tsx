@@ -1,53 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import {
-  Button, EmptyState, Icon, LessonRow, Num, ProgressBar, Skeleton, StatTile, Tag,
-  type IconName,
-} from '@ds';
-import SpaceSplit from '../components/SpaceSplit';
-import { useLocalizedPath } from '../../../contexts/LanguageContext';
+import { Button, Icon, Num, Skeleton, type IconName } from '@ds';
+import LocalizedLink from '../../../components/shared/LocalizedLink';
 import { useFormat } from '../../../hooks/useFormat';
+import { useLocalizedPath } from '../../../contexts/LanguageContext';
 import { issueCertificate, getUserCertificates } from '../../../lib/firestore';
 import { getGamificationProfile } from '../../../lib/gamification';
-import { BADGES, getLevelFromXP, getXPForNextLevel } from '../../../types/gamification';
+import { shareLink, toAbsoluteUrl } from '../../../lib/share/links';
+import { BADGES, XP_REWARDS, getLevelFromXP, getXPForNextLevel } from '../../../types/gamification';
 import type { GamificationProfile } from '../../../types/gamification';
 import type { Certificate } from '../../../types';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import { captureError } from '../../../lib/sentry';
-
-import Bento from '../../../components/formations/Bento';
-/**
- * ═══════════════════════════════════════════════════════════════════════════════
- * L'ÉCRAN « MES ACCOMPLISSEMENTS » — un écran de PILE.
- *
- * UN ACCOMPLISSEMENT EST UN NOMBRE : combien, depuis quand, sur quel total. Tous les comptes
- * de cet écran passent donc par <Num> ou <StatTile>, avec leur source et leur date de relevé.
- * Là où la donnée manque — le profil de jeu n'a pas encore été lu — la case affiche « non
- * relevé » et non un zéro décoratif : « c'est zéro » et « je ne sais pas » ne sont pas la
- * même information, et un badge à 0 quand la lecture a simplement échoué décourage pour rien.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * CE QUI A DISPARU, ET POURQUOI
- *
- * · LES DIX EMOJI DES BADGES. `BADGES` porte un emoji par badge (`icon: '🏆'`), et
- *   `BadgeCard` le rend tel quel. Ce sont des DONNÉES — elles restent en base et dans le type,
- *   personne ne les efface — mais elles ne se rendent plus : chaque badge est associé ici à un
- *   glyphe du jeu unique, par CATÉGORIE et par sens. La correspondance est écrite en toutes
- *   lettres dans `BADGE_GLYPH`, plus bas, pour qu'elle se relise et se conteste.
- *
- * · `canvas-confetti`. Quatre couleurs hexadécimales en dur au milieu d'un fichier de
- *   composant (AD-2), pour une décoration de deux secondes. Le certificat qui vient d'être
- *   émis apparaît dans la liste, daté et avec son code : c'est la récompense, et elle reste.
- *
- * · `XPBar`, `StreakWidget` ET `BadgeCard`. Les trois importent `lucide-react` ou rendent un
- *   emoji, et leurs nombres n'ont ni source ni date. Ils sont remplacés ici par <StatTile> et
- *   par des lignes de badge. Les composants restent en place — ils ne sont pas de mon lot.
- *
- * · LA NOTE « OBTENU LE » SANS DATE DE RELEVÉ. La date d'émission d'un certificat est une
- *   donnée de base : elle passe par <Num>, qui la date et cite sa provenance au survol.
- * ═══════════════════════════════════════════════════════════════════════════════
- */
+import { CardEmpty, EduCard, EduGrid, EduHead, EduPage } from '../../../components/edu/g4/EduParts';
 
 interface AchievementsTabProps {
   userId: string;
@@ -58,31 +23,43 @@ interface AchievementsTabProps {
   addToast: (type: 'success' | 'error', message: string) => void;
 }
 
-/**
- * DIX BADGES, DIX GLYPHES DU JEU UNIQUE — la correspondance des emoji, rendue explicite.
- *
- * Elle suit la CATÉGORIE du badge, pas l'emoji : un emoji est une image, une catégorie est du
- * sens. Apprentissage → la coche, le livre, la médaille (premier pas, dix leçons, cinquante) ;
- * série → le calendrier puis les barres (sept jours, trente) ; accomplissement → le trophée,
- * la couronne, l'étoile ; communauté → la bulle et la poignée de main.
- *
- * Un badge inconnu de cette table retombe sur `medal` plutôt que de disparaître — le jour où
- * un onzième badge est ajouté au type, il s'affiche, et c'est ce glyphe générique qui signale
- * qu'il faut revenir ici.
- */
+/** Un glyphe par badge du catalogue — le catalogue porte des émojis, le kit des tracés. */
 const BADGE_GLYPH: Record<string, IconName> = {
   'premier-pas': 'check',
   studieux: 'book',
   expert: 'medal',
-  regulier: 'calendar',
-  machine: 'bars',
+  regulier: 'flame',
+  machine: 'zap',
   diplome: 'trophy',
-  'multi-diplome': 'crown',
+  'multi-diplome': 'graduation',
   polyvalent: 'star',
   contributeur: 'chat',
   ambassadeur: 'handshake',
 };
 
+/** Les gains d'XP RÉELS du barème (`XP_REWARDS`), à la place des quêtes de la maquette. */
+const XP_WAYS: { key: string; xp: number; icon: IconName; bg: string }[] = [
+  { key: 'xpLesson', xp: XP_REWARDS.completeLesson, icon: 'check', bg: 'var(--mm-bleu-f)' },
+  { key: 'xpModule', xp: XP_REWARDS.completeModule, icon: 'layers', bg: 'var(--mm-violet-f)' },
+  { key: 'xpFormation', xp: XP_REWARDS.completeFormation, icon: 'graduation', bg: 'var(--mm-teal-f)' },
+  { key: 'xpStreak', xp: XP_REWARDS.dailyStreak, icon: 'flame', bg: 'var(--mm-orange-f)' },
+  { key: 'xpNote', xp: XP_REWARDS.createNote, icon: 'pencil', bg: 'var(--ink-fixed)' },
+];
+const XP_SOURCE = { cite: 'barème XP du produit (types/gamification)' };
+
+const LEVEL_BG = 'linear-gradient(120deg, color-mix(in srgb, var(--mm-bleu-f) 45%, var(--night)), var(--mm-bleu-f) 60%, var(--mm-violet-f))';
+
+/**
+ * SUCCÈS — maquette `Edu-Succes` (+ `-mobile`), passe 2 lot B.
+ *
+ * Niveau et série en tête, badges, certificats ; dans le panneau, comment gagner de l'XP et
+ * la cohorte. Tout chiffre vient du profil de jeu (`gamification`) ou des certificats émis ;
+ * sans profil lu, les relevés restent vides plutôt que d'afficher zéro.
+ *
+ * Écarts assumés à la maquette : les « quêtes » (jour/semaine, à récupérer) n'ont pas de
+ * producteur — le panneau montre à la place le barème RÉEL des gains d'XP ; la carte « Ta
+ * cohorte cette semaine » dit qu'aucune cohorte n'est ouverte (pas de compte inventé).
+ */
 export default function AchievementsTab({
   userId,
   certificates,
@@ -93,16 +70,15 @@ export default function AchievementsTab({
 }: AchievementsTabProps) {
   const { t } = useTranslation('lmsTabs');
   const { formatDate } = useFormat();
-  const navigate = useNavigate();
   const path = useLocalizedPath();
   const [gamification, setGamification] = useState<GamificationProfile | null>(null);
   const [issuing, setIssuing] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!userId) return;
     getGamificationProfile(userId).then(setGamification).catch(() => null);
   }, [userId]);
 
-  /* La date du relevé : l'instant des lectures Firestore qui alimentent cet écran. */
   const asOf = new Date();
 
   const handleIssueCertificate = async (formationId: string, formationTitle: string) => {
@@ -123,223 +99,214 @@ export default function AchievementsTab({
   const level = gamification ? getLevelFromXP(gamification.xp) : null;
   const levelFloor = level ? getXPForNextLevel(level - 1) : 0;
   const levelCeil = level ? getXPForNextLevel(level) : 0;
-  const levelPct = level && Number.isFinite(levelCeil)
-    ? Math.min(100, Math.max(0, Math.round(((gamification!.xp - levelFloor) / (levelCeil - levelFloor)) * 100)))
-    : 100;
+  const hasNext = level !== null && Number.isFinite(levelCeil);
+  const levelPct = gamification && hasNext
+    ? Math.min(1, Math.max(0, (gamification.xp - levelFloor) / (levelCeil - levelFloor)))
+    : 1;
+  const unlockedCount = gamification ? gamification.badges.length : null;
 
   const claimable = enrolledFormations.filter(
     (ef) => ef.enrollment.progress === 100 && !certificates.some((c) => c.formationId === ef.enrollment.formationId),
   );
 
-  /*
-    ── LE RELEVÉ DEVIENT LE PANNEAU PERMANENT ───────────────────────────────────────
-    `handoff_tableaux_de_bord` ne dessine pas cet écran, mais il tranche exactement ce
-    qu'un panneau de 340 px a le droit de porter : ce qui reste vrai pendant qu'on
-    travaille dans la colonne d'à côté. Ici c'est le CLASSEMENT de la personne — son
-    expérience, son niveau, sa série, ses certificats — et rien d'autre.
-
-    Les quatre cases étaient en tête de la colonne de travail, donc au-dessus des badges
-    et des certificats : dès qu'on faisait défiler pour lire un badge, on perdait de vue
-    ce que ce badge allait faire monter. C'est le même défaut que le quota du répétiteur
-    corrigeait côté espace — « le quota est affiché AVANT l'usage » — et la même réponse :
-    une carte qu'on quitte devient un panneau qui reste.
-
-    Les cases passent à UNE colonne dans le panneau : elles y sont empilées, pas réduites.
-    En dessous de 1080 px, `SpaceSplit` les remet en tête, sur deux colonnes, comme avant.
-  */
-  const standing = (
+  const aside = (
     <>
-      {/* ── Quatre relevés. Sans profil de jeu lu, ils disent « non relevé ». ────── */}
-      <p className="mm-eyebrow m-0">{t('achievements.gamificationEyebrow')}</p>
-      <div className="mt-[10px] grid grid-cols-2 gap-[10px] wide:grid-cols-1">
-        <StatTile
-          label={t('achievements.xpLabel')}
-          value={gamification ? gamification.xp : null}
-          unit={t('achievements.xpUnit')}
-          source="db"
-          asOf={asOf}
-          showAsOf={false}
-        />
-        <StatTile label={t('achievements.levelLabel')} value={level} source="db" asOf={asOf} showAsOf={false} />
-        <StatTile
-          label={t('achievements.streakLabel')}
-          value={gamification ? gamification.currentStreak : null}
-          unit={t('achievements.dayUnit')}
-          source="db"
-          asOf={asOf}
-          showAsOf={false}
-          foot={
-            gamification ? (
-              <>
-                {t('achievements.streakRecord')} : <Num value={gamification.longestStreak} source="db" asOf={asOf} />
-              </>
-            ) : undefined
+      <EduCard title={t('achievements.xpWaysTitle')}>
+        {XP_WAYS.map((w) => (
+          <div key={w.key} className="mm-quest">
+            <div className="row">
+              <span className="gem" style={{ background: w.bg }}><Icon name={w.icon} size={18} /></span>
+              <span className="min-w-0 flex-1">
+                <b>{t(`achievements.${w.key}`)}</b>
+              </span>
+              <span className="xp">
+                +<Num value={w.xp} source={XP_SOURCE} asOf={asOf} unit="XP" />
+              </span>
+            </div>
+          </div>
+        ))}
+      </EduCard>
+      <EduCard title={t('achievements.cohortTitle')}>
+        <CardEmpty
+          icon="users"
+          title={t('achievements.cohortEmpty')}
+          body={t('achievements.cohortBody')}
+          action={
+            <LocalizedLink to="/mon-espace/cohorte" className="mm-pill is-sm">
+              {t('achievements.cohortLink')}
+              <i><Icon name="arrow-up-right" size={15} /></i>
+            </LocalizedLink>
           }
         />
-        <StatTile
-          label={t('achievements.certsCountLabel')}
-          value={loadingCerts ? null : certificates.length}
-          source="db"
-          asOf={asOf}
-          showAsOf={false}
-        />
-      </div>
-      {/* La série de la semaine, sept crans plafonnés à sept — rien ne s'allume avant la
-          lecture du profil. */}
-      <div className="mm-bento mt-[10px]" style={{ padding: '16px' }}>
-        <p className="m-0 text-small font-semibold text-ink-2">{t('achievements.streakLabel')}</p>
-        <span className="mm-streak mt-2" aria-hidden="true">
-          {Array.from({ length: 7 }, (_, i) => (
-            <i key={i} className={gamification && i < Math.min(7, gamification.currentStreak) ? 'on' : undefined} style={{ ['--i' as string]: i }} />
-          ))}
-        </span>
-      </div>
-      {level && Number.isFinite(levelCeil) && (
-        <ProgressBar
-          value={levelPct}
-          source="db"
-          asOf={asOf}
-          height={6}
-          label={t('achievements.levelProgressLabel')}
-          style={{ marginTop: '10px' }}
-        />
-      )}
+      </EduCard>
     </>
   );
 
   return (
-    <div className="mx-auto max-w-4xl px-[18px] py-6 wide:max-w-none wide:px-pane">
-      {/* Le titre de l'écran est celui de la barre haute de `AppShell`, alimentée par
-          `titleMap` — donc pour chaque route sans exception. En rendre un second ici donnait
-          DEUX <h1> par écran et le même mot écrit deux fois à quinze centimètres d'intervalle.
-          C'est la décision déjà prise pour les dix-neuf écrans de console (`ConsolePage`). */}
-      <SpaceSplit asideLabel={t('achievements.gamificationEyebrow')} aside={standing}>
-
-      {/* ── Les badges. Combien sur combien, puis la liste. ──────────────────────── */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <p className="mm-eyebrow m-0">{t('achievements.badgesTitle')}</p>
-        <p className="m-0 text-meta-2" style={{ color: 'var(--text-muted)' }}>
-          {t('achievements.badgesUnlockedLabel')} :{' '}
-          <Num value={gamification ? gamification.badges.length : null} source="db" asOf={asOf} />
-          {' / '}
-          <Num value={BADGES.length} source={{ cite: 'catalogue des badges du produit' }} asOf={asOf} />
-        </p>
-      </div>
-      {/* Les badges en grille (kit v3 `Achievements`) : débloqués en couleur, verrouillés
-          en gris avec cadenas. L'état vient du profil de jeu, jamais d'une supposition. */}
-      <ul className="m-0 mt-[10px] grid list-none grid-cols-2 gap-3 p-0 stack:grid-cols-3">
-        {BADGES.map((badge) => {
-          const unlocked = gamification?.badges.includes(badge.id) ?? false;
-          return (
-            <li key={badge.id} className="mm-bento flex flex-col gap-2" style={{ padding: '16px', opacity: unlocked ? undefined : 0.72 }}>
-              <span
-                aria-hidden="true"
-                className="grid h-11 w-11 place-items-center rounded-m"
-                style={{
-                  background: unlocked ? 'var(--action-transforme)' : 'var(--fill-1)',
-                  color: unlocked ? 'var(--paper-fixed)' : 'var(--ink-3)',
-                }}
-              >
-                <Icon name={unlocked ? (BADGE_GLYPH[badge.id] ?? 'medal') : 'lock'} size={19} />
-              </span>
-              <b className="text-[14.5px] leading-[1.25] text-ink">{badge.name}</b>
-              <span className="text-small leading-[1.45] text-ink-2">{badge.description}</span>
-              <span className="mt-auto pt-1">
-                <Tag tone={unlocked ? 'ok' : 'neutral'}>{t(unlocked ? 'achievements.badgeUnlocked' : 'achievements.badgeLocked')}</Tag>
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-
-      {/* ── Les certificats émis ─────────────────────────────────────────────────── */}
-      <div className="mt-[24px]">
-        <p className="mm-eyebrow m-0">{t('achievements.certsTitle')}</p>
-        <p className="m-0 mt-[4px] text-meta-2" style={{ color: 'var(--text-muted)' }}>{t('achievements.certsSubtitle')}</p>
-      </div>
-
-      {loadingCerts ? (
-        <div className="mt-[12px] grid gap-[8px]">
-          {[0, 1].map((i) => <Skeleton key={i} height={70} radius="var(--r-m)" label={t('achievements.loadingLabel')} />)}
-        </div>
-      ) : certificates.length === 0 ? (
-        <Bento tone="hero" padding={22} className="mt-[12px]">
-          <EmptyState
-            glyph={<Icon name="trophy" size={26} style={{ color: 'var(--mm-violet-t)' }} />}
-            glyphBackground="color-mix(in srgb, var(--mm-violet) 14%, transparent)"
-            title={t('achievements.emptyTitle')}
-            body={t('achievements.emptyText')}
-            action={
-              enrolledFormations.length > 0 ? (
-                <p className="m-0 text-meta-2" style={{ color: 'var(--text-muted)' }}>
-                  {t('achievements.inProgressHint', { count: enrolledFormations.length })}
-                </p>
+    <EduPage>
+      <EduHead eyebrow={t('achievements.eyebrow')} title={t('achievements.screenTitle')} />
+      <EduGrid aside={aside}>
+        {/* ── Niveau et série ──────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 gap-5 stack:[grid-template-columns:1.3fr_1fr]">
+          <section className="mm-card dk" style={{ background: LEVEL_BG, color: 'var(--paper-fixed)', border: 0 }}>
+            <span className="mm-eyebrow" style={{ color: 'color-mix(in srgb, var(--paper-fixed) 80%, transparent)' }}>
+              {t('achievements.levelEyebrow')}
+            </span>
+            <div className="mt-3 flex items-baseline gap-[14px]">
+              {level !== null ? (
+                <b className="font-display text-[64px] font-black leading-none">
+                  <Num value={level} source="db" asOf={asOf} style={{ font: 'inherit' }} />
+                </b>
               ) : (
-                <Button tone="forme" onClick={() => navigate(path('/formations'))}>{t('achievements.startCourse')}</Button>
-              )
-            }
-          />
-        </Bento>
-      ) : (
-        <Bento padding="4px 18px" className="mt-[12px]">
-          {certificates.map((cert, i) => (
-            <LessonRow
-              key={cert.id}
-              state="plain"
-              icon={<Icon name="star" size={14} style={{ color: 'var(--mm-violet-t)' }} />}
-              iconBackground="color-mix(in srgb, var(--mm-violet) 12%, transparent)"
-              title={cert.formationTitle}
-              meta={
-                <>
-                  {t('achievements.obtainedLabel')}{' '}
-                  <Num value={formatDate(cert.issuedAt)} source="db" asOf={asOf} />
-                  {' · '}
-                  {t('achievements.certCodeLabel')} <Num value={cert.certificateCode} source="db" asOf={asOf} />
-                </>
-              }
-              trailing={<Icon name="forward" size={16} strokeWidth={2.4} style={{ color: 'var(--ink-3)' }} />}
-              onClick={() => navigate(path(`/certificat/${cert.certificateCode}`))}
-              last={i === certificates.length - 1}
-            />
-          ))}
-        </Bento>
-      )}
+                <Num value={null} source="db" asOf={asOf} style={{ fontSize: 15 }} />
+              )}
+              <span className="text-[15px]" style={{ opacity: 0.85 }}>{t('achievements.levelLabel')}</span>
+            </div>
+            <div className="mt-[18px] h-[10px] overflow-hidden rounded-pill" style={{ background: 'color-mix(in srgb, var(--paper-fixed) 20%, transparent)' }}>
+              <i className="block h-full w-full" style={{ background: 'var(--mm-orange-f)', transform: `scaleX(${levelPct})`, transformOrigin: 'left' }} />
+            </div>
+            <div className="mt-[10px] flex flex-wrap justify-between gap-2 text-[13px] font-semibold">
+              <span><Num value={gamification ? gamification.xp : null} source="db" asOf={asOf} unit="XP" /></span>
+              {gamification && hasNext && (
+                <span>
+                  {t('achievements.levelNext', { level: (level ?? 0) + 1 })} · <Num value={levelCeil} source={XP_SOURCE} asOf={asOf} unit="XP" />
+                </span>
+              )}
+            </div>
+          </section>
+          <section className="mm-card">
+            <span className="mm-eyebrow">{t('achievements.streakEyebrow')}</span>
+            <div className="mb-4 mt-3 flex items-baseline gap-[10px]">
+              <Num
+                value={gamification ? gamification.currentStreak : null}
+                source="db"
+                asOf={asOf}
+                style={gamification ? { fontSize: 52, fontWeight: 600, letterSpacing: '-.05em' } : { fontSize: 15 }}
+              />
+              <span className="text-ink-2">
+                {t('achievements.streakDays')}
+                {gamification && (
+                  <> · {t('achievements.streakRecord')} <Num value={gamification.longestStreak} source="db" asOf={asOf} /></>
+                )}
+              </span>
+            </div>
+            <span className="mm-streak" aria-hidden="true">
+              {Array.from({ length: 7 }, (_, i) => (
+                <i key={i} className={gamification && i < Math.min(7, gamification.currentStreak) ? 'on' : undefined} style={{ ['--i' as string]: i }} />
+              ))}
+            </span>
+            <p className="m-0 mt-3 text-[12.5px] text-ink-2">{t('achievements.streakHint')}</p>
+          </section>
+        </div>
 
-      {/* ── Ce qui est fini mais pas encore réclamé ──────────────────────────────── */}
-      {claimable.length > 0 && (
-        <>
-          <p className="mm-eyebrow mt-[24px]">{t('achievements.toClaimTitle')}</p>
-          <div className="mt-[10px] grid gap-[10px]">
-            {claimable.map(({ enrollment, formation }) => (
-              <Bento key={enrollment.id} padding={16}>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="m-0 text-meta font-bold text-ink">
-                      {formation?.title ?? t('achievements.formationFallback')}
-                    </p>
-                    <p className="m-0 mt-[2px] text-meta-2" style={{ color: 'var(--ok)' }}>
-                      {t('achievements.completed100')}
-                    </p>
-                  </div>
-                  <Button
-                    tone="transforme"
-                    size="sm"
-                    fullWidth={false}
-                    loading={issuing === enrollment.formationId}
-                    disabled={issuing !== null || !formation}
-                    onClick={() => {
-                      if (formation) void handleIssueCertificate(enrollment.formationId, formation.title);
+        {/* ── Badges ──────────────────────────────────────────────────────── */}
+        <EduCard
+          title={t('achievements.badgesTitle')}
+          meta={
+            <>
+              <Num value={unlockedCount} source="db" asOf={asOf} /> / <Num value={BADGES.length} source={{ cite: 'catalogue des badges du produit' }} asOf={asOf} />
+            </>
+          }
+        >
+          <ul className="m-0 grid list-none grid-cols-4 gap-3 p-0 stack:grid-cols-5">
+            {BADGES.map((badge) => {
+              const unlocked = gamification?.badges.includes(badge.id) ?? false;
+              return (
+                <li key={badge.id} className="flex flex-col items-center gap-2 text-center" title={badge.description}>
+                  <span
+                    aria-hidden="true"
+                    className="grid h-14 w-14 place-items-center rounded-card"
+                    style={{
+                      background: unlocked ? 'var(--action-transforme)' : 'var(--fill-1)',
+                      color: unlocked ? 'var(--paper-fixed)' : 'var(--ink-3)',
                     }}
                   >
-                    {t('achievements.obtain')}
-                  </Button>
-                </div>
-              </Bento>
+                    <Icon name={unlocked ? (BADGE_GLYPH[badge.id] ?? 'medal') : 'lock'} size={22} />
+                  </span>
+                  <span className="text-[12px] leading-[1.3]" style={{ color: unlocked ? 'var(--ink)' : 'var(--ink-2)' }}>
+                    {badge.name}
+                    <span className="sr-only"> · {t(unlocked ? 'achievements.badgeUnlocked' : 'achievements.badgeLocked')}</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </EduCard>
+
+        {/* ── Certificats à réclamer (formations terminées) ────────────────── */}
+        {claimable.length > 0 && (
+          <EduCard title={t('achievements.toClaimTitle')}>
+            {claimable.map((ef) => (
+              <div key={ef.enrollment.formationId} className="flex flex-wrap items-center gap-3 py-2">
+                <span className="min-w-0 flex-1">
+                  <b className="block text-[15px]">{ef.formation?.title ?? t('achievements.formationFallback')}</b>
+                  <span className="text-[13px] text-ink-2">{t('achievements.completed100')}</span>
+                </span>
+                <Button
+                  tone="forme"
+                  size="sm"
+                  fullWidth={false}
+                  loading={issuing === ef.enrollment.formationId}
+                  disabled={issuing !== null}
+                  onClick={() => void handleIssueCertificate(ef.enrollment.formationId, ef.formation?.title ?? t('achievements.formationFallback'))}
+                >
+                  {t('achievements.obtain')}
+                </Button>
+              </div>
             ))}
-          </div>
-        </>
-      )}
-      </SpaceSplit>
-    </div>
+          </EduCard>
+        )}
+
+        {/* ── Mes certificats ─────────────────────────────────────────────── */}
+        <div>
+          <h3 className="m-0 mb-3 text-[21px] font-semibold leading-[1.1] tracking-[-.01em]">{t('achievements.certsTitle')}</h3>
+          {loadingCerts ? (
+            <Skeleton height={110} radius="var(--r-card)" label={t('achievements.loadingLabel')} />
+          ) : certificates.length === 0 ? (
+            <EduCard as="div">
+              <CardEmpty
+                icon="trophy"
+                title={t('achievements.emptyTitle')}
+                body={enrolledFormations.length > 0
+                  ? t('achievements.inProgressHint', { count: enrolledFormations.length })
+                  : t('achievements.emptyText')}
+                action={enrolledFormations.length === 0 ? (
+                  <LocalizedLink to="/formations" className="mm-pill is-sm">
+                    {t('achievements.startCourse')}
+                    <i><Icon name="arrow-up-right" size={15} /></i>
+                  </LocalizedLink>
+                ) : undefined}
+              />
+            </EduCard>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {certificates.map((cert) => {
+                const verify = toAbsoluteUrl(path(`/certificat/${cert.certificateCode}`));
+                return (
+                  <section key={cert.id} className="mm-card grid grid-cols-1 items-center gap-5 stack:[grid-template-columns:1fr_auto]">
+                    <div className="min-w-0">
+                      <span className="mm-eyebrow">{t('achievements.certEyebrow')}</span>
+                      <b className="mb-1 mt-2 block font-display text-[24px] font-black leading-[1.1]">{cert.formationTitle}</b>
+                      <span className="text-[13px] text-ink-2">
+                        <Num value={cert.certificateCode} source="db" asOf={asOf} /> · <Num value={formatDate(cert.issuedAt)} source="db" asOf={asOf} />
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 stack:flex-col stack:items-end">
+                      <a className="mm-pill is-sm" href={shareLink('linkedin', verify, cert.formationTitle)} target="_blank" rel="noopener noreferrer">
+                        {t('achievements.shareLinkedin')}
+                        <i><Icon name="arrow-up-right" size={15} /></i>
+                      </a>
+                      <LocalizedLink to={`/certificat/${cert.certificateCode}`} className="text-[13px] font-semibold text-ink">
+                        {t('achievements.verifyPage')}
+                      </LocalizedLink>
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </EduGrid>
+    </EduPage>
   );
 }
