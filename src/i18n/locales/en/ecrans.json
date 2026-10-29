@@ -103,39 +103,181 @@
   "club": {
     "sessions": {
       "eyebrow": "Digitos Club",
-      "title": "Sessions",
+      "title": "Club sessions",
+      "seoDescription": "The Digitos Club live sessions with Max-Morrys: the commitment, and what was actually held.",
+      "kick": "{{n}} live sessions a month",
+      "heroA": "The Club",
+      "heroEm": "sessions.",
+      "sub": "Hosted by Max-Morrys, open to every member. The calendar and links are in the member space.",
+      "upcoming": "Coming up",
+      "membersOnly": "members’ calendar",
+      "cardKick": "Club session",
+      "emptyTitle": "The calendar is for members only",
+      "emptyBody": "Dates, topics and links are published in the Club calendar. This page shows no sample dates.",
+      "reserved": "members only",
+      "commitment": "Commitment: {{n}} sessions a month",
+      "heldPre": "Held over the last {{days}} days:",
+      "heldPost": "public record, recalculated daily",
+      "cta": "Join to sign up",
       "empty": "No session published yet.",
-      "body": "Upcoming Club sessions, with their date and topic, will show here as soon as they are scheduled."
+      "body": "Upcoming Club sessions appear in the member space calendar."
     },
     "adhesion": {
       "eyebrow": "Digitos Club",
       "title": "Join the Club",
+      "seoDescription": "Join the Digitos Club: one yearly price, paid once, no automatic debit.",
+      "kick": "Annual membership",
+      "heroA": "Join",
+      "heroEm": "the Club.",
+      "sub": "A year of Club, paid once, with no automatic debit at all.",
+      "opensKick": "What membership opens",
+      "guaranteedTitle": "Guaranteed today",
+      "buildingTitle": "Under construction",
+      "guaranteed": {
+        "feed": "The feed, private discussions and the calendar",
+        "sessions": "{{n}} live sessions a month",
+        "opportunities": "Opportunities posted by members",
+        "discount": "−{{pct}}% on every course of the school",
+        "rysmo": "{{n}} more Rysmo questions a day"
+      },
+      "building": {
+        "replays": "Session replays",
+        "digest": "The weekly email digest",
+        "circles": "Topic circles"
+      },
+      "charter": {
+        "kick": "The Club charter",
+        "items": [
+          "We show what we did, not what we promise.",
+          "We critique work, never a person.",
+          "No hard selling, no chain letters, no scams: we report them.",
+          "What is said in a session stays in the Club."
+        ]
+      },
+      "price": {
+        "title": "Annual membership",
+        "tag": "all included",
+        "perYear": "a year",
+        "monthlyPre": "that is",
+        "monthlyPost": "a month · paid once",
+        "referralPost": "if a member referred you (−{{pct}}%)",
+        "note": "No automatic debit · reminder 15 days before renewal, on request"
+      },
+      "methodsTitle": "Three ways to pay",
+      "methods": {
+        "wave": "Wave",
+        "orange": "Orange Money",
+        "card": "Bank card"
+      },
+      "methodsNote": "You pick your method on the secure payment page, after signing in to your space.",
+      "cta": "Join the Club",
+      "honesty": "No member count, no testimonial: we show you what is guaranteed.",
       "empty": "This page is being written.",
-      "body": "It will detail Club membership. The subscription is created from your space once signed in. Nothing is charged automatically."
+      "body": "The membership is created from your space, once signed in."
     },
     "defis": {
       "eyebrow": "Digitos Club",
       "title": "Challenges",
-      "empty": "No challenge running.",
-      "body": "This week's challenge and your entries will appear here. No public ranking: consistency, not comparison."
+      "empty": "No challenge running this week.",
+      "body": "The next challenge will show up here as soon as Max-Morrys launches it. Past challenges stay listed on the right.",
+      "sub": "One challenge a week, to practise together.",
+      "weekKick": "Challenge of the week · closes {{date}}",
+      "participate": "Take part in the feed",
+      "entriesTitle": "Entries",
+      "entriesEmpty": "Entries are not grouped here yet: post yours in the feed, with the challenge title, so Max-Morrys can find it.",
+      "toFeed": "Go to the feed",
+      "howTitle": "How it works",
+      "how1": "One challenge a week.",
+      "how2": "You post your entry in the feed.",
+      "how3": "No voting: Max picks favourites and explains why in a session.",
+      "pastTitle": "Past challenges",
+      "pastEmpty": "No finished challenge yet."
     },
     "live": {
       "eyebrow": "Digitos Club",
       "title": "Live session",
-      "empty": "No session is live.",
-      "body": "When a Club session starts, it will open here. Upcoming ones are in the Club agenda."
+      "empty": "No session is scheduled.",
+      "body": "Upcoming sessions appear in the Club calendar as soon as they are scheduled.",
+      "kick": "Club session",
+      "liveBadge": "Live",
+      "stageLive": "The session has started.",
+      "stageSoon": "The session hasn't started yet.",
+      "join": "Join the session",
+      "noLink": "The session link isn't published yet. It will appear here and in the calendar.",
+      "programTitle": "On the programme",
+      "programEmpty": "The detailed programme will be published with the session.",
+      "afterKick": "After the session",
+      "afterTitle": "Post what you take away in the feed.",
+      "afterCta": "Go to the feed",
+      "chatTitle": "Discussion",
+      "chatEmpty": "Session chat doesn't exist on the web yet. Ask your questions in the Club discussions.",
+      "chatCta": "Open discussions",
+      "notRecorded": "Session not recorded for now: replays are under construction."
     },
     "profil": {
       "eyebrow": "Digitos Club",
       "title": "Member profile",
       "empty": "This profile is not available.",
-      "body": "A member's profile will show what they chose to share. Reporting and blocking will be offered here."
+      "body": "This member hasn't made their directory card visible, or it doesn't exist yet.",
+      "back": "Members",
+      "edit": "Edit my profile",
+      "about": "About",
+      "noSkills": "No skills listed.",
+      "available": "open to collaborations",
+      "visible": "visible in the directory",
+      "hidden": "hidden from the directory",
+      "links": {
+        "linkedin": "LinkedIn",
+        "website": "Website",
+        "instagram": "Instagram",
+        "facebook": "Facebook",
+        "tiktok": "TikTok",
+        "youtube": "YouTube",
+        "twitter": "X"
+      },
+      "certificates": "Certificates",
+      "noCertificates": "No certificate yet.",
+      "certificateKick": "Verifiable certificate",
+      "atClub": "In the Club",
+      "atClubMasked": "No follower or view counts. Totals for posts, feedback and sessions will show once the database counts them.",
+      "postsTitle": "Recent posts",
+      "postsEmpty": "No recent post in the feed."
     },
     "publication": {
       "eyebrow": "Digitos Club",
       "title": "Post",
       "empty": "This post is not available.",
-      "body": "A feed post will open here with its comments. Go back to the feed to see the latest ones."
+      "body": "Its author or moderation may have removed it. The latest posts are in the feed.",
+      "back": "The feed",
+      "me": "Member",
+      "commentsTitle": "Comments · {{count}}",
+      "commentsEmpty": "No comments yet. Write the first one.",
+      "commentLabel": "Your comment…",
+      "send": "Send",
+      "viewProfile": "View profile",
+      "noProfile": "This member hasn't made their directory card visible.",
+      "relatedTitle": "In {{category}}",
+      "relatedEmpty": "No other recent post in this category.",
+      "reportTitle": "A problem with this post?",
+      "reportBody": "Reporting and blocking aren't available on the web yet. Write to the team: every message is read.",
+      "reportCta": "Write to the team"
+    },
+    "circles": {
+      "label": "Circles",
+      "empty": "Topic circles are coming soon"
+    },
+    "locked": {
+      "title": "This screen is for members",
+      "body": "Your Club membership isn't active. The membership wall explains what it opens and how to get it.",
+      "cta": "See membership"
+    },
+    "categories": {
+      "general": "General",
+      "question": "Question",
+      "ressource": "Resource",
+      "temoignage": "Testimonial",
+      "opportunite": "Opportunity",
+      "discussion": "Discussion"
     }
   },
   "console": {

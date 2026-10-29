@@ -7,7 +7,6 @@ import ClubAgendaPanel from './club/ClubAgendaPanel';
 import { clubUpcoming } from './club/upcoming';
 import { useFormat } from '../../../hooks/useFormat';
 import { slideUp } from '../../../lib/animations';
-import { cn } from '../../../lib/utils';
 import { useClubData } from '../hooks/useClubData';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import ClubSubscriptionGate from './club/ClubSubscriptionGate';
@@ -21,7 +20,8 @@ import ClubEvents from './club/ClubEvents';
 import ClubSessions from './club/ClubSessions';
 import ClubInfos from './club/ClubInfos';
 import { ClubSectionHeader } from './club/_shared';
-import { CLUB_NAV, clubTabPath } from './club/clubNav';
+import { CLUB_NAV } from './club/clubNav';
+import { ClubScreen, CirclesCard } from './club/ClubScreen';
 
 interface ClubTabProps {
   enrolledFormations: EnrolledFormation[];
@@ -38,15 +38,15 @@ function greetingKey(hour: number): string {
  * LE CLUB CONNECTÉ — kit v3 « Club en réseau social », EN CLAIR.
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * LA COQUILLE À TROIS COLONNES (≥ 1080 px) : rail d'icônes · contenu · « À venir »
+ * LA COMPOSITION DES MAQUETTES (passe 2, lot C) : rail d'icônes · contenu · rail des cercles
  *
- * · LE RAIL (`mm-dash__rail`) porte les huit onglets, et chacun est un LIEN : l'onglet vit dans
- *   l'adresse (`/mon-espace/club/<onglet>`, FR-031). Sous 1080 px, les mêmes huit liens passent
- *   en rangée de pastilles qui défile au geste — la barre d'onglets basse de l'espace
- *   apprenant est déjà là, une seconde barre basse se superposerait à elle.
- * · LA COLONNE DROITE porte l'agenda, pas les « cercles » de la maquette : les cercles
- *   thématiques n'existent ni en base ni dans les règles. Un rail de sigles qui ne filtre rien
- *   serait un décor qui ment sur le produit.
+ * · LE RAIL D'ICÔNES appartient à la coquille (`StudentLayout`, `rail`) ; sous 1080 px, la
+ *   barre d'onglets basse de la coquille prend le relais. L'onglet vit dans l'adresse
+ *   (`/mon-espace/club/<onglet>`, FR-031).
+ * · `ClubScreen` porte l'en-tête de l'écran et le RAIL DES CERCLES, à droite. Il est VIDE et le
+ *   dit : les cercles thématiques n'existent ni en base ni dans les règles.
+ * · Le fil : carte de la prochaine session réelle (`mm-feature`), puis le fil et sa colonne
+ *   droite (« Tes cercles », vide ; « À venir », l'agenda réel).
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * CE QUE LA MAQUETTE MONTRE ET QUE CET ÉCRAN NE MONTRE PAS — délibérément
@@ -102,82 +102,72 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
   const expiresAt = new Date(clubSubscription!.expiresAt);
   const firstName = displayName.split(' ')[0] || displayName;
 
-  const nav = CLUB_NAV.map((it) => ({ ...it, label: t(`tab.nav.${it.id}`), href: clubTabPath(it.id) }));
+  const next = clubUpcoming(data, t, locale)[0];
+  const memberLine = (
+    <>
+      {t('tab.memberActive')} ·{' '}
+      {t('tab.expiresOn', {
+        date: expiresAt.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
+      })}
+      {clubSubscription!.autoRenew ? t('tab.autoRenew') : t('tab.manual')}
+    </>
+  );
+  const title = clubTab === 'feed'
+    ? t(greetingKey(new Date().getHours()), { name: firstName })
+    : t(`tab.nav.${CLUB_NAV.some((n) => n.id === clubTab) ? clubTab : 'feed'}`);
+  const screenSub = clubTab === 'feed' ? '' : t(`v3.screens.${clubTab}`, { defaultValue: '' });
 
   return (
     <motion.div variants={slideUp} initial="hidden" animate="visible">
-      <div className="wide:grid wide:grid-cols-[72px_minmax(0,1fr)_290px] wide:items-start wide:gap-5">
-        {/* ── Le rail des huit onglets (bureau) ─────────────────────────────── */}
-        <nav aria-label={t('tab.navLabel')} className="mm-dash__rail hidden wide:flex">
-          {nav.map((it) => (
-            <LocalizedLink
-              key={it.id}
-              to={it.href}
-              aria-label={it.label}
-              title={it.label}
-              aria-current={clubTab === it.id ? 'page' : undefined}
-            >
-              <Icon name={it.icon} size={20} />
-            </LocalizedLink>
-          ))}
-        </nav>
+      <ClubScreen
+        title={title}
+        subtitle={screenSub || memberLine}
+        circlesLabel={t('v3.preview.circles')}
+        circlesEmpty={t('v3.circles.empty')}
+        actions={(
+          <>
+            <Tag tone="ok">{t('tab.statusActive')}</Tag>
+            <IconButton label={t('tab.refresh')} onClick={handleRefresh}>
+              <Icon name="repeat" size={17} />
+            </IconButton>
+          </>
+        )}
+      >
+        {/* ── La bande « en direct » : uniquement des données chargées ─────── */}
+        <Ticker items={ticker} label={t('tab.tickerLabel')} badge={t('tab.tickerBadge')} />
 
-        <div className="min-w-0 space-y-5">
-          {/* ── La salutation, puis l'échéance — toujours sous les yeux ──────── */}
-          <header className="flex flex-wrap items-end justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="m-0 font-display text-[30px] font-black leading-none tracking-[-.03em] text-ink wide:text-[40px]">
-                {t(greetingKey(new Date().getHours()), { name: firstName })}
-              </h1>
-              <p className="m-0 mt-2 text-meta text-ink-2">
-                {t('tab.memberActive')} ·{' '}
-                {t('tab.expiresOn', {
-                  date: expiresAt.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
-                })}
-                {clubSubscription!.autoRenew ? t('tab.autoRenew') : t('tab.manual')}
-              </p>
+        {clubTab === 'feed' && (
+          <>
+            {/* La carte de session de la maquette (`mm-feature`) : la PROCHAINE session ou le
+                prochain atelier réellement programmé. Rien de programmé → pas de carte. */}
+            {next && (
+              <LocalizedLink
+                to="/mon-espace/club/live"
+                className="mm-feature !min-h-[240px]"
+                style={{ background: 'radial-gradient(90% 90% at 30% 30%, var(--mm-orange), var(--mm-corail) 45%, var(--mm-violet) 100%)' }}
+              >
+                <span className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.14em]">{t('v3.feed.nextKick')} · {next.meta}</span>
+                <b className="!text-[26px] wide:!text-[34px]">{next.title}</b>
+                <span className="mt-3.5 flex items-center gap-2 text-[13px] opacity-90">
+                  <Icon name={next.glyph} size={15} />
+                  {next.registered ? t('v3.feed.registered') : t('v3.feed.openAgenda')}
+                </span>
+              </LocalizedLink>
+            )}
+            <div className="grid items-start gap-4 wide:grid-cols-[minmax(0,1fr)_300px]">
+              <div className="min-w-0"><ClubFeed data={data} /></div>
+              <aside className="space-y-4" aria-label={t('panel.upcomingEyebrow')}>
+                <CirclesCard title={t('v3.circles.title')} body={t('v3.circles.body')} />
+                <ClubAgendaPanel data={data} />
+              </aside>
             </div>
-            <div className="flex flex-none items-center gap-2">
-              <Tag tone="ok">{t('tab.statusActive')}</Tag>
-              <IconButton label={t('tab.refresh')} onClick={handleRefresh}>
-                <Icon name="repeat" size={17} />
-              </IconButton>
-            </div>
-          </header>
-
-          {/* ── Les huit onglets (mobile et tablette) — liens, défilement au geste ── */}
-          <nav aria-label={t('tab.navLabel')} className="-mx-1 overflow-x-auto px-1 wide:hidden">
-            <ul className="m-0 flex w-max list-none gap-2 p-0">
-              {nav.map((it) => {
-                const on = clubTab === it.id;
-                return (
-                  <li key={it.id}>
-                    <LocalizedLink
-                      to={it.href}
-                      aria-current={on ? 'page' : undefined}
-                      className={cn(
-                        'mm-chipd h-9 whitespace-nowrap',
-                        on && 'border-[color:var(--ink)] bg-ink text-[color:var(--paper)]',
-                      )}
-                    >
-                      <Icon name={it.icon} size={15} />
-                      {it.label}
-                    </LocalizedLink>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-
-          {/* ── La bande « en direct » : uniquement des données chargées ─────── */}
-          <Ticker items={ticker} label={t('tab.tickerLabel')} badge={t('tab.tickerBadge')} />
-
-          {/* ── Le contenu de l'onglet ─────────────────────────────────────── */}
-          {clubTab === 'feed' && <ClubFeed data={data} />}
-          {clubTab === 'members' && <ClubMembers data={data} />}
-          {clubTab === 'discussions' && <ClubDiscussions data={data} />}
-          {clubTab === 'agenda' && (
-            <div className="space-y-8">
+          </>
+        )}
+        {clubTab === 'members' && <ClubMembers data={data} />}
+        {clubTab === 'discussions' && <ClubDiscussions data={data} />}
+        {clubTab === 'agenda' && (
+          <div className="grid items-start gap-4 wide:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="min-w-0 space-y-8">
               <div>
                 <ClubSectionHeader icon="calendar" title={t('tab.upcomingEvents')} />
                 <ClubEvents data={data} />
@@ -187,18 +177,20 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
                 <ClubSessions data={data} />
               </div>
             </div>
-          )}
-          {clubTab === 'leaderboard' && <ClubLeaderboard data={data} />}
-          {clubTab === 'opportunities' && <ClubOpportunities data={data} />}
-          {clubTab === 'infos' && <ClubInfos data={data} />}
-          {clubTab === 'referral' && <ClubReferral data={data} />}
-        </div>
-
-        {/* ── « À venir » : la seule chose du Club qui a une échéance ──────────── */}
-        <aside aria-label={t('panel.upcomingEyebrow')} className="mt-6 wide:sticky wide:top-2 wide:mt-0">
-          <ClubAgendaPanel data={data} />
-        </aside>
-      </div>
+            <aside className="space-y-4">
+              <section className="mm-card !p-5">
+                <h3 className="!text-[18px] text-ink">{t('v3.agenda.replaysTitle')}</h3>
+                <p className="m-0 mt-2 text-[13px] leading-[1.5] text-ink-2">{t('v3.agenda.replaysBody')}</p>
+              </section>
+              <ClubAgendaPanel data={data} />
+            </aside>
+          </div>
+        )}
+        {clubTab === 'leaderboard' && <ClubLeaderboard data={data} />}
+        {clubTab === 'opportunities' && <ClubOpportunities data={data} />}
+        {clubTab === 'infos' && <ClubInfos data={data} />}
+        {clubTab === 'referral' && <ClubReferral data={data} />}
+      </ClubScreen>
     </motion.div>
   );
 }
