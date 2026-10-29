@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { Button, Field, Icon, LessonRow, Num, Skeleton } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { Modal } from '@/components/dialogs';
 import ImageInput from '@/components/forms/ImageInput';
 import { ConfirmDialog } from '@/components/dialogs';
@@ -98,14 +98,14 @@ export default function AdminVideos() {
         le nombre ne bouge qu'au passage de la synchronisation.
       */}
       <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
-        <StatTile
+        <ConsoleKpi
           label={t('videos.console.tileViews')}
           value={v.loading ? null : totalViews}
           source="db"
           asOf={v.loadedAt ?? new Date()}
           foot={t('videos.console.tileViewsFoot')}
         />
-        <StatTile
+        <ConsoleKpi
           label={t('videos.console.tileNoEn')}
           value={v.loading ? null : missingEn}
           source="db"
@@ -134,9 +134,9 @@ export default function AdminVideos() {
             ))}
           </ConsoleList>
         ) : v.filtered.length === 0 ? (
-          <GlassPanel level="night" padding={24}>
+          <ConsoleCard padding={24}>
             <p className="m-0 text-center text-meta-2 text-ink-2">{t('videos.empty')}</p>
-          </GlassPanel>
+          </ConsoleCard>
         ) : (
           <>
             <ConsoleList label={t('videos.console.listLabel')}>
@@ -164,7 +164,7 @@ export default function AdminVideos() {
                           />
                         </>
                       )}
-                      trailing={<Tag tone={st.tone}>{st.label}</Tag>}
+                      trailing={<ConsoleStatus tone={st.tone}>{st.label}</ConsoleStatus>}
                       onClick={() => v.openEdit(item)}
                       last={i === v.paged.length - 1}
                     />
@@ -265,7 +265,7 @@ export default function AdminVideos() {
         />
 
         {v.editing && (
-          <GlassPanel level="flat" padding={16} className="mt-4">
+          <ConsoleCard padding={16} className="mt-4">
             <p className="m-0 text-meta-2 text-ink-2">
               {t('videos.colViews')}{' · '}
               <Num
@@ -277,7 +277,7 @@ export default function AdminVideos() {
               />
             </p>
             <p className="m-0 mt-1 text-small text-ink-2">{t('videos.console.viewsNote')}</p>
-          </GlassPanel>
+          </ConsoleCard>
         )}
 
         <div className="mt-6 flex flex-col gap-3 border-t border-[color:var(--line)] pt-6 stack:flex-row stack:justify-end">

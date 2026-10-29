@@ -1,11 +1,8 @@
 import { useState } from 'react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
-import {
-  Button, DocLine, Field, GlassPanel, Icon, IconButton, LessonRow, Num, ProgressBar,
-  Segmented, Skeleton, Switch, Tag, type IconName,
-} from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
+import { Button, DocLine, Field, Icon, IconButton, LessonRow, Num, ProgressBar, Segmented, Skeleton, Switch, type IconName } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleStatus } from '../../components/console';
 import PublishPanel from './components/PublishPanel';
 import { SiteEyebrow } from '../../components/site';
 import { Modal } from '@/components/dialogs';
@@ -217,8 +214,7 @@ export default function AdminFormations() {
 
       {/* ── L'alerte, en tête, et seulement si elle est VRAIE dans les données ─────────── */}
       {shopClosed && (
-        <GlassPanel
-          level="night"
+        <ConsoleCard
           padding={18}
           className="rv mb-3.5"
           style={{ borderColor: 'color-mix(in srgb, var(--mm-orange) 40%, transparent)' }}
@@ -236,7 +232,7 @@ export default function AdminFormations() {
               {t('formations.console.shopClosedBody', { count: f.counts.all })}
             </p>
           </div>
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {/* ── ZONE 1 · le filtre par statut ─────────────────────────────────────────────── */}
@@ -270,9 +266,9 @@ export default function AdminFormations() {
             ))}
           </ConsoleList>
         ) : f.filtered.length === 0 ? (
-          <GlassPanel level="night" padding={24}>
+          <ConsoleCard padding={24}>
             <p className="m-0 text-center text-meta-2 text-ink-2">{t('formations.emptyState')}</p>
-          </GlassPanel>
+          </ConsoleCard>
         ) : (
           <>
             <ConsoleList label={t('formations.console.listLabel')}>
@@ -310,7 +306,7 @@ export default function AdminFormations() {
                           />
                         </>
                       )}
-                      trailing={<Tag tone={st.tone}>{st.label}</Tag>}
+                      trailing={<ConsoleStatus tone={st.tone}>{st.label}</ConsoleStatus>}
                       /* La ligne SÉLECTIONNE, elle n'ouvre plus l'éditeur : les conditions
                          de publication s'affichent en face, et c'est ce qu'on vient lire.
                          L'éditeur s'ouvre depuis le panneau, une fois la raison connue. */
@@ -449,15 +445,15 @@ export default function AdminFormations() {
             </div>
 
             {f.form.modules.length === 0 ? (
-              <GlassPanel level="flat" padding={24}>
+              <ConsoleCard padding={24}>
                 <p className="m-0 mb-3 text-center text-meta-2 text-ink-2">{t('formations.noModules')}</p>
                 <div className="flex justify-center">
                   <Button size="sm" onClick={f.addModule}>{t('formations.createModule')}</Button>
                 </div>
-              </GlassPanel>
+              </ConsoleCard>
             ) : (
               f.form.modules.map((module, mIndex) => (
-                <GlassPanel key={module.id} level="flat" padding={12}>
+                <ConsoleCard key={module.id} padding={12}>
                   <div className="flex flex-wrap items-center gap-2">
                     <Field
                       className="flex-1"
@@ -539,7 +535,7 @@ export default function AdminFormations() {
                       </div>
                     </div>
                   )}
-                </GlassPanel>
+                </ConsoleCard>
               ))
             )}
           </div>
@@ -547,7 +543,7 @@ export default function AdminFormations() {
 
         {f.activeTab === 'settings' && (
           <div>
-            <GlassPanel level="flat" padding={16} className="mt-4">
+            <ConsoleCard padding={16} className="mt-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="m-0 text-meta font-semibold text-ink">{t('formations.optFeaturedLabel')}</p>
@@ -570,7 +566,7 @@ export default function AdminFormations() {
                   onChange={(on) => f.set('certificateEnabled', on)}
                 />
               </div>
-            </GlassPanel>
+            </ConsoleCard>
 
             {/* ── L'ANNONCE ──────────────────────────────────────────────────────────────
                 Ce bloc ne s'affiche QUE sur une formation en « bientôt ». Sur une formation
@@ -580,7 +576,7 @@ export default function AdminFormations() {
                 Il est en lecture pure du document (`f.form.comingSoon`), donc il apparaît dès
                 qu'on rouvre une formation annoncée, et disparaît dès qu'on l'ouvre. */}
             {f.form.comingSoon && (
-              <GlassPanel level="flat" padding={18} className="mt-4">
+              <ConsoleCard padding={18} className="mt-4">
                 <SiteEyebrow>{t('formations.console.announceTitle')}</SiteEyebrow>
                 <p className="m-0 mb-3 mt-1 text-small leading-[1.5] text-ink-2">
                   {t('formations.console.announceIntro')}
@@ -610,7 +606,7 @@ export default function AdminFormations() {
                     onChange={(on) => f.set('preorderEnabled', on)}
                   />
                 </div>
-              </GlassPanel>
+              </ConsoleCard>
             )}
 
             <Field
@@ -652,7 +648,7 @@ export default function AdminFormations() {
         {/* ── « Publiable » : la liste EST la condition ──────────────────────────────── */}
         {f.activeTab === 'publish' && (
           <div className="mt-4">
-            <GlassPanel level="flat" padding={18}>
+            <ConsoleCard padding={18}>
               <p className="m-0 text-meta font-semibold text-ink">
                 {f.form.title || t('formations.console.untitled')}
               </p>
@@ -672,14 +668,14 @@ export default function AdminFormations() {
                   readout
                 />
               </div>
-            </GlassPanel>
+            </ConsoleCard>
 
             {/* ── LES DEUX PORTES, CÔTE À CÔTE ──────────────────────────────────────────
                 Publier n'est plus un seul geste : on peut ANNONCER une formation qui n'est pas
                 écrite, ou l'OUVRIR. Chaque porte a sa liste, et sans ce résumé il fallait
                 deviner laquelle était atteignable — la liste détaillée ci-dessous ne montre
                 que celle de l'état courant. */}
-            <GlassPanel level="flat" padding={18} className="mt-4">
+            <ConsoleCard padding={18} className="mt-4">
               <SiteEyebrow>{t('formations.console.doorsTitle')}</SiteEyebrow>
               <div className="mt-2">
                 {([
@@ -701,17 +697,17 @@ export default function AdminFormations() {
                       ? t('formations.console.doorReady')
                       : t('formations.console.doorMissing', { conditions: manquantes(porte.liste, porte.cle) })}
                     trailing={(
-                      <Tag tone={porte.liste.ready ? 'ok' : 'warn'}>
+                      <ConsoleStatus tone={porte.liste.ready ? 'ok' : 'warn'}>
                         {porte.liste.ready
                           ? t('formations.console.doorTagReady')
                           : t('formations.console.doorTagBlocked')}
-                      </Tag>
+                      </ConsoleStatus>
                     )}
                     last={i === 1}
                   />
                 ))}
               </div>
-            </GlassPanel>
+            </ConsoleCard>
 
             <SiteEyebrow style={{ marginTop: '22px' }}>{t('formations.console.checklistTitle')}</SiteEyebrow>
             <ConsoleList label={t('formations.console.checklistTitle')}>
@@ -729,9 +725,9 @@ export default function AdminFormations() {
                     title={conditionLabel(c.id, etapeAffichee)}
                     meta={conditionMeta(c.id, c.ok, c.counts, etapeAffichee)}
                     trailing={(
-                      <Tag tone={c.ok ? 'ok' : 'warn'}>
+                      <ConsoleStatus tone={c.ok ? 'ok' : 'warn'}>
                         {c.ok ? t('formations.console.condReady') : t('formations.console.condTodo')}
-                      </Tag>
+                      </ConsoleStatus>
                     )}
                     last={i === f.checklist.items.length - 1}
                   />
@@ -743,14 +739,14 @@ export default function AdminFormations() {
               {t('formations.console.checklistRule')}
             </p>
 
-            <GlassPanel level="flat" padding={18} className="mt-4">
+            <ConsoleCard padding={18} className="mt-4">
               <SiteEyebrow>{t('formations.console.triggersTitle')}</SiteEyebrow>
               <DocLine label={t('formations.console.triggerCatalog')} value={t('formations.console.triggerCatalogValue')} />
               <DocLine label={t('formations.console.triggerSitemap')} value={t('formations.console.triggerSitemapValue')} />
               <DocLine label={t('formations.console.triggerMeta')} value={t('formations.console.triggerMetaValue')} />
               <DocLine label={t('formations.console.triggerNotify')} value={t('formations.console.triggerNotifyValue')} />
               <DocLine label={t('formations.console.triggerEmail')} value={t('formations.console.triggerEmailValue')} last />
-            </GlassPanel>
+            </ConsoleCard>
 
             {/* ── LA LISTE D'ATTENTE ────────────────────────────────────────────────────
                 Visible dès qu'il y a quelqu'un dessus, y compris APRÈS l'ouverture : c'est
@@ -758,7 +754,7 @@ export default function AdminFormations() {
                 formation ouverte. Le masquer après la bascule cacherait le bouton au moment
                 exact où il sert. */}
             {f.editingId && (f.selectedWaitlistCount > 0 || f.form.comingSoon) && (
-              <GlassPanel level="flat" padding={18} className="mt-4">
+              <ConsoleCard padding={18} className="mt-4">
                 <SiteEyebrow>{t('formations.console.waitlistTitle')}</SiteEyebrow>
                 <div className="mt-2">
                   <Num
@@ -793,7 +789,7 @@ export default function AdminFormations() {
                       ? t('formations.console.waitlistNotifyBlocked')
                       : t('formations.console.waitlistNotifyReady')}
                 </p>
-              </GlassPanel>
+              </ConsoleCard>
             )}
 
             <p className="m-0 mt-3 text-small leading-[1.5] text-ink-2">
@@ -812,11 +808,11 @@ export default function AdminFormations() {
             {f.waitlistLoading ? (
               <Skeleton height={72} radius="var(--r-xl)" />
             ) : f.waitlist.length === 0 ? (
-              <GlassPanel level="flat" padding={18}>
+              <ConsoleCard padding={18}>
                 <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">
                   {t('formations.console.waitlistEmpty')}
                 </p>
-              </GlassPanel>
+              </ConsoleCard>
             ) : (
               <ConsoleList label={t('formations.console.waitlistTitle')}>
                 {f.waitlist.map((entree, i) => (
@@ -830,8 +826,8 @@ export default function AdminFormations() {
                         entree.language.toUpperCase(),
                       ].join(' · ')}
                       trailing={entree.notifiedAt
-                        ? <Tag tone="ok">{t('formations.console.waitlistNotifiedTag')}</Tag>
-                        : <Tag tone="warn">{t('formations.console.waitlistPendingTag')}</Tag>}
+                        ? <ConsoleStatus tone="ok">{t('formations.console.waitlistNotifiedTag')}</ConsoleStatus>
+                        : <ConsoleStatus tone="warn">{t('formations.console.waitlistPendingTag')}</ConsoleStatus>}
                       last={i === f.waitlist.length - 1}
                     />
                   </li>
@@ -945,7 +941,7 @@ export default function AdminFormations() {
               placeholder={t('formations.lessonDurationPlaceholder')}
             />
           </div>
-          <GlassPanel level="flat" padding={16} className="mt-4">
+          <ConsoleCard padding={16} className="mt-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="m-0 text-meta font-semibold text-ink">{t('formations.lessonFree')}</p>
@@ -957,7 +953,7 @@ export default function AdminFormations() {
                 onChange={(on) => f.patchLesson({ isFree: on })}
               />
             </div>
-          </GlassPanel>
+          </ConsoleCard>
           {f.editingLesson.lesson.type === 'video' && (
             <Field
               label={t('formations.lessonVideoUrl')}

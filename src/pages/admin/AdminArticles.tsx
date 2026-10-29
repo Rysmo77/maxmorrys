@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Field, GlassPanel, Icon, LessonRow, Num, Segmented, Skeleton, StatTile, Switch, Tag } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { Button, Field, Icon, LessonRow, Num, Segmented, Skeleton, Switch } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { Modal } from '@/components/dialogs';
 import ImageInput from '@/components/forms/ImageInput';
 import RichEditor from '@/components/forms/RichEditor';
@@ -111,14 +111,14 @@ export default function AdminArticles() {
         c'est autant de positions de recherche perdues.
       */}
       <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
-        <StatTile
+        <ConsoleKpi
           label={t('articles.console.tilePublished')}
           value={a.loading ? null : a.counts.published}
           source="db"
           asOf={a.loadedAt ?? new Date()}
           foot={t('articles.console.tilePublishedFoot', { count: a.counts.draft })}
         />
-        <StatTile
+        <ConsoleKpi
           label={t('articles.console.tileNoEn')}
           value={a.loading ? null : missingEn}
           source="db"
@@ -147,9 +147,9 @@ export default function AdminArticles() {
             ))}
           </ConsoleList>
         ) : a.filtered.length === 0 ? (
-          <GlassPanel level="night" padding={24}>
+          <ConsoleCard padding={24}>
             <p className="m-0 text-center text-meta-2 text-ink-2">{t('articles.emptyState')}</p>
-          </GlassPanel>
+          </ConsoleCard>
         ) : (
           <>
             <ConsoleList label={t('articles.console.listLabel')}>
@@ -173,7 +173,7 @@ export default function AdminArticles() {
                         post.publishedAt ? formatDate(post.publishedAt) : null,
                         post.featured ? t('articles.console.featuredShort') : null,
                       ].filter(Boolean).join(' · ')}
-                      trailing={<Tag tone={st.tone}>{st.label}</Tag>}
+                      trailing={<ConsoleStatus tone={st.tone}>{st.label}</ConsoleStatus>}
                       onClick={() => a.openEdit(post)}
                       last={i === a.paged.length - 1}
                     />
@@ -265,7 +265,7 @@ export default function AdminArticles() {
 
         {a.activeTab === 'seo' && (
           <div>
-            <GlassPanel level="flat" padding={16} className="mt-4">
+            <ConsoleCard padding={16} className="mt-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="m-0 text-meta font-semibold text-ink">{t('articles.featuredTitle')}</p>
@@ -277,7 +277,7 @@ export default function AdminArticles() {
                   onChange={(on) => a.set('featured', on)}
                 />
               </div>
-            </GlassPanel>
+            </ConsoleCard>
             <Field
               label={t('articles.fieldSlugLabel')}
               value={a.form.slug}

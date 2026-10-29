@@ -1,9 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Button, DocLine, EmptyState, Field, Icon, LessonRow, SearchPill, Skeleton, StatTile, Tag,
-} from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { Button, DocLine, EmptyState, Field, Icon, LessonRow, SearchPill, Skeleton } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { useReveal } from '../../components/site/useReveal';
 import ConsoleSheet from './components/ConsoleSheet';
 import { ConfirmDialog } from '@/components/dialogs';
@@ -82,9 +80,9 @@ export default function AdminMissions() {
 
   /** Un seul état par ligne : le statut du cycle, tel qu'il est en base. */
   const stateTag = (l: EngagementLead) => (
-    <Tag tone={l.status === 'won' ? 'ok' : l.status === 'lost' ? 'neutral' : 'warn'}>
+    <ConsoleStatus tone={l.status === 'won' ? 'ok' : l.status === 'lost' ? 'neutral' : 'warn'}>
       {t(`missions.status.${l.status}`)}
-    </Tag>
+    </ConsoleStatus>
   );
 
   return (
@@ -102,14 +100,14 @@ export default function AdminMissions() {
 
         {loadedAt && (
           <div className="mt-3.5 grid grid-cols-2 gap-2.5">
-            <StatTile
+            <ConsoleKpi
               label={t('missions.tiles.open')}
               value={openCount}
               source="db"
               asOf={loadedAt}
               foot={t('missions.tiles.openFoot')}
             />
-            <StatTile
+            <ConsoleKpi
               label={t('missions.tiles.routed')}
               value={stats.routed.MY_ONOMA_GROW}
               source="db"

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, Field, Icon, LessonRow, Skeleton, StatTile, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
+import { Avatar, Button, EmptyState, Field, Icon, LessonRow, Num, Skeleton, useToast } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import UserPanel from './components/UserPanel';
 import { SiteEyebrow } from '../../components/site';
 import { Pagination } from '@/components/dialogs';
@@ -158,7 +158,7 @@ export default function AdminUsers() {
             120 px de large et son libellé se coupait. */}
         <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
           {stages.map((s) => (
-            <StatTile
+            <ConsoleKpi
               key={s}
               label={tileLabels[s]}
               value={loading ? null : counts[s]}
@@ -199,7 +199,67 @@ export default function AdminUsers() {
             body={t('users.emptyBody')}
           />
         ) : (
-          <ConsoleList label={t('users.listLabel')} className="rv">
+          <>
+          {/*
+            ── BUREAU : LA TABLE DU KIT (`mm-ctable`) ────────────────────────────────
+            Compte, rôle, inscription, et UNE action. Les colonnes « Espaces » et
+            « Dernière activité » de la maquette n'y sont pas : aucune des deux n'est
+            relevée par compte aujourd'hui, et une colonne vide qui a l'air remplie
+            ment plus qu'une colonne absente.
+          */}
+          <ConsoleCard padding="4px 6px" className="rv hidden stack:block">
+            <div className="overflow-x-auto">
+              <table className="mm-ctable" aria-label={t('users.listLabel')}>
+                <thead>
+                  <tr>
+                    <th scope="col">{t('users.colUser')}</th>
+                    <th scope="col">{t('users.colRole')}</th>
+                    <th scope="col">{t('users.colSignup')}</th>
+                    <th scope="col"><span className="sr-only">{t('users.colActions')}</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paged.map((u) => {
+                    const name = u.displayName || u.email || t('users.noName');
+                    const initials = name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+                    return (
+                      <tr key={u.uid} className={isWide && selected?.uid === u.uid ? 'is-sel' : undefined}>
+                        <td>
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <Avatar initials={initials} size={32} />
+                            <div className="min-w-0">
+                              <b className="block truncate">{name}</b>
+                              {u.email && <small className="truncate">{u.email}</small>}
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <ConsoleStatus tone={u.role === 'admin' ? 'stop' : u.role === 'support' ? 'warn' : 'neutral'}>
+                            {roleLabels[u.role]}
+                          </ConsoleStatus>
+                        </td>
+                        <td>
+                          {u.createdAt
+                            ? <Num value={new Date(u.createdAt).toLocaleDateString(locale)} source="db" asOf={asOf} />
+                            : <Num value={null} source="db" asOf={asOf} />}
+                        </td>
+                        <td className="text-right">
+                          <Button
+                            size="sm"
+                            tone="quiet"
+                            onClick={isWide ? () => setSelectedUid(u.uid) : () => openEditUser(u)}
+                          >
+                            {isWide ? t('users.actionShow') : t('users.manage')}
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </ConsoleCard>
+          <ConsoleList label={t('users.listLabel')} className="rv stack:hidden">
             {paged.map((u, i) => (
               <li key={u.uid}>
                 {/* UN ÉTAT ET UNE ACTION PAR LIGNE : le rôle est l'état, sélectionner est
@@ -215,9 +275,9 @@ export default function AdminUsers() {
                     : undefined}
                   meta={u.email}
                   trailing={
-                    <Tag tone={u.role === 'admin' ? 'stop' : u.role === 'support' ? 'warn' : 'neutral'}>
+                    <ConsoleStatus tone={u.role === 'admin' ? 'stop' : u.role === 'support' ? 'warn' : 'neutral'}>
                       {roleLabels[u.role]}
-                    </Tag>
+                    </ConsoleStatus>
                   }
                   onClick={isWide ? () => setSelectedUid(u.uid) : () => openEditUser(u)}
                   last={i === paged.length - 1}
@@ -225,6 +285,7 @@ export default function AdminUsers() {
               </li>
             ))}
           </ConsoleList>
+          </>
         )}
 
         <div className="mt-4 flex justify-center">

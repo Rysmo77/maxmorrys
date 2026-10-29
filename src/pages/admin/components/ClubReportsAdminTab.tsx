@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, EmptyState, GlassPanel, Icon, LessonRow, Num, Tag, useToast } from '@ds';
-import { ConsoleFilter, ConsoleList, ConsoleScope } from '../../../components/console';
+import { Button, DocLine, EmptyState, Icon, LessonRow, Num, useToast } from '@ds';
+import { ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleStatus } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
 import { ConfirmDialog } from '@/components/dialogs';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
@@ -160,9 +160,9 @@ export default function ClubReportsAdminTab() {
                       </>
                     )}
                     trailing={(
-                      <Tag tone={open ? 'stop' : 'neutral'}>
+                      <ConsoleStatus tone={open ? 'stop' : 'neutral'}>
                         {open ? t('reports.statusOpen') : t('reports.statusResolved')}
-                      </Tag>
+                      </ConsoleStatus>
                     )}
                     last={i === filtered.length - 1}
                   />
@@ -201,11 +201,11 @@ export default function ClubReportsAdminTab() {
           <div>
             {/* Le message signalé, EN ENTIER. C'est la seule chose sur laquelle les trois
                 décisions portent ; la liste n'en montrait que soixante-dix caractères. */}
-            <GlassPanel level="flat" padding={14}>
+            <ConsoleCard padding={14}>
               <p className="m-0 whitespace-pre-wrap break-words text-small leading-[1.55] text-ink-2">
                 {`« ${sheet.text} »`}
               </p>
-            </GlassPanel>
+            </ConsoleCard>
 
             <div className="mt-4">
               <DocLine label={t('reports.dateLabel')} value={formatDate(sheet.createdAt)} />

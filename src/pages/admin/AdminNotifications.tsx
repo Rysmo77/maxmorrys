@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, EmptyState, GlassPanel, Icon, type IconName, LessonRow, Skeleton, StatTile, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { Button, DocLine, EmptyState, Icon, type IconName, LessonRow, Skeleton, useToast } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { Pagination } from '@/components/dialogs';
 import { useAuth } from '../../contexts/AuthContext';
@@ -204,21 +204,21 @@ export default function AdminNotifications() {
         </div>
       ) : asOf === null ? (
         /* Aucune lecture n'a abouti : on le DIT. Pas de case, donc pas de date inventée. */
-        <GlassPanel level="night" padding={16} className="rv mt-2.5">
+        <ConsoleCard padding={16} className="rv mt-2.5">
           <p className="m-0 text-meta font-bold text-ink">{t('notifications.readFailedTitle')}</p>
           <p className="m-0 mt-1 text-meta-2 leading-[1.5] text-ink-2">{t('notifications.readFailedBody')}</p>
-        </GlassPanel>
+        </ConsoleCard>
       ) : (
         <>
           <div className="mt-2.5 grid gap-2.5 stack:grid-cols-2 wide:grid-cols-3">
-            <StatTile
+            <ConsoleKpi
               label={t('notifications.tiles.sent')}
               value={sent.length}
               source="db"
               asOf={asOf}
               foot={t('notifications.tiles.sentFoot', { limit: READ_LIMIT })}
             />
-            <StatTile
+            <ConsoleKpi
               label={t('notifications.tiles.unread')}
               value={unread}
               source="db"
@@ -227,7 +227,7 @@ export default function AdminNotifications() {
             />
             {/* Le zéro structurel. Sa source n'est pas la base — rien n'y représente une
                 planification —, alors elle se cite : c'est ce que `{ cite }` sert à dire. */}
-            <StatTile
+            <ConsoleKpi
               label={t('notifications.tiles.scheduled')}
               value={SCHEDULED.length}
               source={{ cite: t('notifications.tiles.scheduledCite') }}
@@ -248,13 +248,13 @@ export default function AdminNotifications() {
             {[0, 1, 2].map((i) => <Skeleton key={i} height={56} radius="var(--r-m)" label={t('notifications.loading')} />)}
           </div>
         ) : filtered.length === 0 ? (
-          <GlassPanel level="night" padding={8}>
+          <ConsoleCard padding={8}>
             <EmptyState
               glyph={<Icon name={stage === 'scheduled' ? 'clock' : 'bell'} size={26} color="var(--text-muted)" />}
               title={stage === 'scheduled' ? t('notifications.empty.scheduledTitle') : t('notifications.empty.inboxTitle')}
               body={stage === 'scheduled' ? t('notifications.empty.scheduledBody') : t('notifications.empty.inboxBody')}
             />
-          </GlassPanel>
+          </ConsoleCard>
         ) : (
           <ConsoleList label={t('notifications.listLabel')}>
             {paged.map((n, i) => (
@@ -265,7 +265,7 @@ export default function AdminNotifications() {
                   title={n.title}
                   meta={`${t(`notifications.types.${n.type}`)} · ${formatDate(n.createdAt)}`}
                   trailing={n.read
-                    ? <Tag tone="neutral">{t('notifications.tags.read')}</Tag>
+                    ? <ConsoleStatus tone="neutral">{t('notifications.tags.read')}</ConsoleStatus>
                     : (
                       <Button size="sm" tone="quiet" onClick={() => { void markRead(n); }}>
                         {t('notifications.actions.markRead')}
@@ -286,7 +286,7 @@ export default function AdminNotifications() {
       )}
 
       {/* Les six écrivains réels, nommés — pas devinés. Relevés dans `functions/src/`. */}
-      <GlassPanel level="night" padding={18} className="rv mt-4">
+      <ConsoleCard padding={18} className="rv mt-4">
         <SiteEyebrow style={{ marginBottom: '8px' }}>{t('notifications.paths.title')}</SiteEyebrow>
         {PATHS.map((p, i) => (
           <DocLine
@@ -297,7 +297,7 @@ export default function AdminNotifications() {
           />
         ))}
         <p className="m-0 mt-3 text-meta-2 leading-[1.5] text-ink-2">{t('notifications.paths.note')}</p>
-      </GlassPanel>
+      </ConsoleCard>
 
       {/* ── Zone 3 · le pied. « Le non-dit d'un écran d'administration finit toujours en
              manœuvre manuelle non tracée. » ──────────────────────────────────────────── */}

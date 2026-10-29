@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Button, GlassPanel, Icon, Skeleton, StatTile } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleScope, ConsoleSplit } from '../../components/console';
+import { Button, Icon, Skeleton } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleKpi } from '../../components/console';
 import ClubAgendaPanel from './components/ClubAgendaPanel';
 import { useAdminClub } from './hooks/useAdminClub';
 import type { AdminClubTab } from './hooks/useAdminClub';
@@ -94,20 +94,20 @@ export default function AdminClubDigitos() {
       />
 
       <div className="mt-4 grid gap-3 stack:grid-cols-2">
-        <StatTile
+        <ConsoleKpi
           label={t('page.stats.activeMembers')}
           value={asOf ? club.activeCount : null}
           source="db"
           asOf={asOf ?? new Date()}
         />
-        <StatTile
+        <ConsoleKpi
           label={t('page.stats.pendingPayment')}
           value={asOf ? club.pendingCount : null}
           source="db"
           asOf={asOf ?? new Date()}
           foot={t('page.stats.pendingFoot')}
         />
-        <StatTile
+        <ConsoleKpi
           label={t('page.stats.revenue')}
           value={asOf ? club.revenue : null}
           unit="FCFA"
@@ -124,11 +124,11 @@ export default function AdminClubDigitos() {
       </div>
 
       {club.loading && (
-        <GlassPanel level="night" padding="14px 18px" className="mt-4">
+        <ConsoleCard padding="14px 18px" className="mt-4">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} height={44} label={i === 0 ? t('page.title') : undefined} style={{ marginBottom: '8px' }} />
           ))}
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       <div className="mt-4">

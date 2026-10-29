@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, EmptyState, Field, Icon, LessonRow, Num, Tag } from '@ds';
-import { ConsoleList, ConsoleScope } from '../../../components/console';
+import { Button, DocLine, EmptyState, Field, Icon, LessonRow, Num } from '@ds';
+import { ConsoleList, ConsoleScope, ConsoleStatus } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
 import { useFormat } from '../../../hooks/useFormat';
 import type { ClubDigitosInfo } from '../../../types';
@@ -88,7 +88,7 @@ export default function ClubInfosTab({
                       {t('infos.likesWord')}
                     </>
                   )}
-                  trailing={<Tag tone="neutral">{typeLabel(info.type)}</Tag>}
+                  trailing={<ConsoleStatus tone="neutral">{typeLabel(info.type)}</ConsoleStatus>}
                   last={i === infos.length - 1}
                 />
               </li>

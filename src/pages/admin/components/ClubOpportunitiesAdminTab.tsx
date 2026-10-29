@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, EmptyState, GlassPanel, Icon, LessonRow, Tag, useToast } from '@ds';
-import { ConsoleList, ConsoleScope } from '../../../components/console';
+import { Button, DocLine, EmptyState, Icon, LessonRow, useToast } from '@ds';
+import { ConsoleList, ConsoleScope, ConsoleCard, ConsoleStatus } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
 import { ConfirmDialog } from '@/components/dialogs';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
@@ -89,7 +89,7 @@ export default function ClubOpportunitiesAdminTab() {
                 title={item.title}
                 meta={[item.userName, formatDate(item.createdAt), item.budget || null]
                   .filter(Boolean).join(' · ')}
-                trailing={<Tag tone="neutral">{TYPE_LABELS[item.type]}</Tag>}
+                trailing={<ConsoleStatus tone="neutral">{TYPE_LABELS[item.type]}</ConsoleStatus>}
                 last={i === items.length - 1}
               />
             </li>
@@ -118,11 +118,11 @@ export default function ClubOpportunitiesAdminTab() {
           <div>
             {/* La description ENTIÈRE. C'est elle qui dit si l'annonce a sa place au Club ;
                 deux lignes tronquées ne permettaient pas de le savoir. */}
-            <GlassPanel level="flat" padding={14}>
+            <ConsoleCard padding={14}>
               <p className="m-0 whitespace-pre-wrap break-words text-small leading-[1.55] text-ink-2">
                 {sheet.description}
               </p>
-            </GlassPanel>
+            </ConsoleCard>
             <div className="mt-4">
               <DocLine label={t('opportunities.authorLabel')} value={sheet.userName} />
               <DocLine label={t('opportunities.dateLabel')} value={formatDate(sheet.createdAt)} />

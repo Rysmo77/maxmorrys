@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { DocLine, GlassPanel, Num } from '@ds';
+import { DocLine, Num } from '@ds';
+import { ConsoleCard } from '../../../components/console';
 import { SiteEyebrow } from '../../../components/site';
 import { SUPPORT_SCOPE } from '../../../lib/adminAccess';
 import { ADMIN_SCREEN_COUNT } from '../../../lib/admin/consoleNav';
@@ -54,7 +55,7 @@ export default function RolesPanel() {
     <>
       <SiteEyebrow>{t('settings.panelRolesEyebrow')}</SiteEyebrow>
 
-      <GlassPanel level="night" padding={18} className="rv mt-3" style={{ ['--i' as string]: 1 }}>
+      <ConsoleCard padding={18} className="rv mt-3" style={{ ['--i' as string]: 1 }}>
         <DocLine
           label={t('settings.roleAdmin')}
           value={(
@@ -74,11 +75,11 @@ export default function RolesPanel() {
           )}
         />
         <DocLine label={t('settings.roleStudent')} value={t('settings.roleNone')} last />
-      </GlassPanel>
+      </ConsoleCard>
 
       {/* Les cinq écrans que le rôle support atteint, nommés. Les compter sans les nommer
           oblige à ouvrir le code pour répondre à « est-ce que je peux lui donner ce rôle ». */}
-      <GlassPanel level="night" padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 2 }}>
+      <ConsoleCard padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 2 }}>
         <SiteEyebrow style={{ marginBottom: '8px' }}>{t('settings.panelSupportScopeTitle')}</SiteEyebrow>
         <ul className="m-0 list-none p-0">
           {SUPPORT_SCOPE.map((s) => (
@@ -87,17 +88,17 @@ export default function RolesPanel() {
             </li>
           ))}
         </ul>
-      </GlassPanel>
+      </ConsoleCard>
 
-      <GlassPanel level="night" padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 3 }}>
+      <ConsoleCard padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 3 }}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('settings.panelGuardTitle')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('settings.panelGuardBody')}</p>
-      </GlassPanel>
+      </ConsoleCard>
 
-      <GlassPanel level="night" padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 4 }}>
+      <ConsoleCard padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 4 }}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('settings.panelMirrorTitle')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('settings.panelMirrorBody')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     </>
   );
 }

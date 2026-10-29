@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { TagTone } from '@ds';
-import { Avatar, Button, DocLine, GlassPanel, Num, Tag } from '@ds';
+import { Avatar, Button, DocLine, Num } from '@ds';
+import { ConsoleCard, ConsoleStatus } from '../../../components/console';
 import { SiteEyebrow } from '../../../components/site';
 import { useFormat } from '../../../hooks/useFormat';
 import { tutorName } from '../../../lib/naming';
@@ -76,18 +77,18 @@ export default function UserPanel({ user, loading, asOf, onOpenFull }: UserPanel
 
   if (loading) {
     return (
-      <GlassPanel level="night" padding={18}>
+      <ConsoleCard padding={18}>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('users.panelLoading')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     );
   }
 
   if (!user) {
     return (
-      <GlassPanel level="night" padding={18}>
+      <ConsoleCard padding={18}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('users.panelEyebrow')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('users.panelNone')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     );
   }
 
@@ -106,10 +107,10 @@ export default function UserPanel({ user, loading, asOf, onOpenFull }: UserPanel
             <Num value={user.email} source="db" asOf={asOf} />
           </p>
         </div>
-        <Tag tone={ROLE_TONE[user.role]}>{ROLE_LABELS[user.role]}</Tag>
+        <ConsoleStatus tone={ROLE_TONE[user.role]}>{ROLE_LABELS[user.role]}</ConsoleStatus>
       </div>
 
-      <GlassPanel level="night" padding={18} className="rv mt-4" style={{ ['--i' as string]: 1 }}>
+      <ConsoleCard padding={18} className="rv mt-4" style={{ ['--i' as string]: 1 }}>
         <DocLine label={t('users.docRole')} value={ROLE_LABELS[user.role]} />
         <DocLine
           label={t('users.docCreated')}
@@ -126,7 +127,7 @@ export default function UserPanel({ user, loading, asOf, onOpenFull }: UserPanel
             : user.onboardingCompleted ? t('users.onboardingDone') : t('users.onboardingPending')}
           last
         />
-      </GlassPanel>
+      </ConsoleCard>
 
       {/* UNE action : ouvrir la fiche complète. Le rôle s'y change, avec les trois autres
           onglets — le panneau trie, la fiche traite. */}
@@ -134,15 +135,15 @@ export default function UserPanel({ user, loading, asOf, onOpenFull }: UserPanel
         {t('users.panelOpenFull')}
       </Button>
 
-      <GlassPanel level="night" padding={16} className="rv mt-4" style={{ ['--i' as string]: 2 }}>
+      <ConsoleCard padding={16} className="rv mt-4" style={{ ['--i' as string]: 2 }}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('users.panelDeferredTitle')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('users.panelDeferredBody')}</p>
-      </GlassPanel>
+      </ConsoleCard>
 
-      <GlassPanel level="night" padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 3 }}>
+      <ConsoleCard padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 3 }}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('users.panelBlindTitle')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('users.panelBlindBody')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     </>
   );
 }

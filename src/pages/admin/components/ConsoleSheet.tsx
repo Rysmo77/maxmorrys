@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { GlassPanel, IconButton, Icon } from '@ds';
+import { IconButton, Icon } from '@ds';
+import { ConsoleCard } from '../../../components/console';
 import { SiteEyebrow } from '../../../components/site/SiteType';
 import { useDialogA11y } from '../../../hooks/useDialogA11y';
 
@@ -26,7 +27,7 @@ import { useDialogA11y } from '../../../hooks/useDialogA11y';
  * a été extrait.
  *
  * LE FLOU EST ICI DANS SON SEUL DROIT (règle 1) : le voile est `fixed`, il ne défile pas. La
- * feuille elle-même prend `GlassPanel level="night"`, qui n'a aucun flou — elle défile.
+ * feuille elle-même est une `ConsoleCard` opaque, sans flou — elle défile.
  */
 export interface ConsoleSheetProps {
   open: boolean;
@@ -68,7 +69,7 @@ export default function ConsoleSheet({
         aria-label={title}
         className="relative w-full max-w-lg focus:outline-none"
       >
-        <GlassPanel level="night" padding={0} style={{ overflow: 'hidden' }}>
+        <ConsoleCard padding={0} style={{ overflow: 'hidden' }}>
           <div
             className="flex items-start justify-between gap-3 px-5 pb-4 pt-5"
             style={{ borderBottom: '1px solid var(--border-hair)' }}
@@ -92,7 +93,7 @@ export default function ConsoleSheet({
               {footer}
             </div>
           )}
-        </GlassPanel>
+        </ConsoleCard>
       </div>
     </div>
   );

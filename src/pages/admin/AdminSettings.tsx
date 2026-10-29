@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, Field, GlassPanel, Icon, Segmented, Skeleton, Switch, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleScope, ConsoleSplit } from '../../components/console';
+import { Button, DocLine, Field, Icon, Segmented, Skeleton, Switch, useToast } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleScope, ConsoleSplit, ConsoleCard } from '../../components/console';
 import RolesPanel from './components/RolesPanel';
 import { SiteEyebrow } from '../../components/site';
 import { getSiteSettings, saveSiteSettings } from '../../lib/firestore';
@@ -206,16 +206,16 @@ export default function AdminSettings() {
       />
 
       {loading && (
-        <GlassPanel level="night" padding={18} className="mt-4">
+        <ConsoleCard padding={18} className="mt-4">
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} height={38} label={i === 0 ? t('settings.pageTitle') : undefined} style={{ marginBottom: '10px' }} />
           ))}
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {!loading && section === 'brand' && (
         <div className="mt-4 space-y-3">
-          <GlassPanel level="night" padding={18}>
+          <ConsoleCard padding={18}>
             <SiteEyebrow style={{ marginBottom: '12px' }}>{t('settings.generalTitle')}</SiteEyebrow>
             <div className="space-y-4">
               <Field label={t('settings.siteNameLabel')} value={settings.siteName} onChange={(v) => set('siteName', v)} />
@@ -226,9 +226,9 @@ export default function AdminSettings() {
               </div>
               <Field label={t('settings.addressLabel')} value={settings.address} onChange={(v) => set('address', v)} />
             </div>
-          </GlassPanel>
+          </ConsoleCard>
 
-          <GlassPanel level="night" padding={18}>
+          <ConsoleCard padding={18}>
             <SiteEyebrow style={{ marginBottom: '12px' }}>{t('settings.socialTitle')}</SiteEyebrow>
             <div className="grid gap-4 stack:grid-cols-2">
               <Field label="Facebook" type="url" placeholder="https://facebook.com/..." value={settings.facebook} onChange={(v) => set('facebook', v)} />
@@ -237,9 +237,9 @@ export default function AdminSettings() {
               <Field label="LinkedIn" type="url" placeholder="https://linkedin.com/..." value={settings.linkedin} onChange={(v) => set('linkedin', v)} />
               <Field label="WhatsApp" type="tel" placeholder="+221 77 000 00 00" value={settings.whatsapp} onChange={(v) => set('whatsapp', v)} />
             </div>
-          </GlassPanel>
+          </ConsoleCard>
 
-          <GlassPanel level="night" padding={18}>
+          <ConsoleCard padding={18}>
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <SiteEyebrow>{t('settings.announcementTitle')}</SiteEyebrow>
@@ -261,9 +261,9 @@ export default function AdminSettings() {
                 />
               </div>
             )}
-          </GlassPanel>
+          </ConsoleCard>
 
-          <GlassPanel level="night" padding={18}>
+          <ConsoleCard padding={18}>
             <SiteEyebrow style={{ marginBottom: '12px' }}>{t('settings.appearanceTitle')}</SiteEyebrow>
             <Segmented
               options={themeOptions.map((o) => o.label)}
@@ -274,20 +274,20 @@ export default function AdminSettings() {
               }}
               label={t('settings.defaultThemeLabel')}
             />
-          </GlassPanel>
+          </ConsoleCard>
         </div>
       )}
 
       {!loading && section === 'notifications' && (
-        <GlassPanel level="night" padding={18} className="mt-4">
+        <ConsoleCard padding={18} className="mt-4">
           <SiteEyebrow style={{ marginBottom: '4px' }}>{t('settings.notificationsTitle')}</SiteEyebrow>
           <p className="m-0 mb-2 text-meta-2 leading-[1.5] text-ink-2">{t('settings.notificationsSubtitle')}</p>
           {notifications.map((n, i) => toggleRow(n.key, n.label, n.desc, i === notifications.length - 1))}
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {!loading && section === 'popups' && (
-        <GlassPanel level="night" padding={18} className="mt-4">
+        <ConsoleCard padding={18} className="mt-4">
           <SiteEyebrow style={{ marginBottom: '4px' }}>{t('settings.popupsTitle')}</SiteEyebrow>
           <p className="m-0 mb-2 text-meta-2 leading-[1.5] text-ink-2">{t('settings.popupsSubtitle')}</p>
           {popups.map((p, i) => toggleRow(p.key, p.label, p.desc, i === popups.length - 1))}
@@ -315,18 +315,18 @@ export default function AdminSettings() {
           </div>
 
           <p className="mt-4 text-meta-2 leading-relaxed text-ink-2">{t('settings.popupsCacheNote')}</p>
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {!loading && section === 'security' && (
-        <GlassPanel level="night" padding={18} className="mt-4">
+        <ConsoleCard padding={18} className="mt-4">
           <SiteEyebrow style={{ marginBottom: '4px' }}>{t('settings.securityTitle')}</SiteEyebrow>
           <p className="m-0 mb-3 text-meta-2 leading-[1.5] text-ink-2">{t('settings.securitySubtitle')}</p>
           <DocLine label="Firebase Authentication" value={t('settings.securityActive')} />
           <DocLine label="HTTPS" value={t('settings.securityActive')} />
           <DocLine label={t('settings.securityFirestoreRules')} value={t('settings.securityRbacEnabled')} last />
           <p className="mt-4 text-meta-2 leading-relaxed text-ink-2">{t('settings.securityReadOnlyNote')}</p>
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {!loading && (

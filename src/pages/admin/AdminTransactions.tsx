@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import type { TagTone } from '@ds';
-import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
+import { Button, EmptyState, Field, Icon, LessonRow, Num, Skeleton, useToast } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import TransactionPanel from './components/TransactionPanel';
 import { SiteEyebrow } from '../../components/site';
 import { ConfirmDialog } from '@/components/dialogs';
@@ -253,28 +253,28 @@ export default function AdminTransactions() {
             que le système déclare ; à 1080 la troisième colonne prend sa place, donc les
             cases restent à deux de front plutôt que de passer à quatre et de se réduire. */}
         <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
-          <StatTile
+          <ConsoleKpi
             label={t('transactions.statRevenue')}
             value={loading ? null : formatPrice(totalRevenue)}
             source="db"
             asOf={asOf}
             foot={<><Num value={pendingCount} source="db" asOf={asOf} /> {t('transactions.footPending', { count: pendingCount })}</>}
           />
-          <StatTile
+          <ConsoleKpi
             label={t('transactions.statPending')}
             value={loading ? null : formatPrice(pendingAmount)}
             source="db"
             asOf={asOf}
             foot={<><Num value={pendingCount} source="db" asOf={asOf} /> {t('transactions.footPending', { count: pendingCount })}</>}
           />
-          <StatTile
+          <ConsoleKpi
             label={t('transactions.statRefunds')}
             value={loading ? null : formatPrice(totalRefunded)}
             source="db"
             asOf={asOf}
             foot={<><Num value={refundedCount} source="db" asOf={asOf} /> {t('transactions.footRefunded', { count: refundedCount })}</>}
           />
-          <StatTile
+          <ConsoleKpi
             label={t('transactions.statFailure')}
             value={loading ? null : failureRate}
             source="db"
@@ -314,7 +314,64 @@ export default function AdminTransactions() {
             body={t('transactions.emptyBody')}
           />
         ) : (
-          <ConsoleList label={t('transactions.listLabel')} className="rv">
+          <>
+          {/*
+            ── BUREAU : LA TABLE DU KIT (`mm-ctable`) ────────────────────────────────
+            Mêmes données et même règle que la liste mobile : un état, UNE action. Au-delà
+            de 1080 px l'action est « voir » (le remboursement vit dans la fiche) ; entre
+            700 et 1080 px, sans fiche, le remboursement reprend sa place sur la ligne.
+          */}
+          <ConsoleCard padding="4px 6px" className="rv hidden stack:block">
+            <div className="overflow-x-auto">
+              <table className="mm-ctable" aria-label={t('transactions.listLabel')}>
+                <thead>
+                  <tr>
+                    <th scope="col">{t('transactions.colRef')}</th>
+                    <th scope="col">{t('transactions.colAmount')}</th>
+                    <th scope="col">{t('transactions.colCustomer')}</th>
+                    <th scope="col">{t('transactions.colStatus')}</th>
+                    <th scope="col"><span className="sr-only">{t('transactions.colAction')}</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paged.map((tx) => (
+                    <tr key={tx.id} className={isWide && selected?.id === tx.id ? 'is-sel' : undefined}>
+                      <td>
+                        <b><Num value={tx.transactionRef ?? tx.id.slice(0, 12)} source="db" asOf={asOf} /></b>
+                        <small>{formatDate(tx.createdAt)}</small>
+                      </td>
+                      <td>
+                        <Num value={tx.amount} unit={tx.currency} source="db" asOf={asOf} />
+                        <small>{tx.paymentMethod}</small>
+                      </td>
+                      <td>
+                        {tx.userName || tx.userEmail || '—'}
+                        {tx.formationTitle && <small>{tx.formationTitle}</small>}
+                      </td>
+                      <td>
+                        <span className="flex flex-wrap items-center gap-1.5">
+                          {tx.mailPending && <ConsoleStatus tone="warn">{t('transactions.mailStuckTag')}</ConsoleStatus>}
+                          <ConsoleStatus tone={STATUS_TONE[tx.status]}>{STATUS_LABELS[tx.status]}</ConsoleStatus>
+                        </span>
+                      </td>
+                      <td className="text-right">
+                        {isWide ? (
+                          <Button size="sm" tone="quiet" onClick={() => setSelectedId(tx.id)}>
+                            {t('transactions.actionShow')}
+                          </Button>
+                        ) : tx.status === 'completed' ? (
+                          <Button size="sm" tone="quiet" onClick={() => handleRefund(tx.id)} loading={refunding === tx.id}>
+                            {t('transactions.refundAction')}
+                          </Button>
+                        ) : null}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </ConsoleCard>
+          <ConsoleList label={t('transactions.listLabel')} className="rv stack:hidden">
             {paged.map((tx, i) => (
               <li key={tx.id}>
                 <LessonRow
@@ -339,8 +396,8 @@ export default function AdminTransactions() {
                       {/* Un SIGNAL, pas une action : la relance vit dans la fiche, comme le
                           remboursement. Sur la ligne, il ne s'agit que de savoir laquelle
                           ouvrir — sans quoi il faudrait les ouvrir toutes pour trouver. */}
-                      {tx.mailPending && <Tag tone="warn">{t('transactions.mailStuckTag')}</Tag>}
-                      <Tag tone={STATUS_TONE[tx.status]}>{STATUS_LABELS[tx.status]}</Tag>
+                      {tx.mailPending && <ConsoleStatus tone="warn">{t('transactions.mailStuckTag')}</ConsoleStatus>}
+                      <ConsoleStatus tone={STATUS_TONE[tx.status]}>{STATUS_LABELS[tx.status]}</ConsoleStatus>
                       {/* Sous 1080 px il n'y a pas de panneau : le remboursement reprend sa
                           place sur la ligne, comme avant. Au-delà, il vit dans la fiche et
                           la ligne ne fait plus que sélectionner. */}
@@ -362,6 +419,7 @@ export default function AdminTransactions() {
               </li>
             ))}
           </ConsoleList>
+          </>
         )}
 
         <div className="mt-4 flex justify-center">
@@ -371,10 +429,10 @@ export default function AdminTransactions() {
         {/* Ce que le remboursement ne fait PAS. L'encart « pourquoi rejouer est sans risque »
             de la maquette, lui, a rejoint le panneau : il répond à une question qu'on se
             pose la fiche sous les yeux, pas en bas de la file. */}
-        <GlassPanel level="night" padding={18} className="rv mt-3.5">
+        <ConsoleCard padding={18} className="rv mt-3.5">
           <SiteEyebrow style={{ marginBottom: '6px' }}>{t('transactions.refundExplainTitle')}</SiteEyebrow>
           <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('transactions.refundExplainBody')}</p>
-        </GlassPanel>
+        </ConsoleCard>
 
         <ConsoleScope>{t('transactions.scope')}</ConsoleScope>
         </ConsoleSplit>

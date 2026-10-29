@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, EmptyState, Field, Icon, LessonRow, Num, Tag } from '@ds';
-import { ConsoleFilter, ConsoleList, ConsoleScope } from '../../../components/console';
+import { Button, DocLine, EmptyState, Field, Icon, LessonRow, Num } from '@ds';
+import { ConsoleFilter, ConsoleList, ConsoleScope, ConsoleStatus } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
 import { useFormat } from '../../../hooks/useFormat';
 import type { ClubDigitosSession, ClubSessionRegistration } from '../../../types';
@@ -118,9 +118,9 @@ export default function ClubSessionsTab({
                   title={session.title}
                   meta={[when(session.scheduledAt), session.duration || null].filter(Boolean).join(' · ')}
                   trailing={(
-                    <Tag tone={session.status === 'upcoming' ? 'ok' : 'neutral'}>
+                    <ConsoleStatus tone={session.status === 'upcoming' ? 'ok' : 'neutral'}>
                       {session.status === 'upcoming' ? t('sessions.badgeUpcoming') : t('sessions.badgePast')}
-                    </Tag>
+                    </ConsoleStatus>
                   )}
                   last={i === filtered.length - 1}
                 />

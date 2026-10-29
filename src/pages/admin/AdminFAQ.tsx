@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, ChipRow, EmptyState, Field, Icon, LessonRow, Num, Skeleton, StatTile, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { Button, ChipRow, EmptyState, Field, Icon, LessonRow, Num, Skeleton, useToast } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { useReveal } from '../../components/site/useReveal';
 import ConsoleSheet from './components/ConsoleSheet';
 import { Pagination } from '@/components/dialogs';
@@ -158,14 +158,14 @@ export default function AdminFAQ() {
 
         {loadedAt && (
           <div className="mt-3.5 grid grid-cols-2 gap-2.5">
-            <StatTile
+            <ConsoleKpi
               label={t('faq.tiles.questions')}
               value={faq.length}
               source="db"
               asOf={loadedAt}
               foot={t('faq.tiles.questionsFoot')}
             />
-            <StatTile
+            <ConsoleKpi
               label={t('faq.tiles.derivedSlug')}
               value={derivedSlugCount}
               source="db"
@@ -209,7 +209,7 @@ export default function AdminFAQ() {
                         {f.category ? ` · ${f.category}` : ''}
                       </>
                     )}
-                    trailing={<Tag tone="ok">{t('faq.tags.online')}</Tag>}
+                    trailing={<ConsoleStatus tone="ok">{t('faq.tags.online')}</ConsoleStatus>}
                     last={i === paged.length - 1}
                   />
                 </li>

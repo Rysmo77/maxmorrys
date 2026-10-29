@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Avatar, Button, DocLine, EmptyState, Field, Icon, LessonRow, Switch, Tag, useToast } from '@ds';
-import { ConsoleFilter, ConsoleList, ConsoleScope } from '../../../components/console';
+import { Avatar, Button, DocLine, EmptyState, Field, Icon, LessonRow, Switch, useToast } from '@ds';
+import { ConsoleFilter, ConsoleList, ConsoleScope, ConsoleStatus } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { ConfirmDialog } from '@/components/dialogs';
@@ -141,9 +141,9 @@ export default function ClubMembersAdminTab() {
                     p.headline || null,
                   ].filter(Boolean).join(' · ')}
                   trailing={(
-                    <Tag tone={p.visible ? 'ok' : 'warn'}>
+                    <ConsoleStatus tone={p.visible ? 'ok' : 'warn'}>
                       {p.visible ? t('members.badgeVisible') : t('members.badgeHidden')}
-                    </Tag>
+                    </ConsoleStatus>
                   )}
                   last={i === filtered.length - 1}
                 />

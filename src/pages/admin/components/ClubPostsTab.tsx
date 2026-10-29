@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Avatar, Button, DocLine, EmptyState, Field, GlassPanel, Icon, IconButton, LessonRow, Num, Tag } from '@ds';
-import { ConsoleList, ConsoleScope } from '../../../components/console';
+import { Avatar, Button, DocLine, EmptyState, Field, Icon, IconButton, LessonRow, Num } from '@ds';
+import { ConsoleList, ConsoleScope, ConsoleCard, ConsoleStatus } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
 import { useFormat } from '../../../hooks/useFormat';
 import type { ClubDigitosPost, ClubDigitosComment } from '../../../types';
@@ -132,7 +132,7 @@ export default function ClubPostsTab({
                       {t('posts.commentsWord')}
                     </>
                   )}
-                  trailing={post.isAdmin ? <Tag tone="neutral">{t('posts.adminBadge')}</Tag> : undefined}
+                  trailing={post.isAdmin ? <ConsoleStatus tone="neutral">{t('posts.adminBadge')}</ConsoleStatus> : undefined}
                   last={i === posts.length - 1}
                 />
               </li>
@@ -249,7 +249,7 @@ export default function ClubPostsTab({
                   <ul className="m-0 mt-3 list-none space-y-2 p-0" aria-label={t('posts.commentsLabel')}>
                     {comments.map((c) => (
                       <li key={c.id}>
-                        <GlassPanel level="flat" padding="8px 12px">
+                        <ConsoleCard padding="8px 12px">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
                               <p className="m-0 text-meta-2 font-semibold text-ink">
@@ -267,7 +267,7 @@ export default function ClubPostsTab({
                               <Icon name="trash" size={15} />
                             </IconButton>
                           </div>
-                        </GlassPanel>
+                        </ConsoleCard>
                       </li>
                     ))}
                   </ul>

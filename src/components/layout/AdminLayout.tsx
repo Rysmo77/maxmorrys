@@ -2,9 +2,10 @@ import { useTranslation } from 'react-i18next';
 import AppShell from './AppShell';
 import { useAuth } from '../../contexts/AuthContext';
 import type { AppSidebarItem } from './AppSidebar';
+import type { BottomNavItem } from './AppBottomNav';
 import { isSupportAllowedPath } from '../../lib/adminAccess';
 import { useConsoleCounts } from '../../lib/admin/consoleCounts';
-import { ADMIN_NAV, ADMIN_SECTIONS } from '../../lib/admin/consoleNav';
+import { ADMIN_BOTTOM_NAV, ADMIN_NAV, ADMIN_SECTIONS } from '../../lib/admin/consoleNav';
 import { EnvBadge } from '@ds';
 
 /*
@@ -98,9 +99,20 @@ export default function AdminLayout() {
       to, label: t(labelKey), icon, end, tone, badge: badges[to] ?? null,
     }));
 
+  /*
+    ── LA BARRE D'ONGLETS MOBILE DE LA CONSOLE (kit v3, `mm-cm__tabs`) ──────────────
+    La table vit dans `lib/admin/consoleNav.ts` (`ADMIN_BOTTOM_NAV`), comme le reste.
+    Elle passe par le même filtre de rôle que la barre latérale : un onglet n'est jamais
+    visible s'il n'est pas atteignable.
+  */
+  const bottomNavItems: BottomNavItem[] = ADMIN_BOTTOM_NAV
+    .filter((item) => isAdmin || isSupportAllowedPath(item.to))
+    .map(({ to, labelKey, icon, end }) => ({ to, label: t(labelKey), icon, end }));
+
   return (
     <AppShell
       brand={{ label: panelLabel, href: '/admin' }}
+      bottomNavItems={bottomNavItems}
       /*
         ── LA CONSOLE EST CLAIRE (kit v3, AD-27 — décision du 29/10/2026) ──────────────
         Elle portait le maillage `nuit` et la portée `.dk` sur toute la coquille : la

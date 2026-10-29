@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { TagTone } from '@ds';
-import { Button, DocLine, GlassPanel, Num, Pipeline, Tag } from '@ds';
+import { Button, DocLine, Num, Pipeline } from '@ds';
+import { ConsoleCard, ConsoleStatus } from '../../../components/console';
 import { SiteEyebrow } from '../../../components/site';
 import { useFormat } from '../../../hooks/useFormat';
 import type { Transaction } from '../../../types';
@@ -94,18 +95,18 @@ export default function TransactionPanel({ tx, loading, asOf, onRefund, refundin
 
   if (loading) {
     return (
-      <GlassPanel level="night" padding={18}>
+      <ConsoleCard padding={18}>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('transactions.panelLoading')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     );
   }
 
   if (!tx) {
     return (
-      <GlassPanel level="night" padding={18}>
+      <ConsoleCard padding={18}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('transactions.panelEyebrow')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('transactions.panelNone')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     );
   }
 
@@ -118,7 +119,7 @@ export default function TransactionPanel({ tx, loading, asOf, onRefund, refundin
             <Num value={tx.transactionRef ?? tx.id.slice(0, 12)} source="db" asOf={asOf} />
           </p>
         </div>
-        <Tag tone={STATUS_TONE[tx.status]}>{STATUS_LABELS[tx.status]}</Tag>
+        <ConsoleStatus tone={STATUS_TONE[tx.status]}>{STATUS_LABELS[tx.status]}</ConsoleStatus>
       </div>
 
       <Pipeline
@@ -129,7 +130,7 @@ export default function TransactionPanel({ tx, loading, asOf, onRefund, refundin
         label={t('transactions.panelPipelineLabel')}
       />
 
-      <GlassPanel level="night" padding={18} className="rv mt-3.5" style={{ ['--i' as string]: 2 }}>
+      <ConsoleCard padding={18} className="rv mt-3.5" style={{ ['--i' as string]: 2 }}>
         <DocLine label={t('transactions.docMethod')} value={tx.paymentMethod} />
         <DocLine
           label={t('transactions.docAmount')}
@@ -153,7 +154,7 @@ export default function TransactionPanel({ tx, loading, asOf, onRefund, refundin
           value={<Num value={tx.chargeId ?? null} source="db" asOf={asOf} />}
           last
         />
-      </GlassPanel>
+      </ConsoleCard>
 
       {/*
         LES COURRIERS — visibles ici parce qu'ils ne l'étaient nulle part.
@@ -167,19 +168,19 @@ export default function TransactionPanel({ tx, loading, asOf, onRefund, refundin
         se liraient comme une panne.
       */}
       {tx.status === 'completed' && (
-        <GlassPanel level="flat" padding={16} className="rv mt-4" style={{ ['--i' as string]: 2 }}>
+        <ConsoleCard padding={16} className="rv mt-4" style={{ ['--i' as string]: 2 }}>
           <SiteEyebrow style={{ marginBottom: '8px' }}>{t('transactions.mailTitle')}</SiteEyebrow>
           <DocLine
             label={t('transactions.mailConfirmation')}
             value={tx.purchaseNoticeSentAt
               ? <Num value={formatDate(tx.purchaseNoticeSentAt)} source="db" asOf={asOf} />
-              : <Tag tone="warn">{t('transactions.mailNotSent')}</Tag>}
+              : <ConsoleStatus tone="warn">{t('transactions.mailNotSent')}</ConsoleStatus>}
           />
           <DocLine
             label={t('transactions.mailInvoice')}
             value={tx.invoiceSentAt
               ? <Num value={formatDate(tx.invoiceSentAt)} source="db" asOf={asOf} />
-              : <Tag tone="warn">{t('transactions.mailNotSent')}</Tag>}
+              : <ConsoleStatus tone="warn">{t('transactions.mailNotSent')}</ConsoleStatus>}
           />
           {/* Le numéro s'affiche même quand l'envoi a échoué : la facture EXISTE, seul son
               acheminement a manqué. Le taire laisserait croire qu'elle reste à émettre. */}
@@ -200,7 +201,7 @@ export default function TransactionPanel({ tx, loading, asOf, onRefund, refundin
               {t('transactions.mailResend')}
             </Button>
           )}
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {/* UNE action, et seulement quand elle est possible. Un bouton grisé en permanence
@@ -218,10 +219,10 @@ export default function TransactionPanel({ tx, loading, asOf, onRefund, refundin
         </Button>
       )}
 
-      <GlassPanel level="night" padding={16} className="rv mt-4" style={{ ['--i' as string]: 3 }}>
+      <ConsoleCard padding={16} className="rv mt-4" style={{ ['--i' as string]: 3 }}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('transactions.replayTitle')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('transactions.replayBody')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     </>
   );
 }

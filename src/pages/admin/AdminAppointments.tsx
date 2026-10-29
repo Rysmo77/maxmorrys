@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TagTone } from '@ds';
-import { Button, DocLine, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, StatTile, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
+import { Button, DocLine, EmptyState, Field, Icon, LessonRow, Skeleton, useToast } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { getAllAppointments, updateAppointmentStatus } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
@@ -129,7 +129,7 @@ export default function AdminAppointments() {
   */
   const appointmentPanel = sheet ? (
     <>
-        <GlassPanel level="night" padding={18} className="rv">
+        <ConsoleCard padding={18} className="rv">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <SiteEyebrow style={{ marginBottom: '4px' }}>{t('appointments.sheetEyebrow')}</SiteEyebrow>
@@ -138,8 +138,8 @@ export default function AdminAppointments() {
             </div>
             {/* LE BOUTON « FERMER » A DISPARU AVEC LA MODALE : une colonne permanente ne
                 se ferme pas, elle change de sujet. La place revient à l'ÉTAT. */}
-            {sheet.mailPending && <Tag tone="warn">{t('appointments.mailStuckTag')}</Tag>}
-            <Tag tone={STATUS_TONE[sheet.status]}>{STATUS_LABELS[sheet.status]}</Tag>
+            {sheet.mailPending && <ConsoleStatus tone="warn">{t('appointments.mailStuckTag')}</ConsoleStatus>}
+            <ConsoleStatus tone={STATUS_TONE[sheet.status]}>{STATUS_LABELS[sheet.status]}</ConsoleStatus>
           </div>
 
           <div className="mt-3.5">
@@ -176,15 +176,15 @@ export default function AdminAppointments() {
               </Button>
             )}
           </div>
-      </GlassPanel>
+      </ConsoleCard>
     </>
   ) : (
-    <GlassPanel level="night" padding={18}>
+    <ConsoleCard padding={18}>
       <SiteEyebrow style={{ marginBottom: '6px' }}>{t('appointments.sheetEyebrow')}</SiteEyebrow>
       <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">
         {loading ? t('appointments.panelLoading') : t('appointments.panelNone')}
       </p>
-    </GlassPanel>
+    </ConsoleCard>
   );
 
   return (
@@ -207,21 +207,21 @@ export default function AdminAppointments() {
         />
 
         <div className="mt-3.5 grid gap-2.5 stack:grid-cols-3">
-          <StatTile
+          <ConsoleKpi
             label={t('appointments.tilePending')}
             value={loading ? null : pendingCount}
             source="db"
             asOf={asOf}
             foot={t('appointments.footToDecide')}
           />
-          <StatTile
+          <ConsoleKpi
             label={t('appointments.tileConfirmed')}
             value={loading ? null : confirmedCount}
             source="db"
             asOf={asOf}
             foot={t('appointments.footAgreed')}
           />
-          <StatTile
+          <ConsoleKpi
             label={t('appointments.tileTotal')}
             value={loading ? null : appointments.length}
             source="db"
@@ -273,8 +273,8 @@ export default function AdminAppointments() {
                      côté et elle suit — ouvrir n'est plus une seconde action. */
                   trailing={(
                     <span className="flex items-center gap-2">
-                      {a.mailPending && <Tag tone="warn">{t('appointments.mailStuckTag')}</Tag>}
-                      <Tag tone={STATUS_TONE[a.status]}>{STATUS_LABELS[a.status]}</Tag>
+                      {a.mailPending && <ConsoleStatus tone="warn">{t('appointments.mailStuckTag')}</ConsoleStatus>}
+                      <ConsoleStatus tone={STATUS_TONE[a.status]}>{STATUS_LABELS[a.status]}</ConsoleStatus>
                     </span>
                   )}
                   onClick={() => setOpenId(a.id)}

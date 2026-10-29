@@ -1,4 +1,5 @@
-import { GlassPanel } from '@ds';
+import {  } from '@ds';
+import { ConsoleCard } from '../../../components/console';
 
 /**
  * LE SQUELETTE DE LISTE DE LA CONSOLE — ce qui remplace le rond qui tournait.
@@ -21,7 +22,7 @@ export default function ConsoleListSkeleton({ rows = 3, label }: { rows?: number
   return (
     <div className="space-y-4" role="status" aria-live="polite" aria-label={label ?? 'Chargement'}>
       {Array.from({ length: rows }, (_, i) => (
-        <GlassPanel key={i} level="flat">
+        <ConsoleCard key={i}>
           <div className="animate-pulse space-y-3">
             <div className="flex items-center justify-between gap-4">
               <div className="h-4 w-1/3 rounded bg-[color:var(--fill-3)]" />
@@ -30,7 +31,7 @@ export default function ConsoleListSkeleton({ rows = 3, label }: { rows?: number
             <div className="h-3 w-full rounded bg-[color:var(--fill-2)]" />
             <div className="h-3 w-2/3 rounded bg-[color:var(--fill-2)]" />
           </div>
-        </GlassPanel>
+        </ConsoleCard>
       ))}
     </div>
   );

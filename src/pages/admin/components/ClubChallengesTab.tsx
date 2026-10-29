@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, CheckLine, EmptyState, Field, GlassPanel, Icon, LessonRow, Switch, Tag, useToast } from '@ds';
-import { ConsoleFilter, ConsoleList, ConsoleScope } from '../../../components/console';
+import { Button, CheckLine, EmptyState, Field, Icon, LessonRow, Switch, useToast } from '@ds';
+import { ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleStatus } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
 import { SiteEyebrow } from '../../../components/site';
 import { useFormat } from '../../../hooks/useFormat';
@@ -142,12 +142,12 @@ export default function ClubChallengesTab() {
               vienne les négocier. La troisième est une contrainte légale, pas un arbitrage
               de produit — une récompense en argent ou en remise ferait un concours.
             */}
-            <GlassPanel level="night" padding={18} className="rv mt-3.5" style={{ ['--i' as string]: 4 }}>
+            <ConsoleCard padding={18} className="rv mt-3.5" style={{ ['--i' as string]: 4 }}>
               <SiteEyebrow style={{ marginBottom: '8px' }}>{t('challenges.futureTitle')}</SiteEyebrow>
               <CheckLine tone="ok">{t('challenges.futureXp')}</CheckLine>
               <CheckLine tone="ok">{t('challenges.futureClose')}</CheckLine>
               <CheckLine tone="neutre" dash>{t('challenges.futureNoMoney')}</CheckLine>
-            </GlassPanel>
+            </ConsoleCard>
           </>
         ) : (
           <ConsoleList label={t('challenges.listLabel')}>
@@ -163,9 +163,9 @@ export default function ClubChallengesTab() {
                     c.reward || null,
                   ].filter(Boolean).join(' · ')}
                   trailing={(
-                    <Tag tone={c.active ? 'ok' : 'neutral'}>
+                    <ConsoleStatus tone={c.active ? 'ok' : 'neutral'}>
                       {t(`challenges.stages.${c.active ? 'open' : 'closed'}`)}
-                    </Tag>
+                    </ConsoleStatus>
                   )}
                   last={i === filtered.length - 1}
                 />

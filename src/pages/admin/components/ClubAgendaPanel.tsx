@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { DocLine, GlassPanel, Num, Tag } from '@ds';
+import { DocLine, Num } from '@ds';
+import { ConsoleCard, ConsoleStatus } from '../../../components/console';
 import { SiteEyebrow } from '../../../components/site';
 import { useFormat } from '../../../hooks/useFormat';
 import type { ClubDigitosEvent, ClubDigitosSession } from '../../../types';
@@ -87,26 +88,26 @@ export default function ClubAgendaPanel({ events, sessions, loadedAt }: ClubAgen
       <SiteEyebrow>{t('panel.eyebrow')}</SiteEyebrow>
 
       {!loadedAt ? (
-        <GlassPanel level="night" padding={18} className="mt-3">
+        <ConsoleCard padding={18} className="mt-3">
           <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('panel.loading')}</p>
-        </GlassPanel>
+        </ConsoleCard>
       ) : !next ? (
         /* UN ZÉRO DATÉ, PAS UN TIRET. « L'agenda est publié un mois à l'avance » est un
            engagement de la page publique : un agenda vide est une information sur cet
            engagement, et elle doit se lire ici plutôt que se déduire d'une absence. */
-        <GlassPanel level="night" padding={18} className="rv mt-3" style={{ ['--i' as string]: 1 }}>
+        <ConsoleCard padding={18} className="rv mt-3" style={{ ['--i' as string]: 1 }}>
           <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('panel.empty')}</p>
-        </GlassPanel>
+        </ConsoleCard>
       ) : (
         <>
           <div className="mt-3 flex items-start justify-between gap-3">
             <p className="m-0 font-display text-[18px] font-black leading-tight tracking-[-.03em] text-ink">
               {next.title}
             </p>
-            <Tag tone="ok">{next.kind}</Tag>
+            <ConsoleStatus tone="ok">{next.kind}</ConsoleStatus>
           </div>
 
-          <GlassPanel level="night" padding={18} className="rv mt-3.5" style={{ ['--i' as string]: 1 }}>
+          <ConsoleCard padding={18} className="rv mt-3.5" style={{ ['--i' as string]: 1 }}>
             <DocLine
               label={t('panel.docDate')}
               value={(
@@ -136,7 +137,7 @@ export default function ClubAgendaPanel({ events, sessions, loadedAt }: ClubAgen
               value={<Num value={next.duration ?? null} source="db" asOf={asOf} />}
               last
             />
-          </GlassPanel>
+          </ConsoleCard>
 
           <p className="m-0 mt-3 text-meta-2 leading-[1.5] text-ink-3">
             <Num value={upcoming.length} source="db" asOf={asOf} />{' '}
@@ -145,15 +146,15 @@ export default function ClubAgendaPanel({ events, sessions, loadedAt }: ClubAgen
         </>
       )}
 
-      <GlassPanel level="night" padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 2 }}>
+      <ConsoleCard padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 2 }}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('panel.commitmentTitle')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('panel.commitmentBody')}</p>
-      </GlassPanel>
+      </ConsoleCard>
 
-      <GlassPanel level="night" padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 3 }}>
+      <ConsoleCard padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 3 }}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('panel.reminderTitle')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('panel.reminderBody')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     </>
   );
 }

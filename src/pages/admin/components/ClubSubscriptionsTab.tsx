@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, EmptyState, Icon, LessonRow, Num, Tag } from '@ds';
+import { Button, DocLine, EmptyState, Icon, LessonRow, Num } from '@ds';
 import type { TagTone } from '@ds';
-import { ConsoleFilter, ConsoleList, ConsoleScope } from '../../../components/console';
+import { ConsoleFilter, ConsoleList, ConsoleScope, ConsoleStatus } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
 import { useFormat } from '../../../hooks/useFormat';
 import type { ClubDigitosSubscription } from '../../../types';
@@ -114,7 +114,7 @@ export default function ClubSubscriptionsTab({ subscriptions, handleSubStatus, l
                     t('subscriptions.metaExpires', { date: formatDate(sub.expiresAt) }),
                     sub.autoRenew ? t('subscriptions.renew.auto') : t('subscriptions.renew.manual'),
                   ].join(' · ')}
-                  trailing={<Tag tone={TONE[sub.status]}>{t(`subscriptions.status.${sub.status}`)}</Tag>}
+                  trailing={<ConsoleStatus tone={TONE[sub.status]}>{t(`subscriptions.status.${sub.status}`)}</ConsoleStatus>}
                   last={i === filtered.length - 1}
                 />
               </li>

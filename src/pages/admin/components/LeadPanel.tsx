@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, GlassPanel, Icon, Num, Pipeline, Tag } from '@ds';
+import { Button, DocLine, Icon, Num, Pipeline } from '@ds';
+import { ConsoleCard, ConsoleStatus } from '../../../components/console';
 import { SiteEyebrow } from '../../../components/site';
 import { computeTotals, PIPELINE_STAGES } from '../../../lib/presence/offer';
 import { useFormat } from '../../../hooks/useFormat';
@@ -78,10 +79,10 @@ export default function LeadPanel({ lead, loading, onAdvance, onOpenFull, updati
 
   if (!lead) {
     return (
-      <GlassPanel level="night" padding={18}>
+      <ConsoleCard padding={18}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('dashboard.panelEyebrow')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('dashboard.panelEmpty')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     );
   }
 
@@ -99,9 +100,9 @@ export default function LeadPanel({ lead, loading, onAdvance, onOpenFull, updati
             {lead.businessName}
           </p>
         </div>
-        <Tag tone={lead.status === 'signed' ? 'ok' : lead.status === 'new' ? 'warn' : 'neutral'}>
+        <ConsoleStatus tone={lead.status === 'signed' ? 'ok' : lead.status === 'new' ? 'warn' : 'neutral'}>
           {t(`agencyLeads.status.${lead.status}`)}
-        </Tag>
+        </ConsoleStatus>
       </div>
 
       {/* Où en est ce prospect. Non cliquable ici : le panneau oriente, il n'édite pas —
@@ -112,7 +113,7 @@ export default function LeadPanel({ lead, loading, onAdvance, onOpenFull, updati
         label={t('agencyLeads.pipelineLabel')}
       />
 
-      <GlassPanel level="night" padding={18}>
+      <ConsoleCard padding={18}>
         <DocLine label={t('dashboard.panelReceived')} value={formatDate(lead.createdAt)} />
         <DocLine label={t('agencyLeads.docCity')} value={lead.city} />
         <DocLine
@@ -146,7 +147,7 @@ export default function LeadPanel({ lead, loading, onAdvance, onOpenFull, updati
             last
           />
         )}
-      </GlassPanel>
+      </ConsoleCard>
 
       {/*
         TROIS ACTIONS, ET CHACUNE FAIT UNE CHOSE DIFFÉRENTE : répondre, avancer, tout ouvrir.

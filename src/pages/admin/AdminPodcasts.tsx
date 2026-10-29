@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { Button, Field, Icon, LessonRow, Num, Skeleton } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { Modal } from '@/components/dialogs';
 import ImageInput from '@/components/forms/ImageInput';
 import { ConfirmDialog } from '@/components/dialogs';
@@ -99,14 +99,14 @@ export default function AdminPodcasts() {
         cherchable, ni lisible par quelqu'un qui ne peut pas écouter.
       */}
       <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
-        <StatTile
+        <ConsoleKpi
           label={t('podcasts.console.tileTranscribed')}
           value={p.loading ? null : transcribed}
           source="db"
           asOf={p.loadedAt ?? new Date()}
           foot={t('podcasts.console.tileTranscribedFoot', { count: p.counts.all })}
         />
-        <StatTile
+        <ConsoleKpi
           label={t('podcasts.console.tileNoTranscript')}
           value={p.loading ? null : p.counts.all - transcribed}
           source="db"
@@ -135,9 +135,9 @@ export default function AdminPodcasts() {
             ))}
           </ConsoleList>
         ) : p.filtered.length === 0 ? (
-          <GlassPanel level="night" padding={24}>
+          <ConsoleCard padding={24}>
             <p className="m-0 text-center text-meta-2 text-ink-2">{t('podcasts.emptyState')}</p>
-          </GlassPanel>
+          </ConsoleCard>
         ) : (
           <>
             <ConsoleList label={t('podcasts.console.listLabel')}>
@@ -157,7 +157,7 @@ export default function AdminPodcasts() {
                         ep.publishedAt ? formatDate(ep.publishedAt) : null,
                         isImported(ep) ? t('podcasts.console.fromSpotify') : null,
                       ].filter(Boolean).join(' · ')}
-                      trailing={<Tag tone={st.tone}>{st.label}</Tag>}
+                      trailing={<ConsoleStatus tone={st.tone}>{st.label}</ConsoleStatus>}
                       onClick={() => p.openEdit(ep)}
                       last={i === p.paged.length - 1}
                     />

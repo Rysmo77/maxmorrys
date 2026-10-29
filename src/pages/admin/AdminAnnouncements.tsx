@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, Field, Icon, LessonRow, Skeleton, StatTile, Switch, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { Button, EmptyState, Field, Icon, LessonRow, Skeleton, Switch, useToast } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { useReveal } from '../../components/site/useReveal';
 import ConsoleSheet from './components/ConsoleSheet';
 import { Pagination } from '@/components/dialogs';
@@ -144,10 +144,10 @@ export default function AdminAnnouncements() {
 
   /** Un seul état par ligne : celui qui décide de ce que voit un visiteur aujourd'hui. */
   const stateTag = (a: Announcement) => {
-    if (!a.active) return <Tag tone="neutral">{t('announcements.tags.stopped')}</Tag>;
-    if (isLive(a, today)) return <Tag tone="ok">{t('announcements.tags.live')}</Tag>;
-    if (a.startDate > today) return <Tag tone="warn">{t('announcements.tags.scheduled')}</Tag>;
-    return <Tag tone="stop">{t('announcements.tags.over')}</Tag>;
+    if (!a.active) return <ConsoleStatus tone="neutral">{t('announcements.tags.stopped')}</ConsoleStatus>;
+    if (isLive(a, today)) return <ConsoleStatus tone="ok">{t('announcements.tags.live')}</ConsoleStatus>;
+    if (a.startDate > today) return <ConsoleStatus tone="warn">{t('announcements.tags.scheduled')}</ConsoleStatus>;
+    return <ConsoleStatus tone="stop">{t('announcements.tags.over')}</ConsoleStatus>;
   };
 
   return (
@@ -165,14 +165,14 @@ export default function AdminAnnouncements() {
 
         {loadedAt && (
           <div className="mt-3.5 grid grid-cols-2 gap-2.5">
-            <StatTile
+            <ConsoleKpi
               label={t('announcements.tiles.live')}
               value={counts.live}
               source="db"
               asOf={loadedAt}
               foot={t('announcements.tiles.liveFoot')}
             />
-            <StatTile
+            <ConsoleKpi
               label={t('announcements.tiles.outOfWindow')}
               value={counts.outOfWindow}
               source="db"

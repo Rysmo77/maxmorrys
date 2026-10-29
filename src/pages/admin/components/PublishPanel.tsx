@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Button, GlassPanel, Icon, LessonRow, Num, ProgressBar, Tag } from '@ds';
+import { Button, Icon, LessonRow, Num, ProgressBar } from '@ds';
+import { ConsoleCard, ConsoleStatus } from '../../../components/console';
 import { SiteEyebrow } from '../../../components/site';
 import { formationChecklist } from '../formations/useFormations';
 import type { PublishConditionId } from '../formations/publishChecklist';
@@ -66,18 +67,18 @@ export default function PublishPanel({ formation, loading, onOpenFull }: Publish
 
   if (loading) {
     return (
-      <GlassPanel level="night" padding={18}>
+      <ConsoleCard padding={18}>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('formations.console.panelLoading')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     );
   }
 
   if (!formation) {
     return (
-      <GlassPanel level="night" padding={18}>
+      <ConsoleCard padding={18}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('formations.console.panelEyebrow')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('formations.console.panelNone')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     );
   }
 
@@ -113,7 +114,7 @@ export default function PublishPanel({ formation, loading, onOpenFull }: Publish
         {t('formations.console.panelProgressSuffix', { count: list.done })}
       </p>
 
-      <GlassPanel level="night" padding="4px 16px" className="rv mt-3.5" style={{ ['--i' as string]: 1 }}>
+      <ConsoleCard padding="4px 16px" className="rv mt-3.5" style={{ ['--i' as string]: 1 }}>
         <ul className="m-0 list-none p-0" aria-label={t('formations.console.checklistTitle')}>
           {list.items.map((item, i) => (
             <li key={item.id}>
@@ -129,16 +130,16 @@ export default function PublishPanel({ formation, loading, onOpenFull }: Publish
                 title={conditionLabel(item.id)}
                 meta={t(`formations.console.${racine}.${item.id}.${item.ok ? 'ok' : 'ko'}`, item.counts)}
                 trailing={(
-                  <Tag tone={item.ok ? 'ok' : 'warn'}>
+                  <ConsoleStatus tone={item.ok ? 'ok' : 'warn'}>
                     {item.ok ? t('formations.console.checkReady') : t('formations.console.checkTodo')}
-                  </Tag>
+                  </ConsoleStatus>
                 )}
                 last={i === list.items.length - 1}
               />
             </li>
           ))}
         </ul>
-      </GlassPanel>
+      </ConsoleCard>
 
       <Button size="sm" tone="quiet" fullWidth onClick={onOpenFull} style={{ marginTop: '14px' }}>
         {t('formations.console.panelOpenFull')}
@@ -154,10 +155,10 @@ export default function PublishPanel({ formation, loading, onOpenFull }: Publish
           un administrateur à écrire `status: 'published'` sur un document vide, et aucune
           Cloud Function ne réagit. Un garde-fou dont on croit à tort qu'il tient côté
           serveur est pire que pas de garde-fou du tout. */}
-      <GlassPanel level="night" padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 2 }}>
+      <ConsoleCard padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 2 }}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{t('formations.console.panelGuardTitle')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('formations.console.panelGuardBody')}</p>
-      </GlassPanel>
+      </ConsoleCard>
     </>
   );
 }

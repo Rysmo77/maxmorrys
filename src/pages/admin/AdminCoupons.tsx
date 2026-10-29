@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Num, SearchPill, Skeleton, StatTile, Switch, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { Button, EmptyState, Field, Icon, LessonRow, Num, SearchPill, Skeleton, Switch, useToast } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { useReveal } from '../../components/site/useReveal';
 import { SiteEyebrow } from '../../components/site';
 import ConsoleSheet from './components/ConsoleSheet';
@@ -131,10 +131,10 @@ export default function AdminCoupons() {
 
   /** L'état d'une ligne : un seul, celui qui décide du refus au paiement. */
   const stateTag = (c: Coupon) => {
-    if (!c.active) return <Tag tone="neutral">{t('coupons.tags.off')}</Tag>;
-    if (isExpired(c, now)) return <Tag tone="stop">{t('coupons.tags.expired')}</Tag>;
-    if (isExhausted(c)) return <Tag tone="warn">{t('coupons.tags.exhausted')}</Tag>;
-    return <Tag tone="ok">{t('coupons.tags.active')}</Tag>;
+    if (!c.active) return <ConsoleStatus tone="neutral">{t('coupons.tags.off')}</ConsoleStatus>;
+    if (isExpired(c, now)) return <ConsoleStatus tone="stop">{t('coupons.tags.expired')}</ConsoleStatus>;
+    if (isExhausted(c)) return <ConsoleStatus tone="warn">{t('coupons.tags.exhausted')}</ConsoleStatus>;
+    return <ConsoleStatus tone="ok">{t('coupons.tags.active')}</ConsoleStatus>;
   };
 
   return (
@@ -152,14 +152,14 @@ export default function AdminCoupons() {
 
         {loadedAt && (
           <div className="mt-3.5 grid grid-cols-2 gap-2.5">
-            <StatTile
+            <ConsoleKpi
               label={t('coupons.tiles.servable')}
               value={counts.servable}
               source="db"
               asOf={loadedAt}
               foot={t('coupons.tiles.servableFoot')}
             />
-            <StatTile
+            <ConsoleKpi
               label={t('coupons.tiles.uses')}
               value={counts.uses}
               source="db"
@@ -250,10 +250,10 @@ export default function AdminCoupons() {
             que ces coupons disparaissent de la liste. Sans elle, quelqu'un les nettoie un
             jour de rangement, et la question devient sans réponse.
           */}
-          <GlassPanel level="night" padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
+          <ConsoleCard padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
             <SiteEyebrow style={{ marginBottom: '6px' }}>{t('coupons.deadCodeTitle')}</SiteEyebrow>
             <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('coupons.deadCodeBody')}</p>
-          </GlassPanel>
+          </ConsoleCard>
 
           <ConsoleScope>{t('coupons.scope')}</ConsoleScope>
         </div>

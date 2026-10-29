@@ -1,10 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Num, Segmented, Skeleton, StatTile,
-  Switch, Tag,
-} from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { Button, EmptyState, Field, Icon, LessonRow, Num, Segmented, Skeleton, Switch } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { useReveal } from '../../components/site/useReveal';
 import { SiteEyebrow } from '../../components/site';
 import ConsoleSheet from './components/ConsoleSheet';
@@ -86,9 +83,9 @@ export default function AdminRedirects() {
   /** Un seul état par ligne, et le conflit passe devant : c'est lui qui coûte du trafic. */
   const stateTag = (r: Redirect) => {
     const conflict = conflicts.get(r.id);
-    if (conflict) return <Tag tone="stop">{t(`redirects.conflicts.${conflict}`)}</Tag>;
-    if (!r.active) return <Tag tone="neutral">{t('redirects.tags.off')}</Tag>;
-    return <Tag tone="ok">{t('redirects.tags.active')}</Tag>;
+    if (conflict) return <ConsoleStatus tone="stop">{t(`redirects.conflicts.${conflict}`)}</ConsoleStatus>;
+    if (!r.active) return <ConsoleStatus tone="neutral">{t('redirects.tags.off')}</ConsoleStatus>;
+    return <ConsoleStatus tone="ok">{t('redirects.tags.active')}</ConsoleStatus>;
   };
 
   const slugOfForm = form.source.trim().toLowerCase();
@@ -119,14 +116,14 @@ export default function AdminRedirects() {
 
         {loadedAt && (
           <div className="mt-3.5 grid grid-cols-2 gap-2.5">
-            <StatTile
+            <ConsoleKpi
               label={t('redirects.tiles.active')}
               value={activeCount}
               source="db"
               asOf={loadedAt}
               foot={t('redirects.tiles.activeFoot')}
             />
-            <StatTile
+            <ConsoleKpi
               label={t('redirects.tiles.conflicts')}
               value={conflicts.size}
               source="db"
@@ -217,10 +214,10 @@ export default function AdminRedirects() {
             et c'est l'erreur que quelqu'un fait naturellement en voyant deux adresses qui
             « disent la même chose » dans une table de redirections.
           */}
-          <GlassPanel level="night" padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
+          <ConsoleCard padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
             <SiteEyebrow style={{ marginBottom: '6px' }}>{t('redirects.langTitle')}</SiteEyebrow>
             <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('redirects.langBody')}</p>
-          </GlassPanel>
+          </ConsoleCard>
 
           <ConsoleScope>{t('redirects.scope')}</ConsoleScope>
         </div>
@@ -320,7 +317,7 @@ export default function AdminRedirects() {
         </div>
 
         {form.kind === 'via' && isValidSlug(slugOfForm) && (
-          <GlassPanel level="flat" padding={14}>
+          <ConsoleCard padding={14}>
             <p className="m-0 text-meta-2 font-semibold text-ink-2">{t('redirects.form.snippetLabel')}</p>
             <code className="mt-2 block break-all text-small leading-[1.5] text-ink-2">
               {anchorFor(slugOfForm)}
@@ -337,15 +334,15 @@ export default function AdminRedirects() {
                 {copied === 'form-url' ? t('redirects.actions.copied') : t('redirects.actions.copyLink')}
               </Button>
             </div>
-          </GlassPanel>
+          </ConsoleCard>
         )}
 
         {editing && conflicts.has(editing.id) && (
-          <GlassPanel level="flat" padding={14}>
+          <ConsoleCard padding={14}>
             <p className="m-0 text-meta-2 leading-[1.5] text-ink-2">
               {t(`redirects.conflictHints.${conflicts.get(editing.id)}`)}
             </p>
-          </GlassPanel>
+          </ConsoleCard>
         )}
       </ConsoleSheet>
 

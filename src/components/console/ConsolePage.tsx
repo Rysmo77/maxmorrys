@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GlassPanel, Pipeline } from '@ds';
-import { SiteEyebrow } from '../site';
+import { Pipeline } from '@ds';
+import ConsoleCard from './ConsoleCard';
 
 /**
  * ── LES DEUX SEULES RUPTURES DU SYSTÈME : 700 ET 1080 ───────────────────────────────
@@ -66,8 +66,8 @@ export interface ConsolePageProps {
  *   3. `ConsoleScope` — ce que l'écran NE couvre PAS. « Le non-dit d'un écran
  *      d'administration finit toujours en manœuvre manuelle non tracée. »
  *
- * La console vit en nuit : `AdminLayout` pose déjà `.dk` en portée CSS via `AppShell`.
- * Aucune couleur n'est donc écrite ici — les 78 jetons qui basculent le font tout seuls.
+ * La console est CLAIRE depuis le kit v3 (AD-27) : les trois zones se posent dans des
+ * cartes `mm-ccard` opaques (`ConsoleCard`), sur la surface plate de la coquille.
  * ────────────────────────────────────────────────────────────────────────────────────
  */
 export default function ConsolePage({ title, sub, children, className, style }: ConsolePageProps) {
@@ -88,7 +88,8 @@ export default function ConsolePage({ title, sub, children, className, style }: 
       className={className ? `play ${className}` : 'play'}
       style={style}
     >
-      {sub && <SiteEyebrow style={{ marginBottom: '18px' }}>{sub}</SiteEyebrow>}
+      {/* Le fil d'Ariane du kit (`mm-con__crumb`) : la famille au-dessus du titre de la barre haute. */}
+      {sub && <p className="mm-con__crumb m-0 mb-4">{sub}</p>}
       {children}
     </section>
   );
@@ -128,17 +129,16 @@ export interface ConsoleListProps {
 }
 
 /**
- * Zone 2 — la liste dense. Le kit l'enveloppe dans un `GlassPanel level="night"` au
- * rembourrage `4px 18px` : les lignes portent leur propre respiration verticale, le
- * panneau ne fait que les cadrer.
+ * Zone 2 — la liste dense, dans une carte `mm-ccard` au rembourrage `4px 18px` : les
+ * lignes portent leur propre respiration verticale, la carte ne fait que les cadrer.
  */
 export function ConsoleList({ label, children, className, style }: ConsoleListProps) {
   return (
-    <GlassPanel level="night" padding="4px 18px" className={className} style={style}>
+    <ConsoleCard padding="4px 18px" className={className} style={style}>
       <ul className="m-0 list-none p-0" aria-label={label}>
         {children}
       </ul>
-    </GlassPanel>
+    </ConsoleCard>
   );
 }
 
@@ -168,14 +168,14 @@ export interface ConsoleScopeProps {
 export function ConsoleScope({ title, children, order = 9, className, style }: ConsoleScopeProps) {
   const { t } = useTranslation('admin');
   return (
-    <GlassPanel
-      level="night"
+    <ConsoleCard
       padding={16}
       className={className ? `rv mt-5 ${className}` : 'rv mt-5'}
-      style={{ ['--i' as string]: order, ...style }}
+      /* Le pied se lit en retrait : même carte, posée sur la surface de la coquille. */
+      style={{ ['--i' as string]: order, background: 'var(--bento-2)', boxShadow: 'none', ...style }}
     >
-      <SiteEyebrow style={{ marginBottom: '6px' }}>{title ?? t('motif.scopeTitle')}</SiteEyebrow>
+      <p className="mm-con__crumb m-0 mb-2">{title ?? t('motif.scopeTitle')}</p>
       <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{children}</p>
-    </GlassPanel>
+    </ConsoleCard>
   );
 }

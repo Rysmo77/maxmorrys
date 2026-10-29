@@ -38,27 +38,41 @@ export interface AdminNavItem {
   icon: IconName;
   end?: boolean;
   tone?: 'default' | 'club';
+  /**
+   * L'espace que l'écran administre, pour le filtre d'espace de la console (kit v3,
+   * `mm-cspaces`). Absent = transversal (pilotage, comptes, argent, système).
+   */
+  space?: AdminSpace;
+}
+
+/** Les espaces du filtre de console, dans l'ordre du kit. `all` n'est pas un espace. */
+export const ADMIN_SPACES = ['hub', 'edu', 'club', 'conception', 'rysmo'] as const;
+export type AdminSpace = typeof ADMIN_SPACES[number];
+
+/** L'espace d'un chemin de console, lu dans la table — jamais redéclaré ailleurs. */
+export function adminSpaceOf(path: string): AdminSpace | undefined {
+  return ADMIN_NAV.find((i) => i.to === path)?.space;
 }
 
 export const ADMIN_NAV: AdminNavItem[] = [
   { to: '/admin',                  labelKey: 'nav.dashboard',      titleKey: 'nav.dashboardTitle', icon: 'dashboard', end: true },
-  { to: '/admin/articles',         labelKey: 'nav.articles',       titleKey: 'nav.articles',       icon: 'doc' },
-  { to: '/admin/formations',       labelKey: 'nav.formations',     titleKey: 'nav.formations',     icon: 'graduation' },
-  { to: '/admin/podcasts',         labelKey: 'nav.podcasts',       titleKey: 'nav.podcasts',       icon: 'mic' },
-  { to: '/admin/videos',           labelKey: 'nav.videos',         titleKey: 'nav.videos',         icon: 'video' },
+  { to: '/admin/articles',         labelKey: 'nav.articles',       titleKey: 'nav.articles',       icon: 'doc', space: 'hub' },
+  { to: '/admin/formations',       labelKey: 'nav.formations',     titleKey: 'nav.formations',     icon: 'graduation', space: 'edu' },
+  { to: '/admin/podcasts',         labelKey: 'nav.podcasts',       titleKey: 'nav.podcasts',       icon: 'mic', space: 'hub' },
+  { to: '/admin/videos',           labelKey: 'nav.videos',         titleKey: 'nav.videos',         icon: 'video', space: 'hub' },
   { to: '/admin/utilisateurs',     labelKey: 'nav.users',          titleKey: 'nav.users',          icon: 'users' },
   { to: '/admin/transactions',     labelKey: 'nav.transactions',   titleKey: 'nav.transactions',   icon: 'card' },
   { to: '/admin/revenu',           labelKey: 'nav.revenue',        titleKey: 'nav.revenue',        icon: 'layers' },
-  { to: '/admin/messages',         labelKey: 'nav.messages',       titleKey: 'nav.messages',       icon: 'comment' },
+  { to: '/admin/messages',         labelKey: 'nav.messages',       titleKey: 'nav.messages',       icon: 'comment', space: 'hub' },
   { to: '/admin/coupons',          labelKey: 'nav.coupons',        titleKey: 'nav.coupons',        icon: 'tag' },
-  { to: '/admin/annonces',         labelKey: 'nav.announcements',  titleKey: 'nav.announcements',  icon: 'megaphone' },
+  { to: '/admin/annonces',         labelKey: 'nav.announcements',  titleKey: 'nav.announcements',  icon: 'megaphone', space: 'hub' },
   { to: '/admin/notifications',    labelKey: 'nav.notifications',  titleKey: 'nav.notifications',  icon: 'bell' },
-  { to: '/admin/faq',              labelKey: 'nav.faq',            titleKey: 'nav.faq',            icon: 'help' },
-  { to: '/admin/temoignages',      labelKey: 'nav.testimonials',   titleKey: 'nav.testimonials',   icon: 'star' },
-  { to: '/admin/rendez-vous',      labelKey: 'nav.appointments',   titleKey: 'nav.appointments',   icon: 'calendar' },
-  { to: '/admin/club-digitos',     labelKey: 'nav.club',           titleKey: 'nav.club',           icon: 'crown', tone: 'club' },
-  { to: '/admin/prospects-agence', labelKey: 'nav.agencyLeads',    titleKey: 'nav.agencyLeads',    icon: 'case' },
-  { to: '/admin/projets',          labelKey: 'nav.missions',       titleKey: 'nav.missions',       icon: 'boxes' },
+  { to: '/admin/faq',              labelKey: 'nav.faq',            titleKey: 'nav.faq',            icon: 'help', space: 'hub' },
+  { to: '/admin/temoignages',      labelKey: 'nav.testimonials',   titleKey: 'nav.testimonials',   icon: 'star', space: 'edu' },
+  { to: '/admin/rendez-vous',      labelKey: 'nav.appointments',   titleKey: 'nav.appointments',   icon: 'calendar', space: 'hub' },
+  { to: '/admin/club-digitos',     labelKey: 'nav.club',           titleKey: 'nav.club',           icon: 'crown', tone: 'club', space: 'club' },
+  { to: '/admin/prospects-agence', labelKey: 'nav.agencyLeads',    titleKey: 'nav.agencyLeads',    icon: 'case', space: 'conception' },
+  { to: '/admin/projets',          labelKey: 'nav.missions',       titleKey: 'nav.missions',       icon: 'boxes', space: 'conception' },
   { to: '/admin/analytics',        labelKey: 'nav.analytics',      titleKey: 'nav.analytics',      icon: 'bars' },
   { to: '/admin/redirections',     labelKey: 'nav.redirects',      titleKey: 'nav.redirects',      icon: 'route' },
   { to: '/admin/parametres',       labelKey: 'nav.settings',       titleKey: 'nav.settings',       icon: 'settings' },
@@ -76,38 +90,42 @@ export const ADMIN_SCREEN_COUNT = ADMIN_NAV.length;
  * devient visible : `ADMIN_UNGROUPED` le nomme.
  */
 export const ADMIN_SECTIONS: { titleKey: string; paths: string[] }[] = [
+  /*
+    LES CINQ FAMILLES DU KIT V3 — Pilotage · Personnes · Argent · Espaces · Système
+    (`03-console-superadmin`). Elles remplacent Pilotage · Contenu · Communauté · Commerce.
+
+    ⚠️ `/admin/notifications` y avait été oublié une fois (trouvé par
+    `tests/unit/console-nav.test.ts`) : aucune famille ne le réclamait, l'entrée n'était
+    rendue nulle part. `ADMIN_UNGROUPED` et le test tiennent toujours cette porte.
+
+    « Espaces » suit l'ordre du filtre : Edu, Club, Conception, puis les contenus du Hub.
+    « Journal d'audit » et « Rôles et accès » de la maquette n'y sont PAS : ces fonctions
+    n'ont ni code ni données (rôles écrits par le serveur, journal disparu — FR-267).
+  */
   {
-    /*
-      ⚠️ `/admin/notifications` A ÉTÉ AJOUTÉ ICI, ET IL N'Y ÉTAIT PAS.
-
-      Trouvé par `tests/unit/console-nav.test.ts` en écrivant la porte : l'écran était
-      déclaré dans la table de navigation, sa route répondait, sa page existait — et
-      AUCUNE des cinq familles ne le réclamait. Le menu se construisant par filtrage
-      famille par famille, l'entrée n'était rendue nulle part. Le seul chemin vers cet
-      écran était de taper son URL.
-
-      C'est le défaut le plus silencieux que cette table puisse produire : rien ne casse,
-      rien n'avertit, l'écran disparaît simplement. `ADMIN_UNGROUPED` le rend visible et
-      le test le tient — c'est pour ça que la constante existe.
-
-      Il rejoint « Pilotage », avec les redirections et les paramètres :
-      `handoff_tableaux_de_bord` le range dans sa famille « Réglages », et c'est la
-      famille de ce dépôt qui en tient lieu.
-    */
     titleKey: 'nav.sectionPilotage',
-    paths: ['/admin', '/admin/analytics', '/admin/redirections', '/admin/notifications', '/admin/parametres'],
+    paths: ['/admin', '/admin/analytics'],
   },
   {
-    titleKey: 'nav.sectionContent',
-    paths: ['/admin/articles', '/admin/formations', '/admin/podcasts', '/admin/videos', '/admin/faq', '/admin/temoignages', '/admin/annonces'],
+    titleKey: 'nav.sectionPeople',
+    paths: ['/admin/utilisateurs', '/admin/rendez-vous'],
   },
   {
-    titleKey: 'nav.sectionCommunity',
-    paths: ['/admin/utilisateurs', '/admin/messages', '/admin/rendez-vous', '/admin/club-digitos'],
+    titleKey: 'nav.sectionMoney',
+    paths: ['/admin/transactions', '/admin/revenu', '/admin/coupons'],
   },
   {
-    titleKey: 'nav.sectionCommerce',
-    paths: ['/admin/transactions', '/admin/revenu', '/admin/coupons', '/admin/projets', '/admin/prospects-agence'],
+    titleKey: 'nav.sectionSpaces',
+    paths: [
+      '/admin/formations', '/admin/temoignages',
+      '/admin/club-digitos',
+      '/admin/prospects-agence', '/admin/projets',
+      '/admin/articles', '/admin/podcasts', '/admin/videos', '/admin/faq', '/admin/annonces',
+    ],
+  },
+  {
+    titleKey: 'nav.sectionSystem',
+    paths: ['/admin/messages', '/admin/notifications', '/admin/redirections', '/admin/parametres'],
   },
 ];
 
@@ -115,3 +133,20 @@ export const ADMIN_SECTIONS: { titleKey: string; paths: string[] }[] = [
 export const ADMIN_UNGROUPED = ADMIN_NAV
   .map((i) => i.to)
   .filter((to) => !ADMIN_SECTIONS.some((s) => s.paths.includes(to)));
+
+/**
+ * La barre d'onglets mobile de la console (kit v3, `mm-cm__tabs`).
+ *
+ * La maquette pose « Bloque · Modération · Edu · Journal · Plus ». Deux de ces onglets
+ * n'ont pas d'écran : la modération vit dans un onglet de l'écran Club (pas de route à
+ * elle) et le journal d'audit n'existe pas (FR-267). On garde la forme — cinq écrans
+ * réels, le reste par le menu de la barre haute — sans inventer de destination.
+ * Chaque entrée DOIT exister dans `ADMIN_NAV`, et l'accès reste filtré par `adminAccess`.
+ */
+export const ADMIN_BOTTOM_NAV: Pick<AdminNavItem, 'to' | 'labelKey' | 'icon' | 'end'>[] = [
+  { to: '/admin',              labelKey: 'nav.bottomQueue',    icon: 'dashboard', end: true },
+  { to: '/admin/utilisateurs', labelKey: 'nav.bottomAccounts', icon: 'users' },
+  { to: '/admin/transactions', labelKey: 'nav.bottomMoney',    icon: 'card' },
+  { to: '/admin/formations',   labelKey: 'nav.bottomEdu',      icon: 'graduation' },
+  { to: '/admin/club-digitos', labelKey: 'nav.bottomClub',     icon: 'crown' },
+];

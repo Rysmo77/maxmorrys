@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TagTone } from '@ds';
-import { Button, DocLine, EmptyState, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
+import { Button, DocLine, EmptyState, Field, Icon, LessonRow, Num, Skeleton, useToast } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { getAllAgencyLeads, updateAgencyLeadStatus, updateAgencyLeadNotes, deleteAgencyLead } from '../../lib/firestore';
 import { computeTotals, PIPELINE_STAGES } from '../../lib/presence/offer';
@@ -199,7 +199,7 @@ export default function AdminAgencyLeads() {
   */
   const leadPanel = sheet && sheetTotals ? (
     <>
-        <GlassPanel level="night" padding={18} className="rv">
+        <ConsoleCard padding={18} className="rv">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <SiteEyebrow style={{ marginBottom: '4px' }}>{t('agencyLeads.sheetEyebrow')}</SiteEyebrow>
@@ -212,7 +212,7 @@ export default function AdminAgencyLeads() {
                 ferme pas : elle change de sujet quand on sélectionne une autre ligne. Un
                 bouton qui la vide ne ferait que laisser un trou de 380 px. La place revient
                 à l'ÉTAT, qui manquait — la fiche affichait le statut au fond d'un menu. */}
-            <Tag tone={STATUS_TONE[sheet.status]}>{t(`agencyLeads.status.${sheet.status}`)}</Tag>
+            <ConsoleStatus tone={STATUS_TONE[sheet.status]}>{t(`agencyLeads.status.${sheet.status}`)}</ConsoleStatus>
           </div>
 
           <div className="mt-3.5">
@@ -306,15 +306,15 @@ export default function AdminAgencyLeads() {
               {t('agencyLeads.delete')}
             </Button>
           </div>
-      </GlassPanel>
+      </ConsoleCard>
     </>
   ) : (
-    <GlassPanel level="night" padding={18}>
+    <ConsoleCard padding={18}>
       <SiteEyebrow style={{ marginBottom: '6px' }}>{t('agencyLeads.sheetEyebrow')}</SiteEyebrow>
       <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">
         {loading ? t('agencyLeads.panelLoading') : t('agencyLeads.panelNone')}
       </p>
-    </GlassPanel>
+    </ConsoleCard>
   );
 
   return (
@@ -342,21 +342,21 @@ export default function AdminAgencyLeads() {
         {/* Deux cases de front dès la tablette, jamais trois : à 1080 la troisième colonne
             prend 380 px, et trois cases y tomberaient sous la largeur de leur libellé. */}
         <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
-          <StatTile
+          <ConsoleKpi
             label={t('agencyLeads.tileToQualify')}
             value={loading ? null : counts.new}
             source="db"
             asOf={asOf}
             foot={t('agencyLeads.footNewest')}
           />
-          <StatTile
+          <ConsoleKpi
             label={t('agencyLeads.tileSigned')}
             value={loading ? null : counts.signed}
             source="db"
             asOf={asOf}
             foot={t('agencyLeads.footSignedValue')}
           />
-          <StatTile
+          <ConsoleKpi
             label={t('agencyLeads.tileTotal')}
             value={loading ? null : leads.length}
             source="db"
@@ -406,7 +406,7 @@ export default function AdminAgencyLeads() {
                   meta={`${lead.city} · ${t(`agencyLeads.sectors.${lead.sector}`, { defaultValue: lead.sector })} · ${formatDate(lead.createdAt)}`}
                   /* UNE action par ligne : sélectionner. Ouvrir la fiche N'EST PLUS une
                      seconde action — la fiche est la colonne d'à côté, et elle suit. */
-                  trailing={<Tag tone={STATUS_TONE[lead.status]}>{t(`agencyLeads.status.${lead.status}`)}</Tag>}
+                  trailing={<ConsoleStatus tone={STATUS_TONE[lead.status]}>{t(`agencyLeads.status.${lead.status}`)}</ConsoleStatus>}
                   onClick={() => setOpenLead(lead.id)}
                   last={i === filtered.length - 1}
                 />

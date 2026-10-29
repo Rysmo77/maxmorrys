@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, EmptyState, GlassPanel, Icon, LessonRow, Num, ProgressBar, Skeleton, StatTile } from '@ds';
+import { Button, DocLine, EmptyState, Icon, LessonRow, Num, ProgressBar, Skeleton } from '@ds';
 import type { NumSource } from '@ds';
-import { ConsolePage, ConsoleList, ConsoleScope } from '../../components/console';
+import { ConsolePage, ConsoleList, ConsoleScope, ConsoleCard, ConsoleKpi } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { getPlatformStats, getAgencyStats, getPopupStats } from '../../lib/firestore';
 import type { AgencyStats, PopupStatRow } from '../../lib/firestore';
@@ -133,11 +133,11 @@ export default function AdminAnalytics() {
   return (
     <ConsolePage title={t('analytics.title')} sub={t('analytics.sub')}>
       {loading && (
-        <GlassPanel level="night" padding="14px 18px">
+        <ConsoleCard padding="14px 18px">
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} height={44} label={i === 0 ? t('analytics.title') : undefined} style={{ marginBottom: '8px' }} />
           ))}
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {!loading && (
@@ -145,14 +145,14 @@ export default function AdminAnalytics() {
           {/* ── Zone 2 · ce qui attend ─────────────────────────────────────────── */}
           <SiteEyebrow style={{ marginBottom: '10px' }}>{t('analytics.queueTitle')}</SiteEyebrow>
           {queue.length === 0 ? (
-            <GlassPanel level="night" padding={8}>
+            <ConsoleCard padding={8}>
               <EmptyState
                 glyph={<Icon name="check" size={26} color="var(--ok)" />}
                 glyphBackground="color-mix(in srgb, var(--ok) 18%, transparent)"
                 title={t('analytics.queueEmptyTitle')}
                 body={t('analytics.queueEmptyBody')}
               />
-            </GlassPanel>
+            </ConsoleCard>
           ) : (
             <ConsoleList label={t('analytics.queueTitle')}>
               {queue.map((row, i) => (
@@ -180,35 +180,35 @@ export default function AdminAnalytics() {
 
           {stats && (
             <div className="mt-3 grid gap-3 stack:grid-cols-2 wide:grid-cols-3">
-              <StatTile label={t('analytics.statUsers')} value={stats.users} source="db" asOf={stamp} />
-              <StatTile
+              <ConsoleKpi label={t('analytics.statUsers')} value={stats.users} source="db" asOf={stamp} />
+              <ConsoleKpi
                 label={t('analytics.statFormations')}
                 value={stats.formations}
                 source="db"
                 asOf={stamp}
                 foot={t('analytics.footPublished', { count: stats.publishedFormations })}
               />
-              <StatTile
+              <ConsoleKpi
                 label={t('analytics.statArticles')}
                 value={stats.articles}
                 source="db"
                 asOf={stamp}
                 foot={t('analytics.footPublished', { count: stats.publishedPosts })}
               />
-              <StatTile
+              <ConsoleKpi
                 label={t('analytics.statMessages')}
                 value={stats.messages}
                 source="db"
                 asOf={stamp}
                 foot={t('analytics.footHandled', { count: stats.messages - stats.newMessages })}
               />
-              <StatTile label={t('analytics.statSubscribers')} value={stats.subscribers} source="db" asOf={stamp} />
-              <StatTile label={t('analytics.statEnrollments')} value={stats.enrollments} source="db" asOf={stamp} />
+              <ConsoleKpi label={t('analytics.statSubscribers')} value={stats.subscribers} source="db" asOf={stamp} />
+              <ConsoleKpi label={t('analytics.statEnrollments')} value={stats.enrollments} source="db" asOf={stamp} />
             </div>
           )}
 
           {stats && (
-            <GlassPanel level="night" padding={18} className="mt-3">
+            <ConsoleCard padding={18} className="mt-3">
               <SiteEyebrow style={{ marginBottom: '14px' }}>{t('analytics.keyIndicators')}</SiteEyebrow>
               <div className="space-y-4">
                 {([
@@ -229,18 +229,18 @@ export default function AdminAnalytics() {
                   </div>
                 ))}
               </div>
-            </GlassPanel>
+            </ConsoleCard>
           )}
 
           {/* ── Agence : les trois montants, l'entonnoir, les répartitions ─────── */}
           {agency && agency.total > 0 && (
-            <GlassPanel level="night" padding={18} className="mt-3">
+            <ConsoleCard padding={18} className="mt-3">
               <SiteEyebrow style={{ marginBottom: '14px' }}>{t('analytics.agencyTitle')}</SiteEyebrow>
 
               <div className="grid gap-3 stack:grid-cols-3">
-                <StatTile label={t('analytics.agencyWeighted')} value={agency.pipelineWeighted} unit="FCFA" source="db" asOf={stamp} />
-                <StatTile label={t('analytics.agencySignedValue')} value={agency.signedValue} unit="FCFA" source="db" asOf={stamp} />
-                <StatTile label={t('analytics.agencyConversion')} value={Math.round(agency.conversionRate * 100)} unit="%" source={ratioSource} asOf={stamp} />
+                <ConsoleKpi label={t('analytics.agencyWeighted')} value={agency.pipelineWeighted} unit="FCFA" source="db" asOf={stamp} />
+                <ConsoleKpi label={t('analytics.agencySignedValue')} value={agency.signedValue} unit="FCFA" source="db" asOf={stamp} />
+                <ConsoleKpi label={t('analytics.agencyConversion')} value={Math.round(agency.conversionRate * 100)} unit="%" source={ratioSource} asOf={stamp} />
               </div>
 
               <div className="mt-5">
@@ -261,7 +261,7 @@ export default function AdminAnalytics() {
                 <Distribution title={t('analytics.agencyBySector')} entries={agency.bySector} asOf={stamp} />
                 <Distribution title={t('analytics.agencyByCity')} entries={agency.byCity} asOf={stamp} />
               </div>
-            </GlassPanel>
+            </ConsoleCard>
           )}
 
           {/*
@@ -269,7 +269,7 @@ export default function AdminAnalytics() {
             de clic dit combien de gens cliquent, jamais si la fenêtre a aidé. Une pop-up peut
             être très cliquée tout en faisant fuir plus de visiteurs qu'elle n'en convertit.
           */}
-          <GlassPanel level="night" padding={18} className="mt-3">
+          <ConsoleCard padding={18} className="mt-3">
             <SiteEyebrow>{t('analytics.popupsTitle')}</SiteEyebrow>
             <p className="m-0 mb-3 mt-1 text-meta-2 leading-[1.5] text-ink-2">{t('analytics.popupsSubtitle')}</p>
 
@@ -312,7 +312,7 @@ export default function AdminAnalytics() {
               </div>
             )}
             <p className="mt-4 text-meta-2 leading-relaxed text-ink-2">{t('analytics.popupsNote')}</p>
-          </GlassPanel>
+          </ConsoleCard>
         </>
       )}
 

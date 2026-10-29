@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile } from '@ds';
+import { Button, EmptyState, Icon, LessonRow, Num, Skeleton } from '@ds';
 import type { NumSource } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleKpi } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { getAllTransactions, getTransactionsSince } from '../../lib/firestore';
 import {
@@ -114,11 +114,11 @@ export default function AdminRevenue() {
       />
 
       {loading && (
-        <GlassPanel level="night" padding="14px 18px" className="rv mt-4" style={{ ['--i' as string]: 2 }}>
+        <ConsoleCard padding="14px 18px" className="rv mt-4" style={{ ['--i' as string]: 2 }}>
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} height={44} label={i === 0 ? t('revenue.title') : undefined} style={{ marginBottom: '8px' }} />
           ))}
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {!loading && bilan && (
@@ -128,9 +128,9 @@ export default function AdminRevenue() {
             className="rv mt-4 grid gap-2.5 stack:grid-cols-2 wide:grid-cols-4"
             style={{ ['--i' as string]: 2 }}
           >
-            <StatTile label={t('revenue.statNet')} value={bilan.net} unit="FCFA" source="db" asOf={stamp} />
-            <StatTile label={t('revenue.statRefunded')} value={bilan.rembourse} unit="FCFA" source="db" asOf={stamp} />
-            <StatTile
+            <ConsoleKpi label={t('revenue.statNet')} value={bilan.net} unit="FCFA" source="db" asOf={stamp} />
+            <ConsoleKpi label={t('revenue.statRefunded')} value={bilan.rembourse} unit="FCFA" source="db" asOf={stamp} />
+            <ConsoleKpi
               label={t('revenue.statBasket')}
               value={bilan.panierMoyen}
               unit="FCFA"
@@ -140,7 +140,7 @@ export default function AdminRevenue() {
             />
             {/* ⚠️ Le taux porte son dénominateur : à zéro tentative, `null` rend « non
                 relevé » plutôt qu'un « 0 % » qui affirmerait qu'aucun paiement n'a échoué. */}
-            <StatTile
+            <ConsoleKpi
               label={t('revenue.statFailureRate')}
               value={bilan.tauxEchec}
               unit="%"
@@ -155,13 +155,13 @@ export default function AdminRevenue() {
             <SiteEyebrow style={{ marginBottom: '10px' }}>{t('revenue.linesTitle')}</SiteEyebrow>
 
             {bilan.lignes.length === 0 ? (
-              <GlassPanel level="night" padding="18px">
+              <ConsoleCard padding="18px">
                 <EmptyState
                   glyph="card"
                   title={t('revenue.emptyTitle')}
                   body={t('revenue.emptyBody')}
                 />
-              </GlassPanel>
+              </ConsoleCard>
             ) : (
               <ConsoleList label={t('revenue.linesTitle')}>
                 {bilan.lignes.map((l) => {
@@ -198,7 +198,7 @@ export default function AdminRevenue() {
       )}
 
       {!loading && !bilan && (
-        <GlassPanel level="night" padding="18px" className="rv mt-4" style={{ ['--i' as string]: 2 }}>
+        <ConsoleCard padding="18px" className="rv mt-4" style={{ ['--i' as string]: 2 }}>
           <EmptyState
             glyph="warning"
             title={t('revenue.failedTitle')}
@@ -209,7 +209,7 @@ export default function AdminRevenue() {
               </Button>
             }
           />
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       <ConsoleScope>{t('revenue.scope')}</ConsoleScope>

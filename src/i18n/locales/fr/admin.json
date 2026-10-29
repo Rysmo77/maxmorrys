@@ -21,9 +21,6 @@
     "analytics": "Analytics",
     "settings": "Paramètres",
     "sectionPilotage": "Pilotage",
-    "sectionContent": "Contenu",
-    "sectionCommunity": "Communauté",
-    "sectionCommerce": "Commerce",
     "sectionSite": "Site",
     "backToSite": "Retour au site",
     "agencyLeads": "Prospects agence",
@@ -39,7 +36,16 @@
     "badgeToQualify_one": "{{count}} à qualifier",
     "badgeToQualify_other": "{{count}} à qualifier",
     "badgeMailPending_one": "{{count}} courrier bloqué",
-    "badgeMailPending_other": "{{count}} courriers bloqués"
+    "badgeMailPending_other": "{{count}} courriers bloqués",
+    "sectionPeople": "Personnes",
+    "sectionMoney": "Argent",
+    "sectionSpaces": "Espaces",
+    "sectionSystem": "Système",
+    "bottomQueue": "À traiter",
+    "bottomAccounts": "Comptes",
+    "bottomMoney": "Argent",
+    "bottomEdu": "Edu",
+    "bottomClub": "Club"
   },
   "placeholder": {
     "description": "Cette section est en cours de développement et sera disponible prochainement."
@@ -135,7 +141,13 @@
     "panelEmpty": "Aucun prospect dans ce statut. Change de filtre, ou souffle — c'est un écran qui n'a rien à te réclamer.",
     "panelReceived": "Reçu le",
     "panelAdvance": "Passer en « {{status}} »",
-    "panelOpenFull": "Ouvrir la fiche complète"
+    "panelOpenFull": "Ouvrir la fiche complète",
+    "queueAsideAll": "tous espaces",
+    "queueEmptySpaceTitle": "Rien à traiter dans cet espace",
+    "queueEmptySpaceBody": "Aucune file relevée pour cet espace aujourd'hui. Les autres espaces restent visibles avec « Tout ».",
+    "colItem": "Élément",
+    "colSpace": "Espace",
+    "colAction": "Action"
   },
   "revenue": {
     "title": "Revenu",
@@ -1303,7 +1315,11 @@
     "mailResend": "Relancer les courriers",
     "mailResendSuccess": "Courriers relancés.",
     "mailResendNothing": "Rien à relancer : les deux courriers sont déjà partis.",
-    "mailResendError": "Relance impossible. {{error}}"
+    "mailResendError": "Relance impossible. {{error}}",
+    "colRef": "Référence",
+    "colCustomer": "Client",
+    "colAction": "Action",
+    "actionShow": "Voir"
   },
   "settings": {
     "pageTitle": "Paramètres",
@@ -1441,7 +1457,8 @@
     "panelDeferredTitle": "Ce qui se lit dans la fiche, pas ici",
     "panelDeferredBody": "Les inscriptions et leur progression, l'abonnement au Club, les certificats et le quota du répétiteur vivent dans quatre collections distinctes. Les relever ici ferait quatre lectures à chaque changement de sélection, dans un écran fait pour faire défiler la file. La fiche complète les charge — c'est le moment où on les consulte.",
     "panelBlindTitle": "Ce que la console ne voit pas",
-    "panelBlindBody": "Ni ses notes, ni la mémoire de son répétiteur, ni le contenu de ses messages privés. Ces trois-là lui appartiennent, et aucun rôle d'administration n'y donne accès."
+    "panelBlindBody": "Ni ses notes, ni la mémoire de son répétiteur, ni le contenu de ses messages privés. Ces trois-là lui appartiennent, et aucun rôle d'administration n'y donne accès.",
+    "actionShow": "Voir"
   },
   "clubHook": {
     "loadError": "Erreur lors du chargement.",
@@ -1799,6 +1816,9 @@
       "conception": "Conception",
       "rysmo": "Rysmo"
     },
-    "envProd": "PRODUCTION"
+    "envProd": "PRODUCTION",
+    "kpiSourceLine": "relevé du {{date}} · {{origin}}",
+    "kpiSourceDb": "source : base",
+    "kpiSourceServer": "source : serveur"
   }
 }

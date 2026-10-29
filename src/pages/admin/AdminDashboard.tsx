@@ -1,8 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Button, EmptyState, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
+import { Button, ConsoleSpaceFilter, EmptyState, Icon, LessonRow, Num, Skeleton, useToast } from '@ds';
+import {
+  ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleKpi, ConsoleStatus,
+  type ConsoleStatusTone,
+} from '../../components/console';
+import { ADMIN_SPACES, adminSpaceOf, type AdminSpace } from '../../lib/admin/consoleNav';
 import { SiteEyebrow } from '../../components/site';
 import { getPlatformStats, subscribeMessages, getAllAgencyLeads, getAgencyStats, updateAgencyLeadStatus } from '../../lib/firestore';
 import type { AgencyStats } from '../../lib/firestore';
@@ -53,6 +57,20 @@ interface Stats {
 /** Puits d'icône d'une ligne de file : la teinte est un jeton, jamais une valeur (AD-2). */
 const chip = (token: string) => `color-mix(in srgb, var(${token}) 22%, transparent)`;
 
+/* La pastille de chaque espace dans le filtre : les teintes FIXES du kit (`--mm-*-f`). */
+const SPACE_DOT: Record<AdminSpace, string> = {
+  hub: 'var(--ink)',
+  edu: 'var(--mm-bleu-f)',
+  club: 'var(--mm-violet-f)',
+  conception: 'var(--mm-teal-f)',
+  rysmo: 'var(--mm-orange-f)',
+};
+
+/* « Une classe, un sens » (audit v4.4) : `info` = Edu, `club` = Club, le reste en neutre. */
+const SPACE_TONE: Record<AdminSpace, ConsoleStatusTone> = {
+  hub: 'mute', edu: 'info', club: 'club', conception: 'mute', rysmo: 'mute',
+};
+
 export default function AdminDashboard() {
   const { t } = useTranslation('admin');
   const { formatDate, formatPrice } = useFormat();
@@ -67,6 +85,7 @@ export default function AdminDashboard() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [updatingLead, setUpdatingLead] = useState(false);
   const [agencyStats, setAgencyStats] = useState<AgencyStats | null>(null);
+  const [spaceFilter, setSpaceFilter] = useState<AdminSpace | 'all'>('all');
   const [loading, setLoading] = useState(true);
   /** La date du relevé. Elle est posée QUAND la lecture revient, pas au rendu : une case
    *  de console porte la date de sa mesure, pas celle de son affichage. */
@@ -203,6 +222,10 @@ export default function AdminDashboard() {
     count: number; noun: string; meta: string; action: string; href: string;
   }[] : [];
 
+  const shownQueue = queue
+    .map((row) => ({ ...row, space: adminSpaceOf(row.href) }))
+    .filter((row) => spaceFilter === 'all' || row.space === spaceFilter);
+
   const tiles = stats ? [
     { key: 'accounts', label: t('dashboard.tileAccounts'), value: stats.users, foot: null },
     { key: 'enrollments', label: t('dashboard.tileEnrollments'), value: stats.enrollments, foot: t('dashboard.footNoUnit') },
@@ -246,8 +269,7 @@ export default function AdminDashboard() {
           }
         >
         {shopClosed && stats && (
-          <GlassPanel
-            level="night"
+          <ConsoleCard
             padding={20}
             className="rv"
             style={{ borderColor: 'color-mix(in srgb, var(--mm-orange) 40%, transparent)' }}
@@ -278,7 +300,7 @@ export default function AdminDashboard() {
             <Button href="/admin/formations" tone="informe" style={{ marginTop: '15px' }}>
               {t('dashboard.shopClosedAction')}
             </Button>
-          </GlassPanel>
+          </ConsoleCard>
         )}
 
         <div className="mt-[22px] flex items-baseline justify-between gap-3">
@@ -298,7 +320,7 @@ export default function AdminDashboard() {
           <>
             <div className="mt-2.5 grid gap-2.5 stack:grid-cols-2 wide:grid-cols-3">
               {tiles.map((tile) => (
-                <StatTile
+                <ConsoleKpi
                   key={tile.key}
                   label={tile.label}
                   value={tile.value}
@@ -310,34 +332,89 @@ export default function AdminDashboard() {
             </div>
             <p className="rv mt-3 text-small leading-[1.5] text-ink-2">{t('dashboard.datedNote')}</p>
 
-            <SiteEyebrow style={{ marginTop: '22px', marginBottom: '10px' }}>
-              {t('dashboard.queueEyebrow')}
-            </SiteEyebrow>
-            {queue.length === 0 ? (
-              <GlassPanel level="night" className="rv">
+            {/*
+              ── LE FILTRE D'ESPACE (kit v3, `mm-cspaces`) ──────────────────────────────
+              Il porte sur la file « à traiter », la seule liste de cet écran qui mélange
+              les espaces. L'espace d'une ligne n'est pas écrit ici : il est lu dans la
+              table de navigation (`adminSpaceOf`) depuis l'écran où la ligne mène.
+              Un espace sans rien à traiter affiche un état vide qui le dit — jamais une
+              ligne d'exemple.
+            */}
+            <div className="mt-[22px] mb-2.5 flex flex-wrap items-center gap-2.5">
+              <ConsoleSpaceFilter
+                label={t('console.spacesLabel')}
+                className="max-w-full overflow-x-auto"
+                style={{ background: 'var(--bento)' }}
+                value={spaceFilter}
+                onChange={(id) => setSpaceFilter(id as AdminSpace | 'all')}
+                options={[
+                  { id: 'all', label: t('console.spaces.all') },
+                  ...ADMIN_SPACES.map((id) => ({ id, label: t(`console.spaces.${id}`), dot: SPACE_DOT[id] })),
+                ]}
+              />
+            </div>
+            <ConsoleCard
+              className="rv"
+              title={t('dashboard.queueEyebrow')}
+              aside={spaceFilter === 'all' ? t('dashboard.queueAsideAll') : t(`console.spaces.${spaceFilter}`)}
+            >
+              {shownQueue.length === 0 ? (
                 <EmptyState
                   glyph={<Icon name="check" size={26} color="var(--ok)" strokeWidth={3.4} />}
                   glyphBackground={chip('--ok')}
-                  title={t('dashboard.queueEmptyTitle')}
-                  body={t('dashboard.queueEmptyBody')}
+                  title={t(spaceFilter === 'all' ? 'dashboard.queueEmptyTitle' : 'dashboard.queueEmptySpaceTitle')}
+                  body={t(spaceFilter === 'all' ? 'dashboard.queueEmptyBody' : 'dashboard.queueEmptySpaceBody')}
                 />
-              </GlassPanel>
-            ) : (
-              <ConsoleList label={t('dashboard.queueLabel')} className="rv">
-                {queue.map((row, i) => (
-                  <li key={row.key}>
-                    <LessonRow
-                      icon={<Icon name={row.icon} size={14} color={`var(${row.tint})`} />}
-                      iconBackground={chip(row.tint)}
-                      title={<><Num value={row.count} source="db" asOf={asOf} /> {row.noun}</>}
-                      meta={row.meta}
-                      trailing={<Button size="sm" tone="quiet" href={row.href}>{row.action}</Button>}
-                      last={i === queue.length - 1}
-                    />
-                  </li>
-                ))}
-              </ConsoleList>
-            )}
+              ) : (
+                <>
+                  {/* Bureau : la table du kit (`mm-ctable`) — élément, espace, une action. */}
+                  <div className="hidden overflow-x-auto stack:block">
+                    <table className="mm-ctable" aria-label={t('dashboard.queueLabel')}>
+                      <thead>
+                        <tr>
+                          <th scope="col">{t('dashboard.colItem')}</th>
+                          <th scope="col">{t('dashboard.colSpace')}</th>
+                          <th scope="col"><span className="sr-only">{t('dashboard.colAction')}</span></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {shownQueue.map((row) => (
+                          <tr key={row.key}>
+                            <td>
+                              <b><Num value={row.count} source="db" asOf={asOf} /> {row.noun}</b>
+                              <small>{row.meta}</small>
+                            </td>
+                            <td>
+                              {row.space
+                                ? <ConsoleStatus tone={SPACE_TONE[row.space]}>{t(`console.spaces.${row.space}`)}</ConsoleStatus>
+                                : null}
+                            </td>
+                            <td className="text-right">
+                              <Button size="sm" tone="quiet" href={row.href}>{row.action}</Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {/* Mobile : les lignes du kit (`mm-mrow`), une action par ligne. */}
+                  <ul className="m-0 list-none p-0 stack:hidden" aria-label={t('dashboard.queueLabel')}>
+                    {shownQueue.map((row, i) => (
+                      <li key={row.key}>
+                        <LessonRow
+                          icon={<Icon name={row.icon} size={14} color={`var(${row.tint})`} />}
+                          iconBackground={chip(row.tint)}
+                          title={<><Num value={row.count} source="db" asOf={asOf} /> {row.noun}</>}
+                          meta={row.meta}
+                          trailing={<Button size="sm" tone="quiet" href={row.href}>{row.action}</Button>}
+                          last={i === shownQueue.length - 1}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </ConsoleCard>
 
             {agencyStats && agencyStats.total > 0 && (
               <>
@@ -348,28 +425,28 @@ export default function AdminDashboard() {
                   </Button>
                 </div>
                 <div className="grid gap-2.5 stack:grid-cols-2 wide:grid-cols-4">
-                  <StatTile
+                  <ConsoleKpi
                     label={t('dashboard.agencyPipelineValue')}
                     value={formatPrice(agencyStats.pipelineWeighted)}
                     source="db"
                     asOf={asOf}
                     foot={t('dashboard.agencyPipelineGross', { value: formatPrice(agencyStats.pipelineGross) })}
                   />
-                  <StatTile
+                  <ConsoleKpi
                     label={t('dashboard.agencySigned')}
                     value={formatPrice(agencyStats.signedValue)}
                     source="db"
                     asOf={asOf}
                     foot={t('dashboard.agencySignedCount', { count: agencyStats.byStatus.signed })}
                   />
-                  <StatTile
+                  <ConsoleKpi
                     label={t('dashboard.agencyMonthly')}
                     value={formatPrice(agencyStats.signedMonthly)}
                     source="db"
                     asOf={asOf}
                     foot={t('dashboard.agencyMonthlyHint')}
                   />
-                  <StatTile
+                  <ConsoleKpi
                     label={t('dashboard.agencyConversion')}
                     value={Math.round(agencyStats.conversionRate * 100)}
                     unit="%"
@@ -431,9 +508,9 @@ export default function AdminDashboard() {
                           */
                           onClick={() => setSelectedLeadId(lead.id)}
                           trailing={
-                            <Tag tone={lead.status === 'signed' ? 'ok' : lead.status === 'new' ? 'warn' : 'neutral'}>
+                            <ConsoleStatus tone={lead.status === 'signed' ? 'ok' : lead.status === 'new' ? 'warn' : 'neutral'}>
                               {t(`agencyLeads.status.${lead.status}`)}
-                            </Tag>
+                            </ConsoleStatus>
                           }
                           last={i === shown.length - 1}
                         />

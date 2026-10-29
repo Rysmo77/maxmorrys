@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, StatTile, Switch, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { Button, EmptyState, Field, Icon, LessonRow, Skeleton, Switch, useToast } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleKpi } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { Modal } from '@/components/dialogs';
 import { Pagination } from '@/components/dialogs';
@@ -238,14 +238,14 @@ export default function AdminTestimonials() {
         distincts, et seul le second sort le témoignage de la console.
       */}
       <div className="mt-4 grid gap-2.5 stack:grid-cols-2">
-        <StatTile
+        <ConsoleKpi
           label={tr('testimonials.tilePending')}
           value={loadedAt ? counts.pending : null}
           source="db"
           asOf={asOf}
           foot={tr('testimonials.tilePendingFoot')}
         />
-        <StatTile
+        <ConsoleKpi
           label={tr('testimonials.tileFeatured')}
           value={loadedAt ? counts.featured : null}
           source="db"
@@ -261,22 +261,22 @@ export default function AdminTestimonials() {
       </div>
 
       {loading && (
-        <GlassPanel level="night" padding="14px 18px" className="mt-4">
+        <ConsoleCard padding="14px 18px" className="mt-4">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} height={44} label={i === 0 ? tr('testimonials.title') : undefined} style={{ marginBottom: '8px' }} />
           ))}
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {!loading && filtered.length === 0 && (
-        <GlassPanel level="night" padding={8} className="mt-4">
+        <ConsoleCard padding={8} className="mt-4">
           <EmptyState
             glyph={<Icon name="comment" size={26} color="var(--text-muted)" />}
             title={tr('testimonials.emptyTitle')}
             body={emptyBody}
             action={<Button size="sm" onClick={openNew}>{tr('testimonials.new')}</Button>}
           />
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {!loading && filtered.length > 0 && (
@@ -327,15 +327,14 @@ export default function AdminTestimonials() {
         au premier élément — c'est-à-dire au moment où elle commence à servir. Elle reste
         donc affichée dans les deux cas.
       */}
-      <GlassPanel
-        level="night"
+      <ConsoleCard
         padding={18}
         className="rv mt-4"
         style={{ ['--i' as string]: 8, borderColor: 'color-mix(in srgb, var(--stop) 34%, transparent)' }}
       >
         <SiteEyebrow style={{ marginBottom: '6px' }}>{tr('testimonials.ruleTitle')}</SiteEyebrow>
         <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{tr('testimonials.ruleBody')}</p>
-      </GlassPanel>
+      </ConsoleCard>
 
       <ConsoleScope>{tr('testimonials.scope')}</ConsoleScope>
 

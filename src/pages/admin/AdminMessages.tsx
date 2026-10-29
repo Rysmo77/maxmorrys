@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import type { TagTone } from '@ds';
-import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
+import { Button, EmptyState, Field, Icon, LessonRow, Skeleton, useToast } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleStatus } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { ConfirmDialog, Modal } from '@/components/dialogs';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
@@ -202,26 +202,26 @@ export default function AdminMessages() {
             {selected.email}
           </a>
         </div>
-        {selected.mailPending && <Tag tone="warn">{t('messages.mailStuckTag')}</Tag>}
-        <Tag tone={TONE[selected.status]}>{statusLabels[selected.status]}</Tag>
+        {selected.mailPending && <ConsoleStatus tone="warn">{t('messages.mailStuckTag')}</ConsoleStatus>}
+        <ConsoleStatus tone={TONE[selected.status]}>{statusLabels[selected.status]}</ConsoleStatus>
       </div>
 
-      <GlassPanel level="night" padding={18} className="rv mt-4" style={{ ['--i' as string]: 1 }}>
+      <ConsoleCard padding={18} className="rv mt-4" style={{ ['--i' as string]: 1 }}>
         <SiteEyebrow style={{ marginBottom: '6px' }}>{selected.subject}</SiteEyebrow>
         <p className="m-0 text-meta-2 text-ink-3">{new Date(selected.sentAt).toLocaleString(locale)}</p>
         <p className="m-0 mt-3 whitespace-pre-wrap text-meta leading-relaxed text-ink-2">{selected.message}</p>
-      </GlassPanel>
+      </ConsoleCard>
 
       {/* La réponse déjà envoyée, relue telle qu'elle est partie. Sans elle, on ne saurait
           pas ce qu'on a écrit — et on répondrait deux fois la même chose. */}
       {selected.reply && (
-        <GlassPanel level="flat" padding={18} className="mt-3">
+        <ConsoleCard padding={18} className="mt-3">
           <SiteEyebrow style={{ marginBottom: '6px' }}>{t('messages.replySent')}</SiteEyebrow>
           {selected.repliedAt && (
             <p className="m-0 text-meta-2 text-ink-3">{new Date(selected.repliedAt).toLocaleString(locale)}</p>
           )}
           <p className="m-0 mt-3 whitespace-pre-wrap text-meta leading-relaxed text-ink-2">{selected.reply}</p>
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       <div className="mt-4">
@@ -260,10 +260,10 @@ export default function AdminMessages() {
       </Button>
     </>
   ) : (
-    <GlassPanel level="night" padding={18}>
+    <ConsoleCard padding={18}>
       <SiteEyebrow style={{ marginBottom: '6px' }}>{t('messages.panelEyebrow')}</SiteEyebrow>
       <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('messages.panelNone')}</p>
-    </GlassPanel>
+    </ConsoleCard>
   );
 
   return (
@@ -291,22 +291,22 @@ export default function AdminMessages() {
       </div>
 
       {loading && (
-        <GlassPanel level="night" padding="14px 18px" className="mt-4">
+        <ConsoleCard padding="14px 18px" className="mt-4">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} height={44} label={i === 0 ? t('messages.loading') : undefined} style={{ marginBottom: '8px' }} />
           ))}
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {!loading && filtered.length === 0 && (
-        <GlassPanel level="night" padding={8} className="mt-4">
+        <ConsoleCard padding={8} className="mt-4">
           <EmptyState
             glyph={<Icon name="chat" size={26} color="var(--text-muted)" />}
             glyphBackground="var(--fill-1)"
             title={t('messages.emptyTitle')}
             body={t('messages.empty')}
           />
-        </GlassPanel>
+        </ConsoleCard>
       )}
 
       {!loading && filtered.length > 0 && (
@@ -323,8 +323,8 @@ export default function AdminMessages() {
                     {/* Une réponse dont l'e-mail n'est pas parti a DÉJÀ menti : le message
                         porte « Répondu », le destinataire n'a rien reçu. L'étiquette passe
                         donc devant celle du statut, qui affirme le contraire. */}
-                    {msg.mailPending && <Tag tone="warn">{t('messages.mailStuckTag')}</Tag>}
-                    <Tag tone={TONE[msg.status]}>{statusLabels[msg.status]}</Tag>
+                    {msg.mailPending && <ConsoleStatus tone="warn">{t('messages.mailStuckTag')}</ConsoleStatus>}
+                    <ConsoleStatus tone={TONE[msg.status]}>{statusLabels[msg.status]}</ConsoleStatus>
                   </span>
                 )}
                 onClick={() => { void openMessage(msg); }}

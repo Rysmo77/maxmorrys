@@ -21,9 +21,6 @@
     "analytics": "Analytics",
     "settings": "Settings",
     "sectionPilotage": "Overview",
-    "sectionContent": "Content",
-    "sectionCommunity": "Community",
-    "sectionCommerce": "Commerce",
     "sectionSite": "Site",
     "backToSite": "Back to site",
     "agencyLeads": "Agency leads",
@@ -39,7 +36,16 @@
     "badgeToQualify_one": "{{count}} to qualify",
     "badgeToQualify_other": "{{count}} to qualify",
     "badgeMailPending_one": "{{count}} email stuck",
-    "badgeMailPending_other": "{{count}} emails stuck"
+    "badgeMailPending_other": "{{count}} emails stuck",
+    "sectionPeople": "People",
+    "sectionMoney": "Money",
+    "sectionSpaces": "Spaces",
+    "sectionSystem": "System",
+    "bottomQueue": "To do",
+    "bottomAccounts": "Accounts",
+    "bottomMoney": "Money",
+    "bottomEdu": "Edu",
+    "bottomClub": "Club"
   },
   "placeholder": {
     "description": "This section is under development and will be available soon."
@@ -135,7 +141,13 @@
     "panelEmpty": "No lead in this status. Switch filter, or take a breath — this screen is asking nothing of you.",
     "panelReceived": "Received on",
     "panelAdvance": "Move to “{{status}}”",
-    "panelOpenFull": "Open the full record"
+    "panelOpenFull": "Open the full record",
+    "queueAsideAll": "all spaces",
+    "queueEmptySpaceTitle": "Nothing to handle in this space",
+    "queueEmptySpaceBody": "No queue recorded for this space today. Pick “All” to see the other spaces.",
+    "colItem": "Item",
+    "colSpace": "Space",
+    "colAction": "Action"
   },
   "revenue": {
     "title": "Revenue",
@@ -1303,7 +1315,11 @@
     "mailResend": "Resend the emails",
     "mailResendSuccess": "Emails sent.",
     "mailResendNothing": "Nothing to resend — both emails already went out.",
-    "mailResendError": "Couldn't resend. {{error}}"
+    "mailResendError": "Couldn't resend. {{error}}",
+    "colRef": "Reference",
+    "colCustomer": "Customer",
+    "colAction": "Action",
+    "actionShow": "Show"
   },
   "settings": {
     "pageTitle": "Settings",
@@ -1441,7 +1457,8 @@
     "panelDeferredTitle": "What the record shows, and this panel does not",
     "panelDeferredBody": "Enrolments and their progress, the Club subscription, certificates and the tutor quota live in four separate collections. Reading them here would mean four queries on every change of selection, on a screen built for scrolling the queue. The full record loads them — that is when you actually consult them.",
     "panelBlindTitle": "What the console cannot see",
-    "panelBlindBody": "Neither their notes, nor their tutor's memory, nor the content of their private messages. Those three belong to them, and no administration role grants access to them."
+    "panelBlindBody": "Neither their notes, nor their tutor's memory, nor the content of their private messages. Those three belong to them, and no administration role grants access to them.",
+    "actionShow": "Show"
   },
   "clubHook": {
     "loadError": "Error while loading.",
@@ -1799,6 +1816,9 @@
       "conception": "Design",
       "rysmo": "Rysmo"
     },
-    "envProd": "PRODUCTION"
+    "envProd": "PRODUCTION",
+    "kpiSourceLine": "as of {{date}} · {{origin}}",
+    "kpiSourceDb": "source: database",
+    "kpiSourceServer": "source: server"
   }
 }
