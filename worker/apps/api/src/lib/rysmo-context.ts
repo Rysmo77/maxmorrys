@@ -2,7 +2,16 @@ import type { Firestore } from '@mm/firestore-rest';
 
 import type { Env } from '../env';
 import { generateContent } from './gemini';
+import { CLUB_PRICE } from './bictorys';
 import { asText, toNumber } from './values';
+
+/**
+ * Jetons de la FAQ (`{{clubPrice}}`) — même résolution que `src/lib/faq/tokens.ts`, pour que
+ * Rysmo ne cite ni un jeton brut ni un ancien montant.
+ */
+function faqText(text: string | undefined): string {
+  return (text ?? '').replace(/\{\{\s*clubPrice\s*\}\}/g, CLUB_PRICE.toLocaleString('fr-FR'));
+}
 
 /**
  * Construction du contexte injecté à Rysmo — port de `functions/src/rysmo.ts`.
@@ -108,7 +117,7 @@ export async function getCatalog(db: Firestore): Promise<{ text: string; paths: 
       const lines = faq
         .map(({ data }) => data)
         .sort((a, b) => toNumber(a.order) - toNumber(b.order))
-        .map((f) => `- Q : ${asText(f.question)} → R : ${truncate(asText(f.answer), 200)}`);
+        .map((f) => `- Q : ${faqText(asText(f.question))} → R : ${truncate(faqText(asText(f.answer)), 200)}`);
       sections.push(['FAQ (questions fréquentes sur la plateforme) :', ...lines].join('\n'));
     }
 
