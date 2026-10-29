@@ -38,7 +38,7 @@ export default function Temoignages() {
         style={{ marginTop: 18 }}
       />
 
-      <Surface level="night" style={{ marginTop: 14, padding: 6 }}>
+      <Surface level="flat" style={{ marginTop: 14, padding: 6 }}>
         <EmptyState
           glyph={<Icon name="quote" size={26} color={t('mmOrange')} />}
           glyphBackground={veil(t('mmOrange'), 0.18)}
@@ -48,7 +48,7 @@ export default function Temoignages() {
       </Surface>
 
       <Eyebrow style={{ marginTop: 22 }}>Le relevé</Eyebrow>
-      <Surface level="night" style={{ marginTop: 10, padding: 17 }}>
+      <Surface level="flat" style={{ marginTop: 10, padding: 17 }}>
         <Num value={0} source={SOURCE} asOf={RELEVE} unit="témoignage reçu" style={{ fontSize: 15 }} />
         <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 8 }}>
           Et zéro publié, forcément. Le site n'affiche pas de bloc « ils en parlent » vide : il
@@ -56,7 +56,7 @@ export default function Temoignages() {
         </Body>
       </Surface>
 
-      <Surface level="night" style={{ marginTop: 12, padding: 16 }}>
+      <Surface level="flat" style={{ marginTop: 12, padding: 16 }}>
         <Eyebrow>La règle de publication</Eyebrow>
         <Body muted style={{ fontSize: 12.5, lineHeight: 19, marginTop: 6 }}>
           Un témoignage se publie avec le nom que la personne a autorisé, sur une formation

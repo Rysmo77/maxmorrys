@@ -6,6 +6,8 @@ import { Pressoir } from './Pressoir';
 import { Icon, type IconName } from './Icon';
 import { haptique } from './haptique';
 import { useToken, px } from './theme';
+import { isIOS } from './platform';
+import { useTeinte } from './espace';
 
 /**
  * LES PUCES DE FILTRE — et pourquoi elles DÉFILENT ici alors qu'elles sont coupées au web.
@@ -96,8 +98,13 @@ function Pilule({ libelle, on, height, icone, onPress }: {
   libelle: string; on: boolean; height: number; icone?: IconName; onPress?: () => void;
 }) {
   const t = useToken();
+  /* `mm-r-chip` / `mm-r-band` du kit v4.5. iOS : pilule sur `bento`, active à l'encre.
+     Android (Material 3) : puce à 8 px, filet neutre, active sur le fond DOUX de l'espace. */
+  const teinte = useTeinte();
+  const plein = isIOS ? t('ink') : teinte.doux;
+  const surPlein = isIOS ? t('textOnPrimary') : teinte.surDoux;
   const b = useBascule(on);
-  const texte = { fontFamily: POLICE.corps, fontSize: 13 } as const;
+  const texte = { fontFamily: POLICE.corps, fontSize: isIOS ? 13.5 : 14 } as const;
   return (
     <Pressoir
       echelle="sm"
@@ -107,12 +114,12 @@ function Pilule({ libelle, on, height, icone, onPress }: {
       onPress={onPress}
       style={{
         height, paddingHorizontal: 16, justifyContent: 'center', overflow: 'hidden',
-        borderRadius: px(t('rPill')), borderWidth: 1,
-        backgroundColor: t('ctlOffBg'),
-        borderColor: on ? t('ink') : t('fill4'),
+        borderRadius: isIOS ? px(t('rPill')) : 8, borderWidth: 1,
+        backgroundColor: t('bento'),
+        borderColor: on ? plein : isIOS ? t('line') : t('fill4'),
       }}
     >
-      <Animated.View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: t('ink'), opacity: b }} />
+      <Animated.View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: plein, opacity: b }} />
       <View
         importantForAccessibility="no-hide-descendants"
         accessibilityElementsHidden
@@ -124,7 +131,7 @@ function Pilule({ libelle, on, height, icone, onPress }: {
               <Icon name={icone} size={12} color={t('textMuted')} strokeWidth={2.6} />
             </Animated.View>
             <Animated.View style={{ position: 'absolute', opacity: b }}>
-              <Icon name={icone} size={12} color={t('textOnPrimary')} strokeWidth={2.6} />
+              <Icon name={icone} size={12} color={surPlein} strokeWidth={2.6} />
             </Animated.View>
           </View>
         ) : null}
@@ -132,7 +139,7 @@ function Pilule({ libelle, on, height, icone, onPress }: {
           <Animated.Text style={[texte, { fontWeight: '500', color: t('textMuted'), opacity: b.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }]}>
             {libelle}
           </Animated.Text>
-          <Animated.Text style={[texte, { position: 'absolute', left: 0, fontWeight: '600', color: t('textOnPrimary'), opacity: b }]}>
+          <Animated.Text style={[texte, { position: 'absolute', left: 0, fontWeight: '600', color: surPlein, opacity: b }]}>
             {libelle}
           </Animated.Text>
         </View>

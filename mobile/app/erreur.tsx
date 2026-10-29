@@ -49,7 +49,7 @@ export default function Erreur() {
     : ['Ça ne s’est', 'pas chargé.'];
 
   return (
-    <Screen territory="forme" retour="Retour" center>
+    <Screen territory="forme" espace="hub" retour="Retour" center>
       <Gradient
         colors={[t('mmCorail'), t('stop')]}
         radius={21}

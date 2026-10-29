@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
-  Avatar, Body, Button, ChipRow, Display, Eyebrow, Feuille, Field, Icon, LessonRow, Num, SansDonnees, Surface, Tag,
-  haptique, useBandeau, useToken, veil,
+  Avatar, Body, Button, ChipRow, Display, Eyebrow, Feuille, Field, Num, SansDonnees,
+  Surface, Tag, haptique, useBandeau, useToken, veil, Ligne, Liste, Rubrique,
 } from '../../ds';
 import { ClubScreen } from './_layout';
 import { ErreurAppel, bloquerLeMembre, provenance, signalerLeMembre, useMembre } from '../../donnees';
@@ -179,20 +179,19 @@ export default function ClubMembre() {
         <Body style={{ marginTop: 14, lineHeight: 22 }}>{membre.presentation}</Body>
       </Surface>
 
-      <Eyebrow style={{ marginTop: 22 }}>Ce que la fiche porte</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        <LessonRow
-          icon={<Icon name="comment" size={14} color={t('ink2')} />}
-          title="Contributions au fil"
-          trailing={<Num value={membre.contributions} {...provenance(fiche)} style={{ fontSize: 13 }} />}
+      <Rubrique>Ce que la fiche porte</Rubrique>
+      <Liste>
+        <Ligne
+          icone="comment"
+          titre="Contributions au fil"
+          droite={<Num value={membre.contributions} {...provenance(fiche)} style={{ fontSize: 13 }} />}
         />
-        <LessonRow
-          icon={<Icon name="book" size={14} color={t('ink2')} />}
-          title="Formations suivies"
-          trailing={<Num value={membre.formations.length} {...provenance(fiche)} style={{ fontSize: 13 }} />}
-          last
+        <Ligne
+          icone="book"
+          titre="Formations suivies"
+          droite={<Num value={membre.formations.length} {...provenance(fiche)} style={{ fontSize: 13 }} />}
         />
-      </Surface>
+      </Liste>
 
       <Button
         tone="transforme"

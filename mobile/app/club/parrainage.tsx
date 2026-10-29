@@ -1,7 +1,8 @@
 import { Share, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import {
-  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag, useConfirmation, useToken, veil,
+  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag,
+  useConfirmation, useToken, veil, Ligne,
 } from '../../ds';
 import { ClubScreen } from './_layout';
 import { provenance, useParrainage } from '../../donnees';
@@ -126,12 +127,12 @@ export default function ClubParrainage() {
       </Surface>
 
       <Eyebrow style={{ marginTop: 22 }}>Tes filleuls</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        <LessonRow
-          icon={<Icon name="users" size={14} color={t('mmVioletT')} />}
-          iconBackground={veil(t('mmViolet'), 0.12)}
-          title="Ont utilisé ton code"
-          trailing={<Num value={parrainage.filleuls} {...provenance(etat)} style={{ fontSize: 13 }} />}
+      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 0 }}>
+        <Ligne
+          icone="users"
+          fondIcone={t('mmViolet')}
+          titre="Ont utilisé ton code"
+          droite={<Num value={parrainage.filleuls} {...provenance(etat)} style={{ fontSize: 13 }} />}
         />
         <LessonRow
           icon={<Icon name="gift" size={14} color={t('ok')} />}

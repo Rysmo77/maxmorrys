@@ -1,4 +1,5 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { RAYON_CARTE } from './Surface';
 import { POLICE } from './police';
 import type { ReactNode } from 'react';
 import { useToken, px, veil } from './theme';
@@ -48,9 +49,9 @@ export function MediaCard({
 
   return (
     <View style={[{
-      borderRadius: px(t('rL')), overflow: 'hidden',
-      backgroundColor: t('surfaceCardFlat'),
-      borderWidth: 1, borderColor: t('borderGlass'),
+      borderRadius: RAYON_CARTE, overflow: 'hidden',
+      backgroundColor: t('bento'),
+      borderWidth: 1, borderColor: t('line'),
     }, style]}>
       <Gradient
         colors={format === 'audio' ? g.media : [t('mmBleu'), t('mmViolet')]}

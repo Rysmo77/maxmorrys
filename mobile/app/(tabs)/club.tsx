@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import {
-  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, SansDonnees, Screen, Skeleton,
-  Surface, type IconName, isIOS, useToken,
+  Body, Button, CheckLine, Display, Eyebrow, SansDonnees, Screen, Skeleton, Surface,
+  type IconName, isIOS, Ligne, Liste,
 } from '../../ds';
 import { QUOTA } from '../../contenu/demo';
 import { ONGLETS_CLUB } from '../../contenu/club';
@@ -43,7 +43,6 @@ const ENTREES: ReadonlyArray<{ href: string; icon: IconName; titre: string; lign
 ];
 
 export default function Club() {
-  const t = useToken();
   const club = useClub();
   const { enRafraichissement, rafraichir } = useRafraichir();
   /* ⚠️ L'ÉTAT D'ADHÉSION SE DÉCIDE SUR LA PHASE, PAS SUR L'ABSENCE DE VALEUR. `club.valeur
@@ -131,21 +130,19 @@ export default function Club() {
 
       {/* ── LES HUIT ONGLETS, OUVERTS ──────────────────────────────────────────────────── */}
       <Eyebrow style={{ marginTop: 24 }}>Huit onglets, tous visitables</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        {ENTREES.map((o, i) => (
-          <LessonRow
+      <Liste>
+        {ENTREES.map((o) => (
+          <Ligne
             key={o.href}
-            icon={<Icon name={o.icon} size={15} color={t('mmVioletT')} />}
-            title={o.titre}
+            icone={o.icon}
+            titre={o.titre}
             /* `meta` est une fente MONOSPACE — durée, compte, date. Une phrase n'y va pas :
                la monospace est réservée aux nombres vérifiables. D'où un nœud, pas une chaîne. */
-            meta={<Body muted style={{ fontSize: 12.5, lineHeight: 17 }}>{o.ligne}</Body>}
-            trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+            sous={<Body muted style={{ fontSize: 12.5, lineHeight: 17 }}>{o.ligne}</Body>}
             onPress={() => router.push(o.href)}
-            last={i === ENTREES.length - 1}
           />
         ))}
-      </Surface>
+      </Liste>
 
       <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
         <Eyebrow>Ce que je ne te promets pas</Eyebrow>

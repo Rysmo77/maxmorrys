@@ -3,7 +3,8 @@ import { POLICE } from './police';
 import { Animated, Text, type StyleProp, type ViewStyle } from 'react-native';
 import { Pressoir } from './Pressoir';
 import { COURBE, DUREE, duree, useMouvement } from './mouvement';
-import { ripple } from './platform';
+import { isIOS, ripple } from './platform';
+import { useTeinte } from './espace';
 import type { ReactNode } from 'react';
 import { useToken, px, veil } from './theme';
 import { tokens } from './tokens.generated';
@@ -62,6 +63,9 @@ export function Button({
 }) {
   const t = useToken();
   const g = useActionGradient();
+  /* `mm-r-btn` du kit v4.5 : le bouton principal prend le dégradé de l'ESPACE (`--rv-grad`) —
+     bleu dans Apprendre, violet au Club et chez l'assistant, aplat d'encre à l'accueil. */
+  const teinte = useTeinte();
   const sm = size === 'sm';
   const enConfirmation = !!confirme && confirmation !== undefined;
   const libelle = enConfirmation ? confirmation : label;
@@ -75,6 +79,7 @@ export function Button({
    * les deux modes comme le dégradé lui-même : la teinte reste celle du territoire.
    */
   const degrade: Partial<Record<Tone, readonly string[]>> = disabled ? {} : {
+    primary: teinte.degrade.length > 1 ? teinte.degrade : undefined,
     forme: g.forme, informe: g.informe, transforme: g.transforme,
     digitalise: [tokens.light.mmTealT, tokens.light.mmBleu],
   };
@@ -91,7 +96,11 @@ export function Button({
     informe: { bg: t('mmOrange'), fg: t('inkFixed') },
     transforme: { bg: t('mmViolet'), fg: t('paperFixed') },
     digitalise: { bg: t('mmTeal'), fg: t('paperFixed') },
-    ghost: { bg: t('btnGhostBg'), fg: t('ink'), brd: t('ink') },
+    /* Material 3 : le bouton secondaire est CONTOURÉ (filet neutre, encre de l'espace) ;
+       iOS garde son contour d'encre. */
+    ghost: isIOS
+      ? { bg: t('btnGhostBg'), fg: t('ink'), brd: t('ink') }
+      : { bg: 'transparent', fg: teinte.rv2, brd: t('ink3') },
     quiet: { bg: t('surfaceQuiet'), fg: t('ink'), brd: t('borderHair') },
     ink: { bg: t('surfaceInk'), fg: t('paperFixed') },
     /* Le ton DESTRUCTIF — « Supprimer mon compte », « Bloquer ». Un voile de `stop` et son
@@ -99,13 +108,17 @@ export function Button({
     danger: { bg: veil(t('stop'), 0.1), fg: t('stop'), brd: veil(t('stop'), 0.45) },
   };
 
+  const rayon = isIOS ? (sm ? 12 : 14) : px(t('rPill'));
   const c = disabled ? { bg: t('btnOffBg'), fg: t('ink3'), brd: undefined } : aplat[tone];
   const arrets = degrade[tone];
+  /* Sur le dégradé d'espace, l'encre reste blanche dans les deux modes (`paperFixed`). */
+  const fg = tone === 'primary' && arrets ? t('paperFixed') : c.fg;
 
   const forme: ViewStyle = {
-    minHeight: sm ? 42 : px(t('touchBtn')),
+    /* 52 px et un rayon de 14 sur iOS ; 48 px et la pilule sur Android (Material 3). */
+    minHeight: sm ? 42 : Math.max(isIOS ? 52 : 48, px(t('touchBtn'))),
     paddingHorizontal: sm ? 17 : 22,
-    borderRadius: px(t('rPill')),
+    borderRadius: rayon,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -121,8 +134,9 @@ export function Button({
       maxFontSizeMultiplier={1.5}
       style={{
         flexShrink: 1,
-        fontFamily: POLICE.corps, fontWeight: '700',
-        fontSize: sm ? 13.5 : 15, color: c.fg,
+        fontFamily: POLICE.corps, fontWeight: isIOS ? '600' : '500',
+        fontSize: sm ? 13.5 : isIOS ? 16 : 15, letterSpacing: isIOS ? 0 : 0.15,
+        color: fg,
       }}
     >
       {libelle}
@@ -134,9 +148,9 @@ export function Button({
   const contenu = (
     <Fondu cle={enConfirmation ? 'ok' : 'repos'}>
       {enConfirmation ? null : leading}
-      {glyphe ? <Icon name={glyphe} size={sm ? 15 : 17} color={c.fg} strokeWidth={enConfirmation ? 2.8 : 2.2} /> : null}
+      {glyphe ? <Icon name={glyphe} size={sm ? 15 : 17} color={fg} strokeWidth={enConfirmation ? 2.8 : 2.2} /> : null}
       {texte}
-      {trailing && !enConfirmation ? <Icon name={trailing} size={sm ? 15 : 16} color={c.fg} strokeWidth={2.6} /> : null}
+      {trailing && !enConfirmation ? <Icon name={trailing} size={sm ? 15 : 16} color={fg} strokeWidth={2.6} /> : null}
     </Fondu>
   );
 
@@ -155,9 +169,14 @@ export function Button({
         La couleur est l'encre du bouton — sur un fond de marque, une onde grise se voit comme
         une salissure.
       */
-      android_ripple={disabled ? undefined : ripple(c.fg)}
+      android_ripple={disabled ? undefined : ripple(fg)}
       style={[
         arrets ? { alignSelf: forme.alignSelf } : forme,
+        /* L'ombre teintée du kit, iOS seulement : Material 3 détache par la couleur, pas l'ombre. */
+        arrets && isIOS && !sm ? {
+          shadowColor: tone === 'primary' ? teinte.rv : arrets[0], shadowOpacity: 0.28,
+          shadowRadius: 11, shadowOffset: { width: 0, height: 8 },
+        } : null,
         arrets ? null : {
           backgroundColor: c.bg,
           borderWidth: c.brd ? (tone === 'ghost' ? 1.5 : 1) : 0,
@@ -167,7 +186,7 @@ export function Button({
       ]}
     >
       {arrets ? (
-        <Gradient colors={arrets} radius={px(t('rPill'))} style={forme}>
+        <Gradient colors={arrets} radius={rayon} style={forme}>
           {contenu}
         </Gradient>
       ) : contenu}

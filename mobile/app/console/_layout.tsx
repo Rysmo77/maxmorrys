@@ -56,8 +56,10 @@ export function ConsoleScreen({
 
   return (
     <Screen
-      territory="nuit"
-      dark
+      /* La console est CLAIRE depuis le kit v4.3 (« console claire ») : surface plate, sans
+         maillage, à la teinte d'encre de l'espace `admin`. */
+      espace="admin"
+      maillage={false}
       retour="Console"
       onRetour={() => (router.canGoBack() ? router.back() : router.replace('/console'))}
       titre={isIOS ? undefined : titre}
@@ -81,7 +83,7 @@ export function ConsoleScreen({
 /** Le pied commun. Il est un COMPOSANT pour que les cinq écrans ne puissent pas l'oublier. */
 export function PiedDePortee({ quoi }: { quoi: string }) {
   return (
-    <Surface level="night" style={{ marginTop: 14, padding: 16 }}>
+    <Surface level="flat" style={{ marginTop: 14, padding: 16 }}>
       <Eyebrow>Ce que cet écran ne couvre pas</Eyebrow>
       <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
         {quoi} Les {ECRANS_HORS_PORTEE} autres écrans d'administration restent au{' '}

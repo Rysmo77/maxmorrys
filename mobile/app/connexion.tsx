@@ -67,6 +67,7 @@ export default function Connexion() {
   return (
     <Screen
       territory="forme"
+      espace="hub"
       center
       droite={
         <IconButton label="Fermer" onPress={() => { if (router.canGoBack()) router.back(); else router.replace('/espace'); }}>

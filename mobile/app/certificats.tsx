@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import {
-  Body, Button, EmptyState, Icon, LessonRow, Num, Screen, Surface, isIOS, useToken, veil, SansDonnees,
+  Body, Button, EmptyState, Icon, Num, Screen, Surface, isIOS, useToken, veil, SansDonnees,
+  Ligne, Liste,
 } from '../ds';
 import { provenance, useCertificats } from '../donnees';
 
@@ -38,7 +39,8 @@ export default function Certificats() {
   return (
     <Screen
       territory="transforme"
-      retour="Espace"
+      espace="edu"
+      retour="Accueil"
       titre={isIOS ? undefined : 'Mes certificats'}
       center
     >
@@ -75,15 +77,14 @@ export default function Certificats() {
           />
         </Surface>
       ) : (
-        <Surface level="flat" style={{ paddingHorizontal: 16 }}>
-          {liste.map((c, i) => (
-            <LessonRow
+        <Liste>
+          {liste.map((c) => (
+            <Ligne
               key={c.code}
-              icon={<Icon name="doc" size={13} color={t('mmVioletT')} />}
-              iconBackground={veil(t('mmViolet'), 0.16)}
-              title={c.formation}
-              meta={`${c.code} · émis le ${c.emisLe}`}
-              last={i === liste.length - 1}
+              icone="doc"
+              fondIcone={t('mmViolet')}
+              titre={c.formation}
+              sous={`${c.code} · émis le ${c.emisLe}`}
               /* LES CINQ CHAMPS PARTENT ENSEMBLE. L'écran du certificat les exige tous les
                  cinq — un document au nom de quelqu'un avec le code d'un autre n'est pas
                  un document amputé, c'est un faux. */
@@ -99,7 +100,7 @@ export default function Certificats() {
               })}
             />
           ))}
-        </Surface>
+        </Liste>
       )}
 
       {/* LE ZÉRO EST COMPTÉ, plus écrit. Il valait `0` en dur — juste au-dessus d'une phrase

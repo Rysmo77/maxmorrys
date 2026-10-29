@@ -1,7 +1,7 @@
 import { Redirect, router } from 'expo-router';
 import {
-  Body, Button, Display, Eyebrow, Gradient, Icon, isIOS, LessonRow, Screen, Surface,
-  useToken, veil,
+  Body, Button, Display, Eyebrow, Gradient, Icon, isIOS, Screen, Surface, useToken, Ligne,
+  Liste,
 } from '../ds';
 
 /**
@@ -66,7 +66,7 @@ function PermissionsAtelier() {
   }
 
   return (
-    <Screen territory="transforme" center>
+    <Screen territory="transforme" espace="hub" center>
       <Gradient
         colors={[t('mmVioletN'), t('mmViolet')]}
         radius={21}
@@ -85,18 +85,17 @@ function PermissionsAtelier() {
         Une notification à ce moment-là, c'est la seule chose qui marche.
       </Body>
 
-      <Surface level="flat" style={{ marginTop: 20, paddingHorizontal: 16 }}>
-        {ENVOIS.map((e, i) => (
-          <LessonRow
+      <Liste style={{ marginTop: 20 }}>
+        {ENVOIS.map((e) => (
+          <Ligne
             key={e.titre}
-            icon={<Icon name={e.glyphe} size={14} color={t(e.teinte)} />}
-            iconBackground={veil(t(e.voile), 0.14)}
-            title={e.titre}
-            meta={e.meta}
-            last={i === ENVOIS.length - 1}
+            icone={e.glyphe}
+            fondIcone={t(e.teinte)}
+            titre={e.titre}
+            sous={e.meta}
           />
         ))}
-      </Surface>
+      </Liste>
 
       <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
         <Eyebrow>Ce que je ne t'enverrai jamais</Eyebrow>

@@ -2,8 +2,8 @@ import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   Pressoir,
-  Avatar, Body, Button, Display, Eyebrow, Gradient, Icon, LessonRow, Num, Onde,
-  ProgressBar, QuotaMeter, SansDonnees, Screen, Surface, TerritoryCard, useActionGradient,
+  Avatar, Body, Button, Display, Eyebrow, Gradient, Icon, Ligne, Liste, Num,
+  ProgressBar, QuotaMeter, Reprise, Rubrique, SansDonnees, Screen, Surface, useActionGradient,
   useToken, useTutorNom,
 } from '../../ds';
 import { QUOTA } from '../../contenu/demo';
@@ -92,6 +92,7 @@ export default function Espace() {
   return (
     <Screen
       territory="transforme"
+      espace="hub"
       tabbar
       onRefresh={rafraichir}
       enRafraichissement={enRafraichissement}
@@ -111,10 +112,11 @@ export default function Espace() {
       <BandeauHorsLigne />
       <Eyebrow style={{ marginTop: 6 }}>{dateDuJour(maintenant)}</Eyebrow>
       {/* La salutation tient sans le prénom : l'heure du téléphone suffit à la rendre vraie. */}
+      {/* Le grand titre du kit (`mm-r__large`) : une ligne, « Bonsoir, Prénom ». */}
       <Display
-        size={31}
-        lines={moi.valeur ? [salutation(maintenant), moi.valeur.prenom] : [`${salutation(maintenant)}.`]}
-        style={{ marginTop: 8 }}
+        size={32}
+        lines={moi.valeur ? [`${salutation(maintenant)}, ${moi.valeur.prenom}`] : [`${salutation(maintenant)}.`]}
+        style={{ marginTop: 6 }}
       />
 
       {/* ── PREMIER OBJET. La reprise, avant tout le reste — et quand il n'y a rien à
@@ -129,32 +131,23 @@ export default function Espace() {
           action={<Button tone="forme" label="Voir le catalogue" onPress={() => router.push('/(tabs)/cours')} />}
         />
       ) : (
-      <View style={{ marginTop: 20 }}>
-        <TerritoryCard
-          first
-          territory="forme"
-          meta={espace.valeur.arret ?? undefined}
-          title={espace.valeur.leconEnCours ?? espace.valeur.titreCourt}
-          titleSize={21}
-          onPress={() => router.push(reprise)}
-        >
-          <ProgressBar value={espace.valeur.progression} style={{ marginTop: 14 }} />
-          <View style={{
-            flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-            gap: 12, marginTop: 12,
-          }}>
-            {/* La provenance vient de l'ÉTAT, plus d'une constante : `source` et `asOf`
-                disaient jusqu'ici « transfert du 2 septembre » sur une donnée du jour. */}
-            <Num
-              value={`${espace.valeur.leconsFaites} / ${espace.valeur.lecons} leçons · ${espace.valeur.progression} %`}
-              source={espace.source}
-              asOf={espace.asOf}
-              style={{ fontSize: 12.5, color: t('textMuted') }}
-            />
-            <Button tone="primary" size="sm" label="Reprendre" onPress={() => router.push(reprise)} />
-          </View>
-        </TerritoryCard>
-      </View>
+      <Reprise
+        espace="edu"
+        style={{ marginTop: 20 }}
+        surtitre={espace.valeur.arret ?? undefined}
+        titre={espace.valeur.leconEnCours ?? espace.valeur.titreCourt}
+        progression={espace.valeur.progression}
+        onPress={() => router.push(reprise)}
+        meta={
+          /* La provenance vient de l'ÉTAT : `source` et `asOf` disent d'où vient ce compte. */
+          <Num
+            value={`${espace.valeur.leconsFaites} / ${espace.valeur.lecons} leçons · ${espace.valeur.progression} %`}
+            source={espace.source}
+            asOf={espace.asOf}
+            style={{ fontSize: 12.5, color: t('paperFixed') }}
+          />
+        }
+      />
       )}
 
       {/* ⚠️ LA CARTE « JE TE PRÉVIENS LA PROCHAINE FOIS ? » A ÉTÉ RETIRÉE — 05/09/2026.
@@ -211,53 +204,47 @@ export default function Espace() {
       )}
 
       {/* ── LE RÉPÉTITEUR, ET SON QUOTA ANNONCÉ D'AVANCE ────────────────────────────────── */}
-      <Surface level="flat" style={{ marginTop: 14, padding: 17 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <View style={{ flex: 1 }}>
+      <Pressoir
+        accessibilityRole="button"
+        accessibilityLabel={`Demande à ${tuteur}`}
+        onPress={() => router.push('/(tabs)/repetiteur')}
+        style={{ marginTop: 14 }}
+      >
+        <Surface level="flat" style={{ padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          {/* L'étincelle de l'assistant (`mm-r-mark`), sur le dégradé violet. */}
+          <Gradient
+            colors={g.transforme}
+            radius={14}
+            style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Icon name="sparkles" size={22} color={t('paperFixed')} strokeWidth={2.1} />
+          </Gradient>
+          <View style={{ flex: 1, minWidth: 0 }}>
             {/* « Demande à ton coach » cassait les noms propres : un tuteur renommé « Awa »
                 devenait « ton awa ». Le nom s'écrit tel quel. */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-              <Onde taille={13} />
-              <Body style={{ flex: 1, fontWeight: '700' }}>Pose ta question à {tuteur}</Body>
-            </View>
-            <Body muted style={{ fontSize: 12.5, marginTop: 2 }}>Il sait où tu en es.</Body>
+            <Body style={{ fontWeight: '700', fontSize: 16 }}>Demande à {tuteur}</Body>
+            <Body muted style={{ fontSize: 13, marginTop: 1 }}>Il sait où tu en es.</Body>
+            {/* Le quota est ANNONCÉ avant d'être atteint — mais on n'annonce pas un plafond
+                qu'on n'a pas relevé : ce serait promettre des questions qu'on ne peut pas tenir. */}
+            {QUOTA ? <QuotaMeter used={QUOTA.utilise - 1} total={QUOTA.total} style={{ marginTop: 8 }} /> : null}
           </View>
-          <Pressoir
-            echelle="sm"
-            accessibilityRole="button"
-            accessibilityLabel={`Ouvrir ${tuteur}`}
-            onPress={() => router.push('/(tabs)/repetiteur')}
-          >
-            <Gradient
-              colors={g.transforme}
-              radius={23}
-              style={{ width: 46, height: 46, alignItems: 'center', justifyContent: 'center' }}
-            >
-              <Icon name="chat" size={19} color={t('paperFixed')} strokeWidth={2.2} />
-            </Gradient>
-          </Pressoir>
-        </View>
-        {/* Le quota est ANNONCÉ avant d'être atteint : un refus au plafond est vécu comme une
-            panne s'il n'a pas été dit. */}
-        {/* Le quota est ANNONCÉ avant d'être atteint — mais on n'annonce pas un plafond
-            qu'on n'a pas relevé : ce serait promettre des questions qu'on ne peut pas tenir. */}
-        {QUOTA ? <QuotaMeter used={QUOTA.utilise - 1} total={QUOTA.total} style={{ marginTop: 13 }} /> : null}
-      </Surface>
+          <Icon name="forward" size={18} color={t('ink3')} strokeWidth={2.2} />
+        </Surface>
+      </Pressoir>
 
-      <Eyebrow style={{ marginTop: 22 }}>Dans ton espace</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        {ESPACE.map((e, i) => (
-          <LessonRow
+      <Rubrique>Dans ton espace</Rubrique>
+      <Liste>
+        {ESPACE.map((e) => (
+          <Ligne
             key={e.href}
-            icon={<Icon name={e.glyphe} size={14} color={t('ink2')} />}
-            title={e.titre}
-            meta={e.href === '/telechargements' ? telechargements : e.meta}
-            trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+            icone={e.glyphe}
+            fondIcone={e.href === '/telechargements' ? t('mmTeal') : t('mmBleu')}
+            titre={e.titre}
+            sous={e.href === '/telechargements' ? telechargements : e.meta}
             onPress={() => router.push(e.href)}
-            last={i === ESPACE.length - 1}
           />
         ))}
-      </Surface>
+      </Liste>
     </Screen>
   );
 }

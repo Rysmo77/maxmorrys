@@ -3,8 +3,9 @@ import { ScrollView, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Bandeau, Body, Button, ChipRow, Display, Eyebrow, Gradient, Heros, Icon, IconButton, LessonRow, Num, ProgressBar, Revele,
-  SansDonnees, Screen, Surface, Tag, haptique, isIOS, useActionGradient, useBandeau, useMouvement, useToken,
+  Bandeau, Body, Button, ChipRow, Display, Eyebrow, Gradient, Heros, Icon, IconButton, LessonRow,
+  Num, ProgressBar, Revele, SansDonnees, Screen, Surface, Tag, haptique, isIOS,
+  useActionGradient, useBandeau, useMouvement, useToken, Ligne, Liste,
 } from '../ds';
 import { ErreurAppel, marquerLecon, provenance, useEspace, useLecon, useLeconContenu } from '../donnees';
 import type { LeconContenu } from '../donnees/contrat.generated';
@@ -238,19 +239,18 @@ export default function Lecon() {
             contenu.ressources.length === 0 ? (
               <Body muted style={{ marginTop: 14, fontSize: 13.5 }}>Aucune ressource pour cette leçon.</Body>
             ) : (
-              <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
-                {contenu.ressources.map((r, i) => (
-                  <LessonRow
+              <Liste style={{ marginTop: 14 }}>
+                {contenu.ressources.map((r) => (
+                  <Ligne
                     key={r.url}
-                    icon={<Icon name={r.type === 'link' ? 'link' : 'doc'} size={14} color={t('ink2')} />}
-                    title={r.titre}
-                    meta={[r.type.toUpperCase(), r.taille].filter(Boolean).join(' · ')}
-                    trailing={<Icon name="external" size={16} color={t('ink3')} strokeWidth={2.2} />}
+                    icone={r.type === 'link' ? 'link' : 'doc'}
+                    titre={r.titre}
+                    sous={[r.type.toUpperCase(), r.taille].filter(Boolean).join(' · ')}
+                    droite={<Icon name="external" size={16} color={t('ink3')} strokeWidth={2.2} />}
                     onPress={() => { void openBrowserAsync(r.url); }}
-                    last={i === contenu.ressources.length - 1}
                   />
                 ))}
-              </Surface>
+              </Liste>
             )
           ) : null}
 

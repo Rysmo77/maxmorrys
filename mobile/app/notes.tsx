@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import {
-  Body, Button, Display, Eyebrow, Fab, Feuille, Field, Icon, LessonRow, Num, Revele, SansDonnees, Screen, Surface, Tag,
-  haptique, isIOS, useBandeau, useToken,
+  Body, Button, Display, Eyebrow, Fab, Feuille, Field, Icon, Num, Revele, SansDonnees, Screen,
+  Surface, Tag, haptique, isIOS, useBandeau, useToken, Ligne, Liste,
 } from '../ds';
 import { ErreurAppel, ecrireUneNote, provenance, useEspace, useNotes } from '../donnees';
 import { BandeauHorsLigne } from '../ecrans/BandeauHorsLigne';
@@ -133,20 +133,19 @@ export default function Notes() {
           style={{ marginTop: 14 }}
         />
       ) : (
-        <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
+        <Liste style={{ marginTop: 14 }}>
           {/* Pas de chevron : une note ne s'ouvre pas sur un autre écran, et un chevron
               promettait une navigation qui n'existait pas. Une note EN FILE porte l'horloge. */}
           {liste.map((n, i) => (
             <Revele key={n.id} i={i < 6 ? i : 0}>
-              <LessonRow
-                icon={<Icon name={'enFile' in n && n.enFile ? 'clock' : 'comment'} size={14} color={'enFile' in n && n.enFile ? t('mmOrangeT') : t('ink2')} />}
-                title={n.texte}
-                meta={n.date ?? undefined}
-                last={i === liste.length - 1}
+              <Ligne
+                icone={'enFile' in n && n.enFile ? 'clock' : 'comment'}
+                titre={n.texte}
+                sous={n.date ?? undefined}
               />
             </Revele>
           ))}
-        </Surface>
+        </Liste>
       )}
 
       <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>

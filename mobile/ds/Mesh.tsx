@@ -133,8 +133,10 @@ export function Mesh({ territory = 'forme', style }: { territory?: Territory; st
   const { reduit, modeste } = useMouvement();
   const visible = useAuPremierPlan();
   const night = territory === 'nuit';
-  const veil = night ? t('night') : t('surfacePage');
-  const fond = night ? t('night') : t('paper');
+  /* Kit v4.5 (`mm-r-mesh`) : le maillage ne vit qu'en HAUT de l'écran et se fond dans le
+     papier de la page (`bento2`) — tout ce qui défile dessous est posé sur un fond plein. */
+  const veil = night ? t('night') : t('bento2');
+  const fond = night ? t('night') : t('bento2');
 
   return (
     <View pointerEvents="none" style={[{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', backgroundColor: fond }, style]}>
@@ -148,8 +150,9 @@ export function Mesh({ territory = 'forme', style }: { territory?: Territory; st
           */}
           <LinearGradient id="veil" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0%" stopColor={veil} stopOpacity={night ? 0.62 : 0.6} />
-            <Stop offset="46%" stopColor={veil} stopOpacity={night ? 0.86 : 0.78} />
-            <Stop offset="100%" stopColor={veil} stopOpacity={night ? 0.94 : 0.9} />
+            <Stop offset="30%" stopColor={veil} stopOpacity={night ? 0.86 : 0.8} />
+            <Stop offset="55%" stopColor={veil} stopOpacity={1} />
+            <Stop offset="100%" stopColor={veil} stopOpacity={1} />
           </LinearGradient>
         </Defs>
         <Rect x="0" y="0" width="100%" height="100%" fill="url(#veil)" />

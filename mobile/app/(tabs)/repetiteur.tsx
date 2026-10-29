@@ -11,6 +11,7 @@ import {
   Bandeau, Body, Button, ChatBubble, ChipRow, Eyebrow, Gradient, Icon, IconButton, Mesh, NavBar, Onde,
   QuotaMeter, SansDonnees, Skeleton, SqueletteGroupe, Surface, haptique, isIOS, px, translucentTabBar,
   useActionGradient, useBandeau, useMouvement, useToken, useTutorNom, POLICE,
+ EspaceScope,
 } from '../../ds';
 import { RENVOI_COURS } from '../../contenu/demo';
 import { ErreurAppel, demanderAuRepetiteur, useMoi, useRepetiteur } from '../../donnees';
@@ -174,7 +175,9 @@ export default function Repetiteur() {
       : `Il te reste ${reste} question${(reste ?? 0) > 1 ? 's' : ''} aujourd'hui (sur ${quota.total})`;
 
   return (
-    <View style={{ flex: 1, backgroundColor: t('surfacePage') }}>
+    /* L'espace `ia` du kit v4.5 : retour, bouton et interrupteurs au violet de l'assistant. */
+    <EspaceScope espace="ia">
+    <View style={{ flex: 1, backgroundColor: t('bento2') }}>
       <Mesh territory="transforme" />
 
       <KeyboardAvoidingView
@@ -183,7 +186,7 @@ export default function Repetiteur() {
         keyboardVerticalOffset={0}
       >
         <NavBar
-          retour="Espace"
+          retour="Accueil"
           onRetour={() => router.push('/espace')}
           titre={tuteur}
           /* La signature du répétiteur, au repos. Elle ne s'anime ici que si la bulle
@@ -308,8 +311,9 @@ export default function Repetiteur() {
         <View style={{
           paddingHorizontal: 14, paddingVertical: 10,
           marginBottom: translucentTabBar && !clavier ? px(t('tabbarH')) + insets.bottom : 0,
-          backgroundColor: t('tabbarBg'),
-          borderTopWidth: 1, borderTopColor: t('tabbarBrd'),
+          /* `mm-r-compose` du kit v4.5 : posée sur le papier de la page, filet `line`. */
+          backgroundColor: t('bento2'),
+          borderTopWidth: 1, borderTopColor: t('line'),
         }}>
           {epuise ? (
             <Revele>
@@ -327,12 +331,16 @@ export default function Repetiteur() {
               />
             </Revele>
           ) : (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <View style={{
-                flex: 1, minHeight: 46, justifyContent: 'center', paddingHorizontal: 16,
-                borderRadius: 999, backgroundColor: t('fieldBg'),
-                borderWidth: 1.5, borderColor: t('borderField'),
-              }}>
+            /* Le champ ET l'envoi dans une seule pilule (`mm-r-compose__in`) : 46 px sur `bento`
+               et filet sur iOS ; 52 px à 28 sur le gris Material 3, sans filet, sur Android. */
+            <View style={{
+              flexDirection: 'row', alignItems: 'flex-end', gap: 6,
+              minHeight: isIOS ? 46 : 52, paddingLeft: 16, paddingRight: 4, paddingVertical: 3,
+              borderRadius: isIOS ? 24 : 28,
+              backgroundColor: isIOS ? t('bento') : t('surfaceQuiet'),
+              borderWidth: isIOS ? 1 : 0, borderColor: t('line'),
+            }}>
+              <View style={{ flex: 1, minHeight: isIOS ? 38 : 44, justifyContent: 'center' }}>
                 <TextInput
                   accessibilityLabel={`Ta question à ${tuteur}`}
                   value={question}
@@ -345,7 +353,7 @@ export default function Repetiteur() {
                   maxFontSizeMultiplier={1.6}
                   style={{
                     fontFamily: POLICE.corps, fontSize: 15, color: t('textBody'),
-                    paddingVertical: 12, maxHeight: 110,
+                    paddingVertical: isIOS ? 9 : 12, maxHeight: 110,
                   }}
                 />
               </View>
@@ -362,10 +370,10 @@ export default function Repetiteur() {
               >
                 <Gradient
                   colors={g.transforme}
-                  radius={23}
-                  style={{ width: 46, height: 46, alignItems: 'center', justifyContent: 'center' }}
+                  radius={isIOS ? 20 : 14}
+                  style={{ width: isIOS ? 38 : 44, height: isIOS ? 38 : 44, alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <Icon name="send" size={18} color={t('paperFixed')} strokeWidth={2.6} />
+                  <Icon name="send" size={17} color={t('paperFixed')} strokeWidth={2.6} />
                 </Gradient>
               </Pressoir>
             </View>
@@ -373,5 +381,6 @@ export default function Repetiteur() {
         </View>
       </KeyboardAvoidingView>
     </View>
+    </EspaceScope>
   );
 }

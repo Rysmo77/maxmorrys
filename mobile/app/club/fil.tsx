@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Avatar, Body, Button, ChipRow, Feuille, Field, Icon, LessonRow, Num, PriceBlock, Pressoir, Revele, SansDonnees,
-  Surface, Tag, TerritoryCard, haptique, isAndroid, useBandeau, useToken,
+  Avatar, Body, Button, ChipRow, Feuille, Field, Icon, Num, PriceBlock, Pressoir, Revele,
+  SansDonnees, Surface, Tag, TerritoryCard, haptique, isAndroid, useBandeau, useToken, Ligne,
+  Liste,
 } from '../../ds';
 import { BilanPlie, ClubScreen } from './_layout';
 import { ErreurAppel, posterAuClub, provenance, useAgenda, useClubFil } from '../../donnees';
@@ -185,16 +186,14 @@ export default function Fil() {
       )}
 
       {prochaine ? (
-        <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
-          <LessonRow
-            icon={<Icon name="calendar" size={14} color={t('ink2')} />}
-            title="La prochaine session"
-            meta={[prochaine.jour, prochaine.horaire].filter(Boolean).join(' · ')}
-            trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+        <Liste style={{ marginTop: 14 }}>
+          <Ligne
+            icone="calendar"
+            titre="La prochaine session"
+            sous={[prochaine.jour, prochaine.horaire].filter(Boolean).join(' · ')}
             onPress={() => router.push('/club/agenda')}
-            last
           />
-        </Surface>
+        </Liste>
       ) : null}
 
       <Feuille visible={ouverte} onFermer={() => setOuverte(false)} titre="Écrire au Club">

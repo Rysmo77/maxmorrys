@@ -2,9 +2,22 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
-  Avatar, Body, Button, ChipRow, Display, Eyebrow, Fondu, Num,
-  SansDonnees, Screen, Surface, TerritoryCard, isIOS,
+  Body, Button, ChipRow, Display, Eyebrow, Fondu, Num, Reprise, Rubrique,
+  SansDonnees, Screen, Surface, TerritoryCard, isIOS, useToken,
 } from '../../ds';
+
+/**
+ * LA BANDE D'APPRENDRE (`mm-r-band` du kit v4.5). Le kit en dessine six — Mes formations,
+ * Catalogue, Cohorte, Notes, Succès, Téléchargements. Seules existent ici celles qui ont un
+ * écran : la cohorte et les succès n'ont ni données ni code, et le catalogue EST cette page.
+ * Les certificats, qui existent, prennent la place des succès.
+ */
+const BANDE = [
+  { libelle: 'Mes formations', href: null },
+  { libelle: 'Notes', href: '/notes' },
+  { libelle: 'Certificats', href: '/certificats' },
+  { libelle: 'Téléchargements', href: '/telechargements' },
+] as const;
 import { provenance, useCours, useEspace, useMoi, useRafraichir } from '../../donnees';
 import { BandeauHorsLigne } from '../../ecrans/BandeauHorsLigne';
 
@@ -36,6 +49,7 @@ export default function Cours() {
   /* En production le catalogue est vide — pas parce qu'il n'y a rien à vendre, mais parce que
      rien ne l'a transmis. Les deux cas ne se disent pas de la même façon, et c'est toute la
      raison d'être des trois branches ci-dessous. */
+  const t = useToken();
   const cours = useCours();
   const moi = useMoi();
   const espace = useEspace();
@@ -85,10 +99,46 @@ export default function Cours() {
       enRafraichissement={enRafraichissement}
     >
       <BandeauHorsLigne />
+      {/* Le grand titre et la bande, communs aux trois états : on sait où l'on est avant de
+          savoir ce que le serveur a répondu. */}
+      <Eyebrow style={{ marginTop: 6 }}>Je te forme</Eyebrow>
+      <Display size={32} lines={['Apprendre']} style={{ marginTop: 6 }} />
+      <ChipRow
+        options={BANDE.map((b) => b.libelle)}
+        value="Mes formations"
+        height={38}
+        debord={18}
+        onChange={(libelle) => {
+          const cible = BANDE.find((b) => b.libelle === libelle);
+          if (cible?.href) router.push(cible.href);
+        }}
+        style={{ marginTop: 14 }}
+      />
+
+      {/* LA REPRISE, PREMIER OBJET (`mm-r-resume`) — seulement quand un module est en cours :
+          une carte « reprendre » sans rien à reprendre promettrait un endroit qui n'existe pas. */}
+      {moi.valeur && espace.valeur?.moduleEnCours ? (
+        <Reprise
+          espace="edu"
+          style={{ marginTop: 16 }}
+          surtitre="En cours"
+          titre={espace.valeur.leconEnCours ?? espace.valeur.moduleEnCours}
+          progression={espace.valeur.progression}
+          meta={
+            <Num
+              value={`${espace.valeur.leconsFaites} / ${espace.valeur.lecons} · ${espace.valeur.progression} %`}
+              {...provenance(espace)}
+              style={{ fontSize: 12.5, color: t('paperFixed') }}
+            />
+          }
+          onPress={() => router.push(espace.valeur?.formationId
+            ? { pathname: '/lecon', params: { formationId: espace.valeur.formationId } }
+            : '/lecon')}
+        />
+      ) : null}
       {videConfirme ? (
         <>
-          <Eyebrow style={{ marginTop: 6 }}>Je te forme</Eyebrow>
-          <Display size={29} lines={['LE CATALOGUE', 'OUVRE BIENTÔT.']} style={{ marginTop: 8 }} />
+          <Display size={24} lines={['LE CATALOGUE', 'OUVRE BIENTÔT.']} style={{ marginTop: 22 }} />
           <Surface level="hero" style={{ marginTop: 20, padding: 22 }}>
             <Body style={{ fontWeight: '700' }}>Aucune formation n'est encore en ligne.</Body>
             <Body muted style={{ marginTop: 9 }}>
@@ -104,10 +154,9 @@ export default function Cours() {
         </>
       ) : catalogue.length === 0 ? (
         <>
-          <Eyebrow style={{ marginTop: 6 }}>Je te forme</Eyebrow>
           {/* Le titre n'affirme l'absence qu'APRÈS la lecture : « N'EST PAS ARRIVÉ » pendant
               le chargement se lisait comme une panne. */}
-          <Display size={29} lines={enLecture ? ['LE CATALOGUE.'] : ['LE CATALOGUE', "N'EST PAS ARRIVÉ."]} style={{ marginTop: 8 }} />
+          <Display size={24} lines={enLecture ? ['LE CATALOGUE.'] : ['LE CATALOGUE', "N'EST PAS ARRIVÉ."]} style={{ marginTop: 22 }} />
           <SansDonnees
             quoi="le catalogue"
             origine="du serveur"
@@ -119,20 +168,14 @@ export default function Cours() {
         </>
       ) : (
         <>
-          <Eyebrow style={{ marginTop: 6 }}>Je te forme</Eyebrow>
           {/* ⚠️ CE TITRE DISAIT « 2 FORMATIONS. » EN DUR. Il l'affirmait avant toute lecture,
               et il serait resté faux le jour où le catalogue en compte trois — ou une. Un
               nombre écrit dans un titre est un nombre que personne ne rectifie, parce qu'il
               ne ressemble pas à une donnée. Il est COMPTÉ maintenant. */}
-          <Display
-            size={29}
-            lines={[
-              catalogue.length === 1 ? '1 FORMATION.' : `${catalogue.length} FORMATIONS.`,
-              'À TON RYTHME.',
-            ]}
-            style={{ marginTop: 8 }}
-          />
-          <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
+          <Rubrique>
+            {catalogue.length === 1 ? 'Le catalogue · 1 formation' : `Le catalogue · ${catalogue.length} formations`}
+          </Rubrique>
+          <Body muted style={{ marginTop: 2, fontSize: 14.5, lineHeight: 22 }}>
             Ouvre une fiche pour voir son programme. Quand une formation a un module
             d'ouverture, il se lit ici, tout de suite.
           </Body>
@@ -197,25 +240,6 @@ export default function Cours() {
 
       {/* La reprise n'a de sens que s'il y a une leçon en cours. Sans elle, la carte annoncerait
           un endroit où revenir qui n'existe pas. */}
-      {moi.valeur && espace.valeur?.moduleEnCours ? (
-        <Surface level="flat" style={{ marginTop: 14, padding: 18 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Avatar initials={moi.valeur.initiale} size={38} decoratif />
-            <View style={{ flex: 1 }}>
-              <Body style={{ fontWeight: '700' }}>Reprendre là où tu en étais</Body>
-              <Body muted style={{ fontSize: 12.5, marginTop: 2 }}>{espace.valeur.moduleEnCours}</Body>
-            </View>
-            <Button
-              tone="quiet"
-              size="sm"
-              label="Reprendre"
-              onPress={() => router.push(espace.valeur?.formationId
-                ? { pathname: '/lecon', params: { formationId: espace.valeur.formationId } }
-                : '/lecon')}
-            />
-          </View>
-        </Surface>
-      ) : null}
     </Screen>
   );
 }

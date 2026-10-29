@@ -3,17 +3,20 @@ import { BlurView } from 'expo-blur';
 import { Animated, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  COURBE, Icon, isAndroid, navBarElevation, px, translucentTabBar, useBascule, useMouvement,
-  useScheme, useToken, useTutorNom, veil, type IconName, POLICE,
+  COURBE, Icon, isAndroid, isIOS, navBarElevation, px, translucentTabBar, useBascule, useMouvement,
+  useScheme, useTeinteDe, useToken, useTutorNom, veil, type Espace, type IconName, POLICE,
 } from '../../ds';
 
 /**
  * ── LA BARRE D'ONGLETS ────────────────────────────────────────────────────────────────
  *
- * Cinq onglets, et le kit les nomme sans ambiguïté (`ScreensSpace.js`, `mmTabItems`) :
- * **Espace · Cours · {tutorNom()} · Club · Profil**.
+ * Cinq onglets, dans l'ordre du kit v4.5 (`mm-r__tabs`) :
+ * **Accueil · Apprendre · Club · {tutorNom()} · Profil**. Les ROUTES gardent leurs noms
+ * (`espace`, `cours`, `repetiteur`…) : ce sont des adresses, et des liens profonds y pointent.
+ * Chaque onglet actif prend la teinte de SON espace (`data-space`) : encre pour l'accueil et
+ * le profil, bleu pour Apprendre, violet pour le Club et l'assistant.
  *
- * LE TROISIÈME PORTE UN NOM QUI N'EST PAS À NOUS. `tutorNom()` renvoie « Répétiteur » par
+ * L'ONGLET DE L'ASSISTANT PORTE UN NOM QUI N'EST PAS À NOUS. `tutorNom()` renvoie « Répétiteur » par
  * défaut, mais une personne peut renommer son tuteur — et c'est alors SON nom qui doit
  * s'afficher dans SA barre. Écrire « Rysmo » ici casserait ce renommage, et confondrait au
  * passage deux choses que l'architecture de marque sépare : « Rysmo » nomme CETTE
@@ -54,110 +57,104 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const height = px(t('tabbarH'));
   const { reduit } = useMouvement();
-  /* L'onglet actif prend l'encre de SON territoire — bleu pour les cours, violet ailleurs. */
-  const bleu = t('mmBleu');
-  const violet = t('mmVioletT');
+  const hub = useTeinteDe('hub').rv;
+  const edu = useTeinteDe('edu').rv;
+  const club = useTeinteDe('club').rv;
+  /* Material 3 : l'onglet actif garde l'ENCRE, c'est la pastille qui porte la teinte. */
+  const actif = (teinte: string) => (isAndroid ? t('ink') : teinte);
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        /* CHANGER D'ONGLET — fondu croisé de 180 ms, AUCUNE translation (planche des
-           transitions) : « une barre d'onglets qui fait glisser latéralement crée une
-           géographie fausse ». Les onglets sont cinq entrées d'un même niveau. */
+        /* Les onglets ne glissent pas (`02-mouvement`, transitions) : « une barre d'onglets qui
+           fait glisser latéralement crée une géographie fausse ». Cinq entrées d'un même niveau. */
         animation: 'fade',
         transitionSpec: { animation: 'timing', config: { duration: reduit ? 0 : 180, easing: COURBE.standard } },
-        tabBarActiveTintColor: t('ink'),
-        tabBarInactiveTintColor: t('ink3'),
-        /* Sur Android la fenêtre se redimensionne avec le clavier : sans ça, la barre
-           d'onglets remonte au-dessus de lui et mange la place du champ. */
+        tabBarInactiveTintColor: isAndroid ? t('textMuted') : t('ink3'),
+        /* Sur Android le clavier redimensionne la fenêtre : sans ceci, la barre d'onglets
+           remonte au-dessus de lui et mange la place du champ. */
         tabBarHideOnKeyboard: isAndroid,
         tabBarStyle: {
-          /*
-            ⚠️ LE FLOU N'AVAIT RIEN À FLOUTER. La barre n'était pas en position absolue : le
-            contenu s'arrêtait AU-DESSUS d'elle, et les écrans ajoutaient encore sa hauteur
-            en marge — la dernière rangée flottait à 80 px du bas sur Android. Absolue sur
-            iOS (le contenu glisse dessous, `Screen tabbar` le rembourre) ; dans le flux sur
-            Android, où elle est opaque et où le rembourrage n'a donc pas lieu d'être.
-          */
+          /* ⚠️ Absolue sur iOS (le contenu glisse dessous, `Screen tabbar` le rembourre) ;
+             dans le flux sur Android, où elle est opaque. Voir l'en-tête. */
           position: translucentTabBar ? 'absolute' : 'relative',
           height: height + insets.bottom,
-          paddingBottom: insets.bottom,
-          /* Opaque sur Android — la surface de la page, pas le fond translucide de la
-             barre — et l'élévation prend le relais du filet pour détacher la barre. */
+          paddingTop: isAndroid ? 10 : 6,
+          paddingBottom: insets.bottom + (isAndroid ? 4 : 0),
+          /* `mm-r__tabs` : blanc à 94 % sur iOS, posé sur le flou ; surface pleine sur
+             Android, détachée par l'élévation plutôt que par un filet. */
           backgroundColor: translucentTabBar ? 'transparent' : t('surfacePage'),
-          borderTopColor: t('tabbarBrd'),
+          borderTopColor: t('line'),
           borderTopWidth: translucentTabBar ? 1 : 0,
           elevation: navBarElevation,
         },
-        /* Le flou promis, enfin posé — et seulement là où la convention l'attend.
-           `intensity: 24` reprend les 24–26 px du système, comme `ds/Surface`. */
         tabBarBackground: translucentTabBar
           ? () => (
             <BlurView
               intensity={24}
               tint={scheme === 'dark' ? 'dark' : 'light'}
-              style={[StyleSheet.absoluteFill, { backgroundColor: t('tabbarBg') }]}
+              style={[StyleSheet.absoluteFill, { backgroundColor: veil(t('surfacePage'), 0.94) }]}
             />
           )
           : undefined,
-        tabBarLabelStyle: { fontFamily: POLICE.corps, fontSize: 11.5, fontWeight: '600' },
+        tabBarLabelStyle: isIOS
+          ? { fontFamily: POLICE.corps, fontSize: 11.5, fontWeight: '500', marginTop: 1 }
+          : { fontFamily: POLICE.corps, fontSize: 12, fontWeight: '600', marginTop: 4 },
         tabBarAllowFontScaling: false,
       }}
     >
       <Tabs.Screen
         name="espace"
-        options={{ title: 'Espace', tabBarActiveTintColor: violet, tabBarIcon: ({ focused }) => <IconeOnglet nom="home" actif={focused} teinte={violet} /> }}
+        options={{ title: 'Accueil', tabBarActiveTintColor: actif(hub), tabBarIcon: ({ focused }) => <IconeOnglet nom="home" actif={focused} espace="hub" /> }}
       />
       <Tabs.Screen
         name="cours"
-        options={{ title: 'Cours', tabBarActiveTintColor: bleu, tabBarIcon: ({ focused }) => <IconeOnglet nom="book" actif={focused} teinte={bleu} /> }}
-      />
-      <Tabs.Screen
-        name="repetiteur"
-        options={{ title: tuteur, tabBarActiveTintColor: violet, tabBarIcon: ({ focused }) => <IconeOnglet nom="chat" actif={focused} teinte={violet} /> }}
+        options={{ title: 'Apprendre', tabBarActiveTintColor: actif(edu), tabBarIcon: ({ focused }) => <IconeOnglet nom="book" actif={focused} espace="edu" /> }}
       />
       <Tabs.Screen
         name="club"
-        options={{ title: 'Club', tabBarActiveTintColor: violet, tabBarIcon: ({ focused }) => <IconeOnglet nom="users" actif={focused} teinte={violet} /> }}
+        options={{ title: 'Club', tabBarActiveTintColor: actif(club), tabBarIcon: ({ focused }) => <IconeOnglet nom="users" actif={focused} espace="club" /> }}
+      />
+      <Tabs.Screen
+        name="repetiteur"
+        options={{ title: tuteur, tabBarActiveTintColor: actif(club), tabBarIcon: ({ focused }) => <IconeOnglet nom="sparkles" actif={focused} espace="ia" /> }}
       />
       <Tabs.Screen
         name="profil"
-        options={{ title: 'Profil', tabBarActiveTintColor: violet, tabBarIcon: ({ focused }) => <IconeOnglet nom="user" actif={focused} teinte={violet} /> }}
+        options={{ title: 'Profil', tabBarActiveTintColor: actif(hub), tabBarIcon: ({ focused }) => <IconeOnglet nom="user" actif={focused} espace="hub" /> }}
       />
     </Tabs>
   );
 }
 
 /**
- * L'ICÔNE D'ONGLET — 220 ms, « l'état a changé ».
- *
- * Deux icônes superposées, l'une à l'encre neutre, l'autre à la teinte du territoire, en
- * fondu croisé : une couleur ne s'anime pas sur le pilote natif. Sur Android, la pilule
- * d'indicateur de Material 3 s'ouvre derrière l'icône active.
- *
- * L'onglet du répétiteur garde son glyphe de bulle : l'onde vit dans SON écran, pas dans la
- * barre, où elle deviendrait une boucle permanente sans attente derrière.
+ * L'ICÔNE D'ONGLET. iOS : 25 px, le trait s'épaissit et prend la teinte de l'espace quand
+ * l'onglet est ouvert. Android (Material 3) : pastille de 64 × 32 sur le fond doux de
+ * l'espace, qui s'ouvre en largeur (`scaleX`, pilote natif) sous une icône de 24.
  */
-function IconeOnglet({ nom, actif, teinte }: { nom: IconName; actif: boolean; teinte: string }) {
+function IconeOnglet({ nom, actif, espace }: { nom: IconName; actif: boolean; espace: Espace }) {
   const t = useToken();
+  const teinte = useTeinteDe(espace);
   const b = useBascule(actif);
+  const taille = isAndroid ? 24 : 25;
+  const allume = isAndroid ? teinte.surDoux : teinte.rv;
   return (
-    <View style={{ width: 56, height: 30, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ width: 64, height: 32, alignItems: 'center', justifyContent: 'center' }}>
       {isAndroid ? (
         <Animated.View
           style={{
-            position: 'absolute', width: 56, height: 30, borderRadius: 15,
-            backgroundColor: veil(teinte, 0.16),
+            position: 'absolute', width: 64, height: 32, borderRadius: 16,
+            backgroundColor: teinte.doux,
             opacity: b, transform: [{ scaleX: b.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }) }],
           }}
         />
       ) : null}
       <Animated.View style={{ opacity: b.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }}>
-        <Icon name={nom} size={21} color={t('ink3')} />
+        <Icon name={nom} size={taille} color={isAndroid ? t('textMuted') : t('ink3')} strokeWidth={isAndroid ? 2 : 1.9} />
       </Animated.View>
       <Animated.View style={{ position: 'absolute', opacity: b }}>
-        <Icon name={nom} size={21} color={teinte} />
+        <Icon name={nom} size={taille} color={allume} strokeWidth={isAndroid ? 2 : 2.3} />
       </Animated.View>
     </View>
   );
