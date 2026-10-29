@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Avatar, Button, ChatBubble, Field, GlassPanel, Icon, IconButton, LessonRow, Skeleton, Tag } from '@ds';
+import { Avatar, Button, ChatBubble, Field, Icon, IconButton, LessonRow, Skeleton, Tag } from '@ds';
 import { cn } from '../../../../lib/utils';
 import { useFormat } from '../../../../hooks/useFormat';
 import {
@@ -10,7 +10,7 @@ import {
 import type { Conversation, DmMessage } from '../../../../types';
 import type { useClubData } from '../../hooks/useClubData';
 import { slideUp } from '../../../../lib/animations';
-import { ClubEmptyState, ClubSectionHeader } from './_shared';
+import { ClubCard, ClubEmptyState, ClubSectionHeader } from './_shared';
 
 type ClubData = ReturnType<typeof useClubData>;
 const initialsOf = (n: string) => n.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();
@@ -113,8 +113,7 @@ export default function ClubDiscussions({ data }: { data: ClubData }) {
     const otherPhoto = activeConv.participantPhotos[otherId] ?? '';
     return (
       <motion.div variants={slideUp} initial="hidden" animate="visible">
-        <GlassPanel
-          level="flat"
+        <ClubCard
           padding={0}
           className="flex h-[calc(100svh-300px)] max-h-[680px] min-h-[360px] flex-col overflow-hidden stack:h-[calc(100dvh-220px)]"
         >
@@ -179,7 +178,7 @@ export default function ClubDiscussions({ data }: { data: ClubData }) {
               <Icon name="send" size={15} /> {t('discussions.send')}
             </Button>
           </form>
-        </GlassPanel>
+        </ClubCard>
 
         {/* La phrase du kit, prise à l'écran `ClubMembre` : ce que « signaler » déclenche. */}
         <p className="mt-3 text-small leading-relaxed text-ink-2">{t('discussions.reportNote')}</p>
@@ -204,7 +203,7 @@ export default function ClubDiscussions({ data }: { data: ClubData }) {
           )}
         />
       ) : (
-        <GlassPanel level="flat" padding="4px 18px" as="ul" className="m-0 list-none">
+        <ClubCard padding="4px 18px" as="ul" className="m-0 list-none">
           {conversations.map((c, i) => {
             const otherId = otherIdOf(c);
             const name = c.participantNames[otherId] ?? t('discussions.memberFallback');
@@ -228,7 +227,7 @@ export default function ClubDiscussions({ data }: { data: ClubData }) {
               </li>
             );
           })}
-        </GlassPanel>
+        </ClubCard>
       )}
     </motion.div>
   );

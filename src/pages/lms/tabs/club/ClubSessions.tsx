@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Button, GlassPanel, Icon, Tag } from '@ds';
+import { Button, Icon, Tag } from '@ds';
 import { useFormat } from '../../../../hooks/useFormat';
 import type { useClubData } from '../../hooks/useClubData';
 import { staggerContainer, staggerItem } from '../../../../lib/animations';
-import { ClubEmptyState } from './_shared';
+import { ClubCard, ClubEmptyState } from './_shared';
 
 type ClubData = ReturnType<typeof useClubData>;
 
@@ -49,7 +49,7 @@ export default function ClubSessions({ data }: ClubSessionsProps) {
         const upcoming = session.status === 'upcoming';
         return (
           <motion.div key={session.id} variants={staggerItem}>
-            <GlassPanel level="flat" padding={18} className="h-full">
+            <ClubCard padding={18} className="h-full">
               {session.imageUrl && (
                 <img
                   src={session.imageUrl}
@@ -104,7 +104,7 @@ export default function ClubSessions({ data }: ClubSessionsProps) {
                   </div>
                 )}
               </div>
-            </GlassPanel>
+            </ClubCard>
           </motion.div>
         );
       })}

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { EmptyState, Icon, type IconName } from '@ds';
 
 /**
@@ -49,5 +49,32 @@ export function ClubSectionHeader({
       </div>
       {action}
     </div>
+  );
+}
+
+/**
+ * LA CARTE DU CLUB — kit v3 : une tuile bento OPAQUE (blanche en clair, `#121821` sous `.dk`),
+ * filet et ombre douce. Elle remplace le faux verre (`GlassPanel level="flat"`) des onglets :
+ * « tout ce qui défile est opaque », et le seul flou de l'écran reste le chrome fixe.
+ */
+export function ClubCard({
+  children, padding = 18, className = '', style, as: Tag = 'section', ...aria
+}: {
+  children?: ReactNode;
+  padding?: number | string;
+  className?: string;
+  style?: CSSProperties;
+  as?: 'section' | 'div' | 'article' | 'li' | 'ul' | 'ol';
+  'aria-label'?: string;
+  'aria-labelledby'?: string;
+}) {
+  return (
+    <Tag
+      {...aria}
+      className={`rounded-card border border-[color:var(--line)] bg-bento shadow-v3-soft ${className}`}
+      style={{ padding: typeof padding === 'number' ? `${padding}px` : padding, ...style }}
+    >
+      {children}
+    </Tag>
   );
 }

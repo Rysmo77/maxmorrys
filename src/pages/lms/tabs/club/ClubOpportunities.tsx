@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Avatar, Button, ChipRow, Field, GlassPanel, Icon, Skeleton, Tag, TruthPanel } from '@ds';
+import { Avatar, Button, ChipRow, Field, Icon, Skeleton, Tag, TruthPanel } from '@ds';
 import { useFormat } from '../../../../hooks/useFormat';
 import { getClubOpportunities, createClubOpportunity, deleteClubOpportunity } from '../../../../lib/firestore';
 import type { ClubOpportunity } from '../../../../types';
 import { staggerContainer, staggerItem } from '../../../../lib/animations';
-import { ClubEmptyState, ClubSectionHeader } from './_shared';
+import { ClubCard, ClubEmptyState, ClubSectionHeader } from './_shared';
 
 type ClubData = ReturnType<typeof import('../../hooks/useClubData').useClubData>;
 
@@ -110,8 +110,15 @@ export default function ClubOpportunities({ data }: { data: ClubData }) {
         )}
       />
 
+      {/* Kit v3 (doc 04) : l'avertissement est AU-DESSUS des offres, pas dans une note de bas
+          de page — c'est avant de répondre qu'il sert. */}
+      <p role="note" className="m-0 flex items-start gap-2 rounded-m border border-dashed border-[color:var(--line)] px-3.5 py-3 text-meta-2 leading-[1.5] text-ink-2">
+        <span aria-hidden="true" className="mt-px flex-none text-digitalise-txt"><Icon name="info" size={16} /></span>
+        {t('opportunities.warning')}
+      </p>
+
       {showForm && (
-        <GlassPanel level="flat" padding={18}>
+        <ClubCard padding={18}>
           <Field
             label={t('opportunities.titleLabel')}
             value={form.title}
@@ -162,7 +169,7 @@ export default function ClubOpportunities({ data }: { data: ClubData }) {
               <Icon name="send" size={15} /> {t('opportunities.publish')}
             </Button>
           </div>
-        </GlassPanel>
+        </ClubCard>
       )}
 
       {items.length > 0 && (
@@ -192,7 +199,7 @@ export default function ClubOpportunities({ data }: { data: ClubData }) {
         <div className="space-y-3">
           {filtered.map((item) => (
             <motion.div key={item.id} variants={staggerItem}>
-              <GlassPanel level="flat" padding={18}>
+              <ClubCard padding={18}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Tag>{t(TYPE_LABEL_KEYS[item.type])}</Tag>
@@ -222,7 +229,7 @@ export default function ClubOpportunities({ data }: { data: ClubData }) {
                   </div>
                   <span className="truncate text-meta-2 font-semibold text-transforme stack:max-w-[45%]">{item.contact}</span>
                 </div>
-              </GlassPanel>
+              </ClubCard>
             </motion.div>
           ))}
         </div>

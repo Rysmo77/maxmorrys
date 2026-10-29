@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Avatar, Button, ChipRow, Field, GlassPanel, Icon, Num, Skeleton, Tag } from '@ds';
+import { Avatar, Button, Field, Icon, Num, Skeleton, Tag } from '@ds';
 import MediaRecorderInput from '../../../../components/lms/MediaRecorderInput';
 import { getActiveClubChallenge } from '../../../../lib/firestore';
 import type { ClubDigitosChallenge } from '../../../../types';
 import { cn } from '../../../../lib/utils';
 import { useFormat } from '../../../../hooks/useFormat';
-import { ClubEmptyState } from './_shared';
+import { ClubCard, ClubEmptyState } from './_shared';
 import { CLUB_CATEGORIES, MOOD_OPTIONS, MOOD_LABEL_KEYS, SHARE_PLATFORMS } from '../../hooks/useClubData';
 import type { useClubData } from '../../hooks/useClubData';
 import { slideUp } from '../../../../lib/animations';
@@ -102,7 +102,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
     <motion.div className="space-y-4" variants={slideUp} initial="hidden" animate="visible">
       {/* ── Le défi en cours ────────────────────────────────────────────────── */}
       {challenge && (
-        <GlassPanel level="flat" padding={16}>
+        <ClubCard padding={18}>
           <div className="flex items-start gap-3">
             <span
               aria-hidden="true"
@@ -122,11 +122,11 @@ export default function ClubFeed({ data }: ClubFeedProps) {
               )}
             </div>
           </div>
-        </GlassPanel>
+        </ClubCard>
       )}
 
       {/* ── Le composeur ────────────────────────────────────────────────────── */}
-      <GlassPanel level="flat" padding={16}>
+      <section className="mm-composer" aria-label={t('feed.composerLabel')}>
         <div className="flex items-start gap-3">
           {photoURL
             ? <img src={photoURL} alt="" className="h-11 w-11 flex-none rounded-full object-cover" />
@@ -315,18 +315,25 @@ export default function ClubFeed({ data }: ClubFeedProps) {
             </div>
           </div>
         </div>
-      </GlassPanel>
+      </section>
 
       {/* ── Le filtre par catégorie ─────────────────────────────────────────── */}
-      <ChipRow
-        label={t('feed.filterLabel')}
-        options={filterOptions}
-        value={activeFilterLabel}
-        onChange={(option) => {
-          const idx = filterOptions.indexOf(option);
-          setClubCategoryFilter(idx <= 0 ? 'all' : CLUB_CATEGORIES[idx - 1].id);
-        }}
-      />
+      {/* Kit v3 : des pastilles `mm-chipd`, la pressée passe à l'encre. Elles défilent au geste. */}
+      <div role="group" aria-label={t('feed.filterLabel')} className="-mx-1 overflow-x-auto px-1">
+        <div className="flex w-max gap-2">
+          {filterOptions.map((option, idx) => (
+            <button
+              key={option}
+              type="button"
+              className="mm-chipd cursor-pointer whitespace-nowrap"
+              aria-pressed={option === activeFilterLabel}
+              onClick={() => setClubCategoryFilter(idx <= 0 ? 'all' : CLUB_CATEGORIES[idx - 1].id)}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* ── Les publications ───────────────────────────────────────────────── */}
       {filtered.length === 0 ? (
@@ -345,7 +352,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
             const mood = moodLabel(post.mood);
 
             return (
-              <GlassPanel key={post.id} level="flat" padding={16}>
+              <article key={post.id} className="mm-dpost">
                 <div className="flex items-start gap-3">
                   {post.userPhoto
                     ? <img src={post.userPhoto} alt="" loading="lazy" className="h-11 w-11 flex-none rounded-full object-cover" />
@@ -362,14 +369,14 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                       <span className="text-meta-2 text-ink-2">· {formatDate(post.createdAt)}</span>
                       {mood && <Tag>{mood}</Tag>}
                       {catInfo && (
-                        <span className="inline-flex items-center gap-1 text-meta-2 text-ink-2">
+                        <span className="mm-chipd h-6 px-2.5">
                           <span aria-hidden="true" className={cn('h-1.5 w-1.5 rounded-full', catInfo.dot)} />
                           {t(catInfo.labelKey)}
                         </span>
                       )}
                     </div>
 
-                    <p className="mt-1.5 whitespace-pre-wrap break-words text-body leading-relaxed text-ink-2">{post.content}</p>
+                    <p className="mt-2.5 whitespace-pre-wrap break-words text-body leading-relaxed text-ink">{post.content}</p>
 
                     {post.mediaUrl && post.mediaType === 'video' && (
                       <video src={post.mediaUrl} controls playsInline className="mt-3 max-h-80 w-full rounded-m border border-[color:var(--line)]" />
@@ -428,49 +435,52 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                       );
                     })()}
 
-                    {/* Barre d'action */}
-                    <div className="mt-3 flex max-w-md items-center justify-between">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleComments(post.id)}
-                        aria-expanded={commentsOpen}
-                        className={cn(
-                          'mm-touch-extend flex items-center gap-1.5 rounded-pill px-2 py-1 text-meta-2 font-medium transition-colors duration-ui ease-ds',
-                          commentsOpen ? 'text-transforme' : 'text-ink-2 hover:text-transforme',
-                        )}
-                      >
-                        <Icon name="comment" size={17} />
-                        {commentCount > 0 && <Num value={commentCount} source="db" asOf={asOf} />}
-                        <span className="sr-only">{t('feed.commentsAction')}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleRepost(post.id, !reposted)}
-                        aria-pressed={reposted}
-                        className={cn(
-                          'mm-touch-extend flex items-center gap-1.5 rounded-pill px-2 py-1 text-meta-2 font-medium transition-colors duration-ui ease-ds',
-                          reposted ? 'text-digitalise-txt' : 'text-ink-2 hover:text-digitalise-txt',
-                        )}
-                      >
-                        <Icon name="repeat" size={17} />
-                        {repostCount > 0 && <Num value={repostCount} source="db" asOf={asOf} />}
-                        <span className="sr-only">{t('feed.repostAction')}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleLikePost(post.id, !liked)}
-                        aria-pressed={liked}
-                        className={cn(
-                          'mm-touch-extend flex items-center gap-1.5 rounded-pill px-2 py-1 text-meta-2 font-medium transition-colors duration-ui ease-ds',
-                          liked ? 'text-corail-txt' : 'text-ink-2 hover:text-corail-txt',
-                        )}
-                      >
-                        <Icon name="heart" size={17} />
-                        {likeCount > 0 && <Num value={likeCount} source="db" asOf={asOf} />}
-                        <span className="sr-only">{t('feed.likeAction')}</span>
-                      </button>
+                    {/* Barre d'action — pastilles `mm-dpost__acts` du kit ; le partage reste HORS du groupe,
+                       sinon le sélecteur descendant du kit habillerait aussi les entrées de son menu. */}
+                    <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
+                      <div className="mm-dpost__acts m-0 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleComments(post.id)}
+                          aria-expanded={commentsOpen}
+                          className={cn(
+                            'mm-touch-extend transition-colors duration-ui ease-ds',
+                            commentsOpen ? 'text-transforme' : 'hover:text-transforme',
+                          )}
+                        >
+                          <Icon name="comment" size={17} />
+                          {commentCount > 0 && <Num value={commentCount} source="db" asOf={asOf} />}
+                          <span className="sr-only">{t('feed.commentsAction')}</span>
+                        </button>
+  
+                        <button
+                          type="button"
+                          onClick={() => handleRepost(post.id, !reposted)}
+                          aria-pressed={reposted}
+                          className={cn(
+                            'mm-touch-extend transition-colors duration-ui ease-ds',
+                            !reposted && 'hover:text-digitalise-txt',
+                          )}
+                        >
+                          <Icon name="repeat" size={17} />
+                          {repostCount > 0 && <Num value={repostCount} source="db" asOf={asOf} />}
+                          <span className="sr-only">{t('feed.repostAction')}</span>
+                        </button>
+  
+                        <button
+                          type="button"
+                          onClick={() => handleLikePost(post.id, !liked)}
+                          aria-pressed={liked}
+                          className={cn(
+                            'mm-touch-extend transition-colors duration-ui ease-ds',
+                            !liked && 'hover:text-corail-txt',
+                          )}
+                        >
+                          <Icon name="heart" size={17} />
+                          {likeCount > 0 && <Num value={likeCount} source="db" asOf={asOf} />}
+                          <span className="sr-only">{t('feed.likeAction')}</span>
+                        </button>
+                      </div>
 
                       <div className="relative">
                         <button
@@ -478,7 +488,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                           aria-label={t('infos.share')}
                           aria-expanded={shareMenuOpen === post.id}
                           onClick={() => { setShareMenuOpen(shareMenuOpen === post.id ? null : post.id); setPostMenuOpen(null); }}
-                          className="mm-touch-extend flex items-center rounded-pill px-2 py-1 text-ink-2 transition-colors duration-ui ease-ds hover:text-transforme"
+                          className="mm-touch-extend flex h-[34px] items-center rounded-pill border border-[color:var(--line)] px-3 text-ink-2 transition-colors duration-ui ease-ds hover:text-transforme"
                         >
                           {copiedPostId === post.id
                             ? <span className="text-ok"><Icon name="check" size={17} /></span>
@@ -609,7 +619,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                     </form>
                   </div>
                 )}
-              </GlassPanel>
+              </article>
             );
           })}
         </div>
