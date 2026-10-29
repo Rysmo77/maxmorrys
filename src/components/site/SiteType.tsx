@@ -155,7 +155,9 @@ export function SiteDisplay({ lines, size = 64, as: Tag = 'h1', from = 0, wrap =
                 j % 2 === 1
                   ? <span key={j} className="mm-arc">{part}</span>
                   : part)
-            : line}
+            // Sans arc, les crochets ne s'affichent pas pour autant : le fragment reste
+            // dans la ligne, sans sa peinture.
+            : segments(line).join('')}
         </span>
       ))}
     </Tag>
