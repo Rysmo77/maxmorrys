@@ -1,7 +1,7 @@
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Icon, Skeleton } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleKpi } from '../../components/console';
-import ClubAgendaPanel from './components/ClubAgendaPanel';
+import { Num, Skeleton } from '@ds';
+import { ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { useAdminClub } from './hooks/useAdminClub';
 import type { AdminClubTab } from './hooks/useAdminClub';
 import ClubSubscriptionsTab from './components/ClubSubscriptionsTab';
@@ -13,49 +13,61 @@ import ClubChallengesTab from './components/ClubChallengesTab';
 import ClubMembersAdminTab from './components/ClubMembersAdminTab';
 import ClubOpportunitiesAdminTab from './components/ClubOpportunitiesAdminTab';
 import ClubReportsAdminTab from './components/ClubReportsAdminTab';
+import {
+  CBtn, ConsoleScreen, ConsoleStack, ConsoleTabs, ConsoleToolbar, HonestEmpty,
+} from './components/ConsoleParts';
 
 /**
- * ── CLUB DES DIGITOS — motif de console ─────────────────────────────────────────────
+ * CLUB · COMMUNAUTÉ — maquette `Console-Club` (+ `-mobile`), passe 2, lot D.
  *
- * LE KIT NE DESSINE PAS CET ÉCRAN ET NE LUI DONNE PAS DE PIPELINE. Les quatorze pipelines
- * de `PipelinesRestants` couvrent les écrans du catalogue, pas ce concentrateur ; celui qui
- * s'en approche — `Défis : tout · en cours · clos` — ne décrit qu'UN de ses neuf onglets,
- * celui des défis, qui vit dans son propre composant.
+ * La maquette est une VUE D'ENSEMBLE : quatre relevés (sessions tenues contre l'engagement
+ * de deux par mois, relevé 90 jours, adhésions actives, en attente), puis Sessions et
+ * Abonnements à gauche, Défi · Réglages · En construction à droite. Elle est l'onglet par
+ * défaut ; les neuf sections de gestion qui existaient restent derrière les onglets
+ * `mm-ctabs` (aucun écran perdu, aucune logique changée).
  *
- * LA ZONE 1 REÇOIT DONC LES NEUF SECTIONS, comme sur l'écran des réglages, et pour la même
- * raison : le filtre répond à « où est ce que je cherche », et ici la réponse est une
- * section. Les files par statut de chaque section (un abonnement en attente, un défi clos)
- * vivent dans la section qui les tient — c'est écrit dans le pied.
- *
- * LES COMPTEURS NE S'INVENTENT PAS. Cinq sections sont chargées par `useAdminClub` et
- * portent leur nombre ; les quatre autres chargent à l'ouverture de leur onglet et n'en
- * portent AUCUN. Écrire « défis 0 » sur une collection jamais lue serait un zéro fabriqué —
- * exactement ce que la règle 6 interdit.
- *
- * CE QUI A CHANGÉ AVEC LA MISE AU MOTIF DES NEUF SECTIONS. Six d'entre elles portent
- * désormais LEUR file par statut — abonnements, événements, sessions, défis, profils,
- * signalements — et trois n'en portent pas parce que leur donnée n'a pas d'état :
- * publications, infos exclusives, opportunités. Le pied de cet écran disait « AUCUNE ne
- * porte de filtre par statut » ; il a été réécrit, parce qu'un pied qui décrit une file
- * inexistante — ou qui nie une file existante — fait exactement ce que le motif cherche à
- * empêcher.
- *
- * LA DATE DE RELEVÉ VIENT DU CROCHET. Elle était posée ici par un effet sur la bascule de
- * `loading` : c'était donc la date du RE-RENDU, et elle se remettait à jour même après un
- * chargement en échec. `useAdminClub` l'écrit maintenant au retour de la requête, avec les
- * données qu'elle date.
- * ────────────────────────────────────────────────────────────────────────────────────
+ * Tout chiffre est lu par `useAdminClub` (abonnements, sessions). Les coups de cœur des
+ * défis, le classement facultatif et la récompense de parrainage n'ont pas de producteur :
+ * leurs cartes le disent. « En construction » liste ce que le PRD garde désactivé.
  */
+type View = 'overview' | AdminClubTab;
+
+/** L'engagement public : deux sessions par mois, relevé sur 90 jours (soit six). */
+const PER_MONTH = 2;
+
 export default function AdminClubDigitos() {
   const { t } = useTranslation('adminClub');
+  const { t: te } = useTranslation('admin');
+  const k = (s: string, o?: Record<string, unknown>) => te(`p2.clubScreen.${s}`, o);
   const club = useAdminClub();
+  const [view, setView] = useState<View>('overview');
+  const asOf = club.loadedAt ?? new Date();
 
-  /*
-    La date de relevé des trois cases : tant qu'aucun chargement n'a abouti, il n'y a pas de
-    relevé — les cases affichent « non relevé » plutôt qu'un zéro qui se ferait passer pour
-    une mesure. Elle vient du crochet, où elle est écrite au RETOUR de la requête.
-  */
-  const asOf = club.loadedAt;
+  const go = (v: View) => {
+    setView(v);
+    if (v !== 'overview') club.setTab(v);
+  };
+
+  const now = asOf.getTime();
+  const stats = useMemo(() => {
+    const monthStart = new Date(asOf.getFullYear(), asOf.getMonth(), 1).getTime();
+    const d90 = now - 90 * 86_400_000;
+    const at = (iso: string) => new Date(iso).getTime();
+    const held = club.sessions.filter((s) => at(s.scheduledAt) <= now);
+    const in15 = now + 15 * 86_400_000;
+    return {
+      heldMonth: held.filter((s) => at(s.scheduledAt) >= monthStart).length,
+      held90: held.filter((s) => at(s.scheduledAt) >= d90).length,
+      expiringSoon: club.subscriptions.filter((s) => s.status === 'active' && at(s.expiresAt) >= now && at(s.expiresAt) <= in15).length,
+    };
+  }, [club.sessions, club.subscriptions, asOf, now]);
+
+  const sessionsShown = useMemo(
+    () => [...club.sessions].sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt)).slice(0, 6),
+    [club.sessions],
+  );
+  const loaded = Boolean(club.loadedAt);
+  const monthName = asOf.toLocaleDateString(te('p2.clubScreen.locale'), { month: 'long' });
 
   const sections: { id: AdminClubTab; label: string; count?: number }[] = [
     { id: 'subscriptions', label: t('page.tabs.subscriptions'), count: club.subscriptions.length },
@@ -68,61 +80,127 @@ export default function AdminClubDigitos() {
     { id: 'opportunities', label: t('page.tabs.opportunities') },
     { id: 'reports', label: t('page.tabs.reports') },
   ];
-  const bar = sections.map((s) => ({
-    ...s,
-    text: s.count === undefined ? s.label : `${s.label} ${s.count}`,
-  }));
+
+  const tile = (label: string, value: number | null) => (
+    <div className="rounded-m p-3" style={{ background: 'var(--paper-2)' }}>
+      <span className="text-[11.5px] text-ink-3">{label}</span>
+      <b className="mt-1 block text-[22px]"><Num value={value} source="db" asOf={asOf} /></b>
+    </div>
+  );
 
   return (
-    <ConsolePage title={t('page.title')} sub={t('page.sub')}>
-      {/* ── LA TROISIÈME COLONNE — `handoff_tableaux_de_bord` § EvenementsDesktop ───────
-          Elle porte la prochaine échéance et l'engagement qui la gouverne. Le pourquoi
-          de cet écart de structure — la maquette a un écran « Événements » dédié, ce
-          dépôt a un concentrateur à neuf sections — est argumenté dans `ClubAgendaPanel`. */}
-      <ConsoleSplit
-        detailLabel={t('panel.eyebrow')}
-        detail={<ClubAgendaPanel events={club.events} sessions={club.sessions} loadedAt={club.loadedAt} />}
-      >
-      <ConsoleFilter
-        stages={bar.map((s) => s.text)}
-        active={bar.find((s) => s.id === club.tab)?.text}
-        onSelect={(text) => {
-          const hit = bar.find((s) => s.text === text);
-          if (hit) club.setTab(hit.id);
-        }}
+    <ConsoleScreen label={t('page.title')}>
+      <ConsoleToolbar>
+        <CBtn icon="repeat" onClick={() => { void club.load(); }} disabled={club.loading}>{t('page.refresh')}</CBtn>
+      </ConsoleToolbar>
+
+      <div className="grid grid-cols-2 gap-2.5 wide:grid-cols-4 wide:gap-3">
+        <ConsoleKpi icon="video" label={k('kpiHeld')} value={loaded ? stats.heldMonth : null} unit={`/ ${PER_MONTH}`} source="db" asOf={asOf}
+          sourceLine={k('kpiHeldSrc', { month: monthName, count: PER_MONTH })} />
+        <ConsoleKpi icon="calendar" label={k('kpi90')} value={loaded ? stats.held90 : null} unit={`/ ${PER_MONTH * 3}`} source="db" asOf={asOf}
+          sourceLine={k('kpi90Src')} />
+        <ConsoleKpi icon="crown" label={k('kpiActive')} value={loaded ? club.activeCount : null} source="db" asOf={asOf}
+          sourceLine={k('kpiActiveSrc')} />
+        <ConsoleKpi icon="clock" label={k('kpiPending')} value={loaded ? club.pendingCount : null} source="db" asOf={asOf}
+          sourceLine={t('page.stats.pendingFoot')} />
+      </div>
+
+      <ConsoleTabs<View>
         label={t('page.sectionLabel')}
+        value={view}
+        onChange={go}
+        items={[
+          { id: 'overview', label: k('overview') },
+          ...sections.map((s) => ({
+            id: s.id as View,
+            label: s.label,
+            count: s.count === undefined || !loaded ? undefined : <Num value={s.count} source="db" asOf={asOf} />,
+          })),
+        ]}
       />
 
-      <div className="mt-4 grid gap-3 stack:grid-cols-2">
-        <ConsoleKpi
-          label={t('page.stats.activeMembers')}
-          value={asOf ? club.activeCount : null}
-          source="db"
-          asOf={asOf ?? new Date()}
-        />
-        <ConsoleKpi
-          label={t('page.stats.pendingPayment')}
-          value={asOf ? club.pendingCount : null}
-          source="db"
-          asOf={asOf ?? new Date()}
-          foot={t('page.stats.pendingFoot')}
-        />
-        <ConsoleKpi
-          label={t('page.stats.revenue')}
-          value={asOf ? club.revenue : null}
-          unit="FCFA"
-          source={{ cite: t('page.stats.revenueCite') }}
-          asOf={asOf ?? new Date()}
-          foot={t('page.stats.revenueFoot')}
-        />
-      </div>
+      {view === 'overview' && (
+        <div className="grid min-w-0 items-start gap-3 wide:grid-cols-2 wide:gap-3.5">
+          <ConsoleStack>
+            <ConsoleCard as="section" title={k('sessionsTitle')} aside={<CBtn tone="club" icon="plus" onClick={() => { go('sessions'); club.openSessionForm(); }}>{k('planSession')}</CBtn>}>
+              {club.loading ? <Skeleton height={100} /> : sessionsShown.length === 0 ? (
+                <HonestEmpty icon="video" title={k('sessionsEmpty')} />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="mm-ctable">
+                    <thead>
+                      <tr>
+                        <th scope="col">{k('colDate')}</th>
+                        <th scope="col">{k('colSession')}</th>
+                        <th scope="col">{k('colStatus')}</th>
+                        <th scope="col"><span className="sr-only">{k('colAction')}</span></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sessionsShown.map((s) => {
+                        const past = new Date(s.scheduledAt).getTime() <= now;
+                        return (
+                          <tr key={s.id}>
+                            <td className="whitespace-nowrap"><Num value={new Date(s.scheduledAt).toLocaleDateString(te('p2.clubScreen.locale'), { day: '2-digit', month: '2-digit' })} source="db" asOf={asOf} /></td>
+                            <td><b>{s.title}</b></td>
+                            <td><ConsoleStatus tone={past ? 'ok' : 'info'}>{k(past ? 'held' : 'upcoming')}</ConsoleStatus></td>
+                            <td className="text-right"><CBtn onClick={() => { go('sessions'); club.openSessionForm(s); }}>{k('open')}</CBtn></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </ConsoleCard>
 
-      <div className="mt-4 flex justify-end">
-        <Button size="sm" tone="quiet" onClick={() => { void club.load(); }} loading={club.loading}>
-          <Icon name="repeat" size={15} /> {t('page.refresh')}
-        </Button>
-      </div>
+            <ConsoleCard as="section" title={k('subsTitle')}>
+              <div className="grid grid-cols-3 gap-2">
+                {tile(k('subsActive'), loaded ? club.activeCount : null)}
+                {tile(k('subsSoon'), loaded ? stats.expiringSoon : null)}
+                {tile(k('subsPending'), loaded ? club.pendingCount : null)}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <CBtn onClick={() => go('subscriptions')}>{k('subsManage')}</CBtn>
+              </div>
+            </ConsoleCard>
+          </ConsoleStack>
 
+          <ConsoleStack>
+            <ConsoleCard as="section" title={k('challengeTitle')}>
+              <HonestEmpty icon="trophy" title={k('challengeEmpty')} body={k('challengeBody')} action={<CBtn onClick={() => go('challenges')}>{k('challengeOpen')}</CBtn>} />
+            </ConsoleCard>
+
+            <ConsoleCard as="section" title={k('settingsTitle')}>
+              <div className="mm-mrow">
+                <span className="flex-1 text-[13.5px]">{k('ranking')}</span>
+                <ConsoleStatus tone="mute">{k('notMeasured')}</ConsoleStatus>
+              </div>
+              <div className="mm-mrow">
+                <span className="flex-1 text-[13.5px]">{k('referralReward')}</span>
+                <ConsoleStatus tone="warn">{k('toDefine')}</ConsoleStatus>
+              </div>
+              <div className="mm-mrow">
+                <span className="flex-1 text-[13.5px]">{k('infos')}</span>
+                <CBtn onClick={() => { go('infos'); club.openInfoForm(); }}>{k('publishInfo')}</CBtn>
+              </div>
+            </ConsoleCard>
+
+            <ConsoleCard as="section" title={k('buildTitle')} aside={<span className="hidden stack:inline">{k('buildAside')}</span>}>
+              {(['digest', 'replays', 'circles'] as const).map((id) => (
+                <div key={id} className="mm-mrow">
+                  <span className="flex-1 text-[13.5px]">{k(`build.${id}`)}</span>
+                  <ConsoleStatus tone="mute">{k('building')}</ConsoleStatus>
+                  <CBtn disabled>{k(`buildCta.${id}`)}</CBtn>
+                </div>
+              ))}
+            </ConsoleCard>
+          </ConsoleStack>
+        </div>
+      )}
+
+      {view !== 'overview' && (
+      <>
       {club.loading && (
         <ConsoleCard padding="14px 18px" className="mt-4">
           {[0, 1, 2].map((i) => (
@@ -203,9 +281,8 @@ export default function AdminClubDigitos() {
       {!club.loading && club.tab === 'opportunities' && <ClubOpportunitiesAdminTab />}
       {!club.loading && club.tab === 'reports' && <ClubReportsAdminTab />}
       </div>
-
-      <ConsoleScope>{t('page.scope')}</ConsoleScope>
-      </ConsoleSplit>
-    </ConsolePage>
+      </>
+      )}
+    </ConsoleScreen>
   );
 }

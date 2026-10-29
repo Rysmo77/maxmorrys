@@ -1,50 +1,40 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
-import { Avatar, Button, EmptyState, Field, Icon, LessonRow, Num, Skeleton, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
+import { Field, Num, Skeleton, useToast } from '@ds';
+import { ConsoleCard, ConsoleStatus } from '../../components/console';
 import UserPanel from './components/UserPanel';
-import { SiteEyebrow } from '../../components/site';
 import { Pagination } from '@/components/dialogs';
 import { usePagination } from '../../hooks/usePagination';
 import { useFormat } from '../../hooks/useFormat';
-import { useAdminUsers } from './hooks/useAdminUsers';
+import { useAdminUsers, type EditTab } from './hooks/useAdminUsers';
 import { UserEditModal, CreateUserModal } from './components/UserEditModal';
-import type { User } from '../../types';
+import { getAllClubSubscriptions } from '../../lib/firestore';
+import { captureError } from '../../lib/sentry';
+import type { ClubDigitosSubscription, User } from '../../types';
+import {
+  CBtn, ConsoleChips, ConsoleGrid, ConsoleScreen, ConsoleToolbar, HonestEmpty,
+} from './components/ConsoleParts';
+import { initialsOf } from './components/consoleUtils';
 
 /**
- * LES COMPTES, SUR LE MOTIF DE CONSOLE.
+ * COMPTES — maquette `Console-Comptes` (+ `-mobile`), passe 2, lot D.
  *
- * ⚠️ LE PIPELINE DU KIT NE PEUT PAS ÊTRE REPRIS TEL QUEL, ET C'EST UN MANQUE DE DONNÉES,
- * PAS UN CHOIX DE STYLE. Le kit annonce « tout · apprenants · admins · suspendus ». Les
- * trois premières étapes se lisent en base — `User.role` vaut `student`, `admin` ou
- * `support`. La quatrième n'existe nulle part : ni `User`, ni les règles Firestore, ni les
- * Cloud Functions ne portent d'état suspendu, et rien dans le dépôt ne permet d'en compter
- * un. Afficher « suspendus » aurait produit un zéro PERMANENT que l'opérateur lirait comme
- * « personne n'est suspendu » alors qu'il faut lire « la suspension n'existe pas » — la
- * confusion exacte que <Num> a été écrit pour empêcher.
+ * « Créer un compte » en tête · la carte « Comptes » (puces de filtre comptées, table
+ * Compte / Rôle / Club) · à droite la fiche du compte sélectionné, collante.
  *
- * L'étape est donc remplacée par `support`, qui, elle, se compte — et le rôle support est
- * précisément celui dont dépend le garde de cette console (`lib/adminAccess`). Ce que la
- * quatrième étape du kit promettait est écrit noir sur blanc dans le pied de l'écran.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * LA TROISIÈME COLONNE — `handoff_tableaux_de_bord` § UtilisateursDesktop
- *
- * · LA FICHE SE LIT SANS OUVRIR DE MODALE. Voir `UserPanel`. Il ne montre QUE ce que le
- *   document utilisateur porte déjà : aucune lecture de plus à chaque changement de
- *   sélection, dans un écran fait pour faire défiler la file.
- *
- * · ET LA LIGNE REDEVIENT CONFORME. Elle portait une étiquette de rôle ET un bouton
- *   « Gérer » — deux contrôles pour une ligne, ce que le motif interdit, et un bouton dans
- *   le `trailing` d'un `LessonRow` qu'on rend maintenant cliquable serait un bouton
- *   imbriqué. « Gérer » part dans le panneau ; la ligne ne fait plus que sélectionner.
+ * Les colonnes « Cohorte » et « Dernière action » de la maquette ne sont pas posées :
+ * aucune des deux n'est relevée par compte (pas de cohortes en base, pas de journal).
+ * La colonne « Inscription » les remplace, parce qu'elle est lue. Le statut Club vient
+ * des abonnements (`clubSubscriptions`), lus une fois.
  */
 
-type Stage = 'all' | User['role'];
+type Chip = 'all' | 'admin' | 'student' | 'support' | 'clubActive' | 'clubPending';
 
 export default function AdminUsers() {
   const { t } = useTranslation('admin');
+  const { t: te } = useTranslation('admin');
+  const k = (s: string, o?: Record<string, unknown>) => te(`p2.accounts.${s}`, o);
   const { locale } = useFormat();
   const { addToast } = useToast();
   const state = useAdminUsers(addToast);
@@ -56,245 +46,191 @@ export default function AdminUsers() {
   };
 
   const {
-    users, loading, search, setSearch, filtered, load,
-    setEditUser,
-    openEditUser,
-    showAddUser, setShowAddUser,
+    users, loading, search, setSearch, filtered,
+    setEditUser, openEditUser, showAddUser, setShowAddUser,
   } = state;
 
-  /** Zone 1 — les quatre étapes du kit, dont la quatrième est celle qui a une source. */
-  const [stage, setStage] = useState<Stage>('all');
-  /** Le compte ouvert dans le panneau. `null` = aucun, ce que le panneau sait dire. */
+  const [chip, setChip] = useState<Chip>('all');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
-  /*
-    ── LE TÉLÉPHONE GARDE EXACTEMENT L'ÉCRAN QU'IL AVAIT ────────────────────────────
-    `ConsoleSplit` n'arme sa grille qu'à partir de 1080 px ; en dessous, le panneau
-    redevient un bloc EMPILÉ SOUS la liste. Pour un panneau informatif c'est sans
-    conséquence — c'est le cas du tableau de bord depuis le premier lot. Pour un panneau
-    qui porte la seule ACTION de l'écran, ça l'est : toucher une ligne pousserait ce
-    qu'on vient chercher hors de l'écran, derrière toute la longueur de la file.
-
-    Le panneau n'est donc monté qu'au-delà de 1080 px, et sous cette largeur la ligne
-    refait exactement ce qu'elle faisait avant. Un seul contenu, deux véhicules — c'est
-    la même règle que `TutorPanel` applique côté espace apprenant, pour une raison
-    voisine : ce qui coûte quelque chose ne se cache pas en CSS, il ne se monte pas.
-  */
+  const [subs, setSubs] = useState<Map<string, ClubDigitosSubscription> | null>(null);
+  /* L'onglet de la fiche à ouvrir APRÈS que la fiche a son compte : l'action « Octroi
+     gracieux » ouvre la fiche sur ses formations, « quota Rysmo » sur son quota. */
+  const [pendingTab, setPendingTab] = useState<EditTab | null>(null);
   const isWide = useMediaQuery('(min-width: 1080px)');
-  const stageLabels: Record<Stage, string> = {
-    all: t('users.stageAll'),
-    student: t('users.stageStudents'),
-    admin: t('users.stageAdmins'),
-    support: t('users.stageSupport'),
-  };
-  const stages: Stage[] = ['all', 'student', 'admin', 'support'];
-  const tileLabels: Record<Stage, string> = {
-    all: t('users.tileAll'),
-    student: t('users.tileStudents'),
-    admin: t('users.tileAdmins'),
-    support: t('users.tileSupport'),
-  };
 
-  /** Le relevé date de la dernière réponse de la requête, pas du rendu : une case de
-   *  console porte la date de sa MESURE. */
   const [asOf, setAsOf] = useState(() => new Date());
   useEffect(() => { if (!loading) setAsOf(new Date()); }, [users, loading]);
 
-  /** Les compteurs portent sur la BASE ENTIÈRE, pas sur ce que la recherche laisse voir. */
-  const counts = useMemo(() => ({
-    all: users.length,
-    student: users.filter((u) => u.role === 'student').length,
-    admin: users.filter((u) => u.role === 'admin').length,
-    support: users.filter((u) => u.role === 'support').length,
-  }), [users]);
+  useEffect(() => {
+    getAllClubSubscriptions()
+      .then((list) => {
+        /* Le dernier abonnement de chaque personne fait foi. */
+        const m = new Map<string, ClubDigitosSubscription>();
+        [...list].sort((a, b) => (a.startedAt ?? '').localeCompare(b.startedAt ?? '')).forEach((s) => m.set(s.userId, s));
+        setSubs(m);
+      })
+      .catch((e: unknown) => { captureError(e); setSubs(null); });
+  }, []);
 
-  // `filtered` porte déjà la recherche du hook ; l'étape s'y ajoute sans la remplacer.
-  const shown = useMemo(
-    () => (stage === 'all' ? filtered : filtered.filter((u) => u.role === stage)),
-    [filtered, stage],
-  );
+  useEffect(() => {
+    if (pendingTab && state.editUser) {
+      state.handleEditTabChange(pendingTab);
+      setPendingTab(null);
+    }
+  }, [pendingTab, state]);
 
+  const clubOf = (u: User) => subs?.get(u.uid) ?? null;
+  const match = (u: User, c: Chip) => {
+    if (c === 'all') return true;
+    if (c === 'clubActive') return clubOf(u)?.status === 'active';
+    if (c === 'clubPending') return clubOf(u)?.status === 'pending';
+    return u.role === c;
+  };
+
+  const counts = useMemo(() => {
+    const out = {} as Record<Chip, number>;
+    (['all', 'admin', 'student', 'support', 'clubActive', 'clubPending'] as Chip[]).forEach((c) => {
+      out[c] = users.filter((u) => match(u, c)).length;
+    });
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [users, subs]);
+
+  const shown = useMemo(() => filtered.filter((u) => match(u, chip)), [filtered, chip, subs]); // eslint-disable-line react-hooks/exhaustive-deps
   const { paged, page, totalPages, setPage } = usePagination(shown);
-
-  /* La sélection suit la liste VISIBLE : un filtre qui masque la ligne ouverte laisserait un
-     panneau qui parle d'un compte devenu invisible. Le repli est la première ligne de la
-     page courante — jamais rien tant qu'il y a quelqu'un à montrer. */
   const selected = shown.find((u) => u.uid === selectedUid) ?? paged[0] ?? null;
 
+  const chips: { id: Chip; label: string; count?: ReactNode }[] = ([
+    { id: 'all', label: k('chipAll') },
+    { id: 'admin', label: k('chipAdmins') },
+    { id: 'student', label: k('chipStudents') },
+    { id: 'support', label: k('chipSupport') },
+    ...(subs ? [
+      { id: 'clubActive' as const, label: k('chipClubActive') },
+      { id: 'clubPending' as const, label: k('chipClubPending') },
+    ] : []),
+  ] as { id: Chip; label: string }[]).map((c) => ({ ...c, count: loading ? undefined : <Num value={counts[c.id]} source="db" asOf={asOf} /> }));
+
+  const roleTag = (u: User) => (
+    <ConsoleStatus tone={u.role === 'student' ? 'mute' : 'club'}>{roleLabels[u.role]}</ConsoleStatus>
+  );
+  const clubTag = (u: User) => {
+    const s = clubOf(u);
+    if (!subs) return <Num value={null} source="db" asOf={asOf} />;
+    if (!s) return <span className="text-ink-3">—</span>;
+    const tone = s.status === 'active' ? 'ok' : s.status === 'pending' ? 'warn' : 'mute';
+    const until = s.status === 'active' && s.expiresAt ? ` · ${new Date(s.expiresAt).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: '2-digit' })}` : '';
+    return <ConsoleStatus tone={tone}>{k(`club.${s.status}`)}{until}</ConsoleStatus>;
+  };
+  const avatar = (name: string, size: number) => (
+    <span className="mm-avatar flex-none" style={{ width: size, height: size, fontSize: Math.round(size / 3), background: 'linear-gradient(135deg, var(--mm-bleu-f), var(--mm-teal-f))' }}>
+      {initialsOf(name)}
+    </span>
+  );
+  const nameOf = (u: User) => u.displayName || u.email || t('users.noName');
+  const select = (u: User) => (isWide ? setSelectedUid(u.uid) : openEditUser(u));
+
   return (
-    // `.play` en dur : voir AdminDashboard — sans lui, `.rv` reste à `opacity: 0` et le
-    // pied obligatoire du motif ne s'affiche pas du tout.
-    <div className="play">
-      <ConsolePage title={t('users.title')} sub={t('users.sub')}>
-        <div className="mb-3.5 flex flex-wrap items-center justify-end gap-2">
-          <Button size="sm" tone="quiet" onClick={load} disabled={loading}>
-            {t('users.refresh')}
-          </Button>
-          <Button size="sm" onClick={() => setShowAddUser(true)}>
-            {t('users.addUser')}
-          </Button>
-        </div>
+    <div>
+      <ConsoleScreen label={k('title')}>
+        <ConsoleToolbar>
+          <CBtn onClick={state.load} disabled={loading}>{t('users.refresh')}</CBtn>
+          <CBtn tone="ink" icon="plus" onClick={() => setShowAddUser(true)}>{k('create')}</CBtn>
+        </ConsoleToolbar>
 
-        <ConsoleSplit
-          detailLabel={t('users.panelEyebrow')}
-          detail={!isWide ? null : (
-            <UserPanel
-              user={selected}
-              loading={loading}
-              asOf={asOf}
-              onOpenFull={() => selected && openEditUser(selected)}
-            />
-          )}
-        >
-        <ConsoleFilter
-          className="rv"
-          stages={stages.map((s) => stageLabels[s])}
-          active={stageLabels[stage]}
-          onSelect={(label) => setStage(stages.find((s) => stageLabels[s] === label) ?? 'all')}
-          label={t('users.pipelineLabel')}
-        />
-
-        {/* Deux cases de front à partir de la tablette. Elles passaient à QUATRE en `wide:`,
-            au moment précis où la troisième colonne prend 380 px : chaque case tombait sous
-            120 px de large et son libellé se coupait. */}
-        <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
-          {stages.map((s) => (
-            <ConsoleKpi
-              key={s}
-              label={tileLabels[s]}
-              value={loading ? null : counts[s]}
-              source="db"
-              asOf={asOf}
-            />
-          ))}
-        </div>
-
-        <div className="mt-3.5 max-w-sm">
-          <Field
-            as="input"
-            type="search"
-            label={t('users.searchLabel')}
-            hideLabel
-            value={search}
-            onChange={setSearch}
-            placeholder={t('users.searchPlaceholder')}
-            inputMode="search"
-          />
-        </div>
-
-        <SiteEyebrow style={{ marginTop: '22px', marginBottom: '10px' }}>
-          {stageLabels[stage]}
-        </SiteEyebrow>
-
-        {loading ? (
-          <div className="flex flex-col gap-2">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} height={60} radius="var(--r-l)" label={t('users.loading')} />
-            ))}
-          </div>
-        ) : shown.length === 0 ? (
-          <EmptyState
-            glyph={<Icon name="users" size={26} color="var(--mm-bleu)" />}
-            glyphBackground="color-mix(in srgb, var(--mm-bleu) 22%, transparent)"
-            title={t('users.emptyTitle')}
-            body={t('users.emptyBody')}
-          />
-        ) : (
-          <>
-          {/*
-            ── BUREAU : LA TABLE DU KIT (`mm-ctable`) ────────────────────────────────
-            Compte, rôle, inscription, et UNE action. Les colonnes « Espaces » et
-            « Dernière activité » de la maquette n'y sont pas : aucune des deux n'est
-            relevée par compte aujourd'hui, et une colonne vide qui a l'air remplie
-            ment plus qu'une colonne absente.
-          */}
-          <ConsoleCard padding="4px 6px" className="rv hidden stack:block">
-            <div className="overflow-x-auto">
-              <table className="mm-ctable" aria-label={t('users.listLabel')}>
-                <thead>
-                  <tr>
-                    <th scope="col">{t('users.colUser')}</th>
-                    <th scope="col">{t('users.colRole')}</th>
-                    <th scope="col">{t('users.colSignup')}</th>
-                    <th scope="col"><span className="sr-only">{t('users.colActions')}</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paged.map((u) => {
-                    const name = u.displayName || u.email || t('users.noName');
-                    const initials = name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
-                    return (
-                      <tr key={u.uid} className={isWide && selected?.uid === u.uid ? 'is-sel' : undefined}>
-                        <td>
-                          <div className="flex min-w-0 items-center gap-2.5">
-                            <Avatar initials={initials} size={32} />
-                            <div className="min-w-0">
-                              <b className="block truncate">{name}</b>
-                              {u.email && <small className="truncate">{u.email}</small>}
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <ConsoleStatus tone={u.role === 'admin' ? 'stop' : u.role === 'support' ? 'warn' : 'neutral'}>
-                            {roleLabels[u.role]}
-                          </ConsoleStatus>
-                        </td>
-                        <td>
-                          {u.createdAt
-                            ? <Num value={new Date(u.createdAt).toLocaleDateString(locale)} source="db" asOf={asOf} />
-                            : <Num value={null} source="db" asOf={asOf} />}
-                        </td>
-                        <td className="text-right">
-                          <Button
-                            size="sm"
-                            tone="quiet"
-                            onClick={isWide ? () => setSelectedUid(u.uid) : () => openEditUser(u)}
-                          >
-                            {isWide ? t('users.actionShow') : t('users.manage')}
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+        <ConsoleGrid side={360}>
+          <ConsoleCard as="section" title={k('title')} aside={<span className="hidden stack:inline">{k('sortedBy')}</span>}>
+            <ConsoleChips<Chip> label={k('chipsLabel')} items={chips} value={chip} onChange={(c) => { setChip(c); setPage(1); }} />
+            <div className="mb-3 max-w-sm">
+              <Field
+                as="input"
+                type="search"
+                label={t('users.searchLabel')}
+                hideLabel
+                value={search}
+                onChange={setSearch}
+                placeholder={t('users.searchPlaceholder')}
+                inputMode="search"
+              />
             </div>
+
+            {loading ? (
+              <div className="flex flex-col gap-2">
+                {[0, 1, 2, 3].map((i) => <Skeleton key={i} height={48} label={i === 0 ? t('users.loading') : undefined} />)}
+              </div>
+            ) : shown.length === 0 ? (
+              <HonestEmpty icon="users" title={t('users.emptyTitle')} body={t('users.emptyBody')} />
+            ) : (
+              <>
+                <div className="hidden overflow-x-auto stack:block">
+                  <table className="mm-ctable" aria-label={t('users.listLabel')}>
+                    <thead>
+                      <tr>
+                        <th scope="col">{k('colAccount')}</th>
+                        <th scope="col">{k('colRole')}</th>
+                        <th scope="col">{k('colClub')}</th>
+                        <th scope="col">{k('colSignup')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paged.map((u) => (
+                        <tr
+                          key={u.uid}
+                          className={isWide && selected?.uid === u.uid ? 'is-sel cursor-pointer' : 'cursor-pointer'}
+                          onClick={() => select(u)}
+                        >
+                          <td>
+                            <button type="button" onClick={() => select(u)} className="flex min-w-0 items-center gap-2.5 border-0 bg-transparent p-0 text-left text-ink">
+                              {avatar(nameOf(u), 34)}
+                              <span className="min-w-0">
+                                <b className="block truncate">{nameOf(u)}</b>
+                                {u.email && <small className="block truncate">{u.email}</small>}
+                              </span>
+                            </button>
+                          </td>
+                          <td>{roleTag(u)}</td>
+                          <td>{clubTag(u)}</td>
+                          <td className="text-ink-3">
+                            <Num value={u.createdAt ? new Date(u.createdAt).toLocaleDateString(locale) : null} source="db" asOf={asOf} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="stack:hidden">
+                  {paged.map((u) => (
+                    <button key={u.uid} type="button" onClick={() => select(u)} className="mm-mrow w-full border-x-0 border-t-0 bg-transparent text-left">
+                      {avatar(nameOf(u), 36)}
+                      <span className="min-w-0 flex-1">
+                        <b className="block truncate text-[14px]">{nameOf(u)}</b>
+                        <span className="mt-1 flex flex-wrap gap-1.5">{roleTag(u)}{clubOf(u) && clubTag(u)}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-4 flex justify-center">
+                  <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+                </div>
+              </>
+            )}
           </ConsoleCard>
-          <ConsoleList label={t('users.listLabel')} className="rv stack:hidden">
-            {paged.map((u, i) => (
-              <li key={u.uid}>
-                {/* UN ÉTAT ET UNE ACTION PAR LIGNE : le rôle est l'état, sélectionner est
-                    l'action. « Gérer » vit dans le panneau — un bouton dans le `trailing`
-                    d'une ligne elle-même cliquable serait un bouton imbriqué, donc
-                    inatteignable au clavier. */}
-                <LessonRow
-                  icon={<Icon name="user" size={14} color="var(--mm-bleu)" />}
-                  iconBackground="color-mix(in srgb, var(--mm-bleu) 22%, transparent)"
-                  title={u.displayName || u.email || t('users.noName')}
-                  duration={u.createdAt
-                    ? { value: new Date(u.createdAt).toLocaleDateString(locale), source: 'db', asOf }
-                    : undefined}
-                  meta={u.email}
-                  trailing={
-                    <ConsoleStatus tone={u.role === 'admin' ? 'stop' : u.role === 'support' ? 'warn' : 'neutral'}>
-                      {roleLabels[u.role]}
-                    </ConsoleStatus>
-                  }
-                  onClick={isWide ? () => setSelectedUid(u.uid) : () => openEditUser(u)}
-                  last={i === paged.length - 1}
-                />
-              </li>
-            ))}
-          </ConsoleList>
-          </>
-        )}
 
-        <div className="mt-4 flex justify-center">
-          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-        </div>
-
-        <ConsoleScope>{t('users.scope')}</ConsoleScope>
-        </ConsoleSplit>
-      </ConsolePage>
+          {isWide && (
+            <div className="wide:sticky wide:top-5">
+              <UserPanel
+                user={selected}
+                loading={loading}
+                asOf={asOf}
+                club={selected ? clubTag(selected) : null}
+                hasClub={Boolean(selected && clubOf(selected))}
+                onOpenFull={() => selected && openEditUser(selected)}
+                onOpenTab={(tab) => { if (selected) { openEditUser(selected); setPendingTab(tab); } }}
+              />
+            </div>
+          )}
+        </ConsoleGrid>
+      </ConsoleScreen>
 
       {/* ── Fiche d'édition ── */}
       <UserEditModal

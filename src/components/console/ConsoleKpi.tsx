@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Num, type NumSource } from '@ds';
+import { Icon, Num, type IconName, type NumSource } from '@ds';
 
 /**
  * ── LA CASE DE RELEVÉ DE CONSOLE (kit v3, `mm-ckpi`) ────────────────────────────────
@@ -22,13 +22,17 @@ export interface ConsoleKpiProps {
   unit?: string;
   /** Une ligne de contexte sous le chiffre (« 3 en base »), elle aussi dérivée. */
   foot?: ReactNode;
+  /** Le glyphe du libellé (maquettes console v3). */
+  icon?: IconName;
+  /** Remplace la ligne de source datée (ex. « engagement : 2 par mois · … »). */
+  sourceLine?: ReactNode;
   /** Gardée pour la compatibilité d'appel avec `StatTile` ; la date vit dans la ligne de source. */
   showAsOf?: boolean;
   className?: string;
   style?: CSSProperties;
 }
 
-export default function ConsoleKpi({ label, value, source, asOf, unit, foot, className, style }: ConsoleKpiProps) {
+export default function ConsoleKpi({ label, value, source, asOf, unit, foot, icon, sourceLine, className, style }: ConsoleKpiProps) {
   const { t, i18n } = useTranslation('admin');
   const date = asOf.toLocaleDateString(i18n.language.startsWith('en') ? 'en-GB' : 'fr-FR', {
     day: '2-digit', month: '2-digit', year: 'numeric',
@@ -39,13 +43,13 @@ export default function ConsoleKpi({ label, value, source, asOf, unit, foot, cla
 
   return (
     <div className={className ? `mm-ckpi ${className}` : 'mm-ckpi'} style={{ background: 'var(--bento)', ...style }}>
-      <span className="mm-ckpi__l">{label}</span>
+      <span className="mm-ckpi__l">{icon && <Icon name={icon} size={15} />}{label}</span>
       <b className="mm-ckpi__v">
         <Num value={value} source={source} asOf={asOf} />
         {unit && <small>{unit}</small>}
       </b>
       {foot && <span className="text-help text-ink-2">{foot}</span>}
-      <span className="mm-ckpi__s">{t('console.kpiSourceLine', { date, origin })}</span>
+      <span className="mm-ckpi__s">{sourceLine ?? t('console.kpiSourceLine', { date, origin })}</span>
     </div>
   );
 }
