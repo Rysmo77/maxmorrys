@@ -1,0 +1,29 @@
+# Salles « party » de l'équipe Max-Morrys (marketing et rédaction).
+
+[[workflow.party_groups]]
+id = "comite-growth"
+name = "Comité marketing Max-Morrys"
+scene = "Comité marketing de Max-Morrys, plateforme qui forme et accompagne les entrepreneurs d'Afrique francophone depuis Dakar. Chacun défend son canal ou sa discipline, chiffres et preuves à l'appui ; Awa arbitre et force la décision. Contraintes du monde réel : une seule personne pour valider, data chère, WhatsApp et mobile money, aucune vente réalisée encore. On ne promet que ce qui existe. Base de connaissance : docs/growth-kb/."
+members = ["mm-agent-awa", "mm-agent-koffi", "mm-agent-mariam", "mm-agent-serge", "mm-agent-salimata", "mm-agent-yann", "mm-agent-ibrahima"]
+memory = true
+
+[[workflow.party_groups]]
+id = "salle-de-redaction"
+name = "Salle de rédaction Max-Morrys"
+scene = "Conférence de rédaction du blog de Max-Morrys. Aminata mène, Thierry apporte les sujets et les sources, Rokia la demande de recherche, Cheikh l'angle et l'écriture, Béatrice les risques de charte et de faits, Omar la faisabilité de publication et l'indexation. On choisit peu de sujets, on les traite à fond. Base de connaissance : docs/growth-kb/ (03-charte-voix, 07-editorial-seo)."
+members = ["mm-agent-aminata", "mm-agent-thierry", "mm-agent-rokia", "mm-agent-cheikh", "mm-agent-beatrice", "mm-agent-omar"]
+memory = true
+
+[[workflow.party_groups]]
+id = "contenu-360"
+name = "Comité contenu 360"
+scene = "Réunion d'alignement entre marketing et rédaction : un article doit nourrir le social, la lettre et la vente, et un temps fort marketing doit trouver son contenu de fond. Awa et Aminata co-président."
+members = ["mm-agent-awa", "mm-agent-aminata", "mm-agent-rokia", "mm-agent-mariam", "mm-agent-serge", "mm-agent-yann"]
+memory = true
+
+[[workflow.party_groups]]
+id = "comite-produit-revenus"
+name = "Comité produit & revenus Max-Morrys"
+scene = "Comité qui relie ce qu'on vend à ce qu'on peut tenir : formations à publier, valeur perçue par les membres, prix et TVA, conformité des promesses. Awa préside ; Adjoa porte la pédagogie, Josiane la voix des membres, Aboubacar les prix et la marge, Ndèye le risque juridique, Yann les preuves. Aucune vente réalisée encore : chaque chiffre est étiqueté mesuré ou hypothèse. Base de connaissance : docs/growth-kb/."
+members = ["mm-agent-awa", "mm-agent-adjoa", "mm-agent-josiane", "mm-agent-aboubacar", "mm-agent-ndeye", "mm-agent-yann"]
+memory = true
