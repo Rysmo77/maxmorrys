@@ -89,6 +89,23 @@ const SEGMENTS: Record<string, string> = {
   paiements: 'payments',
   'prospects-agence': 'agency-leads',
   projets: 'projects',
+  /* Passe 2 (29/10/2026) — miroir des entrées ajoutées à `src/i18n/segments.ts`. */
+  compte: 'account',
+  methode: 'method',
+  assistant: 'assistant',
+  cohorte: 'cohort',
+  live: 'live',
+  missions: 'missions',
+  quiz: 'quiz',
+  sessions: 'sessions',
+  adhesion: 'membership',
+  defis: 'challenges',
+  publication: 'post',
+  journal: 'audit-log',
+  roles: 'roles',
+  moderation: 'moderation',
+  quotas: 'quotas',
+  infrastructure: 'infrastructure',
 };
 
 const EN_TO_FR: Record<string, string> = {};

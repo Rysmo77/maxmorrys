@@ -6,6 +6,7 @@ import {
   SITE_URL,
   SOCIAL_URLS,
 } from '../constants';
+import { REALISATIONS } from './realisations';
 import type { PageMeta } from './types';
 
 /**
@@ -40,7 +41,8 @@ export const staticPages: Record<string, PageMeta> = {
      * avec leur date de relevé. Un nombre écrit en dur dans ce miroir serait faux le
      * lendemain, et rien ne le dirait.
      */
-    h1: 'Max-Morrys, conception web et formation',
+    h1: 'Former. Construire. Transmettre.',
+    en: { h1: 'Train. Build. Pass it on.' },
     bodyText:
       "Max-Morrys conçoit des sites et des plateformes web, et forme au digital — référencement, marketing, intelligence artificielle. Une seule personne, à Dakar, pour le marché francophone d'Afrique de l'Ouest.\n\n" +
       "Deux pistes, et aucune n'est l'antichambre de l'autre. La piste Conception se fait POUR vous : mise en ligne d'un commerce ou d'une TPE avec des formules bornées et des prix publiés, et projets sur mesure sur devis — sites corporate, plateformes, portails métier, systèmes de design. La piste Apprendre se fait PAR vous : formations, blog, podcast et vidéos, et le Club des Digitos.\n\n" +
@@ -121,7 +123,8 @@ export const staticPages: Record<string, PageMeta> = {
       address: { '@type': 'PostalAddress', addressLocality: 'Dakar', addressCountry: 'SN' },
       sameAs: SOCIAL_URLS,
     },
-    h1: 'Je suis Max-Morrys',
+    h1: 'Trois villes, un métier.',
+    en: { h1: 'Three cities, one trade.' },
     bodyText:
       "Concepteur web, formateur et créateur de contenu digital basé à Dakar. Je cadre les projets, j'écris les articles, je monte les formations, j'anime le Club, et je réponds aux messages.\n\n" +
       "Deux pistes, un seul interlocuteur. Je conçois des sites et des plateformes web pour des commerces, des TPE et des organisations ; et je forme au digital — référencement, marketing, intelligence artificielle — par des formations, un blog, un podcast et une communauté.\n\n" +
@@ -146,7 +149,8 @@ export const staticPages: Record<string, PageMeta> = {
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/blog`,
-    h1: 'Blog Marketing Digital',
+    h1: "J'écris ce que j'applique.",
+    en: { h1: 'I write what I apply.' },
     bodyText:
       "Retrouvez ici tous les articles de Max-Morrys sur le marketing digital, le SEO, l'IA, le growth marketing et la stratégie digitale. Conseils pratiques pour entrepreneurs et entreprises africaines.",
     breadcrumbs: [
@@ -211,7 +215,8 @@ export const staticPages: Record<string, PageMeta> = {
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/podcast-et-videos`,
-    h1: 'Écouter & regarder',
+    h1: 'À écouter, à regarder.',
+    en: { h1: 'To listen to, to watch.' },
     bodyText:
       "Le blog donne des méthodes ; ici, des gens racontent ce qu'ils ont fait. Épisodes de podcast et vidéos réunis sur une seule page, gratuits et sans compte, avec une transcription quand elle existe.",
     breadcrumbs: [
@@ -226,14 +231,19 @@ export const staticPages: Record<string, PageMeta> = {
    */
   '/club-des-digitos': {
     title: `Le Club des Digitos — Une année avec moi | ${SITE_NAME}`,
+    /* = `publicPage.lede` de `fr/club.json` : l'aperçu de partage dit ce que dit l'écran. */
     description:
-      "Sessions en direct, missions qui circulent et une réponse de moi dans les discussions. 1 658 FCFA par mois, facturé 19 900 FCFA une fois par an. Wave, Orange Money ou carte.",
+      "Le Club des Digitos, c'est un fil pour montrer ton travail et recevoir des retours, des sessions en direct chaque mois avec Max-Morrys, et des opportunités publiées par les membres.",
+    en: {
+      description:
+        'The Digitos Club is a feed to show your work and get feedback, live sessions every month with Max-Morrys, and opportunities posted by members.',
+    },
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/club-des-digitos`,
     h1: 'Le Club des Digitos',
     bodyText:
-      "Le Club des Digitos est une communauté annuelle payante, animée depuis Dakar. L'abonnement ouvre huit onglets — fil, discussions, membres, agenda, classement, opportunités, informations, parrainage — deux sessions en direct par mois, les ateliers en présentiel à Dakar, et un répétiteur porté à cinq questions par jour. 19 900 FCFA pour douze mois, soit 1 658 FCFA par mois. À l'échéance, l'accès s'arrête : rien n'est prélevé automatiquement.",
+      "Le Club des Digitos est une communauté annuelle payante, animée depuis Dakar. L'abonnement ouvre huit onglets — fil, discussions, membres, agenda, classement, opportunités, informations, parrainage — deux sessions en direct par mois, les ateliers en présentiel à Dakar, et un répétiteur porté à cinq questions par jour. 19 900 FCFA pour douze mois, soit 1 658 FCFA par mois. Paiement par Wave, Orange Money ou carte. À l'échéance, l'accès s'arrête : rien n'est prélevé automatiquement.",
     breadcrumbs: [
       { name: 'Accueil', url: `${SITE_URL}/` },
       { name: 'Le Club des Digitos', url: `${SITE_URL}/club-des-digitos` },
@@ -245,7 +255,8 @@ export const staticPages: Record<string, PageMeta> = {
    * ton neutre, et rien à vendre sur cette page.
    */
   '/verifier': {
-    title: `Vérifier un certificat | ${SITE_NAME}`,
+    title: 'Vérifier un certificat | Max-Morrys Edu',
+    en: { title: 'Verify a certificate | Max-Morrys Edu' },
     description:
       "Contrôle l'authenticité d'un certificat Max-Morrys à partir de son code. Sans compte, sans inscription : la page répond à un code, et à un seul.",
     ogType: 'website',
@@ -266,7 +277,8 @@ export const staticPages: Record<string, PageMeta> = {
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/faq`,
-    h1: 'Questions fréquentes',
+    h1: 'Une question, une réponse.',
+    en: { h1: 'One question, one answer.' },
     breadcrumbs: [
       { name: 'Accueil', url: `${SITE_URL}/` },
       { name: 'FAQ', url: `${SITE_URL}/faq` },
@@ -295,7 +307,8 @@ export const staticPages: Record<string, PageMeta> = {
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/conception`,
-    h1: 'Conception de sites web et de plateformes numériques',
+    h1: 'Nous concevons votre présence en ligne.',
+    en: { h1: 'We design your presence online.' },
     bodyText:
       "Max-Morrys conçoit des sites web et des plateformes numériques depuis Dakar. Le studio prend le projet au cadrage et le rend en service : conception d'interface, développement, mise en ligne, documentation d'exploitation. Une seule équipe, du premier écrit à la recette.\n\n" +
       "Deux niveaux d'engagement, et aucun des deux n'est caché. L'offre commerces et TPE est productisée : des formules bornées, des prix publiés en francs CFA, un paiement par Wave, Orange Money ou carte, pour les commerces et TPE d'Afrique de l'Ouest. Les projets sur mesure se traitent sur devis : sites corporate et bilingues, plateformes, portails métier, systèmes de design, intégrations.\n\n" +
@@ -368,7 +381,8 @@ export const staticPages: Record<string, PageMeta> = {
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/conception/commerces-et-tpe`,
-    h1: 'Tes clients te cherchent en ligne',
+    h1: 'Ton commerce, trouvé sur Google.',
+    en: { h1: 'Your shop, found on Google.' },
     bodyText:
       "Offre commerces et TPE — Afrique de l'Ouest. Pour un site corporate, une plateforme ou un portail métier, la page des projets sur mesure est la bonne porte.\n\n" +
       "J'installe la présence digitale complète de ton commerce : site web, fiche Google Business Profile, catalogue produits sur WhatsApp, Facebook, Instagram et Google Merchant, mesure des visites et référencement local. Trois packs de mise en place : Présence Locale à 295 000 FCFA, Commerce Visible à 495 000 FCFA, Boutique Digitale à 895 000 FCFA. Ensuite, un accompagnement mensuel qui publie pour toi, tient ton catalogue à jour et t'envoie un rapport chaque mois : Croissance Automatisée à 375 000 FCFA puis 175 000 FCFA par mois, ou Commerce 360 à 750 000 FCFA puis 225 000 FCFA par mois. Basé à Dakar, pour les commerces du Sénégal et d'Afrique de l'Ouest.",
@@ -503,7 +517,10 @@ export const staticPages: Record<string, PageMeta> = {
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/conception/realisations`,
-    h1: 'Réalisations',
+    // Le nombre est DÉRIVÉ du miroir des fiches, comme à l'écran (`clientProjects.length`) :
+    // un chiffre écrit ici serait faux à la prochaine livraison.
+    h1: `${REALISATIONS.length} projets, livrés.`,
+    en: { h1: `${REALISATIONS.length} projects, delivered.` },
     bodyText:
       "Les projets que nous avons menés, décrits par ce qui se vérifie : le rôle que nous avons réellement tenu, le périmètre technique, la pile logicielle employée, et le site en ligne que vous pouvez ouvrir.\n\n" +
       "Chaque fiche est publiée dans les limites de l'autorisation écrite du client : son nom, notre rôle, la pile et le lien. Les résultats commerciaux et les chiffres de croissance n'y figurent pas — cet accord ne les couvre pas, et nous préférons le dire plutôt que de publier ce que personne ne pourrait vérifier.",
@@ -526,9 +543,14 @@ export const staticPages: Record<string, PageMeta> = {
    * en base, et une valeur gelée dans ce fichier serait fausse le mois suivant.
    */
   '/apprendre': {
-    title: `Apprendre — Lire, écouter, se former, rejoindre | ${SITE_NAME}`,
+    title: 'Max-Morrys Edu — formations courtes au digital',
     description:
-      "La piste média et formation de Max-Morrys : le blog, le podcast et les vidéos, les formations en ligne et le Club des Digitos. En français, pour l'Afrique de l'Ouest.",
+      'Marketing digital, SEO, IA : des formations courtes payées une fois en Wave, Orange Money ou carte, à toi pour toujours, avec une mission par leçon.',
+    en: {
+      title: 'Max-Morrys Edu — short digital courses',
+      description:
+        'Digital marketing, SEO, AI: short courses paid once with Wave, Orange Money or card, yours forever, with a mission in every lesson.',
+    },
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/apprendre`,
@@ -544,6 +566,100 @@ export const staticPages: Record<string, PageMeta> = {
       { name: 'Apprendre', url: `${SITE_URL}/apprendre` },
     ],
   },
+  /*
+   * PASSE 2 (29/10/2026) — LES QUATRE PAGES NEUVES DES MAQUETTES v3.
+   *
+   * Leurs titres et descriptions sont ceux de l'écran (`ecrans.json`, clés `club.sessions.*`,
+   * `club.adhesion.*`, `edu.methode.*`, `edu.assistant.*`), et l'anglais est écrit ici plutôt
+   * que traduit à la volée : la version anglaise existe déjà dans l'i18n, la faire réinventer
+   * par Gemini donnerait deux formulations du même écran.
+   *
+   * ⚠️ AUCUNE DATE NI AUCUN COMPTE de sessions tenues : la page les calcule en base.
+   */
+  '/club-des-digitos/sessions': {
+    title: `Les sessions du Club | ${SITE_NAME}`,
+    description:
+      "Les sessions en direct du Club des Digitos avec Max-Morrys : l'engagement, et ce qui a été tenu.",
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/club-des-digitos/sessions`,
+    h1: 'Les sessions du Club.',
+    bodyText:
+      "Animées par Max-Morrys, ouvertes à tous les membres. Le calendrier et les liens se trouvent dans l'espace membre.",
+    en: {
+      title: `Club sessions | ${SITE_NAME}`,
+      description:
+        'The Digitos Club live sessions with Max-Morrys: the commitment, and what was actually held.',
+      h1: 'The Club sessions.',
+      bodyText:
+        'Hosted by Max-Morrys, open to every member. The calendar and links are in the member space.',
+    },
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'Le Club des Digitos', url: `${SITE_URL}/club-des-digitos` },
+      { name: 'Les sessions du Club', url: `${SITE_URL}/club-des-digitos/sessions` },
+    ],
+  },
+  '/club-des-digitos/adhesion': {
+    title: `Rejoindre le Club | ${SITE_NAME}`,
+    description:
+      'Adhérer au Club des Digitos : un prix annuel, payé une fois, sans prélèvement automatique.',
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/club-des-digitos/adhesion`,
+    h1: 'Rejoindre le Club.',
+    bodyText: 'Un an de Club, payé une seule fois, sans aucun prélèvement automatique.',
+    en: {
+      title: `Join the Club | ${SITE_NAME}`,
+      description: 'Join the Digitos Club: one yearly price, paid once, no automatic debit.',
+      h1: 'Join the Club.',
+      bodyText: 'A year of Club, paid once, with no automatic debit at all.',
+    },
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'Le Club des Digitos', url: `${SITE_URL}/club-des-digitos` },
+      { name: 'Rejoindre le Club', url: `${SITE_URL}/club-des-digitos/adhesion` },
+    ],
+  },
+  '/apprendre/methode': {
+    title: 'La méthode — apprendre en faisant | Max-Morrys Edu',
+    description:
+      'Tu lis avant de payer, tu pratiques sur ton vrai projet, ta cohorte relit, et ton certificat se vérifie par code.',
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/apprendre/methode`,
+    h1: 'Apprendre en faisant.',
+    en: {
+      title: 'The method — learn by doing | Max-Morrys Edu',
+      description:
+        'You read before you pay, practise on your real project, your cohort reviews, and your certificate can be checked by code.',
+      h1: 'Learn by doing.',
+    },
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'Apprendre', url: `${SITE_URL}/apprendre` },
+      { name: 'La méthode', url: `${SITE_URL}/apprendre/methode` },
+    ],
+  },
+  '/apprendre/assistant': {
+    title: "Rysmo IA, l'assistant des formations | Max-Morrys Edu",
+    description:
+      "Rysmo IA répond sur la leçon que tu as sous les yeux, à n'importe quelle heure. Ton quota du jour est visible avant chaque question.",
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/apprendre/assistant`,
+    h1: 'Rysmo IA.',
+    en: {
+      title: 'Rysmo IA, the course assistant | Max-Morrys Edu',
+      description:
+        'Rysmo IA answers about the lesson in front of you, at any hour. Your daily quota is shown before every question.',
+    },
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'Apprendre', url: `${SITE_URL}/apprendre` },
+      { name: 'Rysmo IA', url: `${SITE_URL}/apprendre/assistant` },
+    ],
+  },
   '/contact': {
     title: `Contact | ${SITE_NAME}`,
     description:
@@ -551,7 +667,8 @@ export const staticPages: Record<string, PageMeta> = {
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/contact`,
-    h1: 'Contact',
+    h1: 'Parlons de ton projet.',
+    en: { h1: "Let's talk about your project." },
     /*
      * LE FORMULAIRE S'OUVRE SUR UNE QUESTION D'AIGUILLAGE (CDC §4.5), ET LA TROISIÈME
      * BRANCHE NE COLLECTE RIEN. Quelqu'un qui arrive ici depuis un moteur avec une demande de

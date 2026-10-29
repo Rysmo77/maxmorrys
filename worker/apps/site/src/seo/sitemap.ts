@@ -104,6 +104,8 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
    * L'autre étage du territoire violet — payant, fermé, mais sa page de vente est publique.
    */
   { path: '/club-des-digitos', changefreq: 'monthly', priority: '0.8' },
+  { path: '/club-des-digitos/sessions', changefreq: 'weekly', priority: '0.6' },
+  { path: '/club-des-digitos/adhesion', changefreq: 'monthly', priority: '0.7' },
   { path: '/faq', changefreq: 'monthly', priority: '0.5' },
   /*
    * LA PISTE CONCEPTION — ET PAS SES DEUX ANCÊTRES. `/agence` et `/presence-digitale` sont
@@ -120,6 +122,8 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
   { path: '/conception/projets-sur-mesure', changefreq: 'monthly', priority: '0.8' },
   { path: '/conception/realisations', changefreq: 'monthly', priority: '0.7' },
   { path: '/apprendre', changefreq: 'weekly', priority: '0.8' },
+  { path: '/apprendre/methode', changefreq: 'monthly', priority: '0.6' },
+  { path: '/apprendre/assistant', changefreq: 'monthly', priority: '0.6' },
   { path: '/contact', changefreq: 'monthly', priority: '0.5' },
   /*
    * La vérification d'un code. Elle se cherche depuis un moteur par quelqu'un qui a un

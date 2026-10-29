@@ -48,7 +48,7 @@ export default function ClubAdhesionPage() {
 
   return (
     <DsNavHost>
-      <SEOHead title={t(k('title'))} description={t(k('seoDescription'))} noIndex />
+      <SEOHead title={t(k('title'))} description={t(k('seoDescription'))} />
 
       <section className="mm-lhero px-[18px] pb-14 stack:px-11" style={HERO_TOP}>
         <span className="mm-kick">{t(k('kick'))}</span>

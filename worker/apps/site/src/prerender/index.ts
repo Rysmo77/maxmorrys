@@ -182,6 +182,11 @@ export async function resolvePageMeta(
         built,
       );
     }
+    // L'anglais écrit l'emporte sur l'anglais traduit (voir `PageMeta.en`), et ne sort jamais.
+    if (built.en) {
+      const { en, ...rest } = built;
+      built = lang === 'en' ? { ...rest, ...en } : rest;
+    }
 
     /*
       APRÈS la traduction, et l'ordre compte. L'adresse de l'image porte une empreinte du

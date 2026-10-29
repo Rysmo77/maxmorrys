@@ -41,6 +41,11 @@ const PRERENDER_EXACT = new Set([
   '/conception/projets-sur-mesure',
   '/conception/realisations',
   '/apprendre',
+  /* Passe 2 (29/10/2026) : les pages publiques neuves des maquettes v3. */
+  '/club-des-digitos/sessions',
+  '/club-des-digitos/adhesion',
+  '/apprendre/methode',
+  '/apprendre/assistant',
   '/en',
   '/en/blog',
   '/en/courses',
@@ -59,6 +64,10 @@ const PRERENDER_EXACT = new Set([
   '/en/design/custom-projects',
   '/en/design/work',
   '/en/learning',
+  '/en/digitos-club/sessions',
+  '/en/digitos-club/membership',
+  '/en/learning/method',
+  '/en/learning/assistant',
 ]);
 
 /** Sources en `/xxx/**` — comparées en préfixe. */

@@ -33,8 +33,7 @@ export default function ClubSessionsPage() {
 
   return (
     <DsNavHost>
-      {/* Page encore hors du pré-rendu du Worker : `noindex` tant que son entrée n'y est pas. */}
-      <SEOHead title={t(k('title'))} description={t(k('seoDescription'))} noIndex />
+      <SEOHead title={t(k('title'))} description={t(k('seoDescription'))} />
 
       <section className="mm-lhero px-[18px] pb-14 stack:px-11" style={HERO_TOP}>
         <span className="mm-kick">{t(k('kick'), { n: LIVE_SESSIONS_PER_MONTH })}</span>

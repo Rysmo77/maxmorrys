@@ -41,4 +41,12 @@ export interface PageMeta {
   /** Alternates hreflang absolus (toujours en FR canonique pour altFr). */
   altFr?: string;
   altEn?: string;
+  /**
+   * Version anglaise ÉCRITE, quand l'i18n de l'écran en a déjà une.
+   *
+   * Appliquée APRÈS la traduction automatique et à sa place, champ par champ : un champ absent
+   * reste traduit par Gemini. Sans elle, le titre anglais d'un écran et celui que lisent les
+   * robots seraient deux formulations différentes de la même phrase.
+   */
+  en?: Partial<Pick<PageMeta, 'title' | 'description' | 'h1' | 'bodyText'>>;
 }
