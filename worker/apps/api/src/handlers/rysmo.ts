@@ -11,7 +11,7 @@ import {
   persistAndSummarize,
   sanitizeInternalLinks,
 } from '../lib/rysmo-context';
-import { PLATFORM_KNOWLEDGE } from '../lib/rysmo-knowledge';
+import { connaissancesPlateforme } from '../lib/rysmo-knowledge';
 import { reserveRequest } from '../lib/rysmo-quota';
 import { catalogueSansPrix, lireCanal, reglesDeRecommandation, retirerLesPrix } from '../lib/rysmo-canal';
 
@@ -129,7 +129,7 @@ export async function rysmo(data: unknown, context: CallContext): Promise<unknow
   profileText,
   engagementText,
   enrolledText,
-  PLATFORM_KNOWLEDGE,
+  connaissancesPlateforme(canal),
   catalogText,
 ]
     .filter(Boolean)
