@@ -6,6 +6,7 @@ import {
   haptique, useToken, veil,
 } from '../ds';
 import { useSession } from '../donnees/session';
+import { BandeApprendre } from '../ecrans/BandeApprendre';
 import { reglerWifiSeul, retirerLecon, useHorsLigne } from '../donnees/hors-ligne';
 import { PLAFOND_OCTETS, poids, totalOctets } from '../donnees/garde';
 
@@ -86,6 +87,7 @@ export default function Telechargements() {
         {gardees.length === 0 ? 'Aucune leçon hors connexion' : `${gardees.length} ${gardees.length > 1 ? 'leçons' : 'leçon'} hors connexion`}
       </Eyebrow>
       <Display size={27} lines={gardees.length === 0 ? ['Rien de gardé', 'sur ce téléphone.'] : [poids(total), 'sur ton téléphone']} style={{ marginTop: 8 }} />
+      <BandeApprendre />
 
       <Surface level="flat" style={{ marginTop: 18, padding: 18 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>

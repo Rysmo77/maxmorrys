@@ -29,7 +29,7 @@ import { router } from 'expo-router';
  * Effacer la mémoire, c'est retirer des FAITS ; le nom est un RÉGLAGE. Les confondre ferait
  * perdre le nom à quelqu'un qui voulait seulement corriger ce que son tuteur croyait savoir.
  */
-const PROPOSITIONS = ['Répétiteur', 'Prof', 'Coach', 'Tonton'] as const;
+const PROPOSITIONS = ['Rysmo IA', 'Prof', 'Coach', 'Tonton'] as const;
 
 export default function Memoire() {
   const rep = useRepetiteur();
@@ -137,7 +137,7 @@ export default function Memoire() {
       }
     >
       {bandeau}
-      <Eyebrow style={{ marginTop: 6 }}>Ton répétiteur</Eyebrow>
+      <Eyebrow style={{ marginTop: 6 }}>Ton assistant</Eyebrow>
       <Display size={29} lines={['DONNE-LUI', 'UN NOM.']} style={{ marginTop: 8 }} />
 
       <Surface level="hero" style={{ marginTop: 18, padding: 19 }}>

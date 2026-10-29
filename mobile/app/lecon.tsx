@@ -190,7 +190,16 @@ export default function Lecon() {
           {contenu.type === 'video' ? (
             <Gradient colors={g.lecon} angle={140} radius={26} style={{ marginTop: 16, height: 150, alignItems: 'center', justifyContent: 'center' }}>
               {contenu.video && !depuisLeTelephone ? (
-                <Button tone="quiet" size="sm" label="Regarder la vidéo" onPress={() => { void openBrowserAsync(contenu.video as string); }} />
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <Button tone="quiet" size="sm" label="Regarder la vidéo" onPress={() => { void openBrowserAsync(contenu.video as string); }} />
+                  <Button
+                    tone="quiet"
+                    size="sm"
+                    label="Plein écran"
+                    icon="monitor"
+                    onPress={() => router.push({ pathname: '/lecteur', params: { titre: contenu.titre, module: contenu.moduleTitre ?? '' } })}
+                  />
+                </View>
               ) : (
                 <Body style={{ color: t('paperFixed'), fontSize: 13, textAlign: 'center', paddingHorizontal: 20 }}>
                   {contenu.video ? 'La vidéo demande du réseau : elle ne se garde pas sur le téléphone. Le texte, si.' : "La vidéo de cette leçon n'est pas encore en ligne."}
@@ -211,20 +220,18 @@ export default function Lecon() {
               {contenu.type === 'quiz' || contenu.type === 'mission' ? (
                 <>
                   <Body muted style={{ fontSize: 14, lineHeight: 22 }}>
-                    {contenu.type === 'quiz' ? 'Ce quiz' : 'Cette mission'} se fait sur le site, où tes réponses sont comptées.
+                    {contenu.type === 'quiz' ? 'Le quiz du module' : 'La mission de cette leçon'} — comptés par le serveur, comme sur le site.
                   </Body>
-                  {/* L'écran le disait sans y mener : un cul-de-sac poli. */}
+                  {/* Passe 2 (maquettes 17 et 18) : le quiz et la mission ont leur écran. */}
                   <Button
-                    tone="quiet"
+                    tone="forme"
                     size="sm"
-                    label="Ouvrir sur le site"
-                    trailing="external"
+                    label={contenu.type === 'quiz' ? 'Ouvrir le quiz' : 'Ouvrir la mission'}
                     style={{ marginTop: 12 }}
-                    onPress={() => {
-                      void openBrowserAsync(contenu.slug
-                        ? `https://maxmorrys.me/cours/${contenu.slug}`
-                        : 'https://maxmorrys.me/mon-espace/cours');
-                    }}
+                    onPress={() => router.push({
+                      pathname: contenu.type === 'quiz' ? '/quiz' : '/mission',
+                      params: { titre: contenu.titre, module: contenu.moduleTitre ?? '', slug: contenu.slug ?? '' },
+                    })}
                   />
                 </>
               ) : contenu.contenu ? (

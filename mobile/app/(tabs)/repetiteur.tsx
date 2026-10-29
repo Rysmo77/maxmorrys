@@ -3,7 +3,7 @@ import {
   AccessibilityInfo, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TextInput, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
@@ -64,6 +64,12 @@ export default function Repetiteur() {
   const tuteur = useTutorNom();
   const { reduit } = useMouvement();
   const [question, setQuestion] = useState('');
+  /* Passe 2 (maquette 37) : la feuille « Sur quoi porte ta question ? » revient ici avec la
+     leçon choisie ; la question est AMORCÉE, jamais envoyée à la place de la personne. */
+  const { sujet } = useLocalSearchParams<{ sujet?: string }>();
+  useEffect(() => {
+    if (sujet) setQuestion((q) => (q.trim() === '' ? `Sur la leçon « ${sujet} » : ` : q));
+  }, [sujet]);
   const { bandeau, montrer, effacer } = useBandeau();
   const fil = useRef<ScrollView>(null);
 
@@ -193,9 +199,15 @@ export default function Repetiteur() {
              d'attente est remontée hors du champ — jamais deux ondes à la fois. */
           glyphe={<Onde taille={14} />}
           droite={
-            <IconButton label="Ce qu'il a retenu de toi" onPress={() => router.push('/memoire')}>
-              <Icon name="brain" size={17} color={t('textBody')} strokeWidth={2} />
-            </IconButton>
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              {/* Passe 2 (maquette 38) : réviser ce qui est à revoir. */}
+              <IconButton label="Réviser" onPress={() => router.push('/reviser')}>
+                <Icon name="repeat" size={17} color={t('textBody')} strokeWidth={2} />
+              </IconButton>
+              <IconButton label="Personnaliser ton assistant" onPress={() => router.push('/memoire')}>
+                <Icon name="brain" size={17} color={t('textBody')} strokeWidth={2} />
+              </IconButton>
+            </View>
           }
         />
 
@@ -331,8 +343,21 @@ export default function Repetiteur() {
               />
             </Revele>
           ) : (
-            /* Le champ ET l'envoi dans une seule pilule (`mm-r-compose__in`) : 46 px sur `bento`
-               et filet sur iOS ; 52 px à 28 sur le gris Material 3, sans filet, sur Android. */
+            <>
+            {/* Passe 2 (maquette 36/37) : « Changer de leçon », à gauche du champ dans la maquette. */}
+            {anonyme ? null : (
+              <Pressoir
+                accessibilityRole="button"
+                accessibilityLabel="Choisir la leçon de ta question"
+                onPress={() => router.push('/choisir-lecon')}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingVertical: 4, marginBottom: 6 }}
+              >
+                <Icon name="book" size={14} color={t('textMuted')} strokeWidth={2.2} />
+                <Body muted style={{ fontSize: 12.5 }}>{sujet ? `Leçon : ${sujet}` : 'Sur quoi porte ta question ?'}</Body>
+              </Pressoir>
+            )}
+            {/* Le champ ET l'envoi dans une seule pilule (`mm-r-compose__in`) : 46 px sur `bento`
+               et filet sur iOS ; 52 px à 28 sur le gris Material 3, sans filet, sur Android. */}
             <View style={{
               flexDirection: 'row', alignItems: 'flex-end', gap: 6,
               minHeight: isIOS ? 46 : 52, paddingLeft: 16, paddingRight: 4, paddingVertical: 3,
@@ -377,6 +402,7 @@ export default function Repetiteur() {
                 </Gradient>
               </Pressoir>
             </View>
+            </>
           )}
         </View>
       </KeyboardAvoidingView>

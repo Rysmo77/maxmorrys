@@ -152,7 +152,7 @@ const KIT_CERTIFICAT = {
 const KIT_QUOTA = { utilise: 3, total: 5 } as const;
 
 const KIT_ECHANGE = [
-  { de: 'ai', texte: "Salut Aïssatou. Je suis ton répétiteur — tu peux me donner un autre nom quand tu veux. Tu t'es arrêtée à la leçon 5 du module 3. On la reprend, ou tu as une question ?" },
+  { de: 'ai', texte: "Salut Aïssatou. Je suis Rysmo IA — tu peux me donner un autre nom quand tu veux. Tu t'es arrêtée à la leçon 5 du module 3. On la reprend, ou tu as une question ?" },
   { de: 'me', texte: 'Comment je choisis mes mots-clés ?' },
   { de: 'ai', texte: "Trois points, dans cet ordre :\n\n1. Ce que tes clientes disent à voix haute en entrant — pas ce que toi tu vends.\n2. Le nom de ton quartier.\n3. Ce que tapent celles qui ne te connaissent pas encore." },
 ] as const;

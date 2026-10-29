@@ -34,7 +34,7 @@ import { useSyncExternalStore } from 'react';
  * branché (`setTutorNom(profil.tutorName)` au démarrage, une fois). Y ajouter un
  * `AsyncStorage` aujourd'hui créerait le second magasin qu'il faudrait ensuite réconcilier.
  */
-export const TUTOR_DEFAUT = 'Répétiteur';
+export const TUTOR_DEFAUT = 'Rysmo IA'; // PRD rév. 6, C-04 : « Répétiteur » quitte l'interface (décision levée le 29/10/2026)
 
 let nom = TUTOR_DEFAUT;
 const abonnes = new Set<() => void>();

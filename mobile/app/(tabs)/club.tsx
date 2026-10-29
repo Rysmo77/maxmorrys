@@ -136,9 +136,9 @@ export default function Club() {
         <CheckLine>Une réponse de moi, pas d'un modérateur</CheckLine>
         {/* Le plafond relevé, ou rien : « 5 questions » écrit sans mesure est une promesse. */}
         {QUOTA ? (
-          <CheckLine>Ton répétiteur à {QUOTA.total} questions/jour au lieu de 2</CheckLine>
+          <CheckLine>Ton assistant à {QUOTA.total} questions/jour au lieu de 2</CheckLine>
         ) : (
-          <CheckLine>Ton répétiteur à un plafond de questions plus haut</CheckLine>
+          <CheckLine>Ton assistant à un plafond de questions plus haut</CheckLine>
         )}
       </Surface>
 

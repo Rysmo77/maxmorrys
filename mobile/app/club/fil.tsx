@@ -126,7 +126,18 @@ export default function Fil() {
               <Tag>{post.categorie}</Tag>
             </Pressoir>
 
-            <Body style={{ marginTop: 12, lineHeight: 21 }}>{post.texte}</Body>
+            {/* Passe 2 (maquette 26) : le texte ouvre la publication et ses commentaires. */}
+            {post.enFile ? (
+              <Body style={{ marginTop: 12, lineHeight: 21 }}>{post.texte}</Body>
+            ) : (
+              <Pressoir
+                accessibilityRole="button"
+                accessibilityLabel={`Ouvrir la publication de ${post.auteur}`}
+                onPress={() => router.push({ pathname: '/club/publication', params: { id: post.id } })}
+              >
+                <Body style={{ marginTop: 12, lineHeight: 21 }}>{post.texte}</Body>
+              </Pressoir>
+            )}
 
             {/* Trois compteurs, et aucun n'est un score. Ils ne se touchent pas : aucune
                 réaction ne s'écrit depuis l'application, donc le cœur n'est plus coloré
