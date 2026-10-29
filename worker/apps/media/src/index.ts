@@ -26,6 +26,14 @@ export interface Env {
    * navigateur — d'où un secret plutôt qu'une vérification d'ID token.
    */
   INTERNAL_DELETE_KEY?: string;
+  /**
+   * Secret partagé avec le service `render-card` du VPS, qui dépose les créas
+   * marketing sous `social-cards/`.
+   *
+   * Distinct de `INTERNAL_DELETE_KEY` à dessein : un service qui n'a besoin que
+   * d'écrire ne doit pas détenir de quoi supprimer.
+   */
+  INTERNAL_UPLOAD_KEY?: string;
   /** Secret de signature des liens de lecture protégée. */
   MEDIA_SIGNING_KEY?: string;
 }
@@ -175,6 +183,60 @@ async function handleDelete(
   return json({ deleted: safe.length }, 200, cors);
 }
 
+/**
+ * Dépôt d'un objet par un service interne, hors du flux d'upload utilisateur.
+ *
+ * Seul client aujourd'hui : le service `render-card` déplacé sur le VPS, qui
+ * produit les créas marketing et n'a pas d'utilisateur Firebase à présenter.
+ * Il pousse ici plutôt que de manier des identifiants R2 : le secret partagé
+ * reste porté par le Worker, et le VPS ne détient aucune clé de stockage.
+ *
+ * Le préfixe est verrouillé et la clé est **imposée par le Worker**, pas reçue
+ * de l'appelant : un service interne compromis ne peut donc pas écraser un
+ * média existant, seulement ajouter une carte.
+ */
+const INTERNAL_PREFIX = 'social-cards/';
+const INTERNAL_MAX_BYTES = 10 * 1024 * 1024;
+
+async function handleInternalUpload(
+  req: Request,
+  env: Env,
+  cors: Record<string, string>,
+): Promise<Response> {
+  if (!env.INTERNAL_UPLOAD_KEY) {
+    return json({ error: 'Endpoint non configuré' }, 503, cors);
+  }
+  if (!constantTimeEqual(req.headers.get('X-Internal-Key') ?? '', env.INTERNAL_UPLOAD_KEY)) {
+    return json({ error: 'Non autorisé' }, 401, cors);
+  }
+
+  const contentType = req.headers.get('Content-Type') ?? '';
+  if (!contentType.startsWith('image/')) {
+    return json({ error: `Type de fichier non autorisé : ${contentType}` }, 415, cors);
+  }
+  if (Number(req.headers.get('Content-Length') ?? '0') > INTERNAL_MAX_BYTES) {
+    return json({ error: 'Fichier trop volumineux' }, 413, cors);
+  }
+
+  const extension = contentType === 'image/jpeg' ? 'jpg' : contentType.slice('image/'.length);
+  const key = `${INTERNAL_PREFIX}${crypto.randomUUID()}.${extension.replace(/[^a-z0-9]/g, '') || 'png'}`;
+
+  try {
+    await env.BUCKET.put(key, req.body, {
+      httpMetadata: {
+        contentType,
+        // Une créa n'est jamais réécrite — sa clé est aléatoire.
+        cacheControl: 'public, max-age=31536000, immutable',
+      },
+    });
+  } catch (error: unknown) {
+    console.error('Dépôt interne R2 impossible :', error);
+    return json({ error: "Échec de l'enregistrement" }, 502, cors);
+  }
+
+  return json({ key, url: `${env.PUBLIC_MEDIA_BASE}/${key}` }, 200, cors);
+}
+
 /** Comparaison à temps constant — `timingSafeEqual` n'existe pas sur Workers. */
 function constantTimeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -200,6 +262,10 @@ export default {
 
     if (req.method === 'POST' && url.pathname === '/delete') {
       return handleDelete(req, env, cors);
+    }
+
+    if (req.method === 'POST' && url.pathname === '/internal/upload') {
+      return handleInternalUpload(req, env, cors);
     }
 
     if (req.method !== 'POST' || url.pathname !== '/upload') {
