@@ -1,161 +1,94 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Button, CheckLine, DocLine, Field, GlassPanel, Icon, Num, PriceBlock, Tag, TerritoryCard, TruthPanel,
-} from '@ds';
+import { Button, DocLine, Field, GlassPanel, Num, Tag } from '@ds';
+import { Bento } from '../components/site/v3/Bento';
 import DsNavHost from '../components/layout/DsNavHost';
-import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
-import { SiteHero } from '../components/site/v3/SiteHero';
-import { ConceptionSubNav } from '../components/navigation/PisteSubNav';
-import LocalizedLink from '../components/shared/LocalizedLink';
+import { SiteEyebrow } from '../components/site';
+import { Eyebrow, KitButton, KitH2, KitSection, NightHero } from '../components/site/v3/kit';
 import MapsProof from '../components/presence/MapsProof';
-import PackSelector from '../components/presence/PackSelector';
 import StickyWhatsApp from '../components/presence/StickyWhatsApp';
-import { useFormat } from '../hooks/useFormat';
-import { PriceApprox, PriceFootnote } from '../components/shared/PriceApprox';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
 import {
-  PACKS, PLANS, OPTIONS, JOURNEY_STEPS, TERMS, SECTOR_KEYS, PACK_KEYS, PLAN_KEYS,
-  packEffectivePrice, CATALOGUE_REVISED_AT,
+  PACKS, SECTOR_KEYS, PACK_KEYS, PLAN_KEYS, QUOTE_VALIDITY_DAYS, DEPOSIT_RATE,
+  packEffectivePrice, computeTotals, depositAmount, balanceAmount, CATALOGUE_REVISED_AT,
+  type PackDefinition,
 } from '../lib/presence/offer';
 import { doitMentionnerLaTaxe, regimeDe, tauxEnPourcent, ventilerDepuisHT } from '../lib/tax/senegal';
 import { whatsappUrl } from '../lib/presence/whatsapp';
 import { usePresenceQuote } from './presence/usePresenceQuote';
-import { Bento } from '../components/site/v3/Bento';
-
-/*
- * LE CATALOGUE EST DATÉ, ET C'EST CE QUI AUTORISE `source="db"` — la date vit désormais DANS
- * `src/lib/presence/offer.ts`, à côté des montants qu'elle date. Elle était déclarée ici, dans
- * un fichier qu'on n'ouvre pas pour changer un prix, et l'encart de vérité plus bas la
- * recopiait en toutes lettres dans les deux langues. Voir `CATALOGUE_REVISED_AT`.
- */
 
 /**
- * ── LE RÉGIME FISCAL DE LA PAGE, LU UNE FOIS ─────────────────────────────────────────
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * COMMERCES ET TPE — LA MAQUETTE `Site-Commerces` (bureau) / `-mobile`, PASSE 2.
  *
- * L'article 5.1 des CGV est passé de TTC à HT le 03/09/2026. Cette page affichait neuf
- * montants sans jamais écrire « hors taxes » — sur la page dont le titre promet que les prix
- * sont affichés. Le défaut n'était donc pas « le TTC manque » : c'est que rien ne disait de
- * quelle NATURE étaient ces nombres, alors qu'ils avaient changé de nature la veille.
+ * ⚠️ DÉCISIONS LEVÉES (29/10/2026, « maquettes + DS + PRD rév. 6 font foi ») : la page
+ * longue (bénéfices, questionnaire en trois questions, formules d'accompagnement, options,
+ * panneau de vérité, FAQ, conditions) cède à l'ordre de la planche — dalle, trois packs,
+ * démonstration et devis instantané, étapes, appel. Le formulaire de devis, lui, RESTE :
+ * c'est lui qui produit le récapitulatif consultable (`/conception/commerces-et-tpe/devis/…`)
+ * que le bouton « Recevoir mon devis » de la planche promet.
  *
- * Ce que la page montre désormais, et où :
- *   · les trois PACKS — « hors taxes » ET le montant TTC, parce qu'ils sont le seul montant
- *     EXIGIBLE (`computeTotals` les appelle `setupDue`, et c'est lui que l'acompte 60/40
- *     découpe) ;
- *   · tout le reste — « hors taxes » seulement. Les formules d'accompagnement ne sont pas un
- *     dû (`pipelineValue`, « usage interne, ne jamais l'afficher à un prospect ») et portent
- *     déjà quatre nombres par ligne ; les options sont des FOURCHETTES, dont le TTC serait
- *     une fourchette de fourchette.
- *
- * ⚠️ À SIGNALER AU MÉTIER, ET VOLONTAIREMENT PAS CORRIGÉ ICI : `depositAmount()` calcule les
- * 60/40 sur le HT, tandis que `terms.items.payment` ne précise pas sur quelle base. Ce n'est
- * pas un défaut d'affichage, c'est une question commerciale — elle se tranche avec la
- * personne qui facture, pas dans un composant.
- *
- * ⚠️⚠️ LA COLLISION DU PACK D'ENTRÉE — NE PAS LA « RÉPARER » EN CACHANT LE TTC.
- *
- * « Présence Locale » porte `price: 295_000` et `promoPrice: 250_000`. Or 250 000 HT font
- * exactement 295 000 TTC. La carte affiche donc un prix barré à 295 000 et un total à
- * 295 000 : LA PROMOTION DE LANCEMENT VAUT EXACTEMENT LA TVA, et le commerçant paie le prix
- * de liste d'origine.
- *
- * Les deux nombres sont vrais et disent deux choses différentes — un ancien prix de liste, et
- * un total à payer. Les afficher ensemble met la situation à nu, et c'est le comportement
- * voulu : masquer le TTC de cette carte-là ferait découvrir les 18 % au devis, c'est-à-dire
- * exactement le défaut que ce travail corrige.
- *
- * L'inconfort n'est pas dans l'affichage, il est dans la grille. Ce qui se décide — retirer
- * le barré, ajuster le promo, ou assumer — appartient à la personne qui fixe les prix.
+ * Ce qui diffère de la planche, et pourquoi :
+ * - LES PACKS sont ceux du catalogue (`PACKS`, noms et prix de `presence.json` /
+ *   `offer.ts`), pas « Essentiel / Visibilité / Complet » ni leurs descriptions.
+ * - « Promo de lancement · jusqu'au [DATE] » : aucune date de fin n'existe — « Promo de
+ *   lancement » seul. « Délai : [N] jours ouvrés » : aucun délai n'est publié — l'étape 4
+ *   dit la durée de support du catalogue (`supportDays`).
+ * - LA DÉMO « boutique fictive » devient le test Google Maps réel (`MapsProof`) : aucun
+ *   exemple inventé.
+ * - L'ACOMPTE se calcule sur la mise en place HT (`depositAmount(setupDue)`), comme le
+ *   récapitulatif et le message WhatsApp — et le libellé le dit.
+ * - Paiement : les trois moyens réels (`proof:check` règle 8), pas deux.
+ * ═══════════════════════════════════════════════════════════════════════════════
  */
+
 const REGIME_AGENCE = regimeDe('agence');
+type PackKey = PackDefinition['key'];
 
-/**
- * ── LE PRIX BARRÉ, ET POURQUOI IL EST LÉGITIME ───────────────────────────────────────
- *
- * Le readme du système écrit que « le prix d'entrée TPE réellement pratiqué est 250 000,
- * pas 295 000 ». Lu vite, c'est l'interdiction d'afficher un barré. Lu contre les données,
- * c'en est le contraire : `PACKS[0]` porte `price: 295_000` ET `promoPrice: 250_000`. Le
- * readme décrit le prix PRATIQUÉ ; il ne nie pas le prix de liste, il dit lequel des deux
- * on encaisse. C'est exactement la structure que `PriceBlock` attend — `amount` sur ce
- * qu'on paie, `strike` sur ce qu'on ne paie plus.
- *
- * Les deux valeurs sortent donc du catalogue avec `source="db"`. Un pack sans `promoPrice`
- * n'a pas de barré : rien n'est fabriqué pour faire nombre.
- *
- * ⚠️ LE MONTANT NE SE RECALCULE PAS ICI. Cette fonction lisait `promo ?? pack.price` de son
- * côté pendant que `computeTotals()` lisait `pack.price` du sien : la page affichait 250 000
- * et le devis ouvert derrière le même bouton en annonçait 295 000. Les deux passent
- * maintenant par `packEffectivePrice()`, et il n'y a plus qu'un endroit où se tromper.
- * ─────────────────────────────────────────────────────────────────────────────────────
- */
-function packPricing(pack: (typeof PACKS)[number]) {
-  const amount = packEffectivePrice(pack);
-  return {
-    amount: { value: amount, source: 'db' as const, asOf: CATALOGUE_REVISED_AT },
-    strike: amount < pack.price
-      ? { value: pack.price, source: 'db' as const, asOf: CATALOGUE_REVISED_AT }
-      : undefined,
-    /*
-     * ⚠️ LA VENTILATION NE SE CALCULE PAS À LA MAIN. `ventilerDepuisHT` arrondit la TAXE puis
-     * reconstruit le total par addition ; un `× 1,18` local diverge du devis une fois sur
-     * deux, et le devis est le document que le commerçant garde. Même fonction des deux
-     * côtés, donc même franc.
-     */
-    tax: ventilerDepuisHT(amount, REGIME_AGENCE),
-  };
+/** Sur la dalle teal, le fragment entre crochets prend le teal clair de la planche. */
+function TealLines({ lines }: { lines: string[] }) {
+  return (
+    <>
+      {lines.map((line, i) => (
+        <span key={i}>
+          {i > 0 && <br className="hidden stack:inline" />}
+          {i > 0 && <span className="stack:hidden"> </span>}
+          {line.split(/\[([^\]]+)\]/).map((part, j) =>
+            j % 2 === 1 ? (
+              <span key={j} className="text-[color:var(--mm-teal-t)]">
+                {part}
+              </span>
+            ) : (
+              part
+            ),
+          )}
+        </span>
+      ))}
+    </>
+  );
 }
-
-/** Les trois territoires du kit, dans l'ordre où le catalogue liste les packs. */
-const PACK_TERRITORY = ['digitalise', 'forme', 'transforme'] as const;
-
-/**
- * L'unité d'une option pointe vers sa clé de traduction. `flat` n'en a pas : un forfait
- * n'est ni « par produit » ni « par mois », et lui coller un suffixe inventerait une
- * facturation qui n'existe pas au catalogue.
- */
-const UNIT_SUFFIX: Record<string, string | undefined> = {
-  product: 'options.perProduct',
-  page: 'options.perPage',
-  month: 'options.perMonth',
-  flat: undefined,
-};
 
 export default function PresenceDigitale() {
   const { t } = useTranslation('presence');
-  /* Les six libellés partagés entre les pistes vivent dans `common:cta`. Les deux portes de
-     cette page vers « projets sur mesure » les recopiaient chacune, mot pour mot. */
-  const { t: tc } = useTranslation('common');
-  const { formatPrice, formatApprox, locale } = useFormat();
-
-  /*
-   * LA DATE DE LA GRILLE, ÉCRITE EN TOUTES LETTRES DANS L'ENCART DE VÉRITÉ — donc formatée en
-   * UTC, pas dans le fuseau du visiteur. `formatDate()` aurait affiché « 1er août 2026 » à
-   * l'ouest de Greenwich : une date de révision fausse, dans le bloc de la page dont c'est
-   * précisément le métier d'être exact. Voir `CATALOGUE_REVISED_AT`.
-   */
-  const gridAsOf = CATALOGUE_REVISED_AT.toLocaleDateString(locale, {
-    timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric',
-  });
   const path = useLocalizedPath();
   const q = usePresenceQuote();
-  /** Le détail des conditions est replié : il est contractuel, pas promotionnel. */
-  const [showTerms, setShowTerms] = useState(false);
-  /** Les six champs de précision du devis, repliés derrière « Ajouter des précisions ». */
   const [showMore, setShowMore] = useState(false);
+  const featured = (PACKS.find((p) => p.featured) ?? PACKS[0]).key;
+  const [selected, setSelected] = useState<PackKey>(featured);
 
-  const faqItems = t('faq.items', { returnObjects: true }) as { q: string; a: string }[];
-  const entryPack = PACKS[0];
-  const entryPrice = packEffectivePrice(entryPack);
+  const rate = tauxEnPourcent(REGIME_AGENCE.taux);
+  const supportDays = PACKS.map((p) => p.supportDays);
+  const totals = computeTotals(selected, 'aucun');
+  const showTax = doitMentionnerLaTaxe(totals.setupDueTax.etat) && totals.setupDueTax.tva > 0;
+  const pct = Math.round(DEPOSIT_RATE * 100);
 
-  /**
-   * Le visiteur a-t-il dit quoi que ce soit sur les packs — une recommandation reçue, ou un
-   * pack cliqué ? Tant que non, « Le plus choisi » a sa place ; après, il devient du bruit
-   * à côté de « Recommandé pour toi ».
-   */
-  const hasPackSignal = q.reco !== null || q.form.pack !== 'undecided';
+  const choose = (key: PackKey) => {
+    setSelected(key);
+    q.update('pack', key);
+  };
 
   const sectorOptions = useMemo(
     () => SECTOR_KEYS.map((k) => ({ value: k, label: t(`form.sectors.${k}`) })),
@@ -186,15 +119,7 @@ export default function PresenceDigitale() {
         name: t('seoTitle'),
         description: t('seoDescription'),
         areaServed: 'Afrique de l\'Ouest',
-        /* L'URL du service suit la langue ET la nouvelle adresse de la piste : elle était
-           écrite en dur sur `/presence-digitale`, qui n'est plus qu'une redirection. Un
-           `url` qui renvoie vers un 301 fait décrire au balisage une page qui n'existe plus. */
         url: `${SITE_URL}${path('/conception/commerces-et-tpe')}`,
-        /*
-          Les trois packs sont des offres au sens de schema.org — un prix, une devise, une
-          disponibilité. Aucun `aggregateRating` : le produit n'a pas d'avis collectés, et en
-          fabriquer un serait le premier des six interdits.
-        */
         hasOfferCatalog: {
           '@type': 'OfferCatalog',
           name: t('packs.title'),
@@ -207,486 +132,155 @@ export default function PresenceDigitale() {
         },
       }} />
 
-      {/*
-        ── HÉROS — kit v3 (`Site-Commerces`) ────────────────────────────────────────────
-        La dalle de nuit porte, dans l'ordre de lecture : la sous-navigation de piste
-        (primitive de PAGE), le BANDEAU DE SEGMENT, puis le titre et, à droite, la PREUVE.
-
-        LE BANDEAU DE SEGMENT reste AVANT le titre : il est lu par quelqu'un qui vient
-        d'arriver et n'a pas encore décidé s'il lit la suite. Il NOMME le segment et donne la
-        sortie, sans poser de question (la question vit une seule fois, au pont du bas). Les
-        trois villes nomment un MARCHÉ, pas des bureaux.
-
-        LA PREUVE À CÔTÉ DU TITRE : le titre affirme « ils trouvent tes concurrents », et le
-        test Google Maps le démontre sans coûter une donnée personnelle. Un seul premier geste
-        en plus d'elle : les trois questions (« En parler sur WhatsApp » vit dans
-        `StickyWhatsApp`, en bas de page).
-      */}
-      <SiteHero
-        mesh="digitalise"
-        top={
-          <>
-            <ConceptionSubNav active="commerces" />
-            <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-[color:var(--border-hair)] pb-3 text-meta-2 leading-[1.5]">
-              <span className="font-bold text-ink">{t('segmentBand.label')}</span>
-              <span className="text-ink-2">{t('segmentBand.switch')}</span>
-              <LocalizedLink
-                to="/conception/projets-sur-mesure"
-                className="mm-touch-extend font-semibold text-digitalise-txt underline underline-offset-2"
-              >
-                {tc('cta.projetsSurMesure')}
-              </LocalizedLink>
-            </div>
-          </>
-        }
-        eyebrow={t('eyebrow')}
-        /* TROIS lignes, comme le kit : « Ta boutique, / trouvable / sur Google. » */
-        titleLines={[t('heroTitle1'), t('heroTitle2'), t('heroTitle3')]}
-        size={56}
-        lede={t('heroSubtitle')}
-        actions={
-          /* « Trouve ton pack en 3 questions » ouvre LES TROIS QUESTIONS, et non le
-             formulaire de devis : aucune donnée personnelle avant la recommandation. */
-          <Button tone="highlight" arrow fullWidth={false} onClick={q.jumpToSelector}>
-            {t('heroCta')}
-          </Button>
-        }
-        aside={
-          <div className="rv" style={{ ['--i' as string]: 5 }}>
-            <MapsProof />
+      {/* ── 1 · LA DALLE (teal) ──────────────────────────────────────────────── */}
+      <NightHero mesh="digitalise">
+        <div className="relative z-[1] mx-auto box-border w-full max-w-[1360px] px-5 pb-10 pt-6 wide:px-10 wide:pb-16 wide:pt-[110px]">
+          <Eyebrow className="text-[color:var(--mm-teal-t)]">
+            <span className="stack:hidden">{t('v3.hero.eyebrowShort')}</span>
+            <span className="hidden stack:inline">{t('v3.hero.eyebrow')}</span>
+          </Eyebrow>
+          <h1 className="mm-d m-0 mb-[22px] mt-5 text-[46px] leading-[.9] tracking-[-.05em] wide:text-[clamp(56px,7.4vw,112px)] wide:leading-[.88]">
+            <TealLines lines={t('v3.hero.titleLines', { returnObjects: true }) as string[]} />
+          </h1>
+          <p className="m-0 mb-5 max-w-[52ch] text-[15.5px] leading-[1.55] text-ink-2 stack:hidden">{t('v3.hero.ledeShort', { count: PACKS.length })}</p>
+          <p className="m-0 mb-[26px] hidden max-w-[52ch] text-[18px] leading-[1.55] text-ink-2 stack:block">{t('v3.hero.lede', { count: PACKS.length })}</p>
+          <div className="flex flex-wrap gap-[10px]">
+            <KitButton href="#packs" tone="studio" arrow>{t('v3.hero.ctaPacks')}</KitButton>
+            <KitButton href="#demo" tone="veil" className="hidden stack:inline-flex">{t('v3.hero.ctaDemo')}</KitButton>
           </div>
-        }
-      />
+        </div>
+      </NightHero>
 
-      <PageSite>
-        {/* ── CE QUE TU ACHÈTES — EN BANDE, JUSTE APRÈS LA PREUVE ──
-            Cinq colonnes qui se PARCOURENT, là où c'étaient cinq rangées qui se LISAIENT.
-            Le bloc répond à « qu'est-ce que j'achète » et doit donc précéder « combien » ;
-            il arrivait après la grille de prix. Une ligne par colonne : à ce stade le
-            commerçant survole, il ne lit pas encore. */}
-        <SiteBand bleed className="mm-section">
-          <SiteDisplay as="h2" lines={t('journey.titleLines', { returnObjects: true }) as string[]} size={34} />
-          <p className="rv mt-3 mm-prose text-meta leading-[1.6] text-ink-2" style={{ ['--i' as string]: 2 }}>
-            {t('journey.subtitle')}
-          </p>
-          {/*
-            ⚠️ CINQ COLONNES D'UN COUP ÉTAIENT TROP ÉTROITES POUR ÊTRE PARCOURUES.
-
-            L'intention — parcourir plutôt que lire — est la bonne, et elle est conservée.
-            Mais à 1280 px, cinq pistes plus quatre gouttières laissaient environ 160 px par
-            carte, et le corps de chacune retombait sur trois lignes de moins de vingt
-            caractères. C'est le passage qui DÉFINIT l'offre pour un persona peu à l'aise
-            avec le numérique, et c'était le plus dense de la page : la mesure y travaillait
-            contre le survol qu'elle cherchait à produire.
-
-            Palier intermédiaire à trois, cinq seulement au-delà de `wide`, là où la piste
-            reprend sa largeur. Le nombre de promesses ne bouge pas : c'est leur place qui
-            change.
-          */}
-          <ul className="mt-6 grid list-none gap-4 p-0 stack:grid-cols-3 wide:grid-cols-5">
-            {JOURNEY_STEPS.map((step, i) => (
-              <li key={step} className="rv" style={{ ['--i' as string]: i + 3 }}>
-                <Bento padding={18} style={{ height: '100%' }}>
-                  <span
-                    className="grid h-7 w-7 place-items-center rounded-full"
-                    style={{ background: 'color-mix(in srgb, var(--mm-teal) 18%, transparent)' }}
-                  >
-                    <Icon name="check" size={13} color="var(--mm-teal)" strokeWidth={3.4} />
-                  </span>
-                  <p className="m-0 mt-[10px] text-[15px] font-bold leading-[1.3]">
-                    {t(`journey.${step}.title`)}
-                  </p>
-                  <p className="m-0 mt-[6px] text-meta-2 leading-[1.5] text-ink-2">
-                    {t(`journey.${step}.text`)}
-                  </p>
-                </Bento>
-              </li>
-            ))}
-          </ul>
-        </SiteBand>
-
-        {/* ── LE SÉLECTEUR — AVANT LA GRILLE, ET C'EST TOUT L'INTÉRÊT ──
-            Le bouton du héros s'appelle « Trouve ton pack en 3 questions » et devait
-            franchir les trois cartes de prix pour arriver ici : l'outil fait pour épargner
-            la comparaison était placé derrière la comparaison. Les trois questions passent
-            devant ; la grille devient la sortie de ceux qui veulent tout voir. */}
-        {/*
-          `.85fr / 1.15fr`, PAS DEUX MOITIÉS.
-
-          Le titre tient sur deux lignes et le chapô sur une, plafonnée à 44 caractères : à
-          50/50, ce bloc occupait 380 px d'une piste de 577 et le reste — près de 250 px —
-          devenait un couloir vide entre le texte et le questionnaire. `items-center` ne le
-          referme pas, il le répartit au-dessus et en dessous.
-
-          Le kit ne dessine PAS cette section : il n'a qu'un bouton « Trouver mon pack en
-          3 questions » (`pages-core.jsx:217`). Il n'y a donc pas de fidélité à tenir ici, et
-          c'est aussi la seule section de la page dont le titre est en vis-à-vis au lieu
-          d'être au-dessus — les cinq bénéfices et les trois packs posent le leur en tête.
-          Faute de pouvoir remonter le titre sans coller un questionnaire de 700 px de large
-          contre le bord, on resserre : la piste du texte tombe à 494, celle de l'outil monte
-          à 670. C'est l'outil qu'on vient utiliser.
-        */}
-        <div className="mm-section grid items-center gap-9 wide:grid-cols-[.85fr_1.15fr]">
+      {/* ── 2 · LES PACKS (catalogue) ────────────────────────────────────────── */}
+      <KitSection id="packs" className="scroll-mt-[var(--header-h)] pt-12 wide:pt-24">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-5 wide:mb-6">
           <div>
-            <SiteDisplay as="h2" lines={t('selector.titleLines', { returnObjects: true }) as string[]} size={34} />
-            <p className="rv mt-3 max-w-[44ch] text-meta leading-[1.6] text-ink-2" style={{ ['--i' as string]: 2 }}>
-              {t('selector.subtitle')}
-            </p>
+            <Eyebrow tone="studio">
+              <span className="stack:hidden">{t('v3.packs.eyebrowShort')}</span>
+              <span className="hidden stack:inline">{t('v3.packs.eyebrow', { count: PACKS.length })}</span>
+            </Eyebrow>
+            <KitH2 className="mt-3 wide:mt-[14px]" size="clamp(38px, 5vw, 64px)">{t('v3.packs.title')}</KitH2>
           </div>
-          <div ref={q.selectorRef} className="rv" style={{ ['--i' as string]: 4 }}>
-            <PackSelector
-              onRecommend={q.handleRecommend}
-              onAccept={q.acceptReco}
-              onReset={q.resetSelection}
-              resetSignal={q.resetSignal}
-            />
-          </div>
+          <p className="m-0 hidden max-w-[40ch] text-ink-2 stack:block">{t('v3.packs.lede', { rate })}</p>
         </div>
-
-        {/* ── LES TROIS PACKS — prix affichés, pas de « à partir de » ──
-            `bleed` : seule bande du dépôt IMBRIQUÉE dans un `PageSite`. Elle doit donc
-            ressortir de la gouttière de 40 px, là où les onze autres sont déjà de premier
-            niveau et n'ont rien à annuler. */}
-        <SiteBand bleed className="mm-section">
-          {/*
-            AD-13 : les COUPURES sont écrites, pas calculées — et `SiteDisplay` rend chaque
-            ligne en `nowrap`. Mesuré à 375 px le 18/09/2026 : la chaîne d'un seul tenant
-            réclamait 359 px dans une colonne de 339, et poussait la fenêtre.
-            `packs.title` reste plat : il sert de `name` au balisage `Offer`, qui ne veut
-            pas de lignes.
-          */}
-          <SiteDisplay as="h2" lines={t('packs.titleLines', { returnObjects: true }) as string[]} size={34} />
-          <p className="rv mt-[10px] max-w-[56ch] text-meta leading-[1.6] text-ink-2" style={{ ['--i' as string]: 1 }}>
-            {t('packs.subtitle')}
-          </p>
-
-          <div className="mt-6 grid gap-4 stack:grid-cols-3">
-            {PACKS.map((pack, i) => {
-              const { amount, strike, tax } = packPricing(pack);
-              const features = t(`packs.${pack.key}.features`, { returnObjects: true }) as string[];
-              const isReco = q.reco?.pack === pack.key;
-              const isSelected = q.form.pack === pack.key;
-              return (
-                /*
-                  `h-full` SUR L'ENVELOPPE, `fill` SUR LA CARTE — les deux, sinon rien.
-                  La grille étire déjà ses cellules ; c'est le `<div className="rv">` qui
-                  s'arrêtait à sa hauteur naturelle et laissait la carte flotter dedans.
-                */
-                <div key={pack.key} className="rv h-full" style={{ ['--i' as string]: i + 2 }}>
-                  <TerritoryCard
-                    fill
-                    territory={PACK_TERRITORY[i]}
-                    padding={24}
-                    /*
-                      TROIS ÉTATS, ET LE SOURCIL DIT LEQUEL. `packs.recommended` et
-                      `packs.selected` étaient traduits en français comme en anglais et
-                      n'apparaissaient dans aucun composant : on répondait aux trois questions
-                      et la grille ne bougeait pas d'un pixel.
-
-                      « Le plus choisi » ne survit pas au premier signal du visiteur. C'est un
-                      argument qui parle des AUTRES ; dès qu'on sait quelque chose de celui-ci,
-                      deux badges de désirabilité concurrents sur la même rangée s'annulent.
-                    */
-                    meta={
-                      isReco ? t('packs.recommended')
-                        : isSelected ? t('packs.selected')
-                          : (pack.featured && !hasPackSignal) ? t('packs.featured')
-                            : t(`packs.${pack.key}.for`)
-                    }
-                    title={t(`packs.${pack.key}.name`)}
-                    titleSize={23}
-                    /*
-                      L'ANNEAU MARQUE OÙ ON EN EST, PAS CE QUE JE CONSEILLE — il suit la
-                      sélection, le sourcil dit pourquoi. Après les trois questions les deux
-                      coïncident ; si le commerçant clique ensuite un autre pack, l'anneau le
-                      suit et la carte conseillée garde son sourcil sans son anneau. La grille
-                      écrit alors les deux choses à la fois : « j'ai conseillé celui-là, tu as
-                      pris celui-ci. »
-
-                      `outline` et non `border` : il se pose HORS du flux, donc l'apparition de
-                      l'anneau ne redessine pas la carte et ne décale pas la rangée.
-
-                      Les deux autres cartes ne sont PAS estompées. Baisser leur opacité
-                      ferait passer `--card-ink-2` sous le seuil de contraste sur un fond
-                      pastel — on ne rend pas un prix moins lisible pour en vanter un autre.
-                    */
-                    style={isSelected ? {
-                      outline: '2px solid var(--mm-teal)',
-                      outlineOffset: '2px',
-                      /*
-                        Le chevron de la carte SUIVANTE est en `top:-16px` et déborde de 16 px
-                        au-dessus d'elle, dans les 14 px de chevauchement de l'empilement : en
-                        colonne unique, il passait par-dessus le bas de l'anneau. `z-index`
-                        fonctionne ici parce que `.play .rv` remet `transform:none` — le
-                        conteneur de révélation ne forme plus de contexte d'empilement une fois
-                        la carte apparue.
-                      */
-                      zIndex: 1,
-                    } : undefined}
-                  >
-                    {/* L'ÉLÉMENT ÉLASTIQUE de la carte : c'est la liste qui absorbe la
-                        différence de longueur entre les trois packs, pour que les trois prix
-                        et les trois boutons tombent sur la même ligne. `content-start` :
-                        étirée, une grille répartirait ses lignes au lieu de les grouper. */}
-                    <ul className="m-0 mt-[9px] grid flex-1 list-none content-start gap-[6px] p-0">
-                      {features.map((f) => (
-                        <li key={f} className="flex gap-2 text-[13.5px] leading-[1.5] text-[color:var(--card-ink-2)]">
-                          <Icon name="check" size={13} strokeWidth={3.4} style={{ marginTop: '4px', flexShrink: 0 }} />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <PriceBlock
-                      amount={amount}
-                      strike={strike}
-                      strikeLabel={t('packs.strikeLabel')}
-                      size={26}
-                      approx={<PriceApprox xof={amount.value} />}
-                      /*
-                        LE TTC VA DANS `note`, ET C'EST LE SEUL EMPLACEMENT POSSIBLE.
-
-                        `PriceBlock` n'a que deux fentes sous le montant, et son en-tête
-                        verrouille la première : « la contrevaleur se pose ENTRE le montant et
-                        la note, et pas ailleurs ». `approx` porte donc l'euro/le dollar, et
-                        n'a pas à céder la place.
-
-                        Le précédent est dans la primitive elle-même : le cadrage mensuel du
-                        Club — « 19 900 par an franchit seul un seuil de délibération que
-                        1 658 par mois ne franchit pas ; c'est la même somme, et la personne
-                        doit pouvoir la regarder des deux côtés » — vit exactement là. Le TTC
-                        d'un HT est le même cas : la même somme, regardée de l'autre côté.
-
-                        ⚠️ `source` est `{ cite }` et NON `'db'`. Le HT est lu au catalogue ;
-                        le TTC en est DÉRIVÉ, avec le taux du régime. `PresenceDevis.tsx` fait
-                        déjà exactement cette distinction. Mettre `'db'` serait une source
-                        fausse, et c'est précisément ce que la règle 6 existe pour empêcher.
-                      */
-                      note={
-                        <>
-                          {strike ? t('packs.promoNote') : t('packs.onceNote')}
-                          {' · '}
-                          {t('packs.htSuffix')}
-                          {doitMentionnerLaTaxe(tax.etat) && tax.tva > 0 && (
-                            <>
-                              <br />
-                              {t('packs.ttcPrefix', { rate: tauxEnPourcent(tax.taux) })}{' '}
-                              <Num
-                                value={tax.ttc}
-                                unit="FCFA"
-                                source={{ cite: t('packs.taxCite') }}
-                                asOf={CATALOGUE_REVISED_AT}
-                                showAsOf={false}
-                              />
-                            </>
-                          )}
-                        </>
-                      }
-                      style={{ marginTop: '18px' }}
-                    />
-
-                    <p className="m-0 mt-2 text-meta-2 text-[color:var(--card-ink-2)]">
-                      {t('packs.supportIncluded', { days: pack.supportDays })}
-                    </p>
-
-                    <div className="mt-[14px]">
-                      <Button
-                        tone="digitalise"
-                        size="sm"
-                        fullWidth={false}
-                        onClick={() => q.jumpToForm({ pack: pack.key })}
-                      >
-                        {t('packs.cta')}
-                      </Button>
-                    </div>
-                  </TerritoryCard>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Sous les trois prix, et pas sous la page : la phrase parle de la grille qu'on
-              vient de lire. C'est aussi le seul endroit où la règle de change est LUE — le
-              `title` des contrevaleurs n'existe pas au clavier ni au lecteur d'écran. */}
-          <PriceFootnote className="mt-5" />
-
-          {/*
-            L'ENCART QUI DÉSAMORCE — descendu du héros, et posé JUSTE APRÈS les trois prix.
-
-            Il vivait au premier écran, où il répondait à une objection tarifaire que
-            personne n'avait encore eu l'occasion de se formuler : il faut avoir vu un
-            montant pour se demander ce qu'il cache. Ici, la séquence se tient toute seule —
-            on lit les trois prix, on se demande « et la suite ? », l'encart répond, et
-            l'accompagnement qui suit est exactement ce dont il vient de dire qu'il est une
-            décision séparée.
-
-            Le montant vient du catalogue, pas de la traduction, pour qu'un changement de
-            prix ne laisse jamais un chiffre périmé dans une phrase.
-          */}
-          <GlassPanel level="hero" padding={26} className="rv mt-5" style={{ ['--i' as string]: 5 }}>
-            <div className="mm-prose">
-              <SiteEyebrow style={{ margin: 0, color: 'var(--mm-teal-t)' }}>
-                {t('anchor.eyebrow')}
-              </SiteEyebrow>
-              <p className="m-0 mt-[9px] text-[17px] font-bold leading-[1.32]">{t('anchor.question')}</p>
-              <p className="m-0 mt-3 text-meta leading-[1.6] text-ink-2">
-                {t('anchor.answerBefore')}
-                <b className="text-ink">
-                  <Num value={entryPrice} source="db" asOf={CATALOGUE_REVISED_AT} unit="FCFA" />
-                </b>
-                {t('anchor.answerAfter')}
-              </p>
-              <div className="my-[18px] h-px bg-[color:var(--border-hair)]" />
-              <p className="m-0 text-meta-2 text-ink-2">{t('anchor.footnote')}</p>
-            </div>
-          </GlassPanel>
-
-          {/*
-            L'accompagnement mensuel, mis À CÔTÉ des packs et non dedans. C'est la promesse
-            que l'encart du héros vient de faire : une décision séparée. L'imbriquer dans les
-            cartes la reprendrait d'une main après l'avoir donnée de l'autre.
-          */}
-          <Bento padding={22} className="rv mt-4" style={{ ['--i' as string]: 6 }}>
-            <div className="flex flex-col items-start justify-between gap-5 stack:flex-row">
-              <div className="max-w-[60ch]">
-                <p className="m-0 font-display text-[18px] font-black tracking-[-.03em]">
-                  {t('plansAside.title')}
-                </p>
-                <p className="m-0 mt-2 text-meta leading-[1.55] text-ink-2">{t('plansAside.body')}</p>
-                {/*
-                  LA MISE EN PLACE EST ÉCRITE, PAS SEULEMENT MENTIONNÉE. Ces deux lignes
-                  n'affichaient que le mensuel. Le texte au-dessus annonce « des frais de mise
-                  en place distincts » sans les chiffrer, et le montant — 375 000 F, plus que
-                  le pack d'entrée — n'apparaissait qu'au devis et dans le message WhatsApp.
-                  C'était le seul prix caché d'une page intitulée « les prix sont affichés ».
-
-                  Le nommer ne l'additionne PAS au dû à la signature : `computeTotals()` tient
-                  `setupDue` sur le pack seul, et le modèle setup-first tient toujours. On
-                  écrit ce que ça coûtera le jour où la décision se prendra, pas une facture.
-                */}
-                <div className="mt-3 grid gap-[2px]">
-                  {PLANS.map((plan, i) => (
-                    <DocLine
-                      key={plan.key}
-                      /*
-                        La recommandation porte AUSSI une formule, et `plans.recommended` était
-                        la deuxième clé morte du couple. Elle peut valoir « aucun » : le
-                        sélecteur refuse de vendre de l'accompagnement à quelqu'un qui publie
-                        déjà régulièrement, et dans ce cas aucune des deux lignes n'est marquée.
-
-                        `--mm-teal-t` et non `--mm-teal` : le teal plafonne à 2,84:1 sur blanc,
-                        il ne porte jamais de texte. Le jeton `-t` bascule seul en nuit.
-                      */
-                      label={
-                        q.reco?.plan === plan.key ? (
-                          <>
-                            {t(`plans.${plan.key}.name`)}
-                            {' · '}
-                            <span style={{ color: 'var(--mm-teal-t)', fontWeight: 600 }}>
-                              {t('plans.recommended')}
-                            </span>
-                          </>
-                        ) : t(`plans.${plan.key}.name`)
-                      }
-                      value={
-                        /*
-                          Les DEUX montants passent par `formatPrice`, et pas l'un par
-                          `<Num unit="FCFA">` et l'autre par `formatPrice` : Intl écrit
-                          « 175 000 F CFA » là où `<Num>` écrit « 375 000 FCFA », et la ligne
-                          portait alors deux orthographes de la même devise à trois mots
-                          d'intervalle.
-                        */
-                        <>
-                          {`${t('plans.setupLabel')} ${formatPrice(plan.setupPrice)} · `
-                            + t('plans.monthlyLabel', { price: formatPrice(plan.monthlyPrice) })}
-                          {/*
-                            LA CONTREVALEUR REPREND LA MÊME PHRASE, aux mêmes places, plutôt
-                            qu'un format abrégé : deux montants convertis alignés sous deux
-                            montants réels se relisent l'un sous l'autre. Un « ≈ 570 / 265 »
-                            aurait obligé à retrouver lequel est la mise en place.
-
-                            La garde porte sur les NOMBRES et pas sur les chaînes rendues :
-                            c'est exactement la condition sous laquelle `formatApprox` rend
-                            `null`, écrite là où elle se lit.
-                          */}
-                          {plan.setupPrice > 0 && plan.monthlyPrice > 0 && (
-                            <span className="block font-semibold">
-                              {`${t('plans.setupLabel')} ${formatApprox(plan.setupPrice)} · `
-                                + t('plans.monthlyLabel', { price: formatApprox(plan.monthlyPrice) })}
-                            </span>
-                          )}
-                        </>
-                      }
-                      last={i === PLANS.length - 1}
-                      style={{ flexWrap: 'wrap' }}
-                    />
-                  ))}
-                </div>
-                {/* Une note de BLOC, pas un TTC par ligne : chaque formule porte déjà quatre
-                    nombres (mise en place et mensuel, réels et contrevaleurs), et surtout
-                    l'accompagnement n'est pas un dû — `computeTotals` le range dans
-                    `pipelineValue`, « usage interne, ne jamais l'afficher à un prospect ». */}
-                <p className="m-0 mt-3 text-meta-2 leading-[1.5] text-ink-2">{t('plans.taxNote')}</p>
-              </div>
-              <Button
-                tone="quiet"
-                size="sm"
-                fullWidth={false}
-                onClick={() => q.jumpToForm({})}
+        <div className="grid gap-3 stack:grid-cols-3 stack:gap-4">
+          {PACKS.map((pack) => {
+            const isSel = selected === pack.key;
+            const amount = packEffectivePrice(pack);
+            const promo = amount < pack.price;
+            const tax = ventilerDepuisHT(amount, REGIME_AGENCE);
+            return (
+              <article
+                key={pack.key}
+                className={[
+                  'flex flex-col gap-3 rounded-xl p-[22px] stack:min-h-[420px] stack:p-[26px]',
+                  isSel ? 'dk bg-night text-ink' : 'mm-bento',
+                ].join(' ')}
               >
-                {t('plansAside.cta')}
-              </Button>
+                {isSel && <span className="mm-tag self-start bg-[color:var(--mm-teal)] text-[color:var(--ink-fixed)]">{t('v3.packs.selectedTag')}</span>}
+                <b className="font-display text-[28px] font-black leading-none stack:text-[34px]">{t(`packs.${pack.key}.name`)}</b>
+                <span className="text-[14.5px] text-ink-2">{t(`v3.packs.summary.${pack.key}`)}</span>
+                <span className="mt-auto" />
+                {promo && (
+                  <span className="mm-n text-[13px] line-through opacity-60">
+                    <span className="sr-only">{t('v3.packs.strike')} : </span>
+                    <Num value={pack.price} source="db" asOf={CATALOGUE_REVISED_AT} unit="FCFA" />
+                  </span>
+                )}
+                <b className="mm-n block text-[36px] tracking-[-.03em] stack:text-[40px]">
+                  <Num value={amount} source="db" asOf={CATALOGUE_REVISED_AT} unit={t('v3.packs.ht')} />
+                </b>
+                {promo && <span className="mm-tag self-start bg-[color:var(--mm-orange)] text-[color:var(--ink-fixed)]">{t('v3.packs.promo')}</span>}
+                {doitMentionnerLaTaxe(tax.etat) && tax.tva > 0 && (
+                  <span className="mm-n text-[12.5px] text-ink-2">{t('v3.packs.tax', { rate })}</span>
+                )}
+                <KitButton
+                  tone={isSel ? 'studio' : 'ghost'}
+                  className="mt-2"
+                  onClick={() => choose(pack.key)}
+                >
+                  {isSel ? t('v3.packs.selected') : t('v3.packs.choose')}
+                </KitButton>
+              </article>
+            );
+          })}
+        </div>
+      </KitSection>
+
+      {/* ── 3 · LA DÉMO (test Google Maps réel) ET LE DEVIS INSTANTANÉ ───────── */}
+      <KitSection className="pt-12 wide:pt-24">
+        <div className="grid items-start gap-6 wide:grid-cols-2 wide:gap-8">
+          <div id="demo" className="mm-photo is-informe order-2 flex scroll-mt-[var(--header-h)] items-center justify-center p-5 wide:order-1 wide:min-h-[520px] wide:p-10">
+            <div className="w-full max-w-[460px]">
+              <MapsProof />
             </div>
-          </Bento>
-        </SiteBand>
-
-
-        {/* ── L'ENCART DE VÉRITÉ — LES DEUX MOITIÉS, ET SA PROPRE SECTION ──
-            Il était dans la colonne gauche du formulaire, en `text-meta-2`, sous un
-            `GlassPanel level="truth"` : la moitié négative seule, à la taille d'une mention
-            légale. Or c'est la position de la page tout entière, et le kit porte le composant
-            qui la dit — `TruthPanel`, deux moitiés, déjà en service sur six écrans du Club.
-
-            La moitié positive n'était pas écrite faute de matière. La matière est là : une
-            grille datée, une recherche que le visiteur a lancée lui-même, un devis qui relit
-            la grille à chaque ouverture. Trois choses vérifiables par lui, DEPUIS SON
-            TÉLÉPHONE — et c'est exactement ce que son sourcil dit maintenant, au lieu du
-            « Ce que je peux te prouver » générique qui coiffait aussi trois autres panneaux
-            du site. C'est ce qui autorise l'autre moitié à refuser les étoiles.
-
-            ⚠️ C'EST LE SEUL PANNEAU DE VÉRITÉ DE CETTE PAGE, et c'est une invariante à tenir :
-            deux autres surfaces portaient le voile `truth` sans rien retenir — le
-            récapitulatif du formulaire et le pont vers l'autre étage. Les deux sont passées à
-            `flat`. Une surface qui désigne tout ne désigne plus rien. */}
-        <div className="mm-section">
-          {/* Le titre de section ne REPREND pas l'un des deux sourcils du panneau — il les
-              encadre. `TruthPanel` porte déjà les deux en `mm-eyebrow` : un h2 qui répète le
-              premier mot pour mot donnait le même titre deux fois de suite, à deux tailles
-              différentes. */}
-          {/* Même mesure : 356 px demandés dans 339 en anglais. La chaîne plate reste pour
-              ce qui n'accepte pas de lignes. */}
-          <SiteDisplay as="h2" lines={t('truth.sectionTitleLines', { returnObjects: true }) as string[]} size={34} />
-          <div className="rv mt-4 mm-prose" style={{ ['--i' as string]: 2 }}>
-            <TruthPanel
-              provenTitle={t('truth.provenTitle')}
-              withheldTitle={t('truth.title')}
-              /* La date de la grille est INJECTÉE, jamais écrite dans la phrase : c'est la
-                 même valeur que celle des `<Num>` de la page, donc l'encart ne peut plus dater
-                 une grille qui a bougé depuis. */
-              proven={t('truth.proven', {
-                returnObjects: true,
-                asOf: gridAsOf,
-              }) as string[]}
-              withheld={t('truth.withheld', { returnObjects: true }) as string[]}
-            />
+          </div>
+          <div className="order-1 wide:order-2">
+            <Eyebrow tone="studio">{t('v3.quote.eyebrow')}</Eyebrow>
+            <div className="mm-seg mt-4" role="radiogroup" aria-label={t('form.pack')}>
+              {PACKS.map((p) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected === p.key}
+                  aria-pressed={selected === p.key}
+                  className={selected === p.key ? 'bg-bento shadow-soft' : ''}
+                  onClick={() => choose(p.key)}
+                >
+                  {t(`packs.${p.key}.name`)}
+                </button>
+              ))}
+            </div>
+            <dl className="m-0 mt-5 grid grid-cols-[1fr_auto] gap-x-4 gap-y-3 border-0 border-t border-solid border-[color:var(--line)] pt-4 text-[14.5px]">
+              <dt className="text-ink-2">{t('v3.quote.packHt', { name: t(`packs.${selected}.name`) })}</dt>
+              <dd className="m-0 text-right"><b className="mm-n"><Num value={totals.setupDue} source="db" asOf={CATALOGUE_REVISED_AT} unit="FCFA" /></b></dd>
+              {showTax && (
+                <>
+                  <dt className="text-ink-2">{t('v3.quote.vat', { rate })}</dt>
+                  <dd className="m-0 text-right"><b className="mm-n"><Num value={totals.setupDueTax.tva} source={{ cite: t('v3.quote.cite') }} asOf={CATALOGUE_REVISED_AT} unit="FCFA" /></b></dd>
+                  <dt className="font-semibold text-ink">{t('v3.quote.ttc')}</dt>
+                  <dd className="m-0 text-right"><b className="mm-n text-[18px]"><Num value={totals.setupDueTax.ttc} source={{ cite: t('v3.quote.cite') }} asOf={CATALOGUE_REVISED_AT} unit="FCFA" /></b></dd>
+                </>
+              )}
+              <dt className="text-ink-2">{t('v3.quote.deposit', { pct })}</dt>
+              <dd className="m-0 text-right"><b className="mm-n"><Num value={depositAmount(totals.setupDue)} source="db" asOf={CATALOGUE_REVISED_AT} unit="FCFA" /></b></dd>
+              <dt className="text-ink-2">{t('v3.quote.balance')}</dt>
+              <dd className="m-0 text-right"><b className="mm-n"><Num value={balanceAmount(totals.setupDue)} source="db" asOf={CATALOGUE_REVISED_AT} unit="FCFA" /></b></dd>
+            </dl>
+            <p className="m-0 mt-4 text-[12.5px] text-ink-2">
+              {t('v3.quote.note', { days: QUOTE_VALIDITY_DAYS })}{' '}
+              <a href={path('/legal/cgv')} className="text-ink underline">{t('v3.quote.cgv')}</a>
+            </p>
+            <KitButton tone="studio" className="mt-5" onClick={() => q.jumpToForm({ pack: selected })}>
+              {t('v3.quote.cta')}
+            </KitButton>
           </div>
         </div>
+      </KitSection>
 
-        {/* ── LE FORMULAIRE ── */}
-        <SiteBand bleed className="mm-section">
+      {/* ── 4 · LES ÉTAPES ───────────────────────────────────────────────────── */}
+      <KitSection className="hidden pt-24 stack:block">
+        <Eyebrow>{t('v3.steps.eyebrow')}</Eyebrow>
+        <KitH2 className="mb-6 mt-[14px]" size="clamp(40px, 5vw, 64px)">{t('v3.steps.title')}</KitH2>
+        <div className="grid grid-cols-2 gap-4 wide:grid-cols-4">
+          {[1, 2, 3, 4].map((n) => (
+            <div key={n} className="mm-bento flex flex-col gap-2">
+              <span className="mm-n text-[12px] text-ink-3">{String(n).padStart(2, '0')}</span>
+              <b className="font-display text-[22px] font-black leading-[1.05]">{t(`v3.steps.s${n}Title`)}</b>
+              <span className="text-[14px] text-ink-2">
+                {t(`v3.steps.s${n}Body`, { days: QUOTE_VALIDITY_DAYS, pct, min: Math.min(...supportDays), max: Math.max(...supportDays) })}
+              </span>
+            </div>
+          ))}
+        </div>
+      </KitSection>
+
+      {/* ── 5 · LE FORMULAIRE DE DEVIS (produit le récapitulatif) ────────────── */}
+      <KitSection className="pt-12 wide:pt-24">
         <div ref={q.formRef} className="grid items-start gap-11 wide:grid-cols-[.95fr_1.05fr]">
           <div>
-            <SiteDisplay as="h2" lines={[t('form.title')]} size={34} />
+            <KitH2 size="clamp(36px, 4.5vw, 56px)">{t('form.title')}</KitH2>
             <p className="rv mt-3 max-w-[44ch] text-meta leading-[1.6] text-ink-2" style={{ ['--i' as string]: 2 }}>
               {t('form.subtitle')}
             </p>
@@ -735,7 +329,7 @@ export default function PresenceDigitale() {
             {q.submitted ? (
               <div>
                 <Tag tone="ok">{t('success.quoteReady')}</Tag>
-                <SiteDisplay as="h3" lines={[t('success.title')]} size={26} style={{ marginTop: '10px' }} />
+                <h3 className="mm-d m-0 mt-[10px] text-[26px]">{t('success.title')}</h3>
                 <p className="mt-3 text-meta leading-[1.6] text-ink-2">{t('success.text')}</p>
 
                 {q.quoteUrl && (
@@ -915,116 +509,16 @@ export default function PresenceDigitale() {
             )}
           </GlassPanel>
         </div>
-        </SiteBand>
+      </KitSection>
 
-        {/* ── FAQ D'ACHAT — neutre ── */}
-        <div className="mm-section">
-          <SiteDisplay as="h2" lines={[t('faq.title')]} size={34} />
-          <div className="mm-prose mt-4 grid gap-[2px]">
-            {faqItems.map((item, i) => (
-              <details key={item.q} className="rv border-b border-[color:var(--border-hair)] py-4 last:border-0" style={{ ['--i' as string]: i + 1 }}>
-                <summary className="cursor-pointer list-none font-bold text-ink">{item.q}</summary>
-                <p className="m-0 mt-2 text-meta leading-[1.6] text-ink-2">{item.a}</p>
-              </details>
-            ))}
-          </div>
+      {/* ── 6 · L'APPEL ──────────────────────────────────────────────────────── */}
+      <KitSection className="pt-12 wide:pt-24">
+        <div className="dk relative isolate flex flex-col items-start gap-6 overflow-hidden rounded-xl bg-night p-8 text-ink stack:flex-row stack:items-center stack:justify-between stack:p-11">
+          <div aria-hidden="true" className="mm-mesh m-hub"><b /><b /><b /></div>
+          <KitH2 className="relative" size="clamp(32px, 4vw, 52px)">{t('v3.cta.title')}</KitH2>
+          <KitButton href={path('/contact?rdv=1')} tone="highlight" arrow className="relative">{t('v3.cta.button')}</KitButton>
         </div>
-
-        {/* ── LE DÉTAIL — OPTIONS ET CONDITIONS, RÉUNIES SOUS LA FAQ ──
-            Les deux vivaient dans la colonne gauche du formulaire : six fourchettes de prix
-            et huit clauses contractuelles à côté des champs à remplir, c'est-à-dire de la
-            documentation posée dans un tunnel. Elles se consultent, elles ne se lisent pas —
-            leur place est ici, avec la FAQ, après que la décision s'est prise.
-
-            Réunies, elles règlent aussi la quatrième liste d'affilée : la page enchaînait
-            cinq rangées de parcours, six d'options, huit de conditions et six de FAQ au même
-            rythme typographique. Il en reste deux, sous un titre qui annonce ce que c'est. */}
-        <div className="mm-section">
-          <SiteDisplay as="h2" lines={[t('details.title')]} size={34} />
-          <p className="rv mt-3 mm-prose text-meta leading-[1.6] text-ink-2" style={{ ['--i' as string]: 1 }}>
-            {t('details.subtitle')}
-          </p>
-
-          <div className="mt-6 grid gap-9 stack:grid-cols-2">
-            {/* Les options chiffrées : une fourchette réelle, jamais un « sur devis ». */}
-            <div className="rv" style={{ ['--i' as string]: 2 }}>
-              <SiteEyebrow style={{ margin: 0 }}>{t('options.title')}</SiteEyebrow>
-              <p className="m-0 mt-1 text-meta-2 text-ink-2">{t('options.subtitle')}</p>
-              <div className="mt-3 grid gap-[2px]">
-                {OPTIONS.map((opt, i) => (
-                  <DocLine
-                    key={opt.key}
-                    label={t(`options.${opt.key}.name`)}
-                    value={
-                      <>
-                        {t('options.range', { min: formatPrice(opt.min), max: formatPrice(opt.max) })}
-                        {UNIT_SUFFIX[opt.unit] ? ` ${t(UNIT_SUFFIX[opt.unit]!)}` : ''}
-                        {opt.min > 0 && opt.max > 0 && (
-                          <span className="block font-semibold">
-                            {t('options.range', { min: formatApprox(opt.min), max: formatApprox(opt.max) })}
-                            {UNIT_SUFFIX[opt.unit] ? ` ${t(UNIT_SUFFIX[opt.unit]!)}` : ''}
-                          </span>
-                        )}
-                      </>
-                    }
-                    last={i === OPTIONS.length - 1}
-                  />
-                ))}
-              </div>
-              {/* Ce sont des FOURCHETTES : leur TTC serait une fourchette de fourchette, soit
-                  quatre nombres par ligne sur six lignes. La note dit la nature, sans chiffrer. */}
-              <p className="m-0 mt-3 text-meta-2 leading-[1.5] text-ink-2">{t('options.taxNote')}</p>
-            </div>
-
-            {/* Les conditions commerciales, repliées : contractuelles, pas promotionnelles. */}
-            <div className="rv" style={{ ['--i' as string]: 3 }}>
-              <SiteEyebrow style={{ margin: 0 }}>{t('terms.title')}</SiteEyebrow>
-              <div className="mt-3">
-                <Button
-                  tone="quiet"
-                  size="sm"
-                  fullWidth={false}
-                  onClick={() => setShowTerms((v) => !v)}
-                  aria-expanded={showTerms}
-                >
-                  {t('terms.toggle')}
-                </Button>
-                {showTerms && (
-                  <div className="mt-3 grid gap-[6px]">
-                    {TERMS.map((key) => (
-                      <CheckLine key={key}>{t(`terms.items.${key}`)}</CheckLine>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── LA PASSERELLE VERS L'AUTRE ÉTAGE DE LA PISTE — l'autre offre, nommée, pas cachée ──
-            Elle visait `/agence`, qui n'est plus qu'une redirection vers `/conception`. La
-            destination juste est l'étage FRÈRE, pas l'index : la phrase parle d'un produit à
-            construire, et c'est exactement ce que porte « projets sur mesure ».
-
-            Elle ne fait pas doublon avec le bandeau de segment du haut : le bandeau éconduit
-            quelqu'un qui s'est trompé de page, celle-ci s'adresse à quelqu'un qui a tout lu et
-            dont le besoin a grandi en chemin. C'est elle qui garde la QUESTION, parce qu'elle
-            est la seule des deux à être lue par quelqu'un en état de se la poser ; le bandeau,
-            lui, est passé au constat.
-
-            `flat` et non `truth` : un pont vers l'autre étage de la piste n'est pas une vérité
-            retenue. Sur cette page, la surface de vérité ne désigne plus qu'une chose — le
-            panneau qui nomme ce qui se vérifie et ce qui ne s'affiche pas. */}
-        <Bento className="mm-section">
-          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('agencyBridge.title')}</SiteEyebrow>
-          <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('agencyBridge.body')}</p>
-          <div className="mt-3">
-            <Button href={path('/conception/projets-sur-mesure')} tone="quiet" size="sm" fullWidth={false}>
-              {tc('cta.projetsSurMesure')}
-            </Button>
-          </div>
-        </Bento>
-      </PageSite>
+      </KitSection>
 
       <StickyWhatsApp message={q.quickMessage} hideNear={q.formRef} />
     </DsNavHost>

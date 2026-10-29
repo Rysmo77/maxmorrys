@@ -7,21 +7,22 @@
   },
   "index": {
     "eyebrow": "Réalisations",
-    "titleLines": ["Ce que nous avons", "[construit].", "Et pour qui."],
-    "lede": "Ces produits appartiennent à leurs clients. Nous n'indiquons que le rôle que nous avons tenu, la stack employée et l'adresse où aller voir. Un lien que vous pouvez ouvrir vaut mieux qu'un chiffre qu'il faut croire.",
-    "filterAll": "Toutes",
-    "filterEyebrow": "Filtrer par catégorie",
+    "titleLines": [
+      "{{count}} projets,",
+      "[livrés.]"
+    ],
+    "lede": "Des sites et des plateformes, livrés à leurs clients. Les noms et le rôle tenu seuls, tant qu'un client n'a pas donné son accord écrit pour une étude de cas.",
+    "ledeShort": "Les noms seuls, sans accord écrit pour une étude de cas.",
     "filterAria": "Filtrer les réalisations par catégorie",
-    "resultCount_one": "{{count}} réalisation",
-    "resultCount_other": "{{count}} réalisations",
+    "filterAll": "Tout · {{count}}",
     "gridAria": "Réalisations clientes",
-    "cardCta": "Voir la fiche",
-    "emptyTitle": "Aucune réalisation dans cette catégorie",
-    "emptyBody": "Le filtre ne renvoie rien. Retirez-le pour retrouver l'ensemble des réalisations.",
-    "emptyAction": "Retirer le filtre",
-    "exitTitle": "Un produit comme ceux-là, mais le vôtre ?",
-    "exitBody": "Ces réalisations disent ce que le studio sait construire. La suite s'écrit à partir de votre problème, pas de celui d'un autre.",
-    "exitCta": "Décrire votre projet"
+    "cardAria": "Voir la fiche de {{name}}",
+    "shotAlt": "Capture de la page d'accueil de {{name}}",
+    "more_one": "Voir l'autre",
+    "more_other": "Voir les {{count}} autres",
+    "note": "Étude de cas détaillée uniquement avec accord écrit du client. Aucun chiffre de résultat publié sans source.",
+    "ctaTitle": "Le prochain projet, c'est le vôtre ?",
+    "ctaButton": "Réserver un appel"
   },
   "fiche": {
     "eyebrow": "Réalisation",

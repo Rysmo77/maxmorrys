@@ -129,54 +129,33 @@
     "otherEpisodes": "Other episodes"
   },
   "pole": {
-    "eyebrow": "I'll push you further · free",
-    "titleLines": [
-      "PEOPLE FROM HERE",
-      "TELLING YOU WHAT",
-      "[THEY ACTUALLY DID.]"
-    ],
-    "lede": "No method, no tutorial — that's the blog. Here, people who really sell something in Dakar and Abidjan tell you what worked, and what cost them dearly.",
-    "tagFree": "Free to listen, no account",
-    "tagTranscript": "Transcript readable without audio",
-    "rhythm": "One episode a month, when I have someone worth listening to. No calendar kept full for its own sake.",
-    "filterAll": "All",
-    "filterListen": "To listen",
-    "filterWatch": "To watch",
-    "truthTitle": "What this hub doesn't count yet",
-    "truthBody": "Each episode's and each video's weight should be written here — it's what lets you decide when your data plan is metered. It isn't measured at upload yet, and I'd rather tell you than announce a made-up number. No play counts either: with one episode, they'd say nothing useful.",
-    "clubTitle": [
-      "You've just heard",
-      "someone who did it."
-    ],
-    "clubBody": "The Club is where they are. Paid, closed, and it can't be toured — that's the price of keeping it closed.",
-    "clubCta": "See the Digitos Club",
-    "empty": "Nothing's online here yet. The blog is open though — and everything on it is free.",
+    "eyebrow": "Content · podcast and videos",
+    "eyebrowShort": "Podcast and videos",
     "subnavFree": "Listen & watch",
     "subnavClub": "The Digitos Club",
-    "elsewhereTitle": [
-      "Listen wherever you want."
+    "seoTitle": "Podcast and videos",
+    "titleLines": [
+      "To listen to,",
+      "to [watch.]"
     ],
-    "elsewhereBody": "The videos are on YouTube too, and everything I publish goes out in the feed. If you're already subscribed there, keep your habits — I won't make you come back here to listen.",
-    "elsewhereNote": "Play counts are synced server-side, never called from your browser. They aren't shown here: on a single episode, a counter tells you nothing useful.",
-    "elsewhereYoutube": "YouTube",
-    "elsewhereYoutubeCta": "Subscribe",
-    "elsewhereRss": "Podcast feed",
-    "elsewhereRssCta": "Open",
-    "elsewherePlatformCta": "Listen",
-    "elsewhereMissing": "No Spotify page to give you yet: the podcast isn't published there under a feed of mine. The day it is, it shows up here.",
-    "clubEyebrow": "The floor above",
-    "clubCtaPriced": "See the Club —",
-    "clubBilled": "Billed",
-    "clubBilledSuffix": "once a year.",
-    "gridTitle": [
-      "Everything there is,",
-      "for now."
-    ],
-    "featuredRead": "Read the transcript",
-    "featuredPlay": "Listen",
-    "featuredWatch": "Watch",
-    "emptyListen": "Nothing to listen to yet — the podcast has no episode online. Drop the filter to see the videos.",
-    "emptyWatch": "Nothing to watch yet — no video is online. Drop the filter to see the episodes."
+    "lede": "Every episode and every video shows its length: you know before you press play how much time it takes.",
+    "ledeShort": "Each file shows its length before you play it.",
+    "weightNote": "File sizes aren't measured at upload yet: only the length is shown.",
+    "tabsAria": "Content type",
+    "tabArticles": "Articles",
+    "tabMedia": "Podcast and videos",
+    "latestEyebrow": "Podcast · latest episode",
+    "audioUnsupported": "Your browser can't play this audio file.",
+    "download": "Download",
+    "listen": "Listen: {{title}}",
+    "episodesTitle": "All episodes",
+    "episodesTitleShort": "Episodes",
+    "videosTitle": "Videos",
+    "dataTitle": "Data saver",
+    "dataBody": "No autoplay: a video only loads when you press “Play”.",
+    "emptyEpisodes": "No episodes online yet.",
+    "emptyVideos": "No videos online yet.",
+    "loading": "Loading the podcast and videos"
   },
   "detail": {
     "breadcrumbRoot": "I'll push you further",

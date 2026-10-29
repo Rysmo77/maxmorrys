@@ -1,199 +1,63 @@
-import type { CSSProperties, ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Avatar, Button, GlassPanel, Icon, Num, Tag, type IconName } from '@ds';
+import { Icon } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SOCIAL_URLS } from '../components/seo/seo-config';
 import DsNavHost from '../components/layout/DsNavHost';
-import { GlyphTile, PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
-import { SiteHero } from '../components/site/v3/SiteHero';
+import { Eyebrow, KitButton, KitH2, KitSection, NightAccent, NightHero, Photo } from '../components/site/v3/kit';
 import { useLocalizedPath } from '../contexts/LanguageContext';
-import { useFormat } from '../hooks/useFormat';
 import { HOUSE_AUTHOR_FULL_NAME, portrait } from '../lib/author';
-import { CHAPTERS, DECLARED_AT, MILESTONE_PROOFS, MILESTONE_UNPROVABLE } from '../lib/about/milestones';
-import {
-  legalEntity, legalName, pillars, PLATFORM_OPENED_AT, podcastPlatform, positioning, practices,
-  publicProfiles,
-} from '../lib/brand';
-import { getPublicCounts, type PublicCounts } from '../lib/firestore';
-import { queryKeys } from '../lib/queryClient';
-import { Bento } from '../components/site/v3/Bento';
+import { CHAPTERS, MILESTONE_PROOFS } from '../lib/about/milestones';
+import { legalEntity, ventures } from '../lib/brand';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * « JE SUIS MAX-MORRYS » — la seule page dont le métier est d'inspirer confiance.
+ * MON PARCOURS — LA MAQUETTE `Site-Parcours` (bureau) / `-mobile` (390 px), PASSE 2.
  *
- * La page faisait 768 lignes et neuf sections : héros corporate avec portrait généré par IA,
- * menu d'ancrage collant et flouté, résumé d'impact, expertise, stack, valeurs, parcours à
- * double accordéon, MY ONOMA, appel final. La maquette en dessine six, et le tri n'est pas
- * une question de longueur.
+ * ⚠️ DÉCISIONS LEVÉES (29/10/2026, « maquettes + DS + PRD rév. 6 font foi ») : l'ancienne
+ * page « Je suis Max-Morrys » (deux pistes, décompte en base, arbre MY ONOMA, « Où me
+ * trouver ») est remplacée par l'ordre de la planche — dalle, étapes, outils, projets
+ * propres, convictions, appel.
  *
- * CE QUI EST PARTI, ET POURQUOI :
- *
- * 1. LES SIX `CountUp` NON SOURCÉS — +1 790 % de trafic, +8 000 abonnés, 5 plateformes,
- *    affichés deux fois chacun (héros puis « résumé d'impact »). Deux d'entre eux sont des
- *    chiffres d'AUDIENCE, ce qu'AD-5 interdit sans exception, et aucun des trois ne porte de
- *    source. Ce qui les remplace n'est pas un vide : ce sont des COMPTEURS DE PRODUCTION —
- *    articles publiés, formations montées — comptés côté serveur par `getPublicCounts()`,
- *    rendus par `<Num value source asOf />`, avec la phrase qui dit pourquoi.
- *
- * 2. LE PORTRAIT GÉNÉRÉ PAR IA. Il avait été remplacé par un EMPLACEMENT DÉCLARÉ, pas par
- *    une autre image : sur la seule page dont le métier est d'inspirer confiance, une image
- *    synthétique est le pire endroit possible.
- *    ✅ CLOS LE 01/09/2026 (FR-084) — une photographie réelle, retouchée, en 4:5, occupe
- *    désormais le héros. Le chemin vit dans `src/lib/author.ts`, avec la découpe carrée qui
- *    signe les articles ; l'emplacement déclaré et ses deux clés i18n sont partis avec lui.
- *
- * 3. LE MENU D'ANCRAGE COLLANT, qui portait le seul `backdrop-blur` de la page (AD-4) et un
- *    `IntersectionObserver` de scroll-spy pour trois ancres. Trois ancres ne valent pas un
- *    second chrome collant sous celui du site.
- *
- * 4. L'ACCORDÉON DES MISSIONS. Onze jalons dont cinq dépliaient six blocs de puces chacun :
- *    c'est un CV d'employeur, et le kit tranche — « des dates et des faits, pas des
- *    adjectifs ». Les jalons gardent l'employeur, le rôle et la période ; les missions sortent
- *    de l'écran. Les clés i18n `experiences.*` restent en place, non rendues.
- *
- * 5. « VALEURS », « EXPERTISE », « STACK ». Quatre valeurs adjectivales, quatre cartes de
- *    compétences et une rupture sombre de logos d'outils. Rien de vérifiable, et la page les
- *    répétait déjà en prose.
- *
- * UN SEUL EMPLACEMENT DÉCLARÉ survit à la place de ce qui manque — il NOMME le manque au lieu
- * de le combler : les liens de profils à confirmer. Ils étaient trois ; celui du portrait s'est
- * fermé le 01/09/2026, celui des jalons a été retiré le 05/09/2026 sur décision éditoriale.
- * Voir `SiteSlot` et le rapport de recomposition pour les deux endroits où la copie du kit a dû
- * être corrigée contre la donnée réelle du dépôt.
- *
- * ⚠️ LA FRISE NE COMMENTE PLUS SES PROPRES TROUS. Chaque jalon porte toujours son état ligne à
- * ligne — un lien « Vérifier » quand `MILESTONE_PROOFS` en tient un, « déclaré » quand il en
- * doit un, « personnel » quand aucun ne peut exister. Ce qui a disparu, c'est le paragraphe qui
- * récapitulait le compte en bas de frise. N'en réintroduis pas de version « améliorée » : la
- * décision est de laisser les états parler seuls.
+ * Ce qui diffère de la planche, et pourquoi :
+ * - LA FRISE vient des jalons DÉCLARÉS (`about.json → milestones`, empreinte gardée par
+ *   `proof:check`), pas des dates de la planche, qui portaient « dates à valider ». Les onze
+ *   jalons sont rendus dans l'ordre de `CHAPTERS` ; « Vérifier » n'apparaît que sur un jalon
+ *   qui a une preuve publique (`MILESTONE_PROOFS`).
+ * - « plus de vingt personnes formées » n'a pas de source : non repris.
+ * - « edu.maxmorrys.me » : il n'y a pas de sous-domaine — la ligne dit « la plateforme ».
+ * - NAYO n'a pas de description validée : sa carte montre le nom et le domaine, rien d'autre.
+ * - Le portrait est réel (`portrait`) ; la pastille flottante reprend un jalon déclaré.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-/**
- * LES DEUX PISTES, ET LE PONT VERS CHACUNE (CDC § 4.4).
- *
- * La section disait « Je forme · Je publie · J'accompagne » — trois verbes qui recoupaient les
- * deux pistes sans en nommer aucune : « J'accompagne » couvrait à la fois les commerces
- * (conception) et le Club (apprendre), et rien sur cette page ne disait qu'il y a DEUX façons
- * de travailler avec moi. Deux panneaux, donc, un par piste, et chacun porte son pont.
- *
- * L'ordre est celui du CDC — conception d'abord — et les deux panneaux sont de même dessin :
- * même géométrie, même `GlyphTile` de 38 px, même bouton fantôme. Aucun des deux n'est
- * l'appoint de l'autre.
- *
- * ⚠️ LE CORAIL DE CONCEPTION N'EST PAS UN CHOIX ESTHÉTIQUE. La piste vit hors des quatre
- * verbes — `universeFromPath('/conception')` rend l'univers `agency` — et le teal est réservé
- * à son seul étage productisé, `/conception/commerces-et-tpe`. Le corail plein fait 2,70:1 et
- * ne porte jamais de texte : c'est sa variante `-t` qui encre le glyphe (AD-20).
- */
-const PISTES: { key: 'Conception' | 'Apprendre'; glyph: IconName; tint: string; ink: string; to: string }[] = [
-  { key: 'Conception', glyph: 'globe', tint: 'var(--mm-corail)', ink: 'var(--mm-corail-t)', to: '/conception' },
-  { key: 'Apprendre', glyph: 'book', tint: 'var(--mm-bleu)', ink: 'var(--mm-bleu)', to: '/apprendre' },
-];
+const DOTS = ['var(--mm-bleu)', 'var(--mm-orange)', 'var(--mm-violet)', 'var(--mm-teal)'] as const;
+const MILESTONE_KEYS = CHAPTERS.flatMap((c) => c.items as readonly string[]);
 
-/**
- * L'EMPLACEMENT DÉCLARÉ — il nomme ce qui manque, il ne le comble pas.
- *
- * Bordure en tirets, fond à 7 % d'orange, sourcil monospace précédé de l'icône `info`. Le kit
- * le dessine en `rgba(243,139,10,…)` ; ici la teinte passe par `--mm-orange` en `color-mix`,
- * donc elle suit le jeton si le système le corrige, et elle bascule sous `.dk` (AD-2, AD-3).
- * L'encre du sourcil est `--mm-orange-t` : l'orange plein fait 2,47:1 sur blanc et ne porte
- * jamais de texte.
- *
- * Pourquoi il vit ICI et pas dans `components/site/` : c'est une pièce de cette page, comme
- * dans le kit. Les trois emplacements disparaîtront le jour où la matière arrivera ; une
- * primitive partagée survivrait à sa raison d'être.
- */
-function SiteSlot({
-  title, children, style,
-}: { title: string; children: ReactNode; style?: CSSProperties }) {
-  return (
-    <div
-      style={{
-        borderRadius: 'var(--r-m)',
-        padding: '14px 16px',
-        background: 'color-mix(in srgb, var(--mm-orange) 7%, transparent)',
-        border: '1px dashed color-mix(in srgb, var(--mm-orange) 55%, transparent)',
-        ...style,
-      }}
-    >
-      <p className="mm-eyebrow m-0 flex items-center gap-[7px]" style={{ color: 'var(--mm-orange-t)' }}>
-        <Icon name="info" size={11} color="var(--mm-orange-t)" strokeWidth={2.6} />
-        {title}
-      </p>
-      <p className="mm-prose m-0 mt-[7px] max-w-[58ch] text-meta leading-[1.55] text-ink-2">{children}</p>
-    </div>
-  );
+interface Milestone {
+  year: string;
+  lieu: string;
+  title: string;
+  desc: string;
 }
 
 export default function About() {
   const { t } = useTranslation('about');
-  /* Les six libellés de destination sont partagés (`common:cta.*`) : « Voir la piste
-     Conception », « Voir les formations » et leurs jumeaux étaient écrits au caractère près
-     ici ET dans `home.json`. Un libellé recopié dérive ; une porte n'a qu'un nom. */
-  const { t: tc } = useTranslation('common');
-  /* Le texte alternatif du portrait est unique : la MÊME photographie est servie ici et sur
-     l'accueil, et deux descriptions de la même image finissent par ne plus décrire la même. */
   const { t: tShared } = useTranslation('shared');
   const path = useLocalizedPath();
-  const { formatDate, formatMonth } = useFormat();
 
-  /*
-   * Les seuls chiffres que cette page a le droit d'afficher. `getPublicCounts()` compte côté
-   * serveur : une lecture au lieu de cinquante. Un échec rend `null`, jamais zéro — et `<Num>`
-   * affiche alors « non relevé » plutôt qu'un zéro faux.
-   */
-  const { data: counts } = useQuery<PublicCounts | null>({
-    queryKey: queryKeys.publicCounts,
-    queryFn: () => getPublicCounts(),
-  });
-  const asOf = counts?.asOf ?? new Date();
-
-  const production: { key: string; value: number | null }[] = [
-    { key: 'producedArticles', value: counts?.publishedArticles ?? null },
-    { key: 'producedFormations', value: counts?.publishedFormations ?? null },
-    { key: 'producedPodcasts', value: counts?.publishedPodcasts ?? null },
-    { key: 'producedVideos', value: counts?.publishedVideos ?? null },
-  ];
-
-  /* L'arbre de marque vient de `src/lib/brand` — jamais d'un littéral de composant. */
-  const tree = [
-    { name: 'Max-Morrys', badge: t('page.treeLearnBadge'), body: t('page.treeLearnBody'), accent: false },
-    {
-      name: practices.build.brand,
-      badge: t('page.treePillarBadge', { pillar: practices.build.pillar }),
-      body: t('page.treeBuildBody'),
-      /* L'agence vit hors des quatre verbes : elle porte le corail, en version texte (AD-20). */
-      accent: true,
-    },
-    {
-      name: practices.grow.brand,
-      badge: t('page.treePillarBadge', { pillar: practices.grow.pillar }),
-      body: t('page.treeGrowBody'),
-      accent: false,
-    },
-  ];
+  const milestones = t('milestones', { returnObjects: true }) as Record<string, Milestone>;
+  const badge = milestones.m2023Master;
+  const skills = t('skills.items', { returnObjects: true }) as string[];
 
   return (
     <DsNavHost>
       <SEOHead title={t('seo.title')} description={t('seo.description')} />
-      {/*
-        `sameAs` lit `SOCIAL_URLS`, donc `src/lib/brand/company.ts` — la même source que le
-        panneau « Où me trouver » plus bas. Deux listes de profils sur une même page finiraient
-        par diverger, et c'est la page dont le métier est justement d'être vérifiable.
-        AUCUN `aggregateRating`, aucun compteur d'abonnés : rien de tout ça n'a de source.
-      */}
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'Person',
         name: HOUSE_AUTHOR_FULL_NAME,
         url: `${SITE_URL}/a-propos`,
-        // La même image que le héros, en absolu : c'est la vignette que Google pose à côté
-        // du nom dans un panneau de connaissance. Elle n'existait pas tant que la page
-        // n'avait pas de portrait — déclarer l'ancien, généré, aurait été le pire des deux.
         image: `${SITE_URL}${portrait.src}`,
         jobTitle: 'Marketing & Growth Manager',
         worksFor: { '@type': 'Organization', name: 'Eyone Medical' },
@@ -201,471 +65,162 @@ export default function About() {
         sameAs: [...SOCIAL_URLS],
       }} />
 
-      {/*
-        ── 1 · Le héros — le positionnement, puis l'aveu ───────────────────────────────
-        Kit v3 (`Site-Parcours`) : la dalle de nuit, le titre géant, le portrait à droite.
-        La colonne du portrait reste FIXE (380 px) : un portrait a une taille naturelle, et la
-        moitié d'une page n'en est pas une. FR-084 est clos : la photographie est réelle, en
-        4:5, dans un passe-partout aux trois pastels du kit — la seule surface de la page qui
-        porte la couleur de marque en aplat.
-      */}
-      <SiteHero
-        mesh="club"
-        eyebrow={t('page.eyebrow')}
-        titleLines={t('page.titleLines', { returnObjects: true }) as string[]}
-        size={60}
-        lede={t('page.lede')}
-        asideCols="portrait"
-        actions={
-          <>
-            <Button href={path('/contact')} tone="highlight" arrow fullWidth={false}>
-              {t('page.ctaContact')}
-            </Button>
-            <Button href={path('/formations')} tone="ghost" fullWidth={false}>
-              {tc('cta.formations')}
-            </Button>
-          </>
-        }
-        aside={
-          <figure
-            className="rv-s m-0 w-full max-w-[380px] rounded-media p-[10px] shadow-lift"
-            style={{
-              background: 'linear-gradient(150deg,var(--mm-orange-c),var(--mm-rose-c) 48%,var(--mm-violet-c))',
-              ['--i' as string]: 5,
-            }}
-          >
-            <img
-              src={portrait.src}
-              srcSet={portrait.srcSet}
-              /* La largeur AFFICHÉE : la piste de 380 px moins le passe-partout de 2 × 10. */
-              sizes="360px"
-              width={portrait.width}
-              height={portrait.height}
-              alt={tShared('portrait.alt')}
-              /* Au-dessus de la ligne de flottaison : ni `lazy`, ni différé. */
-              fetchPriority="high"
-              decoding="async"
-              className="block w-full rounded-card object-cover"
-              style={{ aspectRatio: '4 / 5' }}
+      {/* ── 1 · LA DALLE ─────────────────────────────────────────────────────── */}
+      <NightHero mesh="club">
+        <div className="relative z-[1] mx-auto box-border grid w-full max-w-[1360px] items-end gap-10 px-5 pb-10 pt-6 wide:grid-cols-2 wide:px-10 wide:pb-16 wide:pt-[72px]">
+          <div>
+            <Eyebrow className="text-[color:var(--mm-violet-c)]">{t('hero.eyebrow')}</Eyebrow>
+            <h1 className="mm-d m-0 mb-[22px] mt-5 text-[56px] leading-[.86] tracking-[-.05em] wide:text-[clamp(60px,8vw,120px)]">
+              {(t('hero.titleLines', { returnObjects: true }) as string[]).map((line, i) => (
+                <span key={line}>
+                  {i > 0 && <br />}
+                  <NightAccent text={line} />
+                </span>
+              ))}
+            </h1>
+            <p className="m-0 max-w-[48ch] text-[15.5px] leading-[1.55] text-ink-2 stack:hidden">{t('hero.ledeShort')}</p>
+            <p className="m-0 hidden max-w-[48ch] text-[18px] leading-[1.55] text-ink-2 stack:block">{t('hero.lede')}</p>
+          </div>
+          <div className="relative h-[300px] stack:h-[460px]">
+            <Photo
+              tone="club"
+              className="!absolute inset-0 !rounded-xl"
+              img={{ src: portrait.src, srcSet: portrait.srcSet, sizes: '(min-width: 1080px) 640px, 100vw', width: portrait.width, height: portrait.height, alt: tShared('portrait.alt'), eager: true }}
             />
-          </figure>
-        }
-      >
-        {/* L'AVEU reste sous les actions : il dit ce que la page n'est pas — un studio de
-            vingt personnes. Une absence motivée se lit comme une frontière. */}
-        <p
-          className="mm-prose rv mt-6 mb-0 max-w-[50ch] text-[14.5px] leading-[1.6] text-ink-2"
-          style={{ ['--i' as string]: 7 }}
-        >
-          {t('page.aloneBody')} <b className="text-ink">{t('page.aloneStrong')}</b>
-        </p>
-      </SiteHero>
-
-      {/* ── 2 · Les deux pistes, et ce que j'y fais ──────────────────────────── */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <SiteDisplay as="h2" lines={t('page.doesTitle', { returnObjects: true }) as string[]} size={34} />
-        <p
-          className="mm-prose rv mt-[11px] max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2"
-          style={{ ['--i' as string]: 1 }}
-        >
-          {t('page.doesLede')}
-        </p>
-        <div className="mt-6 grid gap-4 stack:grid-cols-2">
-          {PISTES.map((item, i) => (
-            <Bento padding={24} key={item.key} className="rv" style={{ ['--i' as string]: i + 2 }}>
-              {/* La pastille passait par une géométrie écrite à la main — 38 px de côté,
-                  rayon 12, voile à 16 %. `GlyphTile` DÉRIVE son rayon de son côté
-                  (0,32 × 38 = 12) : la valeur cesse d'être une constante à retaper, et la
-                  jumelle de `/contact`, qui avait dérivé à 34/10, rentre dans la famille. */}
-              <GlyphTile icon={item.glyph} size={38} tint={item.tint} ink={item.ink} />
-              <p className="mt-[13px] mb-0 font-display text-[18px] font-black tracking-[-.03em] text-ink">
-                {t(`page.does${item.key}Title`)}
-              </p>
-              <p className="mm-prose mt-2 mb-0 max-w-[46ch] text-[14px] leading-[1.55] text-ink-2">
-                {t(`page.does${item.key}Body`)}
-              </p>
-              {/* LE PONT. Il vit DANS le panneau de sa piste : une rangée de deux boutons sous
-                  la grille aurait demandé au lecteur de refaire l'appariement lui-même. */}
-              <div className="mt-4">
-                <Button href={path(item.to)} tone="ghost" size="sm" fullWidth={false}>
-                  {tc(item.key === 'Conception' ? 'cta.pisteConception' : 'cta.pisteApprendre')}
-                </Button>
+            {badge && (
+              <div className="mm-float bottom-[50px] left-[-30px] hidden text-ink wide:flex">
+                <span className="mm-avatar sm bg-[image:var(--action-forme)] text-[color:var(--paper-fixed)]">
+                  <Icon name="graduation" size={14} />
+                </span>
+                <span>
+                  <b>{badge.title}</b>
+                  {badge.year}
+                </span>
               </div>
-            </Bento>
-          ))}
-        </div>
-      </PageSite>
-
-      {/* ── 3 · Le parcours, et ce qu'il a réellement produit ────────────────── */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <div className="grid items-start gap-[46px] wide:grid-cols-[1fr_.9fr]">
-          <div>
-            <SiteDisplay as="h2" lines={t('page.pathTitle', { returnObjects: true }) as string[]} size={34} />
-            <p
-              className="mm-prose rv mt-[11px] max-w-[44ch] text-[15.5px] leading-[1.6] text-ink-2"
-              style={{ ['--i' as string]: 2 }}
-            >
-              {t('page.pathLede')}
-            </p>
-
-            {/*
-              LA FRISE. Un rail de 2 px en `--fill-3` et un point par jalon : `--fill-3` et
-              `--ink-3` sont des jetons de FILET, ils ne portent jamais de texte (AD-18).
-              La date passe par `<Num>` — c'est le seul chemin du dépôt vers la monospace — et
-              le lieu reste en corps, parce qu'un nom de ville n'est pas un nombre vérifié.
-              Elle a quitté cette colonne pour la pleine largeur, plus bas.
-            */}
-
-            {/*
-              LE PANNEAU « SEUL » A CHANGÉ DE COLONNE, ET C'EST UNE CORRECTION DE VIDE.
-
-              Quand la frise a migré en pleine largeur, cette colonne s'est retrouvée avec un
-              titre et trois lignes de chapô face à deux panneaux qui en font 450 : environ
-              280 px de blanc mort sous le texte, à la rupture même où la page a le plus de
-              place. Ramener ce panneau ici referme le trou par les deux bouts — les colonnes
-              finissent à hauteur voisine, et le tri devient lisible : la PROSE avec la prose
-              à gauche, les NOMBRES avec les nombres à droite.
-            */}
-            <Bento padding={24} className="rv mt-[18px]" style={{ ['--i' as string]: 3 }}>
-              <SiteEyebrow style={{ margin: 0 }}>{t('page.soloTitle')}</SiteEyebrow>
-              <p className="mm-prose mt-[9px] mb-0 max-w-[46ch] text-[14.5px] leading-[1.6] text-ink-2">
-                {t('page.soloBody')} <b className="text-ink">{t('page.soloStrong')}</b>
-              </p>
-            </Bento>
-          </div>
-
-          <div>
-            {/*
-              LES COMPTEURS DE PRODUCTION — ce qui remplace les trois chiffres d'audience.
-              Quatre nombres, tous lus en base, tous datés. Le panneau porte lui-même la phrase
-              qui explique la substitution : sans elle, quatre petits chiffres passeraient pour
-              une modestie, alors que c'est une règle.
-            */}
-            <GlassPanel level="hero" padding={26} className="rv" style={{ ['--i' as string]: 4 }}>
-              <SiteEyebrow style={{ margin: 0 }}>
-                {t('page.producedTitle')} · {formatDate(asOf.toISOString())}
-              </SiteEyebrow>
-              <div className="mt-[14px] grid grid-cols-2 gap-[14px]">
-                {production.map((cell) => (
-                  <div key={cell.key}>
-                    <p className="m-0 text-[32px] text-ink">
-                      <Num value={cell.value} source="db" asOf={asOf} />
-                    </p>
-                    <p className="m-0 text-[12.5px] text-ink-2">{t(`page.${cell.key}`)}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="my-[18px] h-px bg-[color:var(--border-hair)]" />
-              <p className="mm-prose m-0 max-w-[46ch] text-meta leading-[1.55] text-ink-2">
-                {t('page.producedBody')}{' '}
-                <b className="text-ink">
-                  {t('page.producedStrong', { opened: formatMonth(PLATFORM_OPENED_AT) })}
-                </b>
-              </p>
-            </GlassPanel>
-          </div>
-        </div>
-
-        {/*
-          LA FRISE EST PLEINE LARGEUR, sous les deux colonnes.
-
-          Elle vivait dans la colonne de gauche d'une grille `1fr .9fr`. Trois chapitres côte
-          à côte n'y tiennent pas : ils y seraient revenus en une seule colonne, c'est-à-dire
-          à la hauteur qu'on cherchait précisément à réduire. Le titre et le chapô restent en
-          haut avec les deux panneaux de droite ; la matière vérifiable prend toute la largeur.
-        */}
-        <div className="mm-section">
-          {/*
-            DEUX COLONNES DÈS 700 PX, TROIS AU-DELÀ DE 1080.
-
-            La frise ne passait à trois colonnes qu'à `wide`. En dessous — tablettes, portables
-            de 1024, c'est-à-dire une grosse part des visites — les onze jalons revenaient en
-            UNE colonne, soit près de 1 200 px de haut sur la section qu'on avait justement
-            raccourcie. La rupture intermédiaire existe déjà dans le système (`stack`, 700 px)
-            et n'était pas servie. Deux colonnes en divisent la hauteur par deux, et l'ordre
-            chronologique tient : la lecture reste gauche-droite puis dessous.
-          */}
-          <div
-            className="rv mt-[26px] grid gap-7 stack:grid-cols-2 stack:gap-6 wide:grid-cols-3"
-            style={{ ['--i' as string]: 3 }}
-          >
-            {CHAPTERS.map((chapter) => (
-              <section key={chapter.key} aria-label={t(`chapters.${chapter.key}.title`)}>
-                {/* L'intertitre porte son INTERVALLE d'années : c'est ce qui fait du
-                    chapitre une information plutôt qu'un séparateur décoratif. */}
-                <p className="mm-eyebrow m-0 flex flex-wrap items-baseline gap-x-2">
-                  {t(`chapters.${chapter.key}.title`)}
-                  <span style={{ color: 'var(--ink-3)' }}>{t(`chapters.${chapter.key}.range`)}</span>
-                </p>
-
-                <div
-                  className="mt-[14px] pl-[22px]"
-                  style={{ borderLeft: '2px solid var(--fill-3)' }}
-                >
-                  {chapter.items.map((key, i) => {
-                    const proof = MILESTONE_PROOFS[key];
-                    const unprovable = MILESTONE_UNPROVABLE.has(key);
-                    return (
-                      <div
-                        key={key}
-                        className="relative"
-                        style={{ paddingBottom: i === chapter.items.length - 1 ? 0 : '22px' }}
-                      >
-                        <span
-                          aria-hidden="true"
-                          className="absolute left-[-29px] top-[5px] h-3 w-3 rounded-pill"
-                          style={{ background: 'var(--surface-page)', border: '2.5px solid var(--mm-orange)' }}
-                        />
-                        <p className="m-0 flex flex-wrap items-baseline gap-x-[6px] text-[11px] text-ink-2">
-                          <Num
-                            value={t(`milestones.${key}.year`)}
-                            source={{ cite: t('page.pathCite') }}
-                            asOf={DECLARED_AT}
-                          />
-                          <span>· {t(`milestones.${key}.lieu`)}</span>
-                        </p>
-                        <b className="mt-[3px] block text-[15px] font-bold text-ink">
-                          {t(`milestones.${key}.title`)}
-                        </b>
-                        <p className="mm-prose mt-[5px] mb-0 max-w-[52ch] text-meta leading-[1.5] text-ink-2">
-                          {t(`milestones.${key}.desc`)}
-                        </p>
-                        {/*
-                          LA PREUVE, SA DETTE, OU SON IMPOSSIBILITÉ — jamais rien. Un lien
-                          qu'on peut ouvrir quand il existe ; « déclaré » quand il est dû ;
-                          « personnel » quand aucun tiers ne pourra jamais l'écrire. Laisser
-                          la ligne muette reviendrait à présenter une déclaration comme un
-                          fait vérifié, ce qui est exactement ce que cette page refuse.
-                        */}
-                        {proof ? (
-                          <a
-                            href={proof}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mm-eyebrow mt-[6px] inline-flex items-center gap-[5px]"
-                            style={{ color: 'var(--mm-bleu)' }}
-                          >
-                            {t('page.pathProofLabel')}
-                            <Icon name="forward" size={11} strokeWidth={2.6} />
-                          </a>
-                        ) : (
-                          <span className="mm-eyebrow mt-[6px] block" style={{ color: 'var(--ink-3)' }}>
-                            {t(unprovable ? 'page.pathPersonal' : 'page.pathDeclared')}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
-          </div>
-        </div>
-      </PageSite>
-
-      {/* ── 4 · Où tout ça se range — l'arbre de marque ──────────────────────── */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <SiteDisplay as="h2" lines={t('page.treeTitle', { returnObjects: true }) as string[]} size={34} />
-        {/*
-          LA PHRASE QUI RANGE LES DEUX NOMS (CDC § 4.4), et les deux noms n'y sont PAS retapés.
-
-          `positioning.name` et `legalName` viennent de `lib/brand/company.ts`, le module qui
-          porte l'avis d'immatriculation. Une raison sociale recopiée dans un catalogue de
-          traduction se désynchronise du jour où l'entité change de forme — en silence, et dans
-          deux langues à la fois, sur la page dont le métier est justement d'être vérifiable.
-        */}
-        <p
-          className="mm-prose rv mt-[10px] max-w-[62ch] text-[15.5px] leading-[1.6] text-ink"
-          style={{ ['--i' as string]: 1 }}
-        >
-          {t('page.treeSentence', { brand: positioning.name, company: legalName })}
-        </p>
-        <p
-          className="mm-prose rv mt-[10px] max-w-[62ch] text-[15.5px] leading-[1.6] text-ink-2"
-          style={{ ['--i' as string]: 2 }}
-        >
-          {t('page.treeLede')}
-        </p>
-
-        <div className="mt-[22px] grid gap-4 stack:grid-cols-3">
-          {tree.map((branch, i) => (
-            <Bento
-              padding={24}
-              key={branch.name}
-              className="rv"
-              style={{
-                ['--i' as string]: i + 3,
-                borderColor: branch.accent ? 'color-mix(in srgb, var(--mm-corail) 32%, transparent)' : undefined,
-              }}
-            >
-              <Tag
-                style={branch.accent
-                  ? { background: 'color-mix(in srgb, var(--mm-corail) 14%, transparent)', color: 'var(--mm-corail-t)' }
-                  : undefined}
-              >
-                {branch.badge}
-              </Tag>
-              <p className="mt-[11px] mb-0 font-display text-[18px] font-black tracking-[-.03em] text-ink">
-                {branch.name}
-              </p>
-              <p className="mm-prose mt-2 mb-0 max-w-[42ch] text-[14px] leading-[1.55] text-ink-2">{branch.body}</p>
-            </Bento>
-          ))}
-        </div>
-
-        {/* Les trois faits corporate. Ils viennent de `legalEntity`, qui porte les pièces. */}
-        <Bento padding={22} className="rv mt-[18px]" style={{ ['--i' as string]: 6 }}>
-          <div className="grid gap-6 stack:grid-cols-3">
-            <div>
-              <p className="m-0 text-[12.5px] text-ink-2">{t('page.treeRegistered')}</p>
-              <p className="mt-[2px] mb-0 text-[18px] text-ink">
-                <Num
-                  value={formatDate(legalEntity.registeredAt)}
-                  source={{ cite: t('page.treeCite') }}
-                  asOf={new Date(legalEntity.registeredAt)}
-                />
-              </p>
-            </div>
-            <div>
-              <p className="m-0 text-[12.5px] text-ink-2">{t('page.treeSeat')}</p>
-              <p className="mt-[2px] mb-0 text-[18px] font-semibold text-ink">
-                {legalEntity.city}, {legalEntity.country}
-              </p>
-            </div>
-            <div>
-              <p className="m-0 text-[12.5px] text-ink-2">{t('page.treePillars')}</p>
-              <p className="mt-[2px] mb-0 text-[18px] font-semibold text-ink">{pillars.join(' · ')}</p>
-            </div>
-          </div>
-        </Bento>
-      </PageSite>
-
-      {/* ── 5 · Où me trouver ────────────────────────────────────────────────── */}
-      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
-        <div className="grid items-center gap-[44px] wide:grid-cols-[.95fr_1.05fr]">
-          <div>
-            <SiteDisplay as="h2" lines={t('page.findTitle', { returnObjects: true }) as string[]} size={34} />
-            <p
-              className="mm-prose rv mt-[11px] max-w-[40ch] text-[15.5px] leading-[1.6] text-ink-2"
-              style={{ ['--i' as string]: 2 }}
-            >
-              {t('page.findLede')}
-            </p>
-            {/*
-              Emplacement déclaré nº 3 — ce qui reste vide, et pourquoi on ne le devine pas.
-              Il ne se rend que tant que `podcastPlatform` vaut `null` : déclarer la plateforme
-              ajoute sa ligne au panneau ci-contre, l'ajoute à `sameAs`, et retire cet aveu ici
-              ET sa phrase jumelle sous les rangées de `/podcast-et-videos`.
-            */}
-            {podcastPlatform === null && (
-              <SiteSlot title={t('page.slotFindTitle')} style={{ marginTop: '18px' }}>
-                {t('page.slotFindBody')} <b className="text-ink">{t('page.slotFindStrong')}</b>
-              </SiteSlot>
             )}
           </div>
+        </div>
+      </NightHero>
 
-          {/*
-            AUCUN LOGO DE PLATEFORME. Le kit dessine les marques tierces en aplat de leur
-            couleur — quatre hexadécimaux hors du système, quatre tracés à embarquer, et un
-            second jeu d'icônes sur un écran qui en a déjà un. La pastille d'initiale du DS
-            dit la même chose pour zéro octet, et le nom est écrit juste à côté.
-          */}
-          {/*
-            `min-w-0` : à une colonne, l'élément de grille garde `min-width: auto` et refuse
-            de descendre sous la largeur minimale de son contenu. Mesuré à 377 px pour une
-            piste de 333 — et comme les deux enfants partagent la colonne, le titre et le
-            paragraphe de gauche s'élargissaient avec le panneau, donc toute la page.
-          */}
-          <Bento padding={24} className="min-w-0 rv" style={{ ['--i' as string]: 3 }}>
-            {publicProfiles.map((profile, i) => (
-              <a
-                key={profile.name}
-                href={profile.url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-3 py-[11px] no-underline"
-                style={i ? { borderTop: '1px solid var(--border-hair)' } : undefined}
-              >
-                {/* `flexShrink: 0` : la pastille garde ses 34 px quand la rangée se serre. */}
-                <Avatar
-                  initials={profile.name.slice(0, 1)}
-                  size={34}
-                  background={i % 2 ? 'var(--action-informe)' : 'var(--action-forme)'}
-                  style={{ borderRadius: '11px', flexShrink: 0 }}
+      {/* ── 2 · LES ÉTAPES (jalons déclarés) ─────────────────────────────────── */}
+      <KitSection width={1100} className="pt-14 wide:pt-24">
+        <Eyebrow>{t('steps.eyebrow')}</Eyebrow>
+        <KitH2 className="mb-6 mt-3 wide:mb-8 wide:mt-[14px]">{t('steps.title')}</KitH2>
+        <ol className="m-0 list-none p-0">
+          {MILESTONE_KEYS.map((key, i) => {
+            const m = milestones[key];
+            if (!m) return null;
+            const proof = MILESTONE_PROOFS[key];
+            return (
+              <li key={key} className="grid grid-cols-[14px_1fr] gap-x-4 pb-6 stack:grid-cols-[140px_28px_1fr] stack:gap-x-[18px] stack:pb-[30px]">
+                <span className="mm-n col-start-2 row-start-1 text-[13px] font-semibold text-ink-2 stack:col-start-1 stack:text-right stack:text-[14px]">{m.year}</span>
+                <span
+                  aria-hidden="true"
+                  className="col-start-1 row-span-2 row-start-1 mt-1 h-[14px] w-[14px] rounded-pill stack:col-start-2 stack:mx-auto"
+                  style={{ background: DOTS[i % DOTS.length], boxShadow: `0 0 0 5px color-mix(in srgb, ${DOTS[i % DOTS.length]} 18%, transparent)` }}
                 />
-                <span className="min-w-0 flex-1">
-                  <b className="block text-[14px] text-ink">{profile.name}</b>
-                  <span className="block truncate text-[12px] text-ink-2">
-                    {profile.url.replace(/^https?:\/\/(www\.)?/, '')}
-                  </span>
-                </span>
-                {/*
-                  TON NEUTRE, PAS « OK ».
+                <div className="col-start-2 stack:col-start-3 stack:row-start-1">
+                  <b className="block font-display text-[20px] font-black leading-[1.05] stack:text-[24px]">{m.title}</b>
+                  <p className="m-0 mt-[6px] text-ink-2">
+                    <span className="hidden stack:inline">{m.desc} </span>
+                    <span className="text-ink-3">{m.lieu}</span>
+                    {proof && (
+                      <>
+                        {' · '}
+                        <a href={proof} target="_blank" rel="noopener noreferrer" className="font-semibold text-ink underline">{t('steps.verify')} ↗</a>
+                      </>
+                    )}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+          <li className="grid grid-cols-[14px_1fr] gap-x-4 stack:grid-cols-[140px_28px_1fr] stack:gap-x-[18px]">
+            <span className="mm-n col-start-2 row-start-1 text-[13px] font-semibold text-[color:var(--mm-violet)] stack:col-start-1 stack:text-right stack:text-[14px]">{t('steps.todayLabel')}</span>
+            <span aria-hidden="true" className="col-start-1 row-span-2 row-start-1 mt-1 h-[14px] w-[14px] rounded-pill bg-ink stack:col-start-2 stack:mx-auto" style={{ boxShadow: '0 0 0 5px var(--fill-2)' }} />
+            <div className="col-start-2 stack:col-start-3 stack:row-start-1">
+              <b className="block font-display text-[20px] font-black leading-[1.05] stack:text-[24px]">{t('steps.todayTitle')}</b>
+              <p className="m-0 mt-[6px] text-ink-2">{t('steps.todayBody')}</p>
+            </div>
+          </li>
+        </ol>
+      </KitSection>
 
-                  Le kit distingue ici deux états : `ok` « Déclaré » sur le seul profil tenu, et
-                  `warn` « Vide » sur les trois autres (`PagesCore.js:381-383`). C'est le seul
-                  écran où la contrainte d'opérateur unique se voit, et cette distinction EST le
-                  propos de la section.
-
-                  La production affichait `ok` sur les six. Le vert dit « c'est en ordre » — une
-                  affirmation que rien dans le produit ne peut soutenir : aucun champ ne dit si
-                  un profil est alimenté. Le ton neutre retire l'affirmation sans en inventer
-                  une autre : le lien est déclaré, c'est tout ce qu'on sait.
-
-                  Le jour où `publicProfiles` porte un état, la distinction du kit revient telle
-                  quelle — voir [[maxmorrys-todo-humains]].
-                */}
-                <span className="shrink-0"><Tag>{t('page.findDeclared')}</Tag></span>
-              </a>
-            ))}
-          </Bento>
+      {/* ── 3 · MES OUTILS ───────────────────────────────────────────────────── */}
+      <KitSection className="grid items-start gap-6 pt-14 wide:grid-cols-2 wide:pt-24">
+        <div>
+          <Eyebrow className="stack:hidden">{t('skills.eyebrowShort')}</Eyebrow>
+          <Eyebrow className="hidden stack:inline-flex">{t('skills.eyebrow')}</Eyebrow>
+          <KitH2 className="mb-[18px] mt-[14px] hidden stack:block" size="clamp(40px, 5vw, 60px)">{t('skills.title')}</KitH2>
+          <p className="m-0 hidden max-w-[46ch] text-ink-2 stack:block">{t('skills.lede')}</p>
         </div>
+        <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+          {skills.map((s) => (
+            <li key={s} className="mm-chip cursor-default">{s}</li>
+          ))}
+          <li className="mm-chip cursor-default" aria-current="true" data-pressed="true" style={{ background: 'var(--ink)', color: 'var(--paper)' }}>
+            {t('skills.highlight')}
+          </li>
+        </ul>
+      </KitSection>
 
-        {/* ── 6 · L'appel final ─────────────────────────────────────────────── */}
-        {/* Kit v3 (`Site-Parcours`, « On en parle ? ») : la bande de nuit à maillage lent,
-            l'action en surlignage. Le sombre est une portée `.dk` (AD-3). */}
-        <div className="dk rv mm-section relative isolate overflow-hidden rounded-xl bg-night text-ink">
-          <div aria-hidden="true" className="mm-mesh m-club">
-            <b />
-            <b />
-            <b />
+      {/* ── 4 · MES PROPRES PROJETS (ventures MY ONOMA) ──────────────────────── */}
+      <KitSection className="pt-14 wide:pt-24">
+        <div className="rounded-xl stack:bg-[color:var(--paper-2)] stack:p-10">
+          <Eyebrow className="stack:hidden">{t('ventures.eyebrowShort')}</Eyebrow>
+          <Eyebrow className="hidden stack:inline-flex">{t('ventures.eyebrow')}</Eyebrow>
+          <KitH2 className="mb-[26px] mt-[14px] hidden stack:block" size="clamp(40px, 5vw, 60px)">{t('ventures.title')}</KitH2>
+          <div className="mt-4 grid gap-[10px] stack:mt-0 stack:grid-cols-3 stack:gap-[14px]">
+            {ventures.map((v) => {
+              const desc = t(`ventures.items.${v.slug}`, { defaultValue: '' });
+              return (
+                <a key={v.slug} href={v.website} target="_blank" rel="noopener noreferrer" className="mm-bento flex flex-col gap-[10px] text-ink no-underline stack:min-h-[220px]">
+                  <span className="mm-n hidden text-[11px] text-ink-3 stack:block">{v.domain}</span>
+                  <b className="font-display text-[22px] font-black leading-none stack:text-[30px]">{t(`ventures.names.${v.slug}`, { defaultValue: v.name })}</b>
+                  {desc ? <p className="m-0 text-[14px] text-ink-2">{desc}</p> : <span className="mm-n text-[11px] text-ink-3 stack:hidden">{v.domain}</span>}
+                </a>
+              );
+            })}
           </div>
-          <div className="relative grid items-center gap-9 p-[34px] stack:p-12 wide:grid-cols-[1.2fr_.8fr]">
-          <div>
-            <SiteDisplay
-              as="h2"
-              lines={t('page.closingTitle', { returnObjects: true }) as string[]}
-              size={33}
-              style={{ lineHeight: 1.06 }}
-            />
-            {/* Le compte d'articles est le seul argument de ce bloc : il passe par <Num>. */}
-            <p className="mm-prose mt-[11px] mb-0 max-w-[50ch] text-[15px]">
-              {t('page.closingBefore')}{' '}
-              <Num value={counts?.publishedArticles ?? null} source="db" asOf={asOf} />{' '}
-              {t('page.closingAfter')}
-            </p>
-          </div>
-          {/*
-            LES BOUTONS SONT BORNÉS, ET FERRÉS À DROITE.
+          <p className="m-0 mt-4 hidden text-[12.5px] text-ink-2 stack:block">{t('ventures.note')}</p>
+        </div>
+      </KitSection>
 
-            `Button` remplit sa colonne par défaut, et la colonne `.8fr` en fait 460 à la
-            mesure du kit : deux mots au centre d'une piste de 460 px, deux fois de suite. Un
-            bouton dont la cible dépasse largement son libellé ne se lit plus comme un bouton,
-            il se lit comme une barre. 260 px suffisent aux deux libellés dans les deux
-            langues — « Contacte-moi » et « Talk to me » — et le ferrage à droite raccroche la
-            pile au bord du bloc plutôt que de la laisser flotter.
-          */}
-          <div className="flex flex-col gap-[10px] wide:ml-auto wide:w-[280px]">
-            <Button href={path('/contact')} tone="highlight" arrow>
-              {t('page.closingContact')}
-            </Button>
-            <Button href={path('/blog')} tone="ghost">
-              {t('page.closingBlog')}
-            </Button>
-          </div>
+      {/* ── 5 · CE QUE JE CROIS ──────────────────────────────────────────────── */}
+      <KitSection className="pt-14 wide:pt-24">
+        <Eyebrow>{t('beliefs.eyebrow')}</Eyebrow>
+        <div className="mt-5 grid gap-[10px] stack:grid-cols-3 stack:gap-[14px]">
+          {[1, 2, 3].map((n) => {
+            const accent = n === 1;
+            return (
+              <div
+                key={n}
+                className={[
+                  'flex flex-col gap-3 rounded-xl p-[22px] stack:min-h-[220px] stack:p-7',
+                  accent ? 'bg-[color:var(--mm-violet)] text-[color:var(--paper-fixed)]' : 'mm-bento',
+                ].join(' ')}
+              >
+                <span className={`mm-n hidden text-[12px] stack:block ${accent ? 'opacity-80' : 'text-ink-3'}`}>{String(n).padStart(2, '0')}</span>
+                <b className="font-display text-[24px] font-black leading-[1.02] stack:text-[30px]">{t(`beliefs.b${n}Title`)}</b>
+                <p className={`m-0 hidden stack:block ${accent ? 'opacity-[.88]' : 'text-ink-2'}`}>{t(`beliefs.b${n}Body`)}</p>
+              </div>
+            );
+          })}
+        </div>
+        <KitButton href={path('/contact?rdv=1')} tone="club" className="mt-6 stack:hidden">{t('cta.buttonShort')}</KitButton>
+      </KitSection>
+
+      {/* ── 6 · L'APPEL ──────────────────────────────────────────────────────── */}
+      <KitSection className="hidden pt-24 stack:block">
+        <div className="dk relative isolate flex min-h-[380px] items-end overflow-hidden rounded-xl">
+          <Photo tone="edu" className="!absolute inset-0 !rounded-none" />
+          <span aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(90deg,rgba(10,13,17,.8),rgba(10,13,17,0) 70%)' }} />
+          <div className="relative z-[1] p-11">
+            <KitH2 className="mb-[22px] text-ink" size="clamp(44px, 5vw, 72px)">{t('cta.title')}</KitH2>
+            <KitButton href={path('/contact?rdv=1')} tone="highlight" arrow>{t('cta.button')}</KitButton>
           </div>
         </div>
-      </PageSite>
+      </KitSection>
     </DsNavHost>
   );
 }

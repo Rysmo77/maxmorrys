@@ -3,203 +3,72 @@
     "title": "Max-Morrys Eyoum — Conception web & formation au digital, depuis Dakar",
     "description": "Qui je suis, mon parcours daté, ce que je fais dans la conception web et dans la formation, et comment Max-Morrys se range sous MY ONOMA."
   },
-  "values": {
-    "passion": {
-      "title": "Passion Authentique",
-      "desc": "Une passion pour le marketing digital née d'une découverte qui a changé ma vie en 2021."
+  "hero": {
+    "eyebrow": "Mon parcours",
+    "titleLines": [
+      "Trois villes,",
+      "un [métier.]"
+    ],
+    "lede": "Je m'appelle Max-Morrys Eyoum. J'ai grandi à Douala, étudié à Abidjan, et c'est à Dakar que j'ai fait du digital mon métier — puis ma façon de transmettre.",
+    "ledeShort": "Douala, Abidjan, Dakar : c'est à Dakar que j'ai fait du digital mon métier."
+  },
+  "steps": {
+    "eyebrow": "Les étapes",
+    "title": "D'où je viens.",
+    "todayLabel": "Aujourd'hui",
+    "todayTitle": "Je forme, je construis, je transmets",
+    "todayBody": "Sur la plateforme, au Club des Digitos, et avec mon studio.",
+    "verify": "Vérifier"
+  },
+  "skills": {
+    "eyebrow": "Ce que je sais faire",
+    "eyebrowShort": "Mes outils",
+    "title": "Mes outils de tous les jours.",
+    "lede": "Le marketing digital, le design de marque, le web et l'IA — appris sur le terrain, enseignés depuis.",
+    "items": [
+      "SEO",
+      "SEA · Google Ads",
+      "Réseaux sociaux",
+      "Stratégie de contenu",
+      "Gestion de marque",
+      "Newsletters",
+      "Google Analytics",
+      "Search Console",
+      "WordPress",
+      "Canva",
+      "CapCut",
+      "Firebase",
+      "Claude Code",
+      "n8n"
+    ],
+    "highlight": "Automatisation par l'IA"
+  },
+  "ventures": {
+    "eyebrow": "Ce que je construis aussi",
+    "eyebrowShort": "Mes propres projets",
+    "title": "Mes propres projets.",
+    "note": "Projets de MY ONOMA, montrés à part des projets clients.",
+    "items": {
+      "doven": "Un réseau social chrétien : profils, groupes, églises, prière.",
+      "steps": "Un magazine chrétien africain, en français et en anglais."
     },
-    "vision": {
-      "title": "Vision Africaine",
-      "desc": "Connaissance profonde des réalités et opportunités du marché africain francophone."
-    },
-    "hybrid": {
-      "title": "Approche Hybride",
-      "desc": "Marketing, IA, automatisation et développement web — un profil à l'intersection de la stratégie, du produit et de la tech."
-    },
-    "results": {
-      "title": "Résultats Concrets",
-      "desc": "Focus sur les stratégies qui donnent des résultats mesurables et durables."
+    "names": {
+      "steps": "STEPS Magazine"
     }
   },
-  "expertise": {
-    "marketing": {
-      "title": "Marketing, Growth & Stratégie 360°",
-      "desc": "Stratégies multicanales pour des audiences africaines francophones, pilotées par la data, du brand à la conversion.",
-      "tags": [
-        "Stratégie marketing 360°",
-        "Growth marketing",
-        "SEO, SEA, SMO, SMA",
-        "Campagnes multicanales",
-        "Content marketing",
-        "Social media",
-        "Branding corporate & personal",
-        "Marketing d'impact & RSE",
-        "Analyse de marché & veille",
-        "KPI, reporting & ROI",
-        "CRM & fidélisation"
-      ],
-      "stat": "+1 790 % de trafic web chez Eyone Medical"
-    },
-    "ai": {
-      "title": "IA, Automatisation & Productivité",
-      "desc": "Conception de systèmes IA et de workflows n8n pour industrialiser la production de contenus et la communication.",
-      "tags": [
-        "Prompt engineering",
-        "IA générative appliquée",
-        "Workflows n8n",
-        "Rédaction automatisée",
-        "Automatisation social media",
-        "Systèmes IA de contenus",
-        "Optimisation de processus",
-        "Chatbots WhatsApp"
-      ],
-      "stat": "Workflows IA bout en bout en production"
-    },
-    "web": {
-      "title": "Web, Produit Digital & Plateformes",
-      "desc": "Plateformes full stack avec base de données et hébergement Firebase, accélérées par Claude Code.",
-      "tags": [
-        "Plateformes web full stack",
-        "Claude Code",
-        "Base de données & logique applicative",
-        "Hébergement Firebase",
-        "WordPress",
-        "Maintenance, sécurité, performance",
-        "Monitoring & déploiement",
-        "Support utilisateurs"
-      ],
-      "stat": "Plateformes web en production"
-    },
-    "management": {
-      "title": "Management & Partenariats",
-      "desc": "Coordination d'équipes pluridisciplinaires et pilotage de partenaires institutionnels, ONG et acteurs de terrain.",
-      "tags": [
-        "Coordination d'équipes",
-        "Gestion de prestataires",
-        "Pilotage de projets transverses",
-        "Partenaires institutionnels & ONG",
-        "Événements communautaires",
-        "Formation & accompagnement",
-        "Communication institutionnelle"
-      ],
-      "stat": "Projet Wergu Yaram + Messages de Vie Sénégal"
-    }
+  "beliefs": {
+    "eyebrow": "Ce que je crois",
+    "b1Title": "On apprend en faisant.",
+    "b1Body": "Chaque leçon se termine par une mission, jamais par une théorie.",
+    "b2Title": "On montre ce qu'on peut prouver.",
+    "b2Body": "Pas de chiffre inventé, pas d'avis acheté.",
+    "b3Title": "Le digital se paie en Wave.",
+    "b3Body": "Des outils pensés pour l'Afrique de l'Ouest, pas adaptés après coup."
   },
-  "experiences": {
-    "eyone": {
-      "role": "Marketing & Growth Manager",
-      "period": "Depuis janvier 2024",
-      "location": "Dakar, Sénégal",
-      "intro": "Chez Eyone, je pilote la stratégie de croissance digitale, la visibilité de marque, la communication multicanale et plusieurs projets digitaux à fort impact. Mon rôle dépasse le marketing opérationnel classique et couvre également la gestion de projet, la coordination de partenariats, le développement web et l'automatisation de processus.",
-      "blocks": {
-        "strategy": {
-          "title": "Stratégie marketing, growth & acquisition",
-          "bullets": [
-            "Élaboration et déploiement de stratégies marketing multicanales : SEO, SEA, SMO, social media, campagnes de visibilité, contenus, newsletters, articles, WhatsApp, vidéos et supports digitaux.",
-            "Définition des objectifs, KPI et indicateurs de performance : trafic, clics, conversions, ventes, transactions, croissance organique et ROI.",
-            "Analyse des parcours clients et optimisation du tunnel de conversion, de la découverte jusqu'à la décision d'achat.",
-            "Veille concurrentielle, analyse marché, identification d'opportunités business et proposition de leviers de croissance.",
-            "Gestion de campagnes orientées performance, notoriété et acquisition."
-          ]
-        },
-        "branding": {
-          "title": "Branding, contenus & communication",
-          "bullets": [
-            "Structuration de la présence digitale d'Eyone à partir de zéro.",
-            "Création et pilotage d'un calendrier éditorial orienté SEO, marque, éducation et conversion.",
-            "Développement de contenus pour renforcer la crédibilité d'Eyone dans l'écosystème santé digitale.",
-            "Coordination de la communication institutionnelle, des supports commerciaux et des messages de marque.",
-            "Pilotage de la visibilité du groupe sur plusieurs marchés africains."
-          ]
-        },
-        "ai": {
-          "title": "IA, automatisation & productivité marketing",
-          "bullets": [
-            "Mise en place de systèmes automatisés avec l'IA pour accélérer la production de contenus et la diffusion marketing.",
-            "Automatisation de workflows avec n8n : rédaction automatisée d'articles, planification de contenus, marketing réseaux sociaux et processus de communication.",
-            "Utilisation de l'IA générative pour la création, l'optimisation, la reformulation et l'adaptation de contenus multicanaux.",
-            "Développement de solutions internes permettant de réduire les tâches répétitives et d'améliorer la productivité marketing."
-          ]
-        },
-        "web": {
-          "title": "Développement web & plateformes digitales",
-          "bullets": [
-            "Développement et maintenance de plateformes web liées à Eyone Medical, Wergu Yaram, Topatoko et des structures hospitalières.",
-            "Création de plateformes full stack avec base de données, logique applicative et hébergement Firebase.",
-            "Utilisation de Claude Code pour accélérer la conception et le développement de plateformes web fonctionnelles.",
-            "Gestion des évolutions techniques, corrections, sécurité, performance, hébergement, monitoring et mises à jour.",
-            "Formation et accompagnement d'utilisateurs sur certaines plateformes développées."
-          ]
-        },
-        "partnerships": {
-          "title": "Projet Wergu Yaram & partenariats",
-          "bullets": [
-            "Pilotage global du projet Wergu Yaram : planification, coordination, storytelling d'impact et suivi opérationnel.",
-            "Élaboration de la stratégie de communication RSE et impact social.",
-            "Gestion de relations avec partenaires institutionnels, ONG et acteurs de terrain.",
-            "Organisation d'initiatives sociétales, campagnes terrain et événements communautaires.",
-            "Suivi des indicateurs d'impact et contribution aux rapports d'activité."
-          ]
-        },
-        "management": {
-          "title": "Management & coordination",
-          "bullets": [
-            "Encadrement et coordination de collaborateurs, créateurs de contenus, community managers, partenaires et prestataires.",
-            "Accompagnement des équipes dans le développement de compétences digitales.",
-            "Support technique et marketing auprès des équipes internes pour les opérations, campagnes et lancements."
-          ]
-        }
-      }
-    },
-    "messagesDeVie": {
-      "role": "Responsable Marketing Digital bénévole",
-      "period": "Depuis avril 2025",
-      "location": "Dakar, Sénégal",
-      "intro": "Pilotage bénévole du marketing digital d'une organisation à but non lucratif, engagée dans des actions de compassion et des campagnes médicales sur le territoire sénégalais.",
-      "blocks": {
-        "strategy": {
-          "title": "Stratégie & visibilité",
-          "bullets": [
-            "Définition de la stratégie de contenu, coordination de la gestion des réseaux sociaux, marketing d'influence et communication événementielle.",
-            "Développement de la visibilité des actions terrain et valorisation des campagnes sociales.",
-            "Encadrement d'une équipe bénévole composée de créateurs de contenus, community managers et contributeurs.",
-            "Mise en place de campagnes digitales ciblées pour renforcer l'engagement, attirer de nouveaux partenaires et soutenir les actions humanitaires."
-          ]
-        }
-      }
-    },
-    "academieLight": {
-      "role": "Formateur en Marketing Digital & Community Management",
-      "period": "Mai 2024 — Décembre 2024",
-      "location": "Dakar, Sénégal",
-      "intro": "Animation d'un module complet de community management et marketing digital auprès d'étudiants en formation professionnelle.",
-      "blocks": {
-        "training": {
-          "title": "Formation & accompagnement",
-          "bullets": [
-            "Formation aux fondamentaux du marketing digital, au rôle du community manager, à la création de contenus, à la gestion des réseaux sociaux et à l'utilisation d'outils comme Canva et CapCut.",
-            "Accompagnement de plus de 20 étudiants dans la mise en pratique de projets digitaux.",
-            "Transmission d'une approche orientée métier, performance, autonomie et employabilité."
-          ]
-        }
-      }
-    },
-    "myOnoma": {
-      "role": "Digital Marketer Freelance",
-      "period": "Janvier 2023 — Octobre 2023",
-      "location": "Dakar, Sénégal",
-      "intro": "Élaboration de stratégies digitales pour développer la présence de l'entreprise et de ses clients sur leurs marchés.",
-      "blocks": {
-        "strategy": {
-          "title": "Stratégie & exécution",
-          "bullets": [
-            "Analyse concurrentielle, ciblage d'audience, définition de plans d'action et mise en œuvre de campagnes multicanales.",
-            "Création d'initiatives visant à accroître la visibilité, renforcer la réputation de marque et générer une croissance mesurable.",
-            "Gestion de contenus, réseaux sociaux et actions de communication digitale."
-          ]
-        }
-      }
-    }
+  "cta": {
+    "title": "On en parle ?",
+    "button": "Réserver un appel de 30 min",
+    "buttonShort": "Réserver un appel"
   },
   "milestones": {
     "m2014": {
@@ -267,160 +136,6 @@
       "lieu": "Dakar, Sénégal",
       "title": "Plateformes web & IA en production",
       "desc": "Lancement et industrialisation des plateformes Eyone Medical, Wergu Yaram, Topatoko et de workflows IA bout en bout pour le marketing et le contenu."
-    }
-  },
-  "sectionNav": {
-    "impact": "Impact",
-    "expertise": "Expertise",
-    "parcours": "Parcours"
-  },
-  "hero": {
-    "eyebrow": "MAX-MORRYS EYOUM",
-    "title": "Marketing & Growth Manager.",
-    "subtitle": "IA · Automatisation · Plateformes Web · Partenariats",
-    "blockquote": "J'accompagne la croissance d'organisations en Afrique francophone — santé, services, éducation, impact social — en combinant stratégie marketing, data, contenu, partenariats, développement web et automatisation des processus.",
-    "ctaWork": "Travaillons ensemble",
-    "imageAlt": "Max-Morrys Eyoum",
-    "locationCity": "Dakar · Sénégal",
-    "locationRegion": "Afrique francophone",
-    "ctaParcours": "Mon parcours"
-  },
-  "expertiseSection": {
-    "heading": "Expertise & compétences",
-    "desc": "Quatre piliers complémentaires — marketing, IA, web et management — au service de la croissance et de l'impact."
-  },
-  "stack": {
-    "heading": "Stack & outils du quotidien",
-    "desc": "Les outils sur lesquels je m'appuie pour exécuter, automatiser et livrer.",
-    "items": [
-      "Claude Code",
-      "n8n",
-      "Firebase",
-      "WordPress",
-      "Chatbots IA",
-      "WhatsApp Marketing",
-      "Canva",
-      "CapCut",
-      "Google Ads",
-      "SEO",
-      "Social Media Automation"
-    ]
-  },
-  "valuesSection": {
-    "heading": "Mes valeurs",
-    "desc": "Les principes qui guident mon approche du marketing, de la tech et des partenariats en Afrique."
-  },
-  "parcours": {
-    "eyebrow": "MON HISTOIRE",
-    "heading": "Mon parcours",
-    "p1": "Je ne suis pas le genre qui te dira qu'il a tel MBA ou tel Master en Marketing Digital (même si j'en ai un), car je me suis presqu'auto-formé… C'est un peu contradictoire mais c'est ça qui fait ma force : la passion authentique et l'apprentissage constant.",
-    "p2": "Pour la petite histoire, je n'aurais jamais imaginé que j'allais faire du marketing… Comme tout enfant je voulais devenir pilote, puis ingénieur, ensuite banquier et au finish entrepreneur. Le marketing digital est arrivé par hasard en 2021, et c'est devenu ma passion !",
-    "p3": "Aujourd'hui, je vis cette aventure depuis Dakar, à la croisée du marketing, de l'IA, du produit web et des partenariats à impact — fier de contribuer au développement digital de l'Afrique francophone.",
-    "collapse": "Réduire le parcours",
-    "expand": "Voir le début du parcours (2014 – 2021)",
-    "showMissions": "Voir les missions",
-    "hideMissions": "Masquer les missions"
-  },
-  "finalCta": {
-    "eyebrow": "ON DISCUTE ?",
-    "heading": "Travaillons ensemble",
-    "desc": "Marketing, automatisation IA, plateformes web ou partenariats — parlons-en.",
-    "ctaContact": "Prendre contact",
-    "ctaFormations": "Ou découvre mes formations"
-  },
-  "beyond": {
-    "eyebrow": "Au-delà de la marque personnelle",
-    "heading": "Je développe aussi mes activités au sein de MY ONOMA.",
-    "desc": "MY ONOMA est un Digital Product & Growth Studio basé à Dakar. Il construit des produits et des systèmes pour ses clients, construit des machines de croissance, et développe ses propres produits. Max-Morrys Agency en est la practice Product, AI, Technology & Brand.",
-    "pillars": {
-      "build": "Produit, technologie, IA et marque",
-      "grow": "Croissance, revenus, adtech et opérations",
-      "own": "Produits détenus et opérés"
-    },
-    "cta": "Découvrir MY ONOMA",
-    "ctaAgency": "Voir Max-Morrys Agency"
-  },
-  "page": {
-    "eyebrow": "Conception web · Formation · Dakar",
-    "titleLines": [
-      "Je suis",
-      "[Max-Morrys.]"
-    ],
-    "lede": "Je conçois des sites et des plateformes web, et je forme au digital. Deux pistes, un seul interlocuteur, depuis Dakar — pour le marché francophone d'Afrique de l'Ouest, avec les moyens que tu as vraiment.",
-    "aloneBody": "Concepteur web, formateur et créateur de contenu digital basé à Dakar. Je cadre les projets, j'écris les articles, je monte les formations, j'anime le Club, et je réponds aux messages.",
-    "aloneStrong": "Il n'y a personne d'autre derrière cette plateforme.",
-    "ctaContact": "Contacte-moi",
-    "doesTitle": [
-      "Les deux pistes,",
-      "et ce que j'y fais."
-    ],
-    "doesLede": "Ce site mène à deux endroits, et je ne fais pas la même chose dans chacun.",
-    "doesConceptionTitle": "Conception",
-    "doesConceptionBody": "Je conçois et je mets en ligne le site, la fiche Google et le catalogue d'un commerce, ou la plateforme d'une organisation. Je cadre par écrit, je construis, je livre et je reste joignable après.",
-    "doesApprendreTitle": "Apprendre",
-    "doesApprendreBody": "Des formations en ligne sur le référencement local et l'IA appliquée à la prospection, un blog gratuit, un podcast, des vidéos et le Club des Digitos. Écrits, filmés et corrigés par moi.",
-    "pathTitle": [
-      "Le parcours."
-    ],
-    "pathLede": "Des dates et des faits, pas des adjectifs. C'est ce qu'un visiteur vérifie avant de sortir sa carte.",
-    "pathCite": "parcours déclaré par Max-Morrys",
-    "producedTitle": "Ce que j'ai publié",
-    "producedArticles": "articles publiés",
-    "producedFormations": "formations montées",
-    "producedPodcasts": "épisodes de podcast",
-    "producedVideos": "vidéos",
-    "producedBody": "Ce sont des chiffres de production, pas d'audience. Je ne t'annonce ni élèves, ni vues, ni chiffre d'affaires :",
-    "producedStrong": "la plateforme a ouvert en {{opened}}, et un chiffre gonflé se vérifie en trente secondes.",
-    "soloTitle": "Pourquoi je travaille seul",
-    "soloBody": "Parce que je préfère répondre moi-même. Ça explique tout ce qui est plafonné ici : le quota du répétiteur, les places en atelier, le rythme de publication.",
-    "soloStrong": "Rien n'est illimité parce que rien ne peut l'être — et je préfère l'écrire que te le faire découvrir après.",
-    "treeTitle": [
-      "Où tout ça",
-      "se range."
-    ],
-    "treeSentence": "{{brand}} est la marque de conception web et de formation ; {{company}} est la société qui contracte les missions de direction marketing.",
-    "treeLede": "Les deux noms ne recouvrent donc pas le même travail, et ce site ne vend que le premier. Deux practices existent à côté, et elles ne font pas la même chose.",
-    "treeLearnBadge": "Ce site",
-    "treeLearnBody": "La plateforme que tu lis, et ses deux pistes : la conception web d'un côté, la formation et les médias de l'autre.",
-    "treePillarBadge": "Pilier {{pillar}}",
-    "treeBuildBody": "Le nom sous lequel les missions de conception sont contractées. Sur ce site, la piste Conception en est la porte.",
-    "treeGrowBody": "La direction marketing, l'acquisition et le revenu. Ça ne se vend pas ici : si ta demande relève de là, elle part là-bas — jamais rejetée.",
-    "treeRegistered": "Immatriculée",
-    "treeSeat": "Siège",
-    "treePillars": "Piliers",
-    "treeCite": "avis d'immatriculation, Ministère de l'Économie (Sénégal)",
-    "findTitle": [
-      "Où me trouver."
-    ],
-    "findLede": "Je publie ailleurs aussi. Si tu préfères me suivre là-bas, garde tes habitudes — je ne t'obligerai pas à revenir ici.",
-    "findDeclared": "Déclaré",
-    "closingTitle": [
-      "Tu sais maintenant",
-      "qui écrit tout ça."
-    ],
-    "closingBefore": "Commence par le blog, c'est gratuit et il y a",
-    "closingAfter": "articles. Ou écris-moi directement — c'est moi qui lis.",
-    "closingBlog": "Lire le blog",
-    "closingContact": "Contacte-moi",
-    "slotFindTitle": "Liens à confirmer",
-    "slotFindBody": "Les profils ci-contre sont déclarés et vérifiés un par un. Ce qui manque : la plateforme d'écoute du podcast, qui n'est déclarée nulle part.",
-    "slotFindStrong": "Je préfère laisser vide plutôt que de deviner une adresse — et aucun compte n'affiche son nombre d'abonnés.",
-    "pathProofLabel": "Vérifier",
-    "pathDeclared": "déclaré",
-    "pathPersonal": "personnel"
-  },
-  "chapters": {
-    "learn": {
-      "title": "Se former",
-      "range": "2014 → 2020"
-    },
-    "pivot": {
-      "title": "Basculer",
-      "range": "2021 → 2023"
-    },
-    "build": {
-      "title": "Construire",
-      "range": "2024 → aujourd'hui"
     }
   }
 }

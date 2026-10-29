@@ -6,22 +6,23 @@
     "detailDescription": "{{name}} — {{category}}. The role we held, the technical scope and the stack we used. The product belongs to its client."
   },
   "index": {
-    "eyebrow": "Client work",
-    "titleLines": ["What we have", "[built].", "And for whom."],
-    "lede": "These products belong to their clients. We state only the role we held, the stack we used and the address where you can see for yourself. A link you can open beats a number you have to take on faith.",
-    "filterAll": "All",
-    "filterEyebrow": "Filter by category",
-    "filterAria": "Filter client work by category",
-    "resultCount_one": "{{count}} project",
-    "resultCount_other": "{{count}} projects",
-    "gridAria": "Client work",
-    "cardCta": "Open the case",
-    "emptyTitle": "Nothing in this category",
-    "emptyBody": "The filter returns nothing. Clear it to get the full list back.",
-    "emptyAction": "Clear the filter",
-    "exitTitle": "A product like these, but yours?",
-    "exitBody": "This work shows what the studio can build. What comes next starts from your problem, not someone else's.",
-    "exitCta": "Describe your project"
+    "eyebrow": "Work",
+    "titleLines": [
+      "{{count}} projects,",
+      "[delivered.]"
+    ],
+    "lede": "Websites and platforms, delivered to their clients. Names and the role we played only, until a client gives written consent for a case study.",
+    "ledeShort": "Names only, without written consent for a case study.",
+    "filterAria": "Filter projects by category",
+    "filterAll": "All · {{count}}",
+    "gridAria": "Client projects",
+    "cardAria": "See the {{name}} project",
+    "shotAlt": "Screenshot of the {{name}} home page",
+    "more_one": "See the other one",
+    "more_other": "See the other {{count}}",
+    "note": "Detailed case studies only with the client's written consent. No result figures published without a source.",
+    "ctaTitle": "Is the next project yours?",
+    "ctaButton": "Book a call"
   },
   "fiche": {
     "eyebrow": "Client work",

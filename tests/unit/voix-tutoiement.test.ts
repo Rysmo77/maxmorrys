@@ -96,6 +96,15 @@ const TUTOIEMENT = /\b(tu|te|toi|ton|ta|tes)\b|\bt'/i;
  */
 const EXEMPT_TU = /$^/;
 
+/**
+ * Les SOUS-ARBRES de la piste Conception qui tutoient, nommés un par un.
+ *
+ * `levels.shops` : la carte « Commerces et TPE » de `/conception` (maquette Site-Services,
+ * passe 2 du 29/10/2026) parle avec la voix de l'étage qu'elle annonce — la planche écrit
+ * « Ici on se tutoie ». Une carte de plus qui tutoie doit être ajoutée ici, pas glissée.
+ */
+const SOUS_ARBRES_TU = ['levels.shops.'];
+
 describe('voix de marque — tutoiement', () => {
   it('aucun catalogue français ne vouvoie, hors piste Conception', () => {
     const trouvailles: Trouvaille[] = [];
@@ -110,6 +119,7 @@ describe('voix de marque — tutoiement', () => {
     const trouvailles: Trouvaille[] = [];
     const chercher = (o: unknown, chemin: string, fichier: string) => {
       if (typeof o === 'string') {
+        if (fichier === 'conception.json' && SOUS_ARBRES_TU.some((p) => chemin.startsWith(p))) return;
         if (TUTOIEMENT.test(o.replace(EXEMPT_TU, ''))) trouvailles.push({ fichier, chemin, valeur: o });
       } else if (Array.isArray(o)) {
         o.forEach((v, i) => chercher(v, `${chemin}[${i}]`, fichier));

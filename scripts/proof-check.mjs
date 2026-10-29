@@ -110,9 +110,12 @@ if (!declaree) {
    rendu inconditionnellement demande qu'un humain se souvienne de le supprimer — et c'est
    exactement ce que le portrait a demandé, une fois, avec succès, ce qui ne prouve rien. */
 const PORTES = [
-  ['src/pages/About.tsx', /\{podcastPlatform === null && \(/, 'l\'encart « Liens à confirmer » ne suit plus podcastPlatform'],
-  ['src/pages/MediaPole.tsx', /\{podcastPlatform === null && \(/, 'la phrase « pas encore de page Spotify » ne suit plus podcastPlatform'],
-  ['src/pages/MediaPole.tsx', /\{podcastPlatform !== null && \(/, 'la rangée d\'écoute n\'apparaîtra pas quand la plateforme sera déclarée'],
+  /* `src/pages/About.tsx` n'a plus d'encart « Liens à confirmer » depuis la passe 2 (maquette
+     Site-Parcours, 29/10/2026) : la porte qui le gardait est partie avec lui. */
+  /* `/podcast-et-videos` (maquette Site-Media, passe 2) n'écrit plus l'aveu « pas encore de
+     page Spotify » : il n'invente aucune plateforme, et la puce paraît seule quand
+     `podcastPlatform` est déclarée — c'est cette porte-là qui reste gardée. */
+  ['src/pages/MediaPole.tsx', /\{podcastPlatform !== null && \(/, 'la puce de plateforme n\'apparaîtra pas quand la plateforme sera déclarée'],
 ];
 for (const [fichier, motif, detail] of PORTES) {
   if (!motif.test(lire(fichier))) add('4 · portes', fichier, detail);
@@ -272,7 +275,7 @@ const MIROIRS = [
      ne vend plus, il aiguille. La phrase de paiement vit désormais dans le seul `hero.lede`.
      Une clé morte laissée ici ne casse rien — `auChemin` rend `undefined` — et c'est bien le
      problème : la règle aurait continué de comparer un ensemble amputé, en silence. */
-  ['/', 'src/i18n/locales/fr/home.json', ['hero.lede']],
+  ['/', 'src/i18n/locales/fr/home.json', ['offers.eduBody']],
   ['/club-des-digitos', 'src/i18n/locales/fr/club.json',
     ['publicPage.payWave', 'publicPage.payOrange', 'publicPage.payCard']],
 ];

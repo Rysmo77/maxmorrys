@@ -5,133 +5,98 @@
     "customTitle": "Custom projects — websites, platforms and business portals",
     "customDescription": "Corporate and bilingual websites, platforms, business portals, design systems and integrations. Quoted per brief: a written scope, delivered milestones, formal acceptance, maintenance and a documented exit."
   },
-  "page": {
-    "eyebrow": "Design · {{brand}}",
+  "hero": {
+    "eyebrow": "Design track · studio",
     "titleLines": [
       "We design",
-      "[websites]",
-      "[and platforms.]"
+      "your presence",
+      "[online.]"
     ],
-    "lede": "We frame, design and build the websites and platforms an organisation needs in order to work. One studio, two levels of engagement: you pick the one that fits the project, not the one that suits us.",
+    "lede": "Websites, platforms, local presence and automation. Two ways to work with us, of equal weight: a packaged offer for shops, and bespoke projects.",
+    "ledeShort": "Two ways to work with us, of equal weight: a pack for shops, or a bespoke project.",
     "ctaLevels": "Choose my level",
-    "studioEyebrow": "What the studio does",
-    "studioLede": "People who design and people who write the code, in the same room. Interface decisions and technical decisions are taken together, because each one settles the other.",
-    "studioItems": [
-      "Framing: the problem, the scope, what is not included.",
-      "Interface design, user journeys and design systems.",
-      "Web engineering: applications, platforms, business portals.",
-      "Architecture, data, integrations and release to production."
-    ],
-    "truthTitle": "What we do not sell here",
-    "truthStart": "No marketing direction, no brand strategy, no acquisition. Those disciplines are carried by ",
-    "truthStrong": "{{company}}",
-    "truthEnd": ", the company the studio belongs to, and run by its growth practice. We point you to it; we do not sell it."
+    "ctaWork": "See our work"
   },
   "levels": {
-    "eyebrow": "The two levels of engagement",
-    "titleLines": [
-      "Two levels,",
-      "[neither hidden.]"
-    ],
-    "lede": "One posts its prices, the other is framed before it is priced. Both are on this page: recognising which one is yours is your call, not ours.",
+    "eyebrow": "Two levels of engagement",
+    "title": "Your project, at your scale.",
+    "titleShort": "At your scale.",
+    "lede": "One publishes its whole price list, the other shows no amount. Neither comes before the other.",
     "shops": {
-      "tag": "Public rate card",
-      "title": "Shops and small business",
-      "body": "A productised offer, installed and run for you: the site, the business listing, the catalogue, regular publishing. The scope is fixed, the prices are posted, and the go-live date is set the moment you order.",
-      "points": [
-        "Fixed scope, bounded delivery",
-        "Public prices, no call required first",
-        "Built for a shop that wants to be found"
+      "tag": "Packaged tier · public price list excl. VAT",
+      "tagShort": "Public prices excl. VAT",
+      "cta": "See the shops and small business offer",
+      "title": "Shops and small businesses",
+      "body": "Your Google profile, your page, WhatsApp Business, your photos: one pack, a displayed price, an instant online quote.",
+      "bodyShort": "Google profile, page, WhatsApp Business. One pack, a displayed price.",
+      "chips": [
+        "{{count}} packs",
+        "online quote",
+        "public prices"
       ],
-      "cta": "See the shops and small business offer"
+      "ctaPacks": "See the packs"
     },
     "custom": {
-      "tag": "Quoted per brief",
-      "title": "Custom projects",
-      "body": "Corporate and bilingual websites, platforms, business portals, design systems, integrations. The scope is written before it is priced, and that document is what binds both sides.",
-      "points": [
-        "A written scope before any pricing",
-        "Delivered milestones, formal acceptance",
-        "Documented maintenance and exit"
+      "tag": "On quote · no public amount",
+      "tagShort": "On quote",
+      "title": "Bespoke projects",
+      "body": "Platforms, institutional websites, digital products, AI automation. We qualify your need before talking budget.",
+      "bodyShort": "Platforms, institutional websites, automation. We qualify before talking budget.",
+      "chips": [
+        "5-minute qualification",
+        "reply within two working days"
       ],
-      "cta": "See custom projects"
+      "cta": "Describe my project"
     }
   },
+  "services": {
+    "eyebrow": "What we do",
+    "title": "Our services, [made to measure.]",
+    "s1Title": "Websites and platforms",
+    "s1Body": "React, CMS, bilingual, accessible, fast on 3G.",
+    "s1Short": "Fast on 3G, bilingual.",
+    "s2Title": "Local presence",
+    "s2Body": "Google profile, reviews, neighbourhood pages.",
+    "s2Short": "Google profile, reviews.",
+    "s3Title": "Brand and content",
+    "s3Body": "Identity, guidelines, editorial calendar.",
+    "s3Short": "Identity, calendar.",
+    "s4Title": "Automation and AI",
+    "s4Body": "n8n flows, assistants, dashboards.",
+    "s4Short": "n8n flows, assistants."
+  },
   "method": {
-    "eyebrow": "How we work",
+    "eyebrow": "Our process",
+    "eyebrowShort": "Our method",
     "titleLines": [
-      "The way",
-      "we [work.]"
+      "Our method,",
+      "[simplified.]"
     ],
-    "lede": "The same method at both levels of engagement. What changes is how long each step takes — never whether it happens.",
-    "steps": [
-      {
-        "n": "01",
-        "title": "Frame",
-        "body": "We start from the problem and the decision it carries, not from a feature list. The scope, the assumptions and what is not included are written down before anything is priced."
-      },
-      {
-        "n": "02",
-        "title": "Design",
-        "body": "Journeys, information architecture, interface. Designs are reviewed with you on the screens that carry the decision, not on the ones that are easiest to draw."
-      },
-      {
-        "n": "03",
-        "title": "Build",
-        "body": "Milestones delivered one by one, each on an address you can open. You watch the product move rather than read a progress report."
-      },
-      {
-        "n": "04",
-        "title": "Run",
-        "body": "Release, measurement, fixes and changes. A delivered product is not a finished product: running it is part of the engagement, not a line added afterwards."
-      }
-    ]
+    "titleShort": "In four steps.",
+    "s1Title": "Understand your goals and your customers",
+    "s1Short": "Understand your goals",
+    "s1Body": "A qualification call, with no commitment.",
+    "s2Title": "Define the scope and the quote",
+    "s2Short": "Scope and quote",
+    "s2Body": "A clear document: what's included, what isn't.",
+    "s3Title": "Design and build",
+    "s3Short": "Design and build",
+    "s3Body": "Mock-ups approved before code, regular checkpoints, progress visible at any time.",
+    "s4Title": "Launch and hand over",
+    "s4Short": "Launch and hand over",
+    "s4Body": "Your team is trained to keep what was built alive."
   },
-  "guarantees": {
-    "eyebrow": "Technical guarantees",
-    "titleLines": [
-      "What we",
-      "[stand behind.]"
-    ],
-    "lede": "Commitments you can check on the deliverable itself, without having to take our word for any of them.",
-    "items": [
-      {
-        "title": "Performance",
-        "body": "Performance budgets set at framing and measured at delivery: render time, visual stability, weight of the first view. A site that misses them is not delivered."
-      },
-      {
-        "title": "Accessibility",
-        "body": "Contrast, keyboard navigation, form labels, heading structure. The interface stays usable without a mouse, and readable when the system is in dark mode."
-      },
-      {
-        "title": "Code ownership",
-        "body": "The code written for you is yours, on the terms of the contract. The repository, the hosting accounts and the domain names are in your name, not ours."
-      },
-      {
-        "title": "Documentation",
-        "body": "A handover manual ships with the product: how it deploys, where its data lives, and what another team needs in order to take it over."
-      }
-    ]
-  },
-  "work": {
-    "eyebrow": "Selected work",
-    "titleLines": [
-      "What we",
-      "have [built.]"
-    ],
-    "lede": "Three projects, in catalogue order. The full index holds the others, each with the role we held and its address.",
-    "visit": "Open the case",
-    "listAria": "A preview of client work"
-  },
-  "ventures": {
-    "eyebrow": "Studio products",
-    "titleLines": [
-      "Products built",
-      "inside MY ONOMA"
-    ],
-    "lede": "Products the studio designs, owns and runs inside MY ONOMA. Each is a brand of its own: they are neither client references nor services the agency sells.",
-    "visit": "Open the product",
-    "listAria": "Products owned and run by MY ONOMA"
+  "qualif": {
+    "eyebrow": "Bespoke project",
+    "title": "Describe your project.",
+    "lede": "We don't publish bespoke prices: we ask you for a form of engagement, so we can answer accurately. Marketing leadership requests are passed on to MY ONOMA.",
+    "ledeShort": "No public bespoke prices: a form of engagement helps us answer accurately.",
+    "org": "Organisation",
+    "email": "Work email",
+    "need": "What you want to build",
+    "engagement": "Form of engagement",
+    "submit": "Send my request",
+    "next": "The rest of the request (project type, timing, contact details) opens on the next page, with what you've already entered."
   },
   "custom": {
     "eyebrow": "Custom projects",
@@ -301,11 +266,6 @@
       "emailInvalid": "That address isn't shaped like an email. Check what comes before and after the @.",
       "sendFailed": "It didn't go through and nothing was saved. Your request is still in the form: try again in a moment."
     }
-  },
-  "exit": {
-    "title": "A question before you pick a level?",
-    "body": "Write us two lines about what you want to build. We answer in writing, and we say so when it is not for us.",
-    "cta": "Write to us"
   },
   "sent": {
     "titleLines": [

@@ -1,46 +1,87 @@
 {
   "hero": {
-    "eyebrow": "Dakar · Senegal",
-    "titleLines": [
-      "MAX-MORRYS,",
-      "[WEB] DESIGN",
-      "AND TRAINING."
-    ],
-    "lede": "I design websites and web platforms, and I train people in digital — search, marketing, artificial intelligence. I work alone, from Dakar, for the West African market. Whatever you buy here is paid in CFA francs, with Wave, Orange Money or a card.",
-    "cta": "Who I am, in full"
+    "titleLines": ["Train.", "Build.", "[Pass it on.]"],
+    "lede": "I'm Max-Morrys. I help entrepreneurs and brands across French-speaking Africa exist online — by training them, and by building with them. From Dakar.",
+    "ctaCall": "Book a call",
+    "ctaStory": "Read my story",
+    "statsLabel": "Key facts"
   },
-  "pistes": {
-    "titleLines": [
-      "Two tracks,",
-      "and they are nothing alike."
-    ],
-    "lede": "One is done for you, the other is done by you. Neither is the waiting room of the other: you can take one and never meet the second.",
-    "conceptionTitle": "Design",
-    "conceptionMeta": "Shops and small business · Custom projects · Work",
-    "conceptionBody": "The track for websites and web platforms, at two levels of engagement: a fixed-price offer for shops and small businesses, and a scoped custom engagement for wider projects. The work already shipped is listed there.",
-    "apprendreTitle": "Learning",
-    "apprendreMeta": "Courses · Blog · Podcast and videos · The Digitos Club",
-    "apprendreBody": "You learn to do it yourself: local search, marketing, applied AI. The blog, the podcast and the videos open with no account and nothing to pay."
+  "stats": {
+    "companyLabel": "MY ONOMA, founded in Dakar",
+    "companySrc": "Trade register · {{date}}",
+    "projectsLabel": "client projects delivered",
+    "projectsLabelShort": "projects delivered",
+    "projectsSrc": "listed in Work",
+    "projectsSrcShort": "Work"
   },
-  "proof": {
-    "titleLines": [
-      "What I've published,",
-      "and when."
-    ],
-    "lede": "One fact is recorded here, and it is read in the database the moment this page loads: the date of my latest publication. Nothing about audience, nothing I couldn't reopen in front of you.",
-    "lastLabel": "Latest publication",
-    "lastNone": "nothing published yet",
-    "truthTitle": "Where the numbers are",
-    "truthBody": "The count of what I have published — articles, episodes, videos, courses — is read in the database, with its date, on the « I'm Max-Morrys » page. The home page keeps only the date of the latest publication. No followers, no views, no student count anywhere: I have nothing honest to say about them."
+  "clients": {
+    "eyebrow": "They trusted me with their project",
+    "note": "Names set in type, no logos, until written consent is obtained."
   },
-  "latest": {
-    "titleLines": [
-      "The three latest",
-      "publications."
-    ],
-    "all": "The whole blog",
-    "metaArticle": "Article · free",
-    "metaEpisode": "Episode · free",
-    "empty": "Nothing is published here yet. The blog opens first: it reads with no account and nothing to pay."
+  "about": {
+    "eyebrow": "About",
+    "title": "Douala, Abidjan, [Dakar.]",
+    "p1": "I grew up in Douala, studied economics in Abidjan, then management and digital business in Dakar. I learned marketing by doing it: for SMEs, organisations, hospitals, churches.",
+    "p2": "Today I train the people who want to make it their job, and with my studio I build the online presence of brands that want to count.",
+    "pShort": "I learned marketing by doing it: for SMEs, organisations, hospitals, churches. Today I pass it on, and I build.",
+    "cta": "My full story",
+    "ctaShort": "My story",
+    "signature": "— M.-M.",
+    "podcast": "The podcast"
+  },
+  "audiences": {
+    "eyebrow": "Who I work for",
+    "title": "Three ways to work together.",
+    "lede": "My path wasn't a straight line.",
+    "ledeStrong": "I learned digital by practising it, and that's exactly what I pass on.",
+    "tpeTitle": "Shops and small businesses",
+    "tpeBody": "Get found, sell online, get paid with Wave.",
+    "proTitle": "Young professionals",
+    "proBody": "Learn a digital trade, and prove it.",
+    "brandsTitle": "Brands and organisations",
+    "brandsBody": "A presence that's built, not improvised."
+  },
+  "offers": {
+    "eyebrow": "What I offer",
+    "titleLines": ["Learn with me,", "or [build with me.]"],
+    "eduTag": "01 · edu.",
+    "eduTitle": "Courses",
+    "eduBody": "Digital marketing, SEO, AI. Paid with Wave, Orange Money or card, yours for good.",
+    "clubTag": "02 · club.",
+    "clubTitle": "The Digitos Club",
+    "clubBody": "The network to move forward with others. {{price}} F a year.",
+    "tpeTag": "03 · shops",
+    "tpeTitle": "Shops and small businesses",
+    "tpeBody": "Your online presence, as a pack, with an instant quote.",
+    "customTag": "04 · bespoke",
+    "customTitle": "Bespoke projects",
+    "customBody": "Platforms, websites, products. On quote, formal tone guaranteed."
+  },
+  "method": {
+    "eyebrow": "How I work",
+    "titleLines": ["My method,", "[simply.]"],
+    "s1Title": "Understand your goal and your customer",
+    "s1Body": "A free 30-minute call.",
+    "s2Title": "Choose the right format",
+    "s2Body": "A course, a shop pack or a bespoke project.",
+    "s3Title": "Build, showing you everything",
+    "s3Body": "Every step is visible: you know what's done, what's left, and why. You leave able to keep what we built alive.",
+    "s4Title": "Measure what changed",
+    "s4Body": "Three numbers, before and after."
+  },
+  "videos": {
+    "eyebrow": "I keep you informed · free",
+    "title": "My latest videos.",
+    "lede": "What I've learned, in a few minutes. Each video shows its length: your data matters.",
+    "play": "Play: {{title}}"
+  },
+  "articles": {
+    "eyebrow": "Latest articles",
+    "title": "Own your online presence.",
+    "all": "The whole blog"
+  },
+  "cta": {
+    "titleLines": ["Let's build your brand,", "and your business."],
+    "button": "Book a 30-min call"
   }
 }

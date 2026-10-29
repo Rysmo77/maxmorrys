@@ -5,133 +5,98 @@
     "customTitle": "Projets sur mesure — sites, plateformes et portails métier",
     "customDescription": "Sites corporate et bilingues, plateformes, portails métier, systèmes de design et intégrations. Sur devis : un cadrage écrit, des jalons livrés, une recette, une maintenance et une réversibilité documentées."
   },
-  "page": {
-    "eyebrow": "Conception · {{brand}}",
+  "hero": {
+    "eyebrow": "Piste Conception · studio",
     "titleLines": [
       "Nous concevons",
-      "[des sites]",
-      "[et des plateformes.]"
+      "votre présence",
+      "[en ligne.]"
     ],
-    "lede": "Nous cadrons, concevons et construisons les sites et les plateformes dont une organisation a besoin pour travailler. Un seul studio, deux niveaux d'engagement : vous choisissez celui qui correspond à votre projet, pas celui qui nous arrange.",
+    "lede": "Sites, plateformes, présence locale et automatisation. Deux façons de travailler avec nous, de poids égal : une offre en pack pour les commerces, et des projets sur mesure.",
+    "ledeShort": "Deux façons de travailler avec nous, de poids égal : un pack pour les commerces, ou un projet sur mesure.",
     "ctaLevels": "Choisir mon niveau",
-    "studioEyebrow": "Ce que fait le studio",
-    "studioLede": "Une équipe qui conçoit et qui code. Les arbitrages d'interface et les arbitrages techniques se prennent au même moment, parce qu'ils décident l'un de l'autre.",
-    "studioItems": [
-      "Cadrage : le problème, le périmètre, ce qui n'est pas inclus.",
-      "Conception d'interface, parcours et système de design.",
-      "Ingénierie web : application, plateforme, portail métier.",
-      "Architecture, données, intégrations et mise en production."
-    ],
-    "truthTitle": "Ce que nous ne vendons pas ici",
-    "truthStart": "Ni direction marketing, ni stratégie de marque, ni acquisition. Ces métiers sont portés par ",
-    "truthStrong": "{{company}}",
-    "truthEnd": ", la société à laquelle le studio appartient, et opérés par sa practice croissance. Nous renvoyons, nous ne vendons pas."
+    "ctaWork": "Voir nos réalisations"
   },
   "levels": {
-    "eyebrow": "Les deux niveaux d'engagement",
-    "titleLines": [
-      "Deux niveaux,",
-      "[aucun caché.]"
-    ],
-    "lede": "L'un affiche ses prix, l'autre se cadre avant d'être chiffré. Les deux sont sur cette page : c'est à vous de reconnaître le vôtre, pas à nous de le décider pour vous.",
+    "eyebrow": "Deux niveaux d'engagement",
+    "title": "Votre projet, à votre échelle.",
+    "titleShort": "À votre échelle.",
+    "lede": "L'un publie toute sa grille, l'autre n'affiche aucun montant. Aucun ne passe devant l'autre.",
     "shops": {
-      "tag": "Grille publique",
+      "tag": "Étage productisé · grille publique HT",
+      "tagShort": "Grille publique HT",
+      "cta": "Voir l'offre commerces et TPE",
       "title": "Commerces et TPE",
-      "body": "Une offre productisée, installée et pilotée : le site, la fiche d'établissement, le catalogue, la publication régulière. Le périmètre est arrêté, les prix sont affichés, la mise en ligne est datée dès la commande.",
-      "points": [
-        "Périmètre fixe et livraison encadrée",
-        "Prix publics, sans échange préalable",
-        "Faite pour un commerce qui veut être trouvable"
+      "body": "Ta fiche Google, ta page, WhatsApp Business, tes photos : un pack, un prix affiché, un devis en ligne immédiat. Ici on se tutoie.",
+      "bodyShort": "Fiche Google, page, WhatsApp Business. Un pack, un prix affiché. Ici on se tutoie.",
+      "chips": [
+        "{{count}} packs",
+        "devis en ligne",
+        "prix publics"
       ],
-      "cta": "Voir l'offre commerces et TPE"
+      "ctaPacks": "Voir les packs"
     },
     "custom": {
-      "tag": "Sur devis",
+      "tag": "Sur devis · aucun montant public",
+      "tagShort": "Sur devis",
       "title": "Projets sur mesure",
-      "body": "Sites corporate et bilingues, plateformes, portails métier, systèmes de design, intégrations. Le périmètre s'écrit avant d'être chiffré, et c'est ce document qui engage les deux parties.",
-      "points": [
-        "Cadrage écrit avant tout chiffrage",
-        "Jalons livrés, recette contradictoire",
-        "Maintenance et réversibilité documentées"
+      "body": "Plateformes, sites institutionnels, produits numériques, automatisation par l'IA. Nous qualifions votre besoin avant de parler de budget.",
+      "bodyShort": "Plateformes, sites institutionnels, automatisation. Nous qualifions avant de parler budget.",
+      "chips": [
+        "qualification en 5 min",
+        "réponse sous deux jours ouvrés"
       ],
-      "cta": "Voir les projets sur mesure"
+      "cta": "Décrire mon projet"
     }
   },
+  "services": {
+    "eyebrow": "Ce que nous faisons",
+    "title": "Nos services, [sur mesure.]",
+    "s1Title": "Sites et plateformes",
+    "s1Body": "React, CMS, bilingue, accessible, rapide sur 3G.",
+    "s1Short": "Rapide sur 3G, bilingue.",
+    "s2Title": "Présence locale",
+    "s2Body": "Fiche Google, avis, pages de quartier.",
+    "s2Short": "Fiche Google, avis.",
+    "s3Title": "Marque et contenu",
+    "s3Body": "Identité, charte, calendrier éditorial.",
+    "s3Short": "Identité, calendrier.",
+    "s4Title": "Automatisation et IA",
+    "s4Body": "Flux n8n, assistants, tableaux de bord.",
+    "s4Short": "Flux n8n, assistants."
+  },
   "method": {
-    "eyebrow": "Notre méthode",
+    "eyebrow": "Notre processus",
+    "eyebrowShort": "Notre méthode",
     "titleLines": [
-      "Comment",
-      "nous [travaillons.]"
+      "Notre méthode,",
+      "[simplifiée.]"
     ],
-    "lede": "La même méthode aux deux niveaux d'engagement. Ce qui change, c'est la durée de chaque étape — jamais le fait qu'elle ait lieu.",
-    "steps": [
-      {
-        "n": "01",
-        "title": "Cadrer",
-        "body": "Nous partons du problème et de la décision qu'il engage, pas d'une liste de fonctionnalités. Le périmètre, les hypothèses et ce qui n'est pas inclus sont écrits avant que quoi que ce soit soit chiffré."
-      },
-      {
-        "n": "02",
-        "title": "Concevoir",
-        "body": "Parcours, architecture de l'information, interface. Les maquettes sont revues avec vous sur les écrans qui portent la décision, pas sur les plus faciles à dessiner."
-      },
-      {
-        "n": "03",
-        "title": "Construire",
-        "body": "Des jalons livrés, vérifiables un par un, sur une adresse que vous pouvez ouvrir. Vous voyez le produit avancer plutôt qu'un rapport d'avancement."
-      },
-      {
-        "n": "04",
-        "title": "Exploiter",
-        "body": "Mise en production, mesure, corrections et évolutions. Un produit livré n'est pas un produit terminé : l'exploitation fait partie de la mission, pas d'une ligne ajoutée après coup."
-      }
-    ]
+    "titleShort": "En quatre temps.",
+    "s1Title": "Comprendre vos objectifs et vos clients",
+    "s1Short": "Comprendre vos objectifs",
+    "s1Body": "Un appel de qualification, sans engagement.",
+    "s2Title": "Définir le périmètre et le devis",
+    "s2Short": "Périmètre et devis",
+    "s2Body": "Un document clair : ce qui est inclus, ce qui ne l'est pas.",
+    "s3Title": "Concevoir et construire",
+    "s3Short": "Concevoir et construire",
+    "s3Body": "Maquettes validées avant le code, points d'étape réguliers, accès à l'avancement à tout moment.",
+    "s4Title": "Mettre en ligne et transmettre",
+    "s4Short": "Mettre en ligne et transmettre",
+    "s4Body": "Votre équipe est formée à faire vivre ce qui a été construit."
   },
-  "guarantees": {
-    "eyebrow": "Garanties techniques",
-    "titleLines": [
-      "Ce sur quoi",
-      "nous nous [engageons.]"
-    ],
-    "lede": "Des engagements qui se vérifient sur le livrable lui-même, sans avoir à nous croire sur parole.",
-    "items": [
-      {
-        "title": "Performance",
-        "body": "Des budgets de performance posés au cadrage et mesurés à la livraison : temps d'affichage, stabilité visuelle, poids de la première vue. Un site qui ne les tient pas n'est pas livré."
-      },
-      {
-        "title": "Accessibilité",
-        "body": "Contrastes, navigation au clavier, libellés de formulaire, structure de titres. L'interface reste utilisable sans souris, et lisible quand le système est en mode sombre."
-      },
-      {
-        "title": "Propriété du code",
-        "body": "Le code produit pour vous vous appartient, dans les termes du contrat. Le dépôt, les accès d'hébergement et les noms de domaine sont à votre nom, pas au nôtre."
-      },
-      {
-        "title": "Documentation",
-        "body": "Un manuel de reprise livré avec le produit : comment il se déploie, où vivent ses données, ce qu'il faut savoir pour qu'une autre équipe prenne la suite."
-      }
-    ]
-  },
-  "work": {
-    "eyebrow": "Réalisations",
-    "titleLines": [
-      "Ce que nous",
-      "avons [construit.]"
-    ],
-    "lede": "Trois réalisations, dans l'ordre du catalogue. L'index complet porte les autres, chacune avec le rôle tenu et son adresse.",
-    "visit": "Voir la réalisation",
-    "listAria": "Aperçu de réalisations clientes"
-  },
-  "ventures": {
-    "eyebrow": "Produits du studio",
-    "titleLines": [
-      "Products built",
-      "inside MY ONOMA"
-    ],
-    "lede": "Produits que le studio conçoit, détient et opère au sein de MY ONOMA. Chacun est une marque autonome : ce ne sont ni des références clientes, ni des prestations vendues par l'agence.",
-    "visit": "Voir le produit",
-    "listAria": "Produits détenus et opérés par MY ONOMA"
+  "qualif": {
+    "eyebrow": "Projet sur mesure",
+    "title": "Décrivez votre projet.",
+    "lede": "Nous ne publions pas de tarif sur mesure : nous vous demandons une forme d'engagement, pour vous répondre juste. Une demande de direction marketing est transmise à MY ONOMA.",
+    "ledeShort": "Aucun tarif sur mesure public : une forme d'engagement nous aide à vous répondre juste.",
+    "org": "Organisation",
+    "email": "E-mail professionnel",
+    "need": "Ce que vous voulez construire",
+    "engagement": "Forme d'engagement",
+    "submit": "Envoyer ma demande",
+    "next": "La suite de la demande (type de projet, échéance, coordonnées) s'ouvre sur la page suivante, avec ce que vous avez déjà saisi."
   },
   "custom": {
     "eyebrow": "Projets sur mesure",
@@ -301,11 +266,6 @@
       "emailInvalid": "Cette adresse n'a pas la forme d'un e-mail. Vérifiez ce qu'il y a avant et après l'arobase.",
       "sendFailed": "L'envoi n'est pas passé et rien n'a été enregistré. Votre demande est toujours dans le formulaire : réessayez dans un instant."
     }
-  },
-  "exit": {
-    "title": "Une question avant de choisir un niveau ?",
-    "body": "Écrivez-nous en deux lignes ce que vous cherchez à construire. Nous répondons par écrit, et nous disons quand ce n'est pas pour nous.",
-    "cta": "Nous écrire"
   },
   "sent": {
     "titleLines": [
