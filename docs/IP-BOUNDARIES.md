@@ -105,7 +105,7 @@ nécessaire pour qu'une venture puisse devenir une société indépendante sans 
 | Venture | Domaine | Opérateur | Détenteur |
 | --- | --- | --- | --- |
 | DOVEN | doven.app | MY ONOMA SARL | MY ONOMA SARL |
-| NAYO | nayo.pro | MY ONOMA SARL | MY ONOMA SARL |
+| NAYO | myonoma.com | MY ONOMA SARL | MY ONOMA SARL |
 | STEPS | stepsmag.com | MY ONOMA SARL | MY ONOMA SARL |
 
 Le modèle de données de [`src/lib/brand/ventures.ts`](../src/lib/brand/ventures.ts) sépare
