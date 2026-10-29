@@ -1,0 +1,332 @@
+{
+  "updatedAt": "2026-10-29T18:36:46.235Z",
+  "id": "wrRa0I7tYAsPJSOA",
+  "name": "WF-SOCIAL-05 — Publication APIs natives",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/15 7-22 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cron-cron---toutes-15-min-7-22h",
+      "name": "Cron — Toutes 15 min 7-22h"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Status,eq,validé)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        250,
+        0
+      ],
+      "id": "at-s-airtable---lire-validésn",
+      "name": "NocoDB — Lire validés",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "at-s-airtable---lire-validésf",
+      "name": "Aplatir — Lire validés",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,PUBLISH_ENABLED)~or(Cle,eq,META_TOKEN)~or(Cle,eq,IG_USER_ID)~or(Cle,eq,FB_PAGE_ID)~or(Cle,eq,TIKTOK_TOKEN)~or(Cle,eq,LINKEDIN_TOKEN)~or(Cle,eq,LINKEDIN_AUTHOR_URN)~or(Cle,eq,X_API_KEY)~or(Cle,eq,X_API_SECRET)~or(Cle,eq,X_ACCESS_TOKEN)~or(Cle,eq,X_ACCESS_SECRET)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        250,
+        200
+      ],
+      "id": "at-s-airtable---lire-config-blotan",
+      "name": "NocoDB — Lire Config",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "at-s-airtable---lire-config-blotaf",
+      "name": "Aplatir — Lire Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $json.id }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Blotato_PostSubmissionID": "={{ $json.Blotato_PostSubmissionID }}",
+            "Status": "={{ $json.Status }}",
+            "Erreurs": "={{ $json.Erreurs || '' }}",
+            "Blotato_PublicUrl": "={{ $json.Blotato_PublicUrl || null }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1500,
+        100
+      ],
+      "id": "at-u-airtable---status=en_publica",
+      "name": "NocoDB — Status final (publié/échec)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m460m48wd0qnzsu",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "create",
+        "dataToSend": "mapWithFields",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Event": "=Publication native {{ $json.id }} ({{ $json.platform }})",
+            "Workflow": "WF-SOCIAL-05",
+            "Timestamp": "={{ $now.toISO() }}",
+            "Status": "={{ $json.log_status || 'success' }}",
+            "Content_ID": "={{ $json.id }}",
+            "Details": "={{ $json.native_details }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1750,
+        100
+      ],
+      "id": "at-c-airtable---log-publication",
+      "name": "NocoDB — Log publication",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "id": "publier-apis-natives",
+      "name": "Publier — APIs natives",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        550,
+        100
+      ],
+      "parameters": {
+        "jsCode": "// WF-SOCIAL-05 — Publication via APIs natives (remplace Blotato).\n// SECURITE: double garde. Rien n'est publie tant que Config.PUBLISH_ENABLED != 'true'\n// ET que le token de la plateforme est present.\n// Audit 2026-07-20: en_publication -> publié (fin du cul-de-sac) ; skip permanent -> Status='échec'+Erreurs\n// (fin des boucles silencieuses) ; SEULE la garde PUBLISH_ENABLED reste silencieuse (pause volontaire).\nconst posts = $('Aplatir — Lire validés').all().map(i => i.json)\n  // Fenetre de 15 min : remplace IS_AFTER(NOW(), DATEADD(...,-15,'minutes'))\n  // d'Airtable, sans equivalent dans le filtre `where` de NocoDB.\n  .filter(p => { const d = p.Date_Publication_Prevue;\n                 return !d || new Date(d).getTime() - 15*60*1000 <= Date.now(); });\nconst cfgRows = $('Aplatir — Lire Config').all().map(i => i.json);\nconst cfg = {};\nfor (const r of cfgRows) { if (r && r.Cle != null) cfg[r.Cle] = r.Valeur; }\nconst PUBLISH_ENABLED = String(cfg.PUBLISH_ENABLED || '').toLowerCase() === 'true';\nconst http = this.helpers.httpRequest.bind(this);\nconst isVideo = (u) => /\\.(mp4|mov|m4v|webm)(\\?|$)/i.test(u || '');\nconst out = [];\n\nasync function publishOne(post) {\n  const net = String(post.Reseau || '').toLowerCase();\n  const text = (post.Texte || '') + (post.Hashtags ? '\\n\\n' + post.Hashtags : '');\n  let media = [];\n  try { media = JSON.parse(post.Visuels_URLs || '[]'); } catch (e) {}\n  const media0 = media[0];\n  // garde PUBLISH_ENABLED : silencieux, laisse le post en 'validé'\n  const silent = (reason) => ({ _silent: true, id: post.id, platform: net, reason });\n  // echec permanent : sort le post de la file, ecrit Status=échec + Erreurs\n  const fail = (reason) => ({ id: post.id, platform: net, Status: 'échec', Blotato_PostSubmissionID: '', Blotato_PublicUrl: null, native_details: reason, Erreurs: String(reason).slice(0,500), log_status: 'skipped' });\n  // Correction 2026-10-29 : 'publié' UNIQUEMENT si la plateforme a renvoyé un id réel (plus de repli sur l'id de conteneur).\n  const ok = (platform, pid, details, url) => (pid\n    ? { id: post.id, platform, Status: 'publié', Blotato_PostSubmissionID: String(pid), Blotato_PublicUrl: url || null, native_details: details + (url ? ' · ' + url : ''), Erreurs: '', log_status: 'success' }\n    : fail(platform + ': la plateforme n\\'a renvoyé aucun id de publication (' + details + ')'));\n  const metaPermalink = async (objId, field, TOK) => {\n    try { const r = await http({ method: 'GET', url: 'https://graph.facebook.com/v21.0/' + objId, qs: { fields: field, access_token: TOK }, json: true }); return (r && r[field]) || null; }\n    catch (e) { console.log('permalien introuvable', objId, e && e.message); return null; }\n  };\n\n  if (!PUBLISH_ENABLED) return silent('PUBLISH_ENABLED != true (dry-run, garde R1)');\n\n  // ── Stories (29/10/2026) : Format_Post = story. Pas de légende ni de lien cliquable via l'API ;\n  // le visuel 9:16 porte tout. Avant ce bloc, une story « validé » partait en post de FIL.\n  // Doc Graph v21 vérifiée le 29/10 : IG = conteneur media_type=STORIES → status_code FINISHED →\n  // media_publish ; FB Page = /photos published=false → photo_id → /photo_stories (renvoie post_id).\n  if (String(post.Format_Post || '').toLowerCase() === 'story') {\n    if (!media0) return fail('story: aucun visuel (Visuels_URLs vide)');\n    const pause = (ms) => (typeof setTimeout === 'function' ? new Promise((r) => setTimeout(r, ms)) : Promise.resolve());\n    if (net === 'ig' || net === 'instagram') {\n      const IG = cfg.IG_USER_ID, TOK = cfg.META_TOKEN;\n      if (!IG || !TOK) return fail('IG_USER_ID/META_TOKEN manquant');\n      const base = 'https://graph.facebook.com/v21.0/' + IG;\n      const video = isVideo(media0);\n      const c = await http({ method: 'POST', url: base + '/media', body: Object.assign({ media_type: 'STORIES', access_token: TOK }, video ? { video_url: media0 } : { image_url: media0 }), json: true });\n      if (!c || !c.id) return fail('IG story: conteneur non cree');\n      // Meta traite le média de façon asynchrone : on attend FINISHED (image : quelques secondes).\n      let st = '', tries = video ? 24 : 10;\n      for (let k = 0; k < tries; k++) {\n        const s = await http({ method: 'GET', url: 'https://graph.facebook.com/v21.0/' + c.id, qs: { fields: 'status_code,status', access_token: TOK }, json: true });\n        st = (s && s.status_code) || '';\n        if (st === 'FINISHED' || st === 'ERROR' || st === 'EXPIRED' || st === 'PUBLISHED') { if (st === 'ERROR') st += ' (' + ((s && s.status) || '') + ')'; break; }\n        await pause(video ? 5000 : 3000);\n      }\n      if (st !== 'FINISHED') return fail('IG story: conteneur ' + c.id + ' non pret (status_code=' + (st || 'inconnu') + ')');\n      const pub = await http({ method: 'POST', url: base + '/media_publish', body: { creation_id: c.id, access_token: TOK }, json: true });\n      if (!pub || !pub.id) return fail('IG story: media_publish sans id (conteneur ' + c.id + ')');\n      return ok('instagram', pub.id, 'IG story ' + pub.id, await metaPermalink(pub.id, 'permalink', TOK));\n    }\n    if (net === 'fb' || net === 'facebook') {\n      const PAGE = cfg.FB_PAGE_ID, TOK = cfg.META_TOKEN;\n      if (!PAGE || !TOK) return fail('FB_PAGE_ID/META_TOKEN manquant');\n      if (isVideo(media0)) return fail('FB story video non geree (televersement /video_stories en 3 phases a coder)');\n      const base = 'https://graph.facebook.com/v21.0/' + PAGE;\n      const ph = await http({ method: 'POST', url: base + '/photos', body: { url: media0, published: false, access_token: TOK }, json: true });\n      if (!ph || !ph.id) return fail('FB story: photo non televersee');\n      const st = await http({ method: 'POST', url: base + '/photo_stories', body: { photo_id: ph.id, access_token: TOK }, json: true });\n      const sid = st && st.success !== false && st.post_id;\n      if (!sid) return fail('FB story: photo_stories sans post_id (photo ' + ph.id + ')');\n      return ok('facebook', sid, 'FB story ' + sid, await metaPermalink(sid, 'permalink_url', TOK));\n    }\n    return fail('story: reseau non gere (' + net + ') — seuls ig et fb publient des stories');\n  }\n  if (!text || !text.trim()) return fail('Texte vide — rien a publier');\n\n  if (net === 'ig' || net === 'instagram') {\n    const IG = cfg.IG_USER_ID, TOK = cfg.META_TOKEN;\n    if (!IG || !TOK) return fail('IG_USER_ID/META_TOKEN manquant');\n    const base = 'https://graph.facebook.com/v21.0/' + IG;\n    const images = media.filter((u) => u && !isVideo(u));\n    if (images.length > 1) {\n      const children = [];\n      for (const img of images.slice(0, 10)) {\n        const cc = await http({ method: 'POST', url: base + '/media', body: { image_url: img, is_carousel_item: true, access_token: TOK }, json: true });\n        if (cc && cc.id) children.push(cc.id);\n      }\n      if (children.length < 2) return fail('IG carrousel: moins de 2 conteneurs crees');\n      const car = await http({ method: 'POST', url: base + '/media', body: { media_type: 'CAROUSEL', children, caption: text, access_token: TOK }, json: true });\n      if (!car || !car.id) return fail('IG carrousel: conteneur non cree');\n      const pub = await http({ method: 'POST', url: base + '/media_publish', body: { creation_id: car.id, access_token: TOK }, json: true });\n      if (!pub || !pub.id) return fail('IG carrousel: media_publish sans id (conteneur ' + car.id + ')');\n      return ok('instagram', pub.id, 'IG carrousel ' + children.length + ' · ' + pub.id, await metaPermalink(pub.id, 'permalink', TOK));\n    }\n    if (!media0) return fail('IG requiert un media (Visuels_URLs vide)');\n    const createBody = isVideo(media0)\n      ? { media_type: 'REELS', video_url: media0, caption: text, access_token: TOK }\n      : { image_url: media0, caption: text, access_token: TOK };\n    const c = await http({ method: 'POST', url: base + '/media', body: createBody, json: true });\n    const creationId = c && c.id;\n    if (!creationId) return fail('IG: conteneur non cree');\n    const pub = await http({ method: 'POST', url: base + '/media_publish', body: { creation_id: creationId, access_token: TOK }, json: true });\n    if (!pub || !pub.id) return fail('IG: media_publish sans id (conteneur ' + creationId + ')');\n    return ok('instagram', pub.id, 'IG ' + pub.id, await metaPermalink(pub.id, 'permalink', TOK));\n  }\n\n  if (net === 'fb' || net === 'facebook') {\n    const PAGE = cfg.FB_PAGE_ID, TOK = cfg.META_TOKEN;\n    if (!PAGE || !TOK) return fail('FB_PAGE_ID/META_TOKEN manquant');\n    const base = 'https://graph.facebook.com/v21.0/' + PAGE;\n    let res;\n    if (media0 && !isVideo(media0)) res = await http({ method: 'POST', url: base + '/photos', body: { url: media0, caption: text, access_token: TOK }, json: true });\n    else res = await http({ method: 'POST', url: base + '/feed', body: { message: text, access_token: TOK }, json: true });\n    const fbPost = res && (res.post_id || res.id);\n    if (!fbPost) return fail('FB: aucun id renvoye');\n    return ok('facebook', fbPost, 'FB ' + fbPost, await metaPermalink(fbPost, 'permalink_url', TOK));\n  }\n\n  if (net === 'tiktok') {\n    const TOK = cfg.TIKTOK_TOKEN;\n    if (!TOK) return fail('TIKTOK_TOKEN manquant');\n    if (!media0 || !isVideo(media0)) return fail('TikTok requiert une video (Visuels_URLs)');\n    const res = await http({ method: 'POST', url: 'https://open.tiktokapis.com/v2/post/publish/video/init/',\n      headers: { Authorization: 'Bearer ' + TOK, 'Content-Type': 'application/json; charset=UTF-8' },\n      body: { post_info: { title: (post.Titre || text || 'Max-Morrys').substring(0,150), privacy_level: 'PUBLIC_TO_EVERYONE', disable_comment: false }, source_info: { source: 'PULL_FROM_URL', video_url: media0 } }, json: true });\n    const pid = res && res.data ? res.data.publish_id : undefined;\n    return ok('tiktok', pid, 'TikTok ' + pid);\n  }\n\n  if (net === 'linkedin') {\n    const TOK = cfg.LINKEDIN_TOKEN, URN = cfg.LINKEDIN_AUTHOR_URN;\n    if (!TOK || !URN) return fail('LINKEDIN_TOKEN/LINKEDIN_AUTHOR_URN manquant');\n    const res = await http({ method: 'POST', url: 'https://api.linkedin.com/rest/posts',\n      headers: { Authorization: 'Bearer ' + TOK, 'LinkedIn-Version': '202401', 'X-Restli-Protocol-Version': '2.0.0', 'Content-Type': 'application/json' },\n      body: { author: URN, commentary: text, visibility: 'PUBLIC', distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] }, lifecycleState: 'PUBLISHED', isReshareDisabledByAuthor: false },\n      json: true, returnFullResponse: true });\n    const pid = (res.headers && (res.headers['x-restli-id'] || res.headers['x-linkedin-id'])) || null;\n    return ok('linkedin', pid, 'LinkedIn ' + pid, pid ? 'https://www.linkedin.com/feed/update/' + pid : null);\n  }\n\n  if (net === 'x' || net === 'twitter') {\n  const ckey = cfg.X_API_KEY, csec = cfg.X_API_SECRET, atok = cfg.X_ACCESS_TOKEN, asec = cfg.X_ACCESS_SECRET;\n  if (!ckey || !csec || !atok || !asec) return fail('X OAuth1 tokens manquants (X_API_KEY/X_API_SECRET/X_ACCESS_TOKEN/X_ACCESS_SECRET)');\n  const crypto = require('crypto');\n  const enc = (s) => encodeURIComponent(s).replace(/[!*'()]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());\n  const postTweet = async (tweetText, replyTo) => {\n    const url = 'https://api.twitter.com/2/tweets';\n    const oauth = { oauth_consumer_key: ckey, oauth_nonce: crypto.randomBytes(16).toString('hex'), oauth_signature_method: 'HMAC-SHA1', oauth_timestamp: Math.floor(Date.now() / 1000).toString(), oauth_token: atok, oauth_version: '1.0' };\n    const paramStr = Object.keys(oauth).sort().map((k) => enc(k) + '=' + enc(oauth[k])).join('&');\n    const baseStr = ['POST', enc(url), enc(paramStr)].join('&');\n    oauth.oauth_signature = crypto.createHmac('sha1', enc(csec) + '&' + enc(asec)).update(baseStr).digest('base64');\n    const authHeader = 'OAuth ' + Object.keys(oauth).sort().map((k) => enc(k) + '=\"' + enc(oauth[k]) + '\"').join(', ');\n    const body = { text: tweetText };\n    if (replyTo) body.reply = { in_reply_to_tweet_id: replyTo };\n    const res = await http({ method: 'POST', url, headers: { Authorization: authHeader, 'Content-Type': 'application/json' }, body, json: true });\n    return res && res.data ? res.data.id : undefined;\n  };\n  const raw = String(text || '');\n  let parts = /(^|\\n)\\s*\\d+\\/\\s/.test(raw)\n    ? raw.split(/\\n(?=\\s*\\d+\\/\\s)/).map((s) => s.trim()).filter(Boolean)\n    : raw.split(/\\n\\n+/).map((s) => s.trim()).filter(Boolean);\n  parts = parts.map((s) => (s.length > 280 ? s.slice(0, 277) + '…' : s));\n  if (!parts.length) parts = [raw.slice(0, 280)];\n  let lastId, count = 0;\n  for (const tw of parts) {\n    const id = await postTweet(tw, lastId);\n    if (!id) { if (count === 0) return fail('X: publication echouee'); break; }\n    lastId = id; count++;\n  }\n  return ok('x', lastId, 'X thread ' + count + '/' + parts.length, lastId ? 'https://x.com/i/web/status/' + lastId : null);\n}\n\n  if (net === 'youtube') {\n    return fail('YouTube = noeud n8n natif requis (upload resumable videos.insert)');\n  }\n  return fail('reseau inconnu: ' + net);\n}\n\nfor (const post of posts) {\n  try {\n    const r = await publishOne(post);\n    if (r && r._silent) { console.log('SILENT-SKIP', JSON.stringify(r)); continue; }\n    if (r) out.push({ json: r });\n  } catch (e) {\n    const msg = (e && e.message) ? String(e.message) : 'inconnue';\n    console.log('ERREUR publication', post && post.id, msg);\n    out.push({ json: { id: post.id, platform: 'error', Status: 'échec', Blotato_PostSubmissionID: '', native_details: 'exception: ' + msg, Erreurs: ('exception: ' + msg).slice(0,500), log_status: 'error' } });\n  }\n}\nreturn out;\n"
+      }
+    }
+  ],
+  "connections": {
+    "Cron — Toutes 15 min 7-22h": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplatir — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Lire validés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplatir — Lire validés": {
+      "main": [
+        [
+          {
+            "node": "Publier — APIs natives",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publier — APIs natives": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Status final (publié/échec)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB — Status final (publié/échec)": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Log publication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB — Lire validés": {
+      "main": [
+        [
+          {
+            "node": "Aplatir — Lire validés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Aplatir — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "MMERRALERT0001"
+  },
+  "nodeGroups": [],
+  "tags": []
+}

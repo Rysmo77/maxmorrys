@@ -1,0 +1,274 @@
+{
+  "updatedAt": "2026-10-29T16:27:19.778Z",
+  "id": "6qGXtUTtR7XXAhSW",
+  "name": "WF-HEALTH — Santé de la file sociale (alerte Telegram)",
+  "active": true,
+  "nodes": [
+    {
+      "id": "0a1be83b-1edc-43ce-b43a-6475f38cf652",
+      "name": "Cron — 9h quotidien (Dakar)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "98d4adf3-636f-4388-85b2-b6119d16b7c5",
+      "name": "Test manuel",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "594e1aae-4b27-425c-a6bb-3e67c4224c94",
+      "name": "NocoDB — Lire Config (Telegram)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        220,
+        0
+      ],
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,TELEGRAM_BOT_TOKEN)~or(Cle,eq,TELEGRAM_CHAT_ID)"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "9a78a870-70f0-4054-a53e-585611bc9749",
+      "name": "Config — aplatir",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return $input.all().filter(i => i.json && (i.json.id != null || i.json.fields)).map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      }
+    },
+    {
+      "id": "530d5012-cc6c-4bbd-9987-3f8fa1070e2a",
+      "name": "NocoDB — Lire Contenus (publié/validé/prêt)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        660,
+        0
+      ],
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Status,eq,publié)~or(Status,eq,validé)~or(Status,eq,prêt_à_valider)",
+          "fields": [
+            "Id",
+            "Titre",
+            "Status",
+            "Reseau",
+            "Date_Publication_Prevue",
+            "UpdatedAt"
+          ]
+        }
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "24d874d8-1c87-4ef0-b637-e5e8a0147a16",
+      "name": "Contenus — aplatir",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return $input.all().filter(i => i.json && (i.json.id != null || i.json.fields)).map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      }
+    },
+    {
+      "id": "d4694210-a13a-4e36-8a65-9f033460ad88",
+      "name": "Santé — Analyser la file",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// WF-HEALTH — ferme le « vert à vide » : alerte si la file sociale est affamée.\n// (a) aucune ligne passée `publié` depuis 72 h ; (b) moins de 7 jours de `validé` à venir ;\n// (c) des `prêt_à_valider` dont la date prévue est dépassée ; (d) des `échec` depuis hier ;\n// (e) des `image_needed` ; (f) des `rédigé` sans visuel depuis plus de 24 h.\nconst cfg = {};\nfor (const r of $('Config — aplatir').all()) { if (r.json.Cle) cfg[r.json.Cle] = r.json.Valeur; }\nconst seen = new Set();\nconst rows = $input.all().map(i => i.json).filter(r => r && r.Status && !seen.has(r.id) && seen.add(r.id));\nconst now = Date.now(), H = 3600 * 1000, D = 24 * H;\nconst t = (v) => { if (!v) return NaN; const x = new Date(String(v).replace(' ', 'T')).getTime(); return x; };\nconst fmt = (ms) => new Date(ms).toLocaleString('fr-FR', { timeZone: 'Africa/Dakar', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });\nconst publies = rows.filter(r => r.Status === 'publié');\nconst lastPub = Math.max(-Infinity, ...publies.map(r => t(r.UpdatedAt)).filter(Number.isFinite));\nconst valides = rows.filter(r => r.Status === 'validé');\nconst validesAVenir = valides.filter(r => t(r.Date_Publication_Prevue) >= now);\nconst horizon = Math.max(-Infinity, ...validesAVenir.map(r => t(r.Date_Publication_Prevue)));\nconst perimes = rows.filter(r => r.Status === 'prêt_à_valider' && Number.isFinite(t(r.Date_Publication_Prevue)) && t(r.Date_Publication_Prevue) < now);\nconst alertes = [];\nif (!(lastPub > now - 72 * H)) alertes.push(`• Rien de publié depuis 72 h (dernier passage « publié » : ${Number.isFinite(lastPub) ? fmt(lastPub) + ', il y a ' + Math.floor((now - lastPub) / D) + ' j' : 'aucun'}).`);\nconst joursCouverts = Number.isFinite(horizon) ? (horizon - now) / D : 0;\nif (joursCouverts < 7) alertes.push(`• File « validé » trop courte : ${validesAVenir.length} post(s) à venir, ${joursCouverts.toFixed(1)} j couverts (objectif : 7 j).`);\nconst echecs = rows.filter(r => r.Status === 'échec' && t(r.UpdatedAt) > now - 26 * H);\nif (echecs.length) alertes.push(`• ${echecs.length} post(s) passé(s) en « échec » depuis hier (Id ${echecs.map(r => r.id).join(', ')}). Motif dans le champ Erreurs.`);\nconst sansVisuel = rows.filter(r => r.Status === 'image_needed');\nif (sansVisuel.length) alertes.push(`• ${sansVisuel.length} post(s) bloqué(s) en « image_needed » (rendu raté ou visuel humain attendu) : Id ${sansVisuel.map(r => r.id).join(', ')}.`);\nconst rendusEnRetard = rows.filter(r => r.Status === 'rédigé' && t(r.UpdatedAt) < now - 24 * H);\nif (rendusEnRetard.length) alertes.push(`• ${rendusEnRetard.length} post(s) « rédigé » attendent leur visuel depuis plus de 24 h : le rendu (WF-SOCIAL-04) est peut-être en panne.`);\nif (perimes.length) alertes.push(`• ${perimes.length} post(s) « prêt_à_valider » dont la date est passée (le plus ancien : ${fmt(Math.min(...perimes.map(r => t(r.Date_Publication_Prevue))))}). À re-dater ou rejeter.`);\nconsole.log('WF-HEALTH', JSON.stringify({ lignes: rows.length, publies: publies.length, valides: valides.length, validesAVenir: validesAVenir.length, perimes: perimes.length, lastPub: Number.isFinite(lastPub) ? new Date(lastPub).toISOString() : null, alertes: alertes.length }));\nif (!alertes.length) return [];\nconst text = `🟠 Santé de la file sociale\\n\\n${alertes.join('\\n')}\\n\\nFile NocoDB : Contenus. Vérifié le ${fmt(now)}.`;\nreturn [{ json: { token: cfg.TELEGRAM_BOT_TOKEN, body: { chat_id: cfg.TELEGRAM_CHAT_ID, text, disable_web_page_preview: true }, resume: { lignes: rows.length, alertes: alertes.length, perimes: perimes.length, validesAVenir: validesAVenir.length, lastPub: Number.isFinite(lastPub) ? new Date(lastPub).toISOString() : null } } }];\n"
+      }
+    },
+    {
+      "id": "2d6181ab-fcb7-4743-8b6c-a512143e6e3e",
+      "name": "HTTP — Alerte Telegram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Cron — 9h quotidien (Dakar)": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Lire Config (Telegram)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test manuel": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Lire Config (Telegram)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB — Lire Config (Telegram)": {
+      "main": [
+        [
+          {
+            "node": "Config — aplatir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config — aplatir": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Lire Contenus (publié/validé/prêt)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB — Lire Contenus (publié/validé/prêt)": {
+      "main": [
+        [
+          {
+            "node": "Contenus — aplatir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contenus — aplatir": {
+      "main": [
+        [
+          {
+            "node": "Santé — Analyser la file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Santé — Analyser la file": {
+      "main": [
+        [
+          {
+            "node": "HTTP — Alerte Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Dakar",
+    "errorWorkflow": "MMERRALERT0001",
+    "saveManualExecutions": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}

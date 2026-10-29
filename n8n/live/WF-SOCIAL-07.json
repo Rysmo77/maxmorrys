@@ -1,0 +1,353 @@
+{
+  "updatedAt": "2026-10-29T18:34:56.550Z",
+  "id": "rKNtJULQL40QpgTn",
+  "name": "WF-SOCIAL-07 — Notif validation Telegram",
+  "active": true,
+  "nodes": [
+    {
+      "name": "Cron — 10 min 7-22h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/10 7-22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "1fcef744-903a-4c04-b01e-69d128028777"
+    },
+    {
+      "name": "NocoDB — Lire Config",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        260,
+        140
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,TELEGRAM_BOT_TOKEN)~or(Cle,eq,TELEGRAM_CHAT_ID)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "778f6a9-0d68-4e86-87d2-f7f30251eab6n"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "778f6a9-0d68-4e86-87d2-f7f30251eab6f",
+      "name": "Aplatir — Lire Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        140
+      ]
+    },
+    {
+      "name": "NocoDB — Lire à valider",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        260,
+        -60
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Status,eq,prêt_à_valider)~and(Blotato_PostSubmissionID,is,blank)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "3e576f7-0dfa-4869-8c50-b82cbaa0e53cn",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "3e576f7-0dfa-4869-8c50-b82cbaa0e53cf",
+      "name": "Aplatir — Lire à valider",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        -60
+      ]
+    },
+    {
+      "name": "Build — Payload Telegram",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        40
+      ],
+      "parameters": {
+        "jsCode": "// Carte de validation Telegram. HTML échappé (et non Markdown) : un « _ » dans un lien UTM\n// ou un « * » dans un texte faisait rejeter tout le message par Telegram.\n// sendMessage + aperçu du visuel plutôt que sendPhoto : une légende de photo est limitée à 1 024\n// caractères et coupait le texte (et ses liens) avant la validation.\n// Carrousel (29/10/2026, plusieurs visuels) : l'album complet part d'abord (sendMediaGroup, par 10),\n// puis cette même carte EN RÉPONSE à l'album (reply_parameters, posé par le nœud d'envoi). Le\n// message_id stocké reste celui de la CARTE. Un post à une image : carte strictement inchangée.\nconst cfg = {};\nfor (const r of $('Aplatir — Lire Config').all()) { if (r.json.Cle) cfg[r.json.Cle] = r.json.Valeur; }\nconst token = cfg.TELEGRAM_BOT_TOKEN, chatId = cfg.TELEGRAM_CHAT_ID;\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst RESEAU = { fb: 'Facebook', ig: 'Instagram', linkedin: 'LinkedIn', x: 'X', tiktok: 'TikTok', youtube: 'YouTube' };\nconst quand = (v) => { const d = new Date(String(v || '').replace(' ', 'T')); return isNaN(d) ? '?' : d.toLocaleString('fr-FR', { timeZone: 'Africa/Dakar', weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); };\nconst out = [];\nfor (const it of $('Aplatir — Lire à valider').all()) {\n  const p = it.json;\n  let media = []; try { media = JSON.parse(p.Visuels_URLs || '[]'); } catch (e) {}\n  const photo = media[0];\n  const tete = [\n    '🆕 <b>Post à valider</b> — ' + esc(RESEAU[p.Reseau] || p.Reseau || '?') + ' · ' + esc(p.Format_Post || ''),\n    '🗓 ' + esc(quand(p.Date_Publication_Prevue)) + ' (Dakar)',\n    '🏷 ' + esc([p.Serie, p.Offre, p.Cible].filter(Boolean).join(' · ') || '-'),\n    '', '<b>' + esc(p.Titre || '') + '</b>', '',\n  ].join('\\n');\n  // Hashtags affichés comme ils seront publiés (WF-SOCIAL-05 les ajoute après le texte).\n  const tags = String(p.Hashtags || '').trim();\n  const pied = (tags ? '\\n\\n' + esc(tags) : '\\n\\n⚠️ aucun hashtag') + (media.length > 1 ? '\\n\\n🖼 ' + media.length + ' visuels (carrousel)' : '') + '\\n\\n<i>Id ' + esc(p.id) + '</i>';\n  const max = 4096 - tete.length - pied.length - 2;\n  let texte = String(p.Texte || '');\n  if (esc(texte).length > max) { while (esc(texte).length > max - 1) texte = texte.slice(0, -20); texte += '…'; }\n  const cap = tete + esc(texte) + pied;\n  const reply_markup = { inline_keyboard: [[\n    { text: '✅ Approuver', callback_data: 'approve:post:' + p.id },\n    { text: '❌ Rejeter', callback_data: 'reject:post:' + p.id },\n  ]] };\n  // Un seul message texte (4 096 caractères, texte complet) ; le premier visuel s'affiche\n  // en grand au-dessus grâce à l'aperçu de lien.\n  const apercu = photo ? { url: photo, prefer_large_media: true, show_above_text: true } : { is_disabled: true };\n  const body = { chat_id: chatId, text: cap, parse_mode: 'HTML', reply_markup, link_preview_options: apercu };\n  // Carrousel : album d'abord ; la carte, qui répond à l'album, n'a plus besoin de l'aperçu\n  // (repris par le nœud d'envoi si l'album échoue : Max voit au moins le 1er visuel).\n  const albums = [];\n  if (media.length > 1) {\n    const n = media.length;\n    for (let k = 0; k < n; k += 10) {\n      albums.push({ chat_id: chatId, media: media.slice(k, k + 10).map((u, j) => ({\n        type: 'photo', media: u, caption: 'Carrousel — Id ' + p.id + ' · ' + (k + j + 1) + '/' + n })) });\n    }\n    body.link_preview_options = { is_disabled: true };\n  }\n  const item = { recordId: p.id, token, method: 'sendMessage', body };\n  if (albums.length) { item.albums = albums; item.apercuSecours = apercu; }\n  out.push({ json: item });\n}\nreturn out;\n"
+      },
+      "id": "fa9be195-3832-4106-971e-1ec87e6b3614"
+    },
+    {
+      "id": "556fb885-cb66-4af3-ba7d-2039e1ac04be",
+      "name": "Envoi — Telegram (album + carte)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        820,
+        40
+      ],
+      "parameters": {
+        "jsCode": "// Envoi Telegram (remplace le nœud HTTP du 29/10/2026). UNE sortie par item du Build, dans le\n// même ordre : « Pair notif » apparie par index. Sortie = réponse brute de sendMessage\n// ({ ok, result: { message_id } }) ou { error } — comme l'ancien nœud HTTP en continueOnFail.\n// Carrousel : sendMediaGroup (album complet) puis la carte en réponse au 1er message de l'album.\nconst http = this.helpers.httpRequest.bind(this);\nconst pause = (ms) => (typeof setTimeout === 'function' ? new Promise((r) => setTimeout(r, ms)) : Promise.resolve());\nconst msgErr = (e) => String((e && e.response && e.response.body && e.response.body.description) || (e && e.description) || (e && e.message) || e).slice(0, 300);\nconst out = [];\nfor (const it of $input.all()) {\n  const j = it.json || {};\n  const api = (method, body) => http({ method: 'POST', url: 'https://api.telegram.org/bot' + j.token + '/' + method, body, json: true });\n  const body = Object.assign({}, j.body || {});\n  let albumId = null, albumErr = '';\n  if (Array.isArray(j.albums) && j.albums.length) {\n    for (const lot of j.albums) {\n      try {\n        // sendMediaGroup exige 2 à 10 médias : un reste isolé (11e visuel…) part en sendPhoto.\n        const seul = lot.media.length === 1;\n        const r = seul\n          ? await api('sendPhoto', { chat_id: lot.chat_id, photo: lot.media[0].media, caption: lot.media[0].caption })\n          : await api('sendMediaGroup', lot);\n        const m = r && r.ok && (Array.isArray(r.result) ? r.result[0] : r.result);\n        if (m && !albumId) albumId = m.message_id;\n        if (!m) albumErr = 'sendMediaGroup sans résultat';\n      } catch (e) { albumErr = msgErr(e); }\n    }\n    if (albumId) body.reply_parameters = { message_id: albumId, allow_sending_without_reply: true };\n    else if (j.apercuSecours) body.link_preview_options = j.apercuSecours;\n    if (albumErr) console.log('album Id ' + j.recordId + ' : ' + albumErr);\n    await pause(1000); // un album compte pour N messages côté Telegram : on souffle avant la carte suivante\n  }\n  try {\n    const r = await api(j.method || 'sendMessage', body);\n    out.push({ json: Object.assign({}, r, albumId ? { album_message_id: albumId } : {}, albumErr ? { album_erreur: albumErr } : {}) });\n  } catch (e) {\n    out.push({ json: { error: msgErr(e), album_erreur: albumErr || undefined } });\n  }\n}\nreturn out;\n"
+      }
+    },
+    {
+      "name": "NocoDB — Marquer notifié",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        40
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $json.recordId }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Blotato_PostSubmissionID": "={{ $json.message_id }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "93838742-37fa-4597-900e-b670cfb0a017",
+      "continueOnFail": true
+    },
+    {
+      "id": "pair-notif-01",
+      "name": "Pair notif",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1050,
+        500
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const rec = $('Build — Payload Telegram').all()[$itemIndex].json.recordId;\nconst r = $input.item.json;\nconst mid = (r && r.result && r.result.message_id) ? r.result.message_id : '';\nreturn { json: { recordId: rec, message_id: mid ? String(mid) : 'notified' } };"
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mm-run-notif",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook — mm-run-notif",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        160
+      ],
+      "webhookId": "mm-run-notif",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jSMRNljvTwk5b77f",
+          "name": "MM Trigger"
+        }
+      },
+      "id": "b6685d7e-fb13-40bd-9721-e9a8f9bdb136"
+    }
+  ],
+  "connections": {
+    "Cron — 10 min 7-22h": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplatir — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Lire à valider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplatir — Lire à valider": {
+      "main": [
+        [
+          {
+            "node": "Build — Payload Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build — Payload Telegram": {
+      "main": [
+        [
+          {
+            "node": "Envoi — Telegram (album + carte)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pair notif": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Marquer notifié",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook — mm-run-notif": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Aplatir — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB — Lire à valider": {
+      "main": [
+        [
+          {
+            "node": "Aplatir — Lire à valider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envoi — Telegram (album + carte)": {
+      "main": [
+        [
+          {
+            "node": "Pair notif",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "MMERRALERT0001"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
