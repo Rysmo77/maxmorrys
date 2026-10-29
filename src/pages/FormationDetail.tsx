@@ -16,7 +16,7 @@ import { trackViewItem, trackAddToCart } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import { contentPath } from '../lib/contentPath';
 import JsonLd from '../components/seo/JsonLd';
-import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
+import { SITE_NAME, buildCanonical } from '../components/seo/seo-config';
 import EduCover from '../components/edu/g2/EduCover';
 import EduPreFooter from '../components/edu/g2/EduPreFooter';
 import { splitTitle } from '../components/edu/g2/coverTint';
@@ -158,7 +158,7 @@ export default function FormationDetail() {
         '@type': 'Course',
         name: formation.title,
         description: formation.description,
-        url: `${SITE_URL}${contentPath('formations', formation, language)}`,
+        url: buildCanonical(contentPath('formations', formation, language)),
         provider: { '@type': 'Organization', name: SITE_NAME },
         offers: {
           '@type': 'Offer', price, priceCurrency: 'XOF',

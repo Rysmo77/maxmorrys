@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
-import { toCanonicalPath } from '../../i18n/routing';
+import { toLogicalPath } from '../../lib/hosts';
 import AppSidebar, { type AppSidebarSection } from './AppSidebar';
 import AppBottomNav, { type BottomNavItem } from './AppBottomNav';
 import AppSpaceSwitcher from './AppSpaceSwitcher';
@@ -157,7 +157,7 @@ export default function AppShell({
     return () => window.removeEventListener('keydown', onKey);
   }, [mobileOpen]);
 
-  const canonicalPath = toCanonicalPath(location.pathname);
+  const canonicalPath = toLogicalPath(location.pathname);
   /* Exact d'abord, puis une clé joker `/parent/*` : `/mon-espace/quiz/:id` prend le titre
      de sa route au lieu d'afficher son identifiant (« M1 »). Le joker est explicite pour
      qu'aucune sous-page nommée (`/mon-espace/club/fil`) ne perde son titre dérivé. */

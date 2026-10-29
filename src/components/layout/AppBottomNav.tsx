@@ -1,7 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
-import { toCanonicalPath } from '../../i18n/routing';
+import { toLogicalPath } from '../../lib/hosts';
 import { Icon, TabBar, type IconName, type TabBarItem } from '../../design-system';
 import DsNavHost from './DsNavHost';
 
@@ -53,7 +53,7 @@ const MORE_HREF = '#menu';
 export default function AppBottomNav({ items, onMore }: AppBottomNavProps) {
   const { t } = useTranslation('lms');
   const localize = useLocalizedPath();
-  const path = toCanonicalPath(useLocation().pathname);
+  const path = toLogicalPath(useLocation().pathname);
 
   const isOn = (item: BottomNavItem) =>
     item.more ? false : item.end ? path === item.to : path === item.to || path.startsWith(item.to + '/');

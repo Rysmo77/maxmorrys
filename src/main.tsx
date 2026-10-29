@@ -5,6 +5,7 @@ import { initWebVitals } from './lib/web-vitals';
 import { applyLowFiIfModestDevice } from '@ds';
 import { registerServiceWorker } from './lib/pwa/offline';
 import { countVisit } from './components/pwa/InstallInvitation';
+import { demarrerReceptionTransfert, installerTransfertAuClic } from './lib/sessionHandoff';
 import App from './App.tsx';
 import './index.css';
 
@@ -14,6 +15,12 @@ applyLowFiIfModestDevice();
 
 initSentry();
 initWebVitals();
+
+/* Les trois espaces vivent sur trois hôtes (`lib/espaces.ts`) : une session arrivée par un
+   lien d'un autre espace se reçoit AVANT le premier rendu, et les liens sortants la
+   transmettent. Voir `lib/sessionHandoff.ts`. */
+demarrerReceptionTransfert();
+installerTransfertAuClic();
 
 /* La version installable. Le service worker ne précharge que la coquille : tout le reste est
    gardé sur demande explicite, parce qu'un cache qui décide tout seul dépense le forfait de

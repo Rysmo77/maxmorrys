@@ -1,7 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { toCanonicalPath } from '../../i18n/routing';
+import { espaceCourant, toLogicalPath } from '../../lib/hosts';
 import AppShell from './AppShell';
 import LocalizedLink from '../shared/LocalizedLink';
 import { useAuth } from '../../contexts/AuthContext';
@@ -48,7 +48,7 @@ export default function StudentLayout() {
   const { user, userData } = useAuth();
   const { addToast } = useToast();
   const location = useLocation();
-  const path = toCanonicalPath(location.pathname);
+  const path = toLogicalPath(location.pathname);
 
   const { enrolledFormations, loadingEnrollments, avgProgress, completedCount } = useStudentData(user?.uid);
   const notesActive = path.startsWith('/mon-espace/notes');
@@ -135,7 +135,12 @@ export default function StudentLayout() {
    * que la personne a choisi (« Rysmo IA » par défaut, PRD rév. 6 FR-283) ; trop long pour
    * un onglet, il cède la place à « Assistant ».
    */
-  const inClub = path === '/mon-espace/club' || path.startsWith('/mon-espace/club/');
+  /* L'espace est celui de l'HÔTE (`lib/espaces.ts`) : club. sert les onglets du Club,
+     edu. l'école, et maxmorrys.me l'espace personnel général (compte, paiements, messages,
+     assistant). */
+  const espace = espaceCourant();
+  const inClub = espace === 'club';
+  const inHub = espace === 'hub';
   const assistant = tutorName(userData);
   const assistantTab = assistant.length > 12 ? t('nav.assistantShort') : assistant;
 
@@ -176,6 +181,32 @@ export default function StudentLayout() {
     },
   ];
 
+  const hubSections = [
+    {
+      title: t('nav.sectionAccount'),
+      items: [
+        { to: '/compte', label: t('nav.account'), icon: 'globe' as const },
+        { to: '/mon-espace/assistant', label: assistant, icon: 'sparkles' as const },
+        { to: '/mon-espace/paiements', label: t('nav.payments'), icon: 'card' as const },
+        { to: '/mon-espace/messages', label: t('nav.messages'), icon: 'inbox' as const },
+        { to: '/mon-espace/temoignages', label: t('nav.testimonials'), icon: 'quote' as const },
+        { to: '/mon-espace/profil', label: t('nav.profile'), icon: 'user' as const },
+        { to: '/mon-espace/parametres', label: t('nav.settings'), icon: 'settings' as const },
+      ],
+    },
+    {
+      items: [
+        { to: '/mon-espace', label: t('nav.backToSchool'), icon: 'book' as const },
+        {
+          to: '/mon-espace/club', label: t('nav.club'), icon: 'crown' as const, tone: 'club' as const,
+          locked: !isClubActive,
+          badge: isClubPending ? t('nav.clubPending') : null,
+        },
+        { to: '/', label: t('nav.backToSite'), icon: 'home' as const, end: true },
+      ],
+    },
+  ];
+
   const clubSections = [
     {
       items: [
@@ -202,8 +233,10 @@ export default function StudentLayout() {
     <AppShell
       brand={inClub
         ? { label: t('nav.clubBrand'), href: '/mon-espace/club' }
-        : { label: t('nav.brand'), href: '/mon-espace/tableau-de-bord', badge: 'EDU' }}
-      space={inClub ? 'club' : 'edu'}
+        : inHub
+          ? { label: t('nav.brand'), href: '/compte' }
+          : { label: t('nav.brand'), href: '/mon-espace/tableau-de-bord', badge: 'EDU' }}
+      space={espace}
       rail={inClub}
       mesh={false}
       /* Maquettes Edu v3 : la zone principale se pose sur `--paper-2`, comme le Club. */
@@ -212,7 +245,7 @@ export default function StudentLayout() {
         « Ta cohorte » (maquettes `Edu-*`, colonne latérale) : aucune donnée de cohorte n'est
         servie à ce jour, donc l'état vide — jamais les quatre camarades d'exemple de la maquette.
       */
-      sidebarFooter={inClub ? undefined : (
+      sidebarFooter={espace !== 'edu' ? undefined : (
         <div className="px-2 py-2">
           <LocalizedLink to="/mon-espace/cohorte" className="block text-[11px] font-bold uppercase tracking-[0.08em] text-ink-3 no-underline">
             {t('sidebarCohort.title')}
@@ -245,7 +278,7 @@ export default function StudentLayout() {
         '/mon-espace/paiements': 'forme',
         '/mon-espace/succes': 'forme',
       }}
-      sidebarSections={inClub ? clubSections : eduSections}
+      sidebarSections={inClub ? clubSections : inHub ? hubSections : eduSections}
       bottomNavItems={inClub
         ? [
             { to: '/mon-espace/club/fil',          label: t('nav.clubFeed'),          icon: 'home' },
@@ -254,7 +287,15 @@ export default function StudentLayout() {
             { to: '/mon-espace/club/opportunites', label: t('nav.clubOpportunities'), icon: 'case' },
             { to: '/mon-espace/club/membres',      label: t('nav.more'),              icon: 'dots' },
           ]
-        : [
+        : inHub
+          ? [
+            { to: '/mon-espace/assistant',  label: assistantTab,       icon: 'sparkles' },
+            { to: '/mon-espace/paiements',  label: t('nav.payments'),  icon: 'card' },
+            { to: '/mon-espace/messages',   label: t('nav.messages'),  icon: 'inbox' },
+            { to: '/mon-espace/profil',     label: t('nav.profile'),   icon: 'user' },
+            { to: '/mon-espace',            label: t('nav.backToSchool'), icon: 'book' },
+          ]
+          : [
             { to: '/mon-espace/tableau-de-bord', label: t('nav.bottomHome'),    icon: 'home' },
             { to: '/mon-espace/cours',           label: t('nav.bottomCourses'), icon: 'book' },
             { to: '/mon-espace/agenda',          label: t('nav.agenda'),        icon: 'calendar' },

@@ -3,6 +3,7 @@ import { openBrowserAsync } from 'expo-web-browser';
 import { Button, CheckLine, Display, Eyebrow, Rubrique, SansDonnees, Screen, Surface, nonBranche } from '../ds';
 import { texte } from './club/_layout';
 import { Verite } from '../ecrans/Verite';
+import { SITE_EDU } from '../contenu/termes';
 
 /** Aucune source serveur pour ces blocs : la phase est dite, pas supposée. */
 const NON_BRANCHE = nonBranche();
@@ -54,7 +55,7 @@ export default function Mission() {
         label="Rendre la mission sur le site"
         trailing="external"
         style={{ marginTop: 18 }}
-        onPress={() => { void openBrowserAsync(slug ? `https://maxmorrys.me/cours/${slug}` : 'https://maxmorrys.me/mon-espace/cours'); }}
+        onPress={() => { void openBrowserAsync(slug ? `${SITE_EDU}/cours/${slug}` : `${SITE_EDU}/mes-formations`); }}
       />
     </Screen>
   );

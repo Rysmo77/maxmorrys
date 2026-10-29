@@ -1,4 +1,4 @@
-import { SITE_URL } from '../../components/seo/seo-config';
+import { buildCanonical } from '../../components/seo/seo-config';
 
 /**
  * LES LIENS DE PARTAGE, SÉPARÉS DU COMPOSANT QUI LES AFFICHE.
@@ -24,7 +24,10 @@ export type ShareNetwork = 'whatsapp' | 'facebook' | 'linkedin' | 'twitter';
  */
 export function toAbsoluteUrl(url: string): string {
   if (/^https?:\/\//i.test(url)) return url;
-  return `${SITE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+  /* Sur l'hôte de son espace (`lib/espaces.ts`), requête et ancre comprises. */
+  const chemin = url.startsWith('/') ? url : `/${url}`;
+  const cut = chemin.search(/[?#]/);
+  return cut === -1 ? buildCanonical(chemin) : `${buildCanonical(chemin.slice(0, cut))}${chemin.slice(cut)}`;
 }
 
 /**

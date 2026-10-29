@@ -28,6 +28,12 @@ export interface Env {
   /** Domaine public de lecture des médias. */
   PUBLIC_MEDIA_BASE: string;
 
+  /**
+   * Codes de transfert de session entre maxmorrys.me, edu. et club. (`sessionTransfer.ts`) :
+   * usage unique, 60 s, clés hachées. Optionnel : absent, les deux routes répondent 503.
+   */
+  TRANSFERTS_SESSION?: KVNamespace;
+
   /** Bucket R2 : exports RGPD et purge des médias à la suppression de compte. */
   EXPORTS?: R2Bucket;
 

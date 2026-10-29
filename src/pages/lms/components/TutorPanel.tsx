@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import { Button, ChatBubble, Field, Icon, IconButton, Num, QuotaMeter, Skeleton } from '@ds';
 import { functions } from '../../../config/firebase';
 import { captureError } from '../../../lib/sentry';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useLocalizedPath } from '../../../contexts/LanguageContext';
+import { useEspaceNavigate } from '../../../contexts/LanguageContext';
 import { tutorName } from '../../../lib/naming';
 import { loadConversation, openRysmo } from '../../../lib/rysmo/conversation';
 
@@ -73,8 +72,7 @@ const SHOWN_MESSAGES = 3;
 
 export default function TutorPanel() {
   const { t } = useTranslation('lmsTabs');
-  const navigate = useNavigate();
-  const path = useLocalizedPath();
+  const go = useEspaceNavigate();
   const { user, userData } = useAuth();
   const tutor = tutorName(userData);
 
@@ -125,7 +123,7 @@ export default function TutorPanel() {
         </p>
         <IconButton
           label={t('dashboard.tutorPanelMemory', { tutor })}
-          onClick={() => navigate(path('/mon-espace/assistant?tab=memoire'))}
+          onClick={() => go('/mon-espace/assistant?tab=memoire')}
         >
           <Icon name="dots" size={17} strokeWidth={2} />
         </IconButton>

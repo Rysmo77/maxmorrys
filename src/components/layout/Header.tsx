@@ -5,7 +5,7 @@ import { cn } from '../../lib/utils';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage, useLocalizedPath } from '../../contexts/LanguageContext';
-import { toCanonicalPath } from '../../i18n/routing';
+import { accueilConnecte, accueilPublic, espaceCourant, toLogicalPath } from '../../lib/hosts';
 import LocalizedLink from '../shared/LocalizedLink';
 import AnnouncementBanner from '../shared/AnnouncementBanner';
 import DsNavHost from './DsNavHost';
@@ -51,7 +51,7 @@ interface NavEntry {
  * Le PRD rév. 6 et les maquettes font foi : la barre « quatre entrées neutres » (CDC du
  * 14/09) est LEVÉE. Le site (hub) porte les six entrées de `Main.dc.html` ; les pages
  * publiques de l'espace Edu et du Club portent leur propre barre (`Edu-Accueil`,
- * `Club-Accueil`). Pas de sous-domaine : l'espace se lit dans le chemin.
+ * `Club-Accueil`). L'espace est celui de l'HÔTE (`lib/espaces.ts`) : maxmorrys.me, edu., club.
  *
  * Aucune URL publique ne change : « Mon parcours » mène à `/a-propos`, « Services » à
  * `/conception`, « Contenus » au blog — les adresses référencées restent les mêmes.
@@ -82,17 +82,6 @@ const CLUB_NAV: NavEntry[] = [
   { key: 'v3.clubPricing', path: '/club-des-digitos/adhesion' },
   { key: 'v3.clubPerson', path: '/', exact: true },
 ];
-
-/** L'espace public d'un chemin canonique. */
-function publicSpaceOf(path: string): PublicSpace {
-  const under = (p: string) => path === p || path.startsWith(p + '/');
-  if (under('/club-des-digitos')) return 'club';
-  if (under('/apprendre') || under('/formations')) return 'edu';
-  /* Les écrans de compte sont ceux de l'Edu (maquette `Edu-Connexion`) : c'est là qu'on se
-     connecte pour retrouver sa leçon, sa cohorte et Rysmo. */
-  if (under('/connexion') || under('/inscription') || under('/mot-de-passe-oublie')) return 'edu';
-  return 'hub';
-}
 
 const NAV_BY_SPACE: Record<PublicSpace, NavEntry[]> = { hub: HUB_NAV, edu: EDU_NAV, club: CLUB_NAV };
 
@@ -132,7 +121,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   const { t: tc } = useTranslation('common');
   const location = useLocation();
   const localize = useLocalizedPath();
-  const path = toCanonicalPath(location.pathname);
+  const path = toLogicalPath(location.pathname);
 
   const profileRef = useRef<HTMLDivElement>(null);
   const profileBtnRef = useRef<HTMLButtonElement>(null);
@@ -266,7 +255,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   }, [drawerOpen]);
 
   /** Une entrée est active sur son chemin et sur tout ce que sa piste possède. */
-  const space = publicSpaceOf(path);
+  const space: PublicSpace = espaceCourant();
   const nav = NAV_BY_SPACE[space];
   const matchLen = (entry: NavEntry): number => {
     if (entry.exact) return path === entry.path ? entry.path.length + 1 : -1;
@@ -371,7 +360,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
               <Icon name="user" size={16} strokeWidth={2.2} />
               {t('v3.account')}
             </LocalizedLink>
-            <LocalizedLink to="/mon-espace" role="menuitem" className={MENU_ROW}>
+            <LocalizedLink to={accueilConnecte(space)} role="menuitem" className={MENU_ROW}>
               <Icon name="graduation" size={16} strokeWidth={2.2} />
               {t('studentSpace')}
             </LocalizedLink>
@@ -443,9 +432,9 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                verrouillage reste celui de la personne : « Club des Digitos » est écrit à côté. */
             brand={
               <a
-                href={localize(space === 'club' ? '/club-des-digitos' : space === 'edu' ? '/apprendre' : '/')}
+                href={localize(accueilPublic(space))}
                 aria-label={t('home')}
-                aria-current={path === '/' ? 'page' : undefined}
+                aria-current={path === accueilPublic(space) ? 'page' : undefined}
                 className="mm-topbar__logo mm-touch-extend no-underline"
               >
                 <Wordmark brand="kit" size={19} badge={space === 'edu' ? 'EDU' : undefined} />

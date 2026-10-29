@@ -27,6 +27,7 @@ import type { Firestore } from '@mm/firestore-rest';
 import type { Env } from '../env';
 import { envoyerModele, type Langue } from './brevo-send';
 import { asText, toNumber } from './values';
+import { urlSite } from './urls';
 
 /** Plafond par passe. Le même que les autres travaux du cron. */
 const PAGE = 500;
@@ -96,7 +97,7 @@ export async function envoyerBienvenues(
       langue: langueDe(compte),
       params: {
         prenom: asText(d.firstName) ?? asText(d.displayName) ?? '',
-        lien: `${env.APP_BASE_URL}${langueDe(compte) === 'fr' ? '/mon-espace' : '/en/my-learning'}`,
+        lien: urlSite(env.APP_BASE_URL, '/mon-espace', langueDe(compte)),
       },
     });
 
@@ -178,7 +179,7 @@ export async function relancerPaniers(
           : (langue === 'fr'
               ? 'Rien n’a été débité, et rien ne sera débité tant que tu n’auras pas repris.'
               : 'Nothing was charged, and nothing will be until you pick it up again.'),
-        lien: `${env.APP_BASE_URL}${langue === 'fr' ? '/formations/' : '/en/courses/'}${asText(d.formationSlug) ?? ''}`,
+        lien: urlSite(env.APP_BASE_URL, `/formations/${asText(d.formationSlug) ?? ''}`, langue),
       },
     });
 

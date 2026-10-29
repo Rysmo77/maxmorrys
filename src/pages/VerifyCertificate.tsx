@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Icon, LogoMark, Num } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
@@ -57,6 +57,8 @@ export default function VerifyCertificate() {
   const [error, setError] = useState<string | undefined>();
   const [result, setResult] = useState<Result>({ kind: 'idle' });
   const [params] = useSearchParams();
+  /* `/verifier/:code` — l'adresse des maquettes (`edu.maxmorrys.me/verifier/MM-7K2Q-9F`). */
+  const { code: codeDuChemin } = useParams<{ code?: string }>();
   const lienSuivi = useRef(false);
 
   /*
@@ -66,14 +68,14 @@ export default function VerifyCertificate() {
    * qui l'a, et CETTE page chez qui ne l'a pas — un employeur, un jury.
    */
   useEffect(() => {
-    const recu = params.get('code');
+    const recu = codeDuChemin ?? params.get('code');
     if (!recu || lienSuivi.current) return;
     lienSuivi.current = true;
     setCode(recu);
     void verifier(recu);
     // Une seule fois, à l'arrivée par un lien : la saisie suivante passe par le formulaire.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params]);
+  }, [params, codeDuChemin]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();

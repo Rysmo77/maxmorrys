@@ -38,6 +38,17 @@ const SEGMENTS: Record<string, string> = {
   'mon-espace': 'my-learning',
   'tableau-de-bord': 'dashboard',
   cours: 'learn',
+  /* Les chemins physiques d'edu. et club. (`src/lib/espaces.ts`) : les 301 anglaises du
+     Worker en ont besoin pour retomber sur une route que le frontend monte. */
+  'mes-formations': 'my-courses',
+  agenda: 'agenda',
+  fil: 'feed',
+  discussions: 'discussions',
+  membres: 'members',
+  classement: 'leaderboard',
+  opportunites: 'opportunities',
+  infos: 'info',
+  parrainage: 'referral',
   notes: 'notes',
   messages: 'messages',
   succes: 'achievements',

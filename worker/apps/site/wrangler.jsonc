@@ -14,7 +14,16 @@
   "workers_dev": false,
   "routes": [
     { "pattern": "maxmorrys.me/*", "zone_name": "maxmorrys.me" },
-    { "pattern": "www.maxmorrys.me/*", "zone_name": "maxmorrys.me" }
+    { "pattern": "www.maxmorrys.me/*", "zone_name": "maxmorrys.me" },
+    /*
+     * LES DEUX ESPACES DU PRD rév. 6 (§2.1) — même Worker, même origine, même build SPA.
+     * En domaine personnalisé : Cloudflare crée l'enregistrement DNS au déploiement (aucun
+     * n'existe aujourd'hui, vérifié le 29/10/2026) et le certificat. Le Worker n'a pas besoin
+     * d'une origine DNS derrière eux : il va chercher `ORIGIN` lui-même (`src/origin.ts`).
+     * L'hôte décide de l'espace servi (`src/espaces.ts`, table `src/lib/espaces.ts`).
+     */
+    { "pattern": "edu.maxmorrys.me", "custom_domain": true },
+    { "pattern": "club.maxmorrys.me", "custom_domain": true }
   ],
 
   // Cache des métadonnées SEO et des flux. À créer avant le premier déploiement :

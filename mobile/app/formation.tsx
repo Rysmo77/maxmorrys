@@ -6,6 +6,7 @@ import {
   Surface, Tag, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
 import { useFormation } from '../donnees';
+import { SITE_EDU } from '../contenu/termes';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -85,7 +86,7 @@ export default function Formation() {
         <IconButton
           label="Partager cette formation"
           onPress={() => {
-            const url = `https://maxmorrys.me/formations/${slug ?? ''}`;
+            const url = `${SITE_EDU}/formations/${slug ?? ''}`;
             void Share.share({ message: `${nom ?? 'Une formation Max-Morrys'}\n${url}`, url });
           }}
         >

@@ -9,6 +9,8 @@ import type { Referral } from '../../../../types';
 import type { useClubData } from '../../hooks/useClubData';
 import { slideUp } from '../../../../lib/animations';
 import { ClubCard } from './_shared';
+import { urlAbsolue } from '../../../../lib/hosts';
+import { useLanguage } from '../../../../contexts/LanguageContext';
 
 type ClubData = ReturnType<typeof useClubData>;
 
@@ -35,6 +37,7 @@ export default function ClubReferral({ data }: { data: ClubData }) {
   const { t } = useTranslation('club');
   const { user } = data;
   const [code, setCode] = useState('');
+  const { language } = useLanguage();
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [isAmbassador, setIsAmbassador] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -55,7 +58,8 @@ export default function ClubReferral({ data }: { data: ClubData }) {
     }).catch(() => setLoading(false));
   }, [user]);
 
-  const link = code ? `${window.location.origin}/inscription?ref=${code}` : '';
+  /* Le lien des maquettes, `club.maxmorrys.me/r/<code>` (`lib/espaces.ts`). */
+  const link = code ? urlAbsolue(`/r/${encodeURIComponent(code)}`, language) : '';
 
   const copy = () => {
     navigator.clipboard.writeText(link).then(() => {

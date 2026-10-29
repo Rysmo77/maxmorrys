@@ -1,4 +1,5 @@
 import * as DS from './email-design';
+import { urlSite } from './urls';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -76,7 +77,7 @@ export interface FormationCourrier {
 }
 
 function lien(baseUrl: string, langue: Langue, slug: string): string {
-  return `${baseUrl}${langue === 'en' ? '/en/courses' : '/formations'}/${slug}`;
+  return urlSite(baseUrl, `/formations/${slug}`, langue);
 }
 
 /** L'accusé de réception, envoyé dans la foulée de l'inscription. */

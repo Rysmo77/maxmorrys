@@ -42,12 +42,13 @@ import {
   shouldConsultRedirects,
   type RedirectHit,
 } from './redirects';
-import { resolveRoute, shouldNoIndex, type Route } from './routes';
+import { normalizePath, resolveRoute, shouldNoIndex, type Route } from './routes';
 import { resolveStaticRedirect } from './static-redirects';
 import { buildCatalog } from './seo/catalog';
 import { buildRss } from './seo/rss';
 import { buildPodcastRss } from './seo/podcast-rss';
 import { buildSitemap } from './seo/sitemap';
+import { analyser, redirectionEspace, robotsTxt, type Espace } from './espaces';
 
 /** Les flux SEO sont recalculés au plus une fois par heure — comme leur `max-age` actuel. */
 const FEED_TTL_SECONDS = 3600;
@@ -81,7 +82,7 @@ function redirectResponse(hit: RedirectHit): Response {
   });
 }
 
-async function handleFeed(route: Route, env: Env, ctx: ExecutionContext): Promise<Response> {
+async function handleFeed(route: Route, env: Env, ctx: ExecutionContext, espace: Espace): Promise<Response> {
   const db = getFirestore(env);
 
   // Le shell est déjà en cache : on s'en sert uniquement pour récupérer les
@@ -95,7 +96,8 @@ async function handleFeed(route: Route, env: Env, ctx: ExecutionContext): Promis
   switch (route) {
     case 'sitemap':
       return withSecurity(text(
-        await cached(env, ctx, 'feed:v1:sitemap', FEED_TTL_SECONDS, () => buildSitemap(db)),
+        // Un sitemap PAR HÔTE : Google n'accepte dans un sitemap que les URL de son hôte.
+        await cached(env, ctx, `feed:v2:sitemap:${espace}`, FEED_TTL_SECONDS, () => buildSitemap(db, espace)),
         'application/xml',
         200,
         { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },
@@ -137,10 +139,19 @@ export default {
     // Seules les lectures sont traitées au bord ; le reste part à l'origine.
     const isRead = request.method === 'GET' || request.method === 'HEAD';
 
+    /*
+     * TROIS HÔTES, UNE ORIGINE (`./espaces.ts`). `demande.logique` est le chemin d'avant les
+     * sous-domaines — `/` sur edu. vaut `/apprendre` : c'est lui que lisent la table de
+     * routage, le pré-rendu et son cache. Seules les adresses PUBLIÉES changent d'hôte.
+     */
+    const demande = analyser(url);
+
     // Les redirections passent avant le routage : une source peut recouvrir une
     // page prerendue, typiquement une ancienne URL qui doit désormais pointer
     // ailleurs.
-    if (isRead && shouldConsultRedirects(url.pathname)) {
+    // Les redirections administrées et écrites sont celles du hub : elles n'ont pas de sens
+    // sur un sous-domaine, où toute adresse du hub repart de toute façon vers le hub.
+    if (isRead && demande.espace === 'hub' && shouldConsultRedirects(url.pathname)) {
       try {
         const db = getFirestore(env);
         const hit = resolveRedirect(url, await loadRedirectMap(db, env, ctx));
@@ -173,7 +184,24 @@ export default {
       }
     }
 
-    const route = resolveRoute(url.pathname);
+    if (isRead) {
+      /*
+       * LA PAGE EST-ELLE SUR LE BON HÔTE ? `/formations/x` sur maxmorrys.me part en 301 sur
+       * edu., `/blog` sur edu. repart sur le hub, `/mon-espace/cours` sur edu. devient
+       * `/mes-formations`. La requête suit (utm, `?via=`, `?ref=`).
+       */
+      const ailleurs = redirectionEspace(url);
+      if (ailleurs) return redirectResponse({ location: ailleurs, code: 301, rule: null });
+
+      if (demande.espace !== 'hub' && normalizePath(url.pathname) === '/robots.txt') {
+        return text(robotsTxt(demande.espace, url.origin), 'text/plain; charset=utf-8', 200, {
+          'Cache-Control': 'public, max-age=3600',
+          ...REDIRECT_SECURITY_HEADERS,
+        });
+      }
+    }
+
+    const route = resolveRoute(demande.logique);
     if (route === 'origin' || !isRead) {
       const response = await fetchOrigin(request, env);
       /*
@@ -186,7 +214,7 @@ export default {
        * On ne réécrit pas le corps : un en-tête suffit, et il vaut aussi pour les
        * robots sociaux, qui ne lisent que ce que l'origine a servi.
        */
-      if (isRead && shouldNoIndex(url.pathname)) {
+      if (isRead && shouldNoIndex(demande.logique)) {
         const headers = new Headers(response.headers);
         headers.set('X-Robots-Tag', 'noindex, nofollow');
         return new Response(response.body, {
@@ -199,8 +227,8 @@ export default {
     }
 
     try {
-      if (route === 'prerender') return await handlePrerender(request, env, ctx);
-      return await handleFeed(route, env, ctx);
+      if (route === 'prerender') return await handlePrerender(request, env, ctx, demande.logique);
+      return await handleFeed(route, env, ctx, demande.espace);
     } catch (error: unknown) {
       // Repli sur l'origine : mieux vaut le comportement d'hier qu'une erreur.
       console.error(`Échec du traitement de ${url.pathname} :`, error);

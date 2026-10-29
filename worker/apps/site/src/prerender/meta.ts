@@ -1,4 +1,5 @@
 import { SITE_NAME, SITE_URL, TWITTER_HANDLE } from '../constants';
+import { publier } from '../espaces';
 import { escapeHtml } from './html';
 import { enPath } from './segments';
 import type { PageMeta } from './types';
@@ -172,13 +173,16 @@ const SEO_NAV: ReadonlyArray<{ path: string; fr: string; en: string }> = [
  */
 function buildSeoNav(meta: PageMeta): string {
   const lang = meta.lang === 'en' ? 'en' : 'fr';
-  // `altFr` porte le chemin FR canonique de CETTE page, déjà calculé pour les hreflang.
-  const currentFr = meta.altFr ? meta.altFr.slice(SITE_URL.length) || '/' : undefined;
+  // Chaque lien sur l'hôte de son espace (`../espaces.ts`). La page courante se reconnaît à
+  // ses propres alternates — publiées ou non, elles passent par la même fonction.
+  const soi = new Set([meta.altFr, meta.altEn, meta.canonical].filter(Boolean).map((u) => publier(u as string)));
 
-  const items = SEO_NAV.filter((entry) => entry.path !== currentFr).map((entry) => {
-    const href = `${SITE_URL}${lang === 'en' ? enPath(entry.path) : entry.path}`;
-    return `<li><a href="${escapeHtml(href)}">${escapeHtml(entry[lang])}</a></li>`;
-  });
+  const items = SEO_NAV.map((entry) => ({
+    entry,
+    href: publier(`${SITE_URL}${lang === 'en' ? enPath(entry.path) : entry.path}`),
+  }))
+    .filter(({ href }) => !soi.has(href))
+    .map(({ entry, href }) => `<li><a href="${escapeHtml(href)}">${escapeHtml(entry[lang])}</a></li>`);
 
   const label = lang === 'en' ? 'Site navigation' : 'Navigation du site';
   return `<nav aria-label="${label}">

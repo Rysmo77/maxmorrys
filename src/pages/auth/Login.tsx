@@ -6,7 +6,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { localizeAuthError } from '../../lib/auth-errors';
 import GoogleIcon from '../../components/auth/GoogleIcon';
 import AuthSplit from '../../components/edu/g2/AuthSplit';
-import { useLocalizedPath } from '../../contexts/LanguageContext';
+import { useEspaceNavigate, useLocalizedPath } from '../../contexts/LanguageContext';
+import { accueilConnecte } from '../../lib/hosts';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -40,7 +41,11 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const path = useLocalizedPath();
-  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/mon-espace';
+  /* `from` est un chemin PHYSIQUE de l'hôte courant (posé par `ProtectedRoute`) ; sans lui,
+     l'accueil connecté de l'espace, éventuellement sur un autre hôte. */
+  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+  const go = useEspaceNavigate();
+  const suite = () => (from ? navigate(from, { replace: true }) : go(accueilConnecte(), { replace: true }));
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -58,7 +63,7 @@ export default function Login() {
     try {
       await signIn(email, password);
       addToast('success', t('login.successToast'));
-      navigate(from, { replace: true });
+      suite();
     } catch (error: unknown) {
       addToast('error', localizeAuthError(error, t));
     }
@@ -70,7 +75,7 @@ export default function Login() {
     try {
       await signInWithGoogle();
       addToast('success', t('login.successToast'));
-      navigate(from, { replace: true });
+      suite();
     } catch (error: unknown) {
       addToast('error', localizeAuthError(error, t));
     }

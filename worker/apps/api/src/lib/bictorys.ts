@@ -3,6 +3,7 @@ import { HttpsError } from '@mm/shared';
 
 import type { Env } from '../env';
 import { toDate, toNumber } from './values';
+import { origineSite } from './urls';
 
 /** Création de charges Bictorys — port de `functions/src/payment.ts`. */
 
@@ -33,9 +34,14 @@ export async function createHostedCharge(
     paymentReference: string;
     customer: ChargeCustomer;
     logLabel: string;
+    /**
+     * L'hôte du retour : l'adhésion revient sur club.maxmorrys.me, la formation et le quota
+     * d'assistant sur edu.maxmorrys.me — chacun sert `/paiement/retour` (`src/lib/espaces.ts`).
+     */
+    retour: 'edu' | 'club';
   },
 ): Promise<BictorysChargeResult> {
-  const returnUrl = `${env.APP_BASE_URL}/paiement/retour?transactionId=${options.paymentReference}`;
+  const returnUrl = `${origineSite(env.APP_BASE_URL, options.retour)}/paiement/retour?transactionId=${options.paymentReference}`;
 
   const response = await fetch(env.BICTORYS_API_URL, {
     method: 'POST',

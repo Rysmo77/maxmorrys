@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Field, GlassPanel, Icon, IconButton, useToast } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
-import { localizedPath } from '../../i18n/routing';
+import { accueilConnecte } from '../../lib/hosts';
 import { localizeAuthError } from '../../lib/auth-errors';
 import { updateUserProfile, getUserById } from '../../lib/firestore';
 import { auth } from '../../config/firebase';
 import GoogleIcon from '../../components/auth/GoogleIcon';
 import { SiteEyebrow } from '../../components/site';
 import AuthSplit from '../../components/edu/g2/AuthSplit';
-import { useLocalizedPath } from '../../contexts/LanguageContext';
+import { useEspaceNavigate, useLocalizedPath } from '../../contexts/LanguageContext';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -28,9 +27,10 @@ export default function Register() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { signUp, signInWithGoogle } = useAuth();
-  const { language } = useLanguage();
   const { addToast } = useToast();
-  const navigate = useNavigate();
+  /* L'accueil connecté de l'ESPACE courant : le Club après une inscription sur club., l'école
+     ailleurs (`lib/hosts.ts`). */
+  const go = useEspaceNavigate();
   const path = useLocalizedPath();
   const [searchParams] = useSearchParams();
   const refCode = searchParams.get('ref')?.trim().toUpperCase() || '';
@@ -65,7 +65,7 @@ export default function Register() {
       await signUp(email, password, name);
       await captureReferral();
       addToast('success', t('register.successToast'));
-      navigate(localizedPath('/mon-espace', language));
+      go(accueilConnecte());
     } catch (error: unknown) {
       addToast('error', localizeAuthError(error, t));
     }
@@ -78,7 +78,7 @@ export default function Register() {
       await signInWithGoogle();
       await captureReferral();
       addToast('success', t('register.successToast'));
-      navigate(localizedPath('/mon-espace', language));
+      go(accueilConnecte());
     } catch (error: unknown) {
       addToast('error', localizeAuthError(error, t));
     }

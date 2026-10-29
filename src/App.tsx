@@ -1,7 +1,7 @@
 import { CLUB_TAB_SEGMENTS } from './lib/club/tabs';
 import { createBrowserRouter, RouterProvider, Outlet, ScrollRestoration, useLocation, useParams, Navigate } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
-import { useState, lazy, Suspense } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import type { ComponentType, ReactNode } from 'react';
 
 /**
@@ -46,6 +46,9 @@ import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { localizeSegments } from './i18n/segments';
 import { localizedPath } from './i18n/routing';
+import { placer, type Espace } from './lib/espaces';
+import { espaceCourant, hrefPour, urlCorrigee } from './lib/hosts';
+import { allerVers } from './lib/sessionHandoff';
 import { ToastProvider } from '@ds';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
@@ -370,10 +373,31 @@ function RootProviders() {
   );
 }
 
-/** Redirection d'index de /mon-espace vers le tableau de bord, segment localisé. */
-function MonEspaceIndexRedirect() {
+/**
+ * Le lien de parrainage des maquettes, `club.maxmorrys.me/r/<code>` : il mène à l'inscription
+ * avec le code, qu'`Register` enregistre sur le compte créé.
+ */
+function ReferralRedirect() {
   const { language } = useLanguage();
-  return <Navigate to={localizeSegments('tableau-de-bord', language)} replace />;
+  const { code } = useParams<{ code: string }>();
+  return <Navigate to={hrefPour(`/inscription?ref=${encodeURIComponent(code ?? '')}`, language)} replace />;
+}
+
+/**
+ * La page introuvable, après un dernier essai : un chemin qui vit sur un AUTRE espace (un lien
+ * interne d'avant les sous-domaines, une adresse tapée au mauvais endroit) y est envoyé, comme
+ * le ferait la 301 du Worker pour une requête de document. Une navigation interne à la SPA
+ * ne passe jamais par le Worker : sans ce relais, elle tomberait ici.
+ */
+function Introuvable() {
+  const { pathname, search, hash } = useLocation();
+  const cible = urlCorrigee(pathname, search, hash);
+  useEffect(() => {
+    if (cible && /^https?:\/\//.test(cible)) void allerVers(cible, true);
+  }, [cible]);
+  if (!cible) return <NotFound />;
+  if (!/^https?:\/\//.test(cible)) return <Navigate to={cible} replace />;
+  return <PageLoader />;
 }
 
 /**
@@ -538,9 +562,6 @@ function appChildren() {
          * `AuthLayout` garde ce qui n'a effectivement pas de chrome : le certificat public, la
          * vérification, le /403 et le 404.
          */
-        { path: 'connexion', element: <Suspense fallback={<PageLoader />}><Login /></Suspense> },
-        { path: 'inscription', element: <Suspense fallback={<PageLoader />}><Register /></Suspense> },
-        { path: 'mot-de-passe-oublie', element: <Suspense fallback={<PageLoader />}><ResetPassword /></Suspense> },
       ],
     },
     {
@@ -556,7 +577,6 @@ function appChildren() {
             </ProtectedRoute>
           ),
           children: [
-            { index: true, element: <MonEspaceIndexRedirect /> },
             { path: 'tableau-de-bord', element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },
             { path: 'cours',           element: <Suspense fallback={<PageLoader />}><CoursesPage /></Suspense> },
             { path: 'notes',           element: <Suspense fallback={<PageLoader />}><NotesPage /></Suspense> },
@@ -625,10 +645,22 @@ function appChildren() {
     {
       element: <AuthLayout />,
       children: [
+        /*
+         * LES TROIS ÉCRANS DE COMPTE, SANS BARRE NI PIED — maquette `Edu-Connexion` : le
+         * mot-symbole de l'espace et un « Retour » discret (`AuthSplit`), rien d'autre. Ils
+         * existent sur les trois hôtes : la session Firebase est rangée par origine, on se
+         * connecte donc là où l'on est (`CHEMINS_PARTAGES`, `lib/espaces.ts`).
+         */
+        { path: 'connexion', element: <Suspense fallback={<PageLoader />}><Login /></Suspense> },
+        { path: 'inscription', element: <Suspense fallback={<PageLoader />}><Register /></Suspense> },
+        { path: 'mot-de-passe-oublie', element: <Suspense fallback={<PageLoader />}><ResetPassword /></Suspense> },
         { path: 'certificat/:code', element: <Suspense fallback={<PageLoader />}><CertificatePage /></Suspense> },
         { path: 'verifier', element: <Suspense fallback={<PageLoader />}><VerifyCertificate /></Suspense> },
+        /* L'adresse des maquettes : `edu.maxmorrys.me/verifier/MM-7K2Q-9F`. */
+        { path: 'verifier/:code', element: <Suspense fallback={<PageLoader />}><VerifyCertificate /></Suspense> },
+        { path: 'r/:code', element: <ReferralRedirect /> },
         { path: '403', element: <Forbidden403 /> },
-        { path: '*', element: <NotFound /> },
+        { path: '*', element: <Introuvable /> },
       ],
     },
     {
@@ -698,13 +730,58 @@ function withRouteErrors(routes: RouteObject[]): RouteObject[] {
   });
 }
 
+/**
+ * ── UN HÔTE, UN ESPACE — LES ROUTES MONTÉES SONT CELLES DE L'HÔTE ────────────────────────
+ *
+ * `appChildren()` déclare TOUTES les routes, en chemins LOGIQUES (ceux d'avant les
+ * sous-domaines). Cette fonction garde celles que l'hôte courant sert et les remonte à leur
+ * chemin PHYSIQUE, d'après la table unique `lib/espaces.ts` :
+ *
+ *   sur edu.   `apprendre` → index, `mon-espace/cours` → `mes-formations`, `formations/:slug` reste ;
+ *   sur club.  `club-des-digitos` → index, `mon-espace/club/agenda` → `agenda` ;
+ *   sur le hub tout le reste.
+ *
+ * Une route mère à chemin (`mon-espace`, `admin`) devient une mère SANS chemin : son gabarit
+ * reste, ses enfants portent le chemin physique complet. Une route qui n'existe pas sur
+ * l'hôte n'est pas montée ; si quelqu'un la demande, `Introuvable` l'envoie sur le bon hôte.
+ */
+function routesDeLEspace(routes: RouteObject[], espace: Espace, base = ''): RouteObject[] {
+  const out: RouteObject[] = [];
+  const vus = new Set<string>();
+  for (const route of routes) {
+    if (route.path === '*') { out.push(route); continue; }
+    const logique = route.index || route.path === undefined
+      ? base || '/'
+      : `${base.replace(/\/$/, '')}/${route.path}`;
+    if (route.children) {
+      const enfants = routesDeLEspace(route.children, espace, route.path === undefined ? base : logique);
+      if (enfants.length === 0) continue;
+      const { path: _chemin, ...mere } = route;
+      out.push({ ...mere, children: enfants } as RouteObject);
+      continue;
+    }
+    const place = placer(logique, espace);
+    if (place.espace !== espace) continue;
+    const physique = place.chemin.replace(/^\//, '');
+    // Deux chemins logiques pour une même page (`mon-espace/club` et `mon-espace/club/fil`) :
+    // la première déclarée sert.
+    if (vus.has(physique)) continue;
+    vus.add(physique);
+    const { path: _p, index: _i, ...feuille } = route;
+    out.push((physique === '' ? { ...feuille, index: true } : { ...feuille, path: physique }) as RouteObject);
+  }
+  return out;
+}
+
+const routesFr = () => routesDeLEspace(appChildren() as RouteObject[], espaceCourant());
+
 const router = createBrowserRouter([
   {
     element: <RootProviders />,
     errorElement: <RouteError />,
     children: [
-      { path: '/en', children: withRouteErrors(localizeRouteTree(appChildren() as RouteObject[], 'en')) },
-      { path: '/', children: withRouteErrors(appChildren() as RouteObject[]) },
+      { path: '/en', children: withRouteErrors(localizeRouteTree(routesFr(), 'en')) },
+      { path: '/', children: withRouteErrors(routesFr()) },
     ],
   },
 ]);

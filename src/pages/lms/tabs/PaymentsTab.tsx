@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { Button, EmptyState, GlassPanel, Icon, LessonRow, Num, Skeleton, Tag } from '@ds';
 import SpaceSplit from '../components/SpaceSplit';
 import type { TagTone } from '@ds';
-import { useLocalizedPath } from '../../../contexts/LanguageContext';
+import { useEspaceNavigate } from '../../../contexts/LanguageContext';
 import { useFormat } from '../../../hooks/useFormat';
 import { getUserTransactions } from '../../../lib/firestore';
 import type { Transaction } from '../../../types';
@@ -97,8 +96,8 @@ interface PaymentsTabProps {
 export default function PaymentsTab({ userId }: PaymentsTabProps) {
   const { t } = useTranslation('lmsTabs');
   const { formatDate } = useFormat();
-  const navigate = useNavigate();
-  const path = useLocalizedPath();
+  /* `/formations` vit sur l'Edu : navigation inter-espaces, session transmise. */
+  const go = useEspaceNavigate();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -207,7 +206,7 @@ export default function PaymentsTab({ userId }: PaymentsTabProps) {
             title={t('payments.emptyTitle')}
             body={t('payments.emptyText')}
             action={
-              <Button tone="forme" onClick={() => navigate(path('/formations'))}>
+              <Button tone="forme" onClick={() => go('/formations')}>
                 {t('payments.emptyAction')}
               </Button>
             }

@@ -17,7 +17,10 @@
       "associatedDomains": [
         "applinks:maxmorrys.me",
         "applinks:www.maxmorrys.me",
-        "webcredentials:maxmorrys.me"
+        "applinks:edu.maxmorrys.me",
+        "webcredentials:maxmorrys.me",
+        "webcredentials:edu.maxmorrys.me",
+        "webcredentials:club.maxmorrys.me"
       ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -151,6 +154,16 @@
             {
               "scheme": "https",
               "host": "www.maxmorrys.me",
+              "pathPrefix": "/verifier"
+            },
+            {
+              "scheme": "https",
+              "host": "edu.maxmorrys.me",
+              "pathPrefix": "/formations"
+            },
+            {
+              "scheme": "https",
+              "host": "edu.maxmorrys.me",
               "pathPrefix": "/verifier"
             }
           ]

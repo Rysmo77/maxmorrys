@@ -20,6 +20,7 @@ import { canonicalizeSegments, enPath } from './segments';
 import { applySecurityHeaders, getSpaShell } from './shell';
 import { staticPages } from './static-pages';
 import { translateMetaToEn } from '@mm/shared';
+import { publierMeta } from '../espaces';
 import type { PageMeta } from './types';
 
 /** Port de la fonction `prerender`. */
@@ -236,9 +237,11 @@ export async function handlePrerender(
   request: Request,
   env: Env,
   ctx: ExecutionContext,
+  /** Chemin LOGIQUE (`../espaces.ts`) ; à défaut, celui de la requête. */
+  chemin: string = new URL(request.url).pathname,
 ): Promise<Response> {
-  const url = new URL(request.url);
-  const meta = await resolvePageMeta(normalizePath(url.pathname), env, ctx);
+  // Les adresses passent sur leur hôte public APRÈS le cache : il reste indépendant de l'hôte.
+  const meta = publierMeta(await resolvePageMeta(normalizePath(chemin), env, ctx));
 
   const shell = await getSpaShell(env, ctx);
   const shellHeaders = new Headers(shell.headers);

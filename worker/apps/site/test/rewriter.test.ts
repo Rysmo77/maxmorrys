@@ -192,7 +192,8 @@ describe('injection des métadonnées par HTMLRewriter', () => {
   it('le corps SEO porte des liens internes', async () => {
     const html = await render(META);
     expect(html).toContain('<nav aria-label="Navigation du site">');
-    expect(html).toContain('href="https://maxmorrys.me/formations"');
+    // Chaque lien sur l'hôte de son espace : le catalogue vit sur edu., le pôle média au hub.
+    expect(html).toContain('href="https://edu.maxmorrys.me/formations"');
     expect(html).toContain('href="https://maxmorrys.me/podcast-et-videos"');
     // Au moins une dizaine de destinations, sinon le maillage ne vaut rien.
     expect(countOf(html, '<li><a href=')).toBeGreaterThan(10);
@@ -216,9 +217,9 @@ describe('injection des métadonnées par HTMLRewriter', () => {
     const html = await render({ ...META, lang: 'en' });
     expect(html).toContain('<nav aria-label="Site navigation">');
     // Segments localisés, pas seulement le préfixe.
-    expect(html).toContain('href="https://maxmorrys.me/en/courses"');
+    expect(html).toContain('href="https://edu.maxmorrys.me/en/courses"');
     expect(html).toContain('href="https://maxmorrys.me/en/podcast-and-videos"');
-    expect(html).toContain('href="https://maxmorrys.me/en/digitos-club"');
+    expect(html).toContain('href="https://club.maxmorrys.me/en"');
     expect(html).not.toContain('href="https://maxmorrys.me/en/formations"');
   });
 

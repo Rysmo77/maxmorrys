@@ -37,7 +37,7 @@ function Detail({ t }: { t: TransactionVue }) {
   return (
     <Surface level="flat" style={{ marginTop: 20, padding: 18 }}>
       {t.titre ? <DocLine label={t.ligne === 'club' ? 'Abonnement' : 'Accès'} value={t.titre} /> : null}
-      <DocLine label="Réglé sur" value="maxmorrys.me" />
+      <DocLine label="Réglé sur" value={t.ligne === 'club' ? 'club.maxmorrys.me' : 'edu.maxmorrys.me'} />
       <DocLine
         label="Montant"
         value={<Num value={t.montant ?? null} source="server" asOf={asOf} unit={t.devise === 'XOF' ? 'F' : t.devise ?? undefined} />}

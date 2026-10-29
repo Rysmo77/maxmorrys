@@ -243,6 +243,33 @@ export function createAccessTokenProvider(sa: ServiceAccount, scopes: string[]):
   });
 }
 
+/** Audience imposée par Firebase Auth aux custom tokens. */
+export const FIREBASE_CUSTOM_TOKEN_AUDIENCE =
+  'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit';
+
+/**
+ * Signe un custom token Firebase (RS256, clé privée du compte de service), à passer à
+ * `signInWithCustomToken`. Durée : une heure, le maximum que Firebase accepte.
+ *
+ * Pas d'appel réseau, pas d'IAM `signBlob` : la clé privée est déjà dans le secret.
+ */
+export async function signFirebaseCustomToken(
+  sa: ServiceAccount,
+  uid: string,
+  now: number = nowSeconds(),
+): Promise<string> {
+  if (!uid || uid.length > 128) throw new Error('uid invalide pour un custom token');
+  const key = await getSigningKey(sa);
+  return signJwtRs256(key, {
+    iss: sa.client_email,
+    sub: sa.client_email,
+    aud: FIREBASE_CUSTOM_TOKEN_AUDIENCE,
+    iat: now,
+    exp: now + TOKEN_LIFETIME_SECONDS,
+    uid,
+  });
+}
+
 /** Réservé aux tests : vide les caches de module. */
 export function __resetTokenCaches(): void {
   keyCache.clear();

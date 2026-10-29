@@ -1,8 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, type NavigateOptions } from 'react-router-dom';
 import i18n, { preloadRequestedNamespaces } from '../i18n';
 import { getLangFromPath, localizedPath, type Lang } from '../i18n/routing';
 import { useAuth } from './AuthContext';
+import { hrefPour } from '../lib/hosts';
+import { allerVers } from '../lib/sessionHandoff';
 // Imports directs plutôt que via le barrel `lib/firestore` : celui-ci fait
 // `export *` sur 17 modules, ce qui en tirait plusieurs dans le chunk d'entrée.
 
@@ -143,8 +145,27 @@ export function useLanguage() {
   return ctx;
 }
 
-/** Renvoie une fonction qui préfixe un chemin absolu selon la langue active (/en…). */
+/**
+ * Renvoie une fonction qui transforme un chemin LOGIQUE (`/formations/x`, `/mon-espace/club`)
+ * en `href` : préfixé selon la langue active (/en…), relatif s'il vit sur l'hôte courant,
+ * absolu s'il vit sur un autre espace (`lib/espaces.ts`). Le transfert de session des liens
+ * absolus se fait au clic (`lib/sessionHandoff.ts`).
+ */
 export function useLocalizedPath() {
   const { language } = useLanguage();
-  return useCallback((path: string) => localizedPath(path, language), [language]);
+  return useCallback((path: string) => hrefPour(path, language), [language]);
+}
+
+/**
+ * `navigate` pour un chemin LOGIQUE : dans le routeur si la cible vit sur l'hôte courant,
+ * sinon une navigation de document vers l'autre espace, session transmise.
+ */
+export function useEspaceNavigate() {
+  const navigate = useNavigate();
+  const { language } = useLanguage();
+  return useCallback((path: string, options?: NavigateOptions) => {
+    const href = hrefPour(path, language);
+    if (/^https?:\/\//.test(href)) void allerVers(href, options?.replace);
+    else navigate(href, options);
+  }, [navigate, language]);
 }

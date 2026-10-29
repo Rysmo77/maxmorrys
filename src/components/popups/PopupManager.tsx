@@ -3,7 +3,8 @@ import { useBlocker, useLocation, type BlockerFunction } from 'react-router-dom'
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { toCanonicalPath, localizedPath } from '../../i18n/routing';
+import { localizedPath } from '../../i18n/routing';
+import { toLogicalPath } from '../../lib/hosts';
 import { trackEvent } from '../../lib/tracking';
 import { queryClient, queryKeys } from '../../lib/queryClient';
 // Imports directs plutôt que via le barrel `lib/firestore` : celui-ci fait
@@ -72,7 +73,7 @@ const END_SCROLL = 0.9;
 
 /** Retire un éventuel `/` final pour que `/agence/` et `/agence` se comparent à l'identique. */
 function normalizePath(pathname: string): string {
-  const canonical = toCanonicalPath(pathname);
+  const canonical = toLogicalPath(pathname);
   return canonical.length > 1 && canonical.endsWith('/') ? canonical.slice(0, -1) : canonical;
 }
 

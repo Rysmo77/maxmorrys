@@ -28,6 +28,7 @@
 import * as DS from './email-design';
 import { type Langue } from './invoice';
 import type { FamilleFiscale } from './tax';
+import { urlSite } from './urls';
 
 export type AchatKind = 'club' | 'rysmoPack' | 'rysmoSubscription' | 'formation';
 
@@ -217,15 +218,16 @@ const T = {
  * seule chose qui les tient.
  */
 export function urlDeDestination(kind: AchatKind, langue: Langue, base: string): string {
-  const fr = langue === 'fr';
+  /* Chacun sur son hôte (`urls.ts`) : le Club sur club., l'école sur edu., l'assistant sur
+     le hub. */
   switch (kind) {
     case 'club':
-      return `${base}${fr ? '/club-des-digitos' : '/en/digitos-club'}`;
+      return urlSite(base, '/club-des-digitos', langue);
     case 'rysmoPack':
     case 'rysmoSubscription':
-      return `${base}${fr ? '/mon-espace/repetiteur' : '/en/my-learning/tutor'}`;
+      return urlSite(base, '/mon-espace/repetiteur', langue);
     default:
-      return `${base}${fr ? '/mon-espace' : '/en/my-learning'}`;
+      return urlSite(base, '/mon-espace', langue);
   }
 }
 

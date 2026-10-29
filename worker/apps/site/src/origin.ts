@@ -4,7 +4,7 @@ import type { Env } from './env';
  * Hôtes de la zone Cloudflare. Un `fetch` vers l'un d'eux depuis ce Worker
  * repasserait par la route et bouclerait (erreurs 1015 / 508).
  */
-const ZONE_HOSTS = new Set(['maxmorrys.me', 'www.maxmorrys.me']);
+const ZONE_HOSTS = new Set(['maxmorrys.me', 'www.maxmorrys.me', 'edu.maxmorrys.me', 'club.maxmorrys.me']);
 
 /**
  * Relaie la requête vers Firebase Hosting.

@@ -33,6 +33,7 @@ import type { Env } from '../env';
 import * as DS from './email-design';
 import { sendEmail } from './email';
 import { type Langue } from './invoice';
+import { urlSite } from './urls';
 
 /** Fenêtre de préavis, en jours. Quinze, parce que c'est ce que disent les CGV. */
 export const PREAVIS_JOURS = 15;
@@ -195,7 +196,7 @@ export async function sendRenewalNotices(
     const message = buildRenewalNotice(
       { userName: typeof d.userName === 'string' ? d.userName : undefined, expiresAt, langue },
       dateLisible,
-      `${env.APP_BASE_URL}${langue === 'fr' ? '/club-des-digitos' : '/en/digitos-club'}`,
+      urlSite(env.APP_BASE_URL, '/club-des-digitos', langue),
     );
 
     const envoi = await sendEmail(env, { to: destinataire, ...message });

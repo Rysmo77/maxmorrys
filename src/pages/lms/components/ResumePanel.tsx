@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { Button, Icon, LessonRow, Num, ProgressBar } from '@ds';
-import { useLocalizedPath } from '../../../contexts/LanguageContext';
+import { useEspaceNavigate } from '../../../contexts/LanguageContext';
 import { formatBytes, listKept, offlineSupported, type KeptResource } from '../../../lib/pwa/offline';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 
@@ -63,8 +62,7 @@ function keptName(url: string): string {
 
 export default function ResumePanel({ resume, asOf }: ResumePanelProps) {
   const { t } = useTranslation('lmsTabs');
-  const navigate = useNavigate();
-  const path = useLocalizedPath();
+  const go = useEspaceNavigate();
 
   /* `undefined` = pas encore relevé, `[]` = relevé et vide. La distinction porte tout
      l'écart entre « rien de gardé » et « on ne sait pas encore » — et c'est la seconde
@@ -115,7 +113,7 @@ export default function ResumePanel({ resume, asOf }: ResumePanelProps) {
           <Button
             tone="primary"
             size="sm"
-            onClick={() => navigate(path(`/cours/${resume.formation!.slug}`))}
+            onClick={() => go(`/cours/${resume.formation!.slug}`)}
             style={{ marginTop: '12px' }}
           >
             {t('courses.resumeAction')}
@@ -162,7 +160,7 @@ export default function ResumePanel({ resume, asOf }: ResumePanelProps) {
           <Button
             tone="quiet"
             size="sm"
-            onClick={() => navigate(path('/mon-espace/hors-connexion'))}
+            onClick={() => go('/mon-espace/hors-connexion')}
             style={{ marginTop: '10px' }}
           >
             {t('courses.offlineOpen', { total: formatBytes(totalBytes) })}
@@ -174,7 +172,7 @@ export default function ResumePanel({ resume, asOf }: ResumePanelProps) {
           <Button
             tone="quiet"
             size="sm"
-            onClick={() => navigate(path('/mon-espace/hors-connexion'))}
+            onClick={() => go('/mon-espace/hors-connexion')}
             style={{ marginTop: '10px' }}
           >
             {t('courses.offlineSetup')}

@@ -89,6 +89,9 @@ const SEGMENTS: Record<string, { fr: string; en: string }> = {
   'mon-espace': { fr: 'mon-espace', en: 'my-learning' },
   'tableau-de-bord': { fr: 'tableau-de-bord', en: 'dashboard' },
   cours: { fr: 'cours', en: 'learn' },
+  /* « Mes formations » sur edu.maxmorrys.me (`lib/espaces.ts`) : `/mon-espace/cours` y devient
+     `/mes-formations`, `/cours/:slug` restant le lecteur. */
+  'mes-formations': { fr: 'mes-formations', en: 'my-courses' },
   notes: { fr: 'notes', en: 'notes' },
   messages: { fr: 'messages', en: 'messages' },
   succes: { fr: 'succes', en: 'achievements' },

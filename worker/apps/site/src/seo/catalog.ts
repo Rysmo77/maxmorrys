@@ -1,6 +1,7 @@
 import type { Firestore } from '@mm/firestore-rest';
 
 import { DEFAULT_OG_IMAGE, SITE_URL } from '../constants';
+import { publier } from '../espaces';
 import { asNumber, asText } from './values';
 
 /** Port fidèle de `functions/src/catalog.ts` (flux produits Meta Commerce). */
@@ -90,7 +91,7 @@ export async function buildCatalog(db: Firestore): Promise<string> {
         aVenir ? 'preorder' : 'in stock',
         'new',
         `${price} ${CURRENCY}`,
-        `${SITE_URL}/formations/${asText(data.slug) ?? ''}`,
+        publier(`${SITE_URL}/formations/${asText(data.slug) ?? ''}`),
         asText(data.coverImage) || DEFAULT_OG_IMAGE,
         BRAND,
         promoPrice ? `${promoPrice} ${CURRENCY}` : '',

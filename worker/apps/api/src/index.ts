@@ -31,6 +31,7 @@ import { getFirestore, getVerifier, type CallContext } from './context';
 import type { Env } from './env';
 import { handleExportDownload } from './exportDownload';
 import { handleUnsubscribe } from './unsubscribeRoute';
+import { estRouteTransfert, handleSessionTransfer } from './sessionTransfer';
 import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
 import { runImportSpotify, runSyncMediaStats } from './lib/media-sync';
@@ -78,6 +79,9 @@ export default {
      * clique depuis un client de messagerie, pas une fonction qu'on appelle.
      */
     if (name === 'desabonnement') return handleUnsubscribe(request, env);
+
+    /* Le transfert de session entre les trois hôtes : JSON simple, origine contrôlée. */
+    if (estRouteTransfert(name)) return handleSessionTransfer(request, env);
 
     if (name === 'bictorysWebhook') {
       if (migratedNames(env).has(name)) return handleBictorysWebhook(request, env);

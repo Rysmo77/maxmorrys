@@ -7,9 +7,10 @@ import DsNavHost from './DsNavHost';
 /**
  * LE SÉLECTEUR D'ESPACES, BRANCHÉ — kit v3 (AD-27).
  *
- * Pas de sous-domaines (décision du 29/10/2026) : les espaces sont des ROUTES du même
- * domaine, donc de la même session. La console n'apparaît que pour qui y a accès (`admin`
- * ou `support`) — le contrôle client REFLÈTE les règles, il ne les applique pas.
+ * Trois hôtes (PRD rév. 6) : maxmorrys.me, edu. et club. Les routes ci-dessous sont des
+ * chemins LOGIQUES ; `useLocalizedPath` les place sur leur hôte (`lib/espaces.ts`) et le
+ * clic transmet la session (`lib/sessionHandoff.ts`). La console n'apparaît que pour qui y a
+ * accès (`admin` ou `support`) — le contrôle client REFLÈTE les règles, il ne les applique pas.
  */
 export const SPACE_ROUTES: Record<SpaceId, string> = {
   hub: '/',

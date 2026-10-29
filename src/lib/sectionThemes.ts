@@ -44,7 +44,7 @@
  * pas un nom de classe construit dynamiquement, et le purgerait du build.
  */
 
-import { toCanonicalPath } from '../i18n/routing';
+import { toLogicalPath } from './hosts';
 import type { Territory } from '../design-system';
 
 export type Universe =
@@ -228,7 +228,7 @@ export const universeThemes: Record<Universe, UniverseTheme> = {
 /** Déduit l'univers d'une route. Défaut : `formations`, le territoire d'entrée. */
 export function universeFromPath(rawPath: string): Universe {
   // Canonicalise (retire /en et remappe les segments anglais) pour comparer aux chemins FR.
-  const path = toCanonicalPath(rawPath);
+  const path = toLogicalPath(rawPath);
   if (path.startsWith('/blog') || path.startsWith('/faq')) return 'blog';
   /*
    * ⚠️ LA ROUTE A ÉTÉ RENOMMÉE, CETTE TABLE NE L'A PAS SUIVIE.

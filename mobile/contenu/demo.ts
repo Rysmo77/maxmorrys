@@ -144,7 +144,7 @@ const KIT_CERTIFICAT = {
   formation: KIT_FORMATION.titre,
   emisLe: '12/09/2026',
   lecons: 47,
-  lien: `${KIT_SITE}/verifier?code=MM-C7K4-9RTX-2081`,
+  lien: 'https://edu.maxmorrys.me/verifier?code=MM-C7K4-9RTX-2081',
 } as const;
 
 /* ─────────────────────────  LE RÉPÉTITEUR  ───────────────────────── */
@@ -335,7 +335,7 @@ const KIT_OPPORTUNITES = [
  */
 const KIT_PARRAINAGE = {
   code: 'AISSATOU-24',
-  lien: `${KIT_SITE}/club?code=AISSATOU-24`,
+  lien: 'https://club.maxmorrys.me/r/AISSATOU-24',
   filleuls: 2,
   /** Ce que TOI tu gagnes : rien en argent. Voir l'écran — c'est la décision, pas un oubli. */
   gainParrain: 'un mois offert par filleul qui reste 90 jours',

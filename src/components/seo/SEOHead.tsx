@@ -9,7 +9,8 @@ import {
   buildCanonical,
 } from './seo-config';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { localizedPath, ogLocale, toCanonicalPath } from '../../i18n/routing';
+import { localizedPath, ogLocale } from '../../i18n/routing';
+import { toLogicalPath } from '../../lib/hosts';
 
 interface SEOHeadProps {
   title: string;
@@ -57,9 +58,11 @@ export default function SEOHead({
 }: SEOHeadProps) {
   const { pathname } = useLocation();
   const { language } = useLanguage();
-  const basePath = toCanonicalPath(pathname);
+  /* Le chemin LOGIQUE de la page servie : sur l'Edu, `/` est `/apprendre` — et c'est lui que
+     `buildCanonical` sait placer sur son hôte. */
+  const basePath = toLogicalPath(pathname);
   const fullTitle = isHomePage ? title : `${title} | ${SITE_NAME}`;
-  const canonicalUrl = canonical || buildCanonical(pathname);
+  const canonicalUrl = canonical || buildCanonical(localizedPath(basePath, language));
   // Alternates hreflang : utiliser les chemins explicites (slug localisé) si fournis.
   const frUrl = buildCanonical(frPath ?? localizedPath(basePath, 'fr'));
   const enUrl = buildCanonical(enPath ?? localizedPath(basePath, 'en'));

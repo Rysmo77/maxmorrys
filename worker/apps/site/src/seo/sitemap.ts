@@ -1,6 +1,8 @@
 import type { Firestore } from '@mm/firestore-rest';
 
 import { SITE_URL } from '../constants';
+import { publier, type Espace } from '../espaces';
+import { placer } from '../../../../../src/lib/espaces';
 import { getFaqSlugs } from '../prerender/faq';
 import { enPath } from '../prerender/segments';
 import { REALISATIONS } from '../prerender/realisations';
@@ -68,8 +70,8 @@ function urlEntryPair(options: UrlEntryOptions): string {
     imageTitle,
   } = options;
 
-  const frLoc = `${SITE_URL}${frPath}`;
-  const enLoc = `${SITE_URL}${enFullPath}`;
+  const frLoc = publier(`${SITE_URL}${frPath}`);
+  const enLoc = publier(`${SITE_URL}${enFullPath}`);
   const iso = asIsoDate(lastmod);
   const lastmodTag = iso ? `<lastmod>${iso}</lastmod>` : '';
   const imageTag = imageLoc
@@ -137,7 +139,11 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
   { path: '/legal/cookies', changefreq: 'yearly', priority: '0.3' },
 ];
 
-export async function buildSitemap(db: Firestore): Promise<string> {
+/**
+ * Le sitemap d'UN hôte : seules les pages que sert cet espace (`src/lib/espaces.ts`), à leur
+ * adresse publique. Les trois hôtes en ont chacun un, annoncé par leur `robots.txt`.
+ */
+export async function buildSitemap(db: Firestore, espace: Espace = 'hub'): Promise<string> {
   const [posts, formations, podcasts, videos] = await Promise.all([
     getPublished(db, 'blog'),
     getPublished(db, 'formations'),
@@ -174,8 +180,9 @@ export async function buildSitemap(db: Firestore): Promise<string> {
    */
   const locsVues = new Set<string>();
   const pushPair = (options: UrlEntryOptions): void => {
-    const frLoc = `${SITE_URL}${options.frPath}`;
-    const enLoc = `${SITE_URL}${options.enFullPath}`;
+    if (placer(options.frPath, espace).espace !== espace) return;
+    const frLoc = publier(`${SITE_URL}${options.frPath}`);
+    const enLoc = publier(`${SITE_URL}${options.enFullPath}`);
     if (locsVues.has(frLoc) || locsVues.has(enLoc)) {
       console.warn(`Sitemap : doublon écarté — ${frLoc} / ${enLoc}`);
       return;

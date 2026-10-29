@@ -1,6 +1,6 @@
 import type { IconName } from '@ds';
 import { CLUB_TAB_BY_SEGMENT, CLUB_TAB_SEGMENTS, type ClubTabSegment } from '../../../../lib/club/tabs';
-import { toCanonicalPath } from '../../../../i18n/routing';
+import { toLogicalPath } from '../../../../lib/hosts';
 import type { ClubSubTab } from '../../hooks/useClubData';
 
 /**
@@ -21,7 +21,7 @@ const ALIAS: Partial<Record<ClubSubTab, ClubSubTab>> = { events: 'agenda', sessi
 
 /** L'onglet que l'adresse désigne ; le fil par défaut, y compris sur un segment inconnu. */
 export function clubTabFromPath(pathname: string): ClubSubTab {
-  const segment = toCanonicalPath(pathname).split('/').filter(Boolean)[2];
+  const segment = toLogicalPath(pathname).split('/').filter(Boolean)[2];
   if (segment && (CLUB_TAB_SEGMENTS as readonly string[]).includes(segment)) {
     return CLUB_TAB_BY_SEGMENT[segment as ClubTabSegment] as ClubSubTab;
   }

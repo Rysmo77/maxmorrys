@@ -105,6 +105,7 @@ async function charge(
   amount: number,
   paymentReference: string,
   logLabel: string,
+  retour: 'edu' | 'club',
 ): Promise<BictorysChargeResult> {
   try {
     return await createHostedCharge(context.env, {
@@ -112,6 +113,7 @@ async function charge(
       paymentReference,
       customer: identity.customer,
       logLabel,
+      retour,
     });
   } catch (error: unknown) {
     console.error(`Création de charge Bictorys (${logLabel}) échouée :`, error);
@@ -151,7 +153,7 @@ export async function createBictorysCharge(data: unknown, context: CallContext):
 
   requireApiKey(context.env);
   const txn = newTransactionId();
-  const result = await charge(context, identity, finalPrice, txn.id, 'course');
+  const result = await charge(context, identity, finalPrice, txn.id, 'course', 'edu');
 
   // `usedCount` du coupon n'est incrémenté qu'au succès du paiement, dans le
   // webhook : un panier abandonné ne doit pas consommer un usage.
@@ -208,7 +210,7 @@ export async function createClubCharge(data: unknown, context: CallContext): Pro
 
   requireApiKey(context.env);
   const txn = newTransactionId();
-  const result = await charge(context, identity, amount, txn.id, 'club');
+  const result = await charge(context, identity, amount, txn.id, 'club', 'club');
 
   const now = new Date();
   const expiresAt = new Date(now);
@@ -251,7 +253,7 @@ export async function createRysmoPackCharge(data: unknown, context: CallContext)
   requireApiKey(context.env);
 
   const txn = newTransactionId();
-  const result = await charge(context, identity, definition.price, txn.id, 'rysmo pack');
+  const result = await charge(context, identity, definition.price, txn.id, 'rysmo pack', 'edu');
 
   const now = new Date().toISOString();
   const purchaseId = crypto.randomUUID().replace(/-/g, '').slice(0, 20);
@@ -333,7 +335,7 @@ export async function createRysmoSubscriptionCharge(
   requireApiKey(context.env);
 
   const txn = newTransactionId();
-  const result = await charge(context, identity, definition.price, txn.id, 'rysmo sub');
+  const result = await charge(context, identity, definition.price, txn.id, 'rysmo sub', 'edu');
 
   /*
    * ⚠️ LE MOIS PART DE `decision.depart`, PAS DE MAINTENANT — et c'est tout l'intérêt.

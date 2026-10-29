@@ -3,6 +3,7 @@ import { HttpsError } from '@mm/shared';
 import { type CallContext, requireAuth } from '../context';
 import { envoyerModele } from '../lib/brevo-send';
 import { asText } from '../lib/values';
+import { urlSite } from '../lib/urls';
 
 /**
  * Port de `issueCertificate`.
@@ -144,7 +145,7 @@ export async function issueCertificate(data: unknown, context: CallContext): Pro
         prenom: asText(profil?.data.firstName) ?? asText(profil?.data.displayName) ?? '',
         formation: asText(formation.title) ?? '',
         code: certificateCode,
-        lien: `${context.env.APP_BASE_URL}${prefs.language === 'en' ? '/en/verify' : '/verifier'}?code=${certificateCode}`,
+        lien: urlSite(context.env.APP_BASE_URL, `/verifier?code=${certificateCode}`, prefs.language === 'en' ? 'en' : 'fr'),
       },
     });
     if (envoi.issue !== 'envoye') {

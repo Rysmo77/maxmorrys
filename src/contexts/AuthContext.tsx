@@ -11,6 +11,7 @@ import {
   type User as FirebaseUser,
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { attendreTransfert } from '../lib/sessionHandoff';
 
 /**
  * Firestore, chargé À LA DEMANDE.
@@ -55,7 +56,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    /* Une session transmise depuis un autre espace (`lib/sessionHandoff.ts`) s'installe
+       d'abord : publier l'état avant reviendrait à annoncer « anonyme » à une personne en
+       train d'arriver connectée, et les gardes la renverraient vers `/connexion`. */
+    let unsubscribe = () => {};
+    let annule = false;
+    const ecouter = () => onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
         const uid = firebaseUser.uid;
@@ -85,7 +91,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     });
-    return unsubscribe;
+    void attendreTransfert().then(() => {
+      if (!annule) unsubscribe = ecouter();
+    });
+    return () => {
+      annule = true;
+      unsubscribe();
+    };
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {

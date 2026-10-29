@@ -65,6 +65,13 @@ export const OFFRE = {
 export const SITE_PUBLIC = 'https://maxmorrys.me';
 
 /**
+ * L'Edu et le Club ont chacun leur hôte (PRD rév. 6, §2.1 ; table du site :
+ * `src/lib/espaces.ts`). L'application n'y renvoie que pour lire — jamais pour vendre.
+ */
+export const SITE_EDU = 'https://edu.maxmorrys.me';
+export const SITE_CLUB = 'https://club.maxmorrys.me';
+
+/**
  * La forme d'une référence de devis : `DV-` puis douze caractères hexadécimaux majuscules.
  * Source : `isValidQuoteRef` (offer.ts). Le kit écrivait `MM-D-4831`, qui n'a pas cette forme.
  */
@@ -79,7 +86,7 @@ export const FORME_REFERENCE = /^DV-[0-9A-F]{12}$/;
  * `VerifyCertificate.tsx` lit `?code=` pour vérifier dès l'arrivée.
  */
 export const lienDeVerification = (code: string): string =>
-  `${SITE_PUBLIC}/verifier?code=${encodeURIComponent(code)}`;
+  `${SITE_EDU}/verifier?code=${encodeURIComponent(code)}`;
 
 /** TTC arrondi au franc, comme `ventilerDepuisHT`. */
 export const ttc = (ht: number): number => ht + Math.round((ht * OFFRE.tvaTauxPct) / 100);

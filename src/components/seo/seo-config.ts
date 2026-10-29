@@ -1,3 +1,5 @@
+import { urlAbsolue } from '../../lib/hosts';
+import { getLangFromPath } from '../../i18n/routing';
 import { contact, publicProfiles, socialLinks } from '../../lib/brand';
 
 export const SITE_URL = 'https://maxmorrys.me';
@@ -66,9 +68,13 @@ export const SOCIAL_LINKS = socialLinks;
 
 export const SOCIAL_URLS = publicProfiles.map((s) => s.url);
 
+/**
+ * L'URL publique d'un chemin LOGIQUE (FR, ou EN préfixé `/en`) : sur l'hôte de son espace
+ * (`lib/espaces.ts`) — `/formations/x` → `https://edu.maxmorrys.me/formations/x`.
+ */
 export function buildCanonical(path: string): string {
   const clean = path.split('?')[0].split('#')[0];
-  return `${SITE_URL}${clean}`;
+  return urlAbsolue(clean, getLangFromPath(clean));
 }
 
 export function truncateDescription(text: string, max = 160): string {
