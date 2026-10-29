@@ -54,7 +54,6 @@ function VerrouilleAtelier() {
         <SansDonnees
           quoi="la lecture en cours"
           origine="du lecteur"
-          degat="Cet écran montre ce que le système affichera pendant une écoute. Sans lecture réelle, il n'y a rien à montrer — et une pochette inventée ferait croire à un son qui ne joue pas."
           style={{ marginTop: 20 }}
         />
       </Screen>

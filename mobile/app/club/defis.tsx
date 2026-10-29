@@ -24,14 +24,12 @@ export default function ClubDefis() {
         etat={NON_BRANCHE}
         quoi="le défi de la semaine"
         origine="du serveur"
-        degat="Un défi affiché sans exister ferait publier des captures pour rien, et promettrait de l'XP que personne ne compte."
       />
       <Rubrique>Participations</Rubrique>
       <SansDonnees
         etat={NON_BRANCHE}
         quoi="les participations"
         origine="du serveur"
-        degat="Une participation porte le nom et le commerce de quelqu'un. Aucune n'est inventée."
       />
       <Verite titre="Comment ça marche">
         Un défi par semaine, lancé le lundi. Pas de vote : Max choisit des coups de cœur et explique

@@ -153,7 +153,6 @@ export default function Certificat() {
         <SansDonnees
           quoi="ce certificat"
           origine="du serveur qui l'a émis"
-          degat="Un certificat rempli de valeurs d'exemple est un faux, et un faux se montre à un employeur. Les quatre champs — titulaire, formation, date, code — arrivent ensemble ou pas du tout."
           style={{ marginTop: 20 }}
         />
       </Screen>
@@ -258,7 +257,7 @@ export default function Certificat() {
       <Surface level="truth" style={{ marginTop: 18, padding: 15 }}>
         <Eyebrow>Ce que ce code prouve</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Les {doc.lecons} leçons ont été recomptées côté serveur au moment de l'émission. Ce
+          Les {doc.lecons} leçons ont été vérifiées au moment de l'émission. Ce
           n'est pas une image : c'est un enregistrement que ton futur employeur contrôle
           lui-même, sans compte.
         </Body>

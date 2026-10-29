@@ -25,7 +25,6 @@ export default function Paiements() {
         etat={NON_BRANCHE}
         quoi="l'historique de tes paiements"
         origine="du site"
-        degat="Un règlement affiché ici sans venir de ton compte ferait croire à un accès que tu n'as pas — ou à une dépense que tu n'as pas faite."
       />
       {echeance ? (
         <Verite titre="Prochaine échéance">

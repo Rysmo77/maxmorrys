@@ -31,7 +31,6 @@ export default function ClubPublication() {
         <SansDonnees
           quoi="cette publication"
           origine="du fil du Club"
-          degat="Une publication reconstituée mettrait dans la bouche d'un membre des mots qu'il n'a pas écrits."
           etat={club.valeur ? { phase: 'vide', valeur: null, ...provenance(club) } : club}
           style={{ marginTop: 12 }}
         />
@@ -70,7 +69,6 @@ export default function ClubPublication() {
             etat={NON_BRANCHE}
             quoi="les commentaires"
             origine="du fil du Club"
-            degat="Chaque commentaire porte le nom de quelqu'un. Aucun n'est inventé ; ils se lisent sur le site en attendant."
           />
           <Verite titre="Commenter">
             Les commentaires s'écriront ici quand le serveur les servira à l'application. Les

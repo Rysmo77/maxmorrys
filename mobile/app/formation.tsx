@@ -155,7 +155,6 @@ export default function Formation() {
       {modules.length === 0 ? (
         <SansDonnees
           quoi="le programme"
-          degat="Un module inventé promet un contenu qui n'existe pas. C'est ce que le module d'ouverture, gratuit, sert justement à éviter : juger sur pièce."
           etat={fiche}
           hauteur={3}
           style={{ marginTop: 12 }}

@@ -97,7 +97,6 @@ export default function Profil() {
         <SansDonnees
           quoi="ton compte"
           origine="de ta connexion"
-          degat="Afficher un nom et une adresse ici ferait croire à une session ouverte. Les réglages fonctionnent quand même : ils vivent sur cet appareil."
           etat={moi}
           hauteur={2}
           style={{ marginTop: 14 }}

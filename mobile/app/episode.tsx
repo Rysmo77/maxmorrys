@@ -53,7 +53,6 @@ export default function Episode() {
         <Display size={27} lines={media.phase === 'charge' || media.phase === 'restauration' ? ['Cet épisode.'] : ['Cet épisode', 'n’est pas chargé.']} style={{ marginTop: 10 }} />
         <SansDonnees
           quoi="cet épisode"
-          degat="Une transcription fabriquée met des phrases dans la bouche de quelqu'un. C'est le seul contenu du produit où l'invention se lit comme une citation."
           etat={media}
           style={{ marginTop: 20 }}
         />
@@ -153,7 +152,6 @@ export default function Episode() {
           {paragraphes.length === 0 ? (
             <SansDonnees
               quoi="la transcription de cet épisode"
-              degat="Une transcription fabriquée met des phrases dans la bouche de quelqu'un. C'est le seul contenu du produit où l'invention se lit comme une citation."
               etat={media}
               hauteur={3}
               style={{ marginTop: 12 }}

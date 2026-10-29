@@ -122,7 +122,6 @@ export default function Catalogue() {
           <SansDonnees
             quoi="le catalogue"
             origine="du serveur"
-            degat="Une formation inventée est une formation qu'on croit pouvoir suivre. Le catalogue est la promesse du produit : ce qui y figure doit exister."
             etat={cours}
             hauteur={4}
             style={{ marginTop: 20 }}

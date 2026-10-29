@@ -75,7 +75,6 @@ export default function Presence() {
         <SansDonnees
           quoi="le prix du pack"
           origine="du serveur"
-          degat="Tout cet écran existe pour désamorcer une comparaison de prix AVANT que tu remplisses quoi que ce soit. Un montant approximatif la rouvrirait au lieu de la fermer."
           style={{ marginTop: 18 }}
         />
       ) : (

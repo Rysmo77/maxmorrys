@@ -94,7 +94,6 @@ export default function ClubBloques() {
       ) : etat.valeur === null && Object.keys(debloques).length === 0 ? (
         <SansDonnees
           quoi="tes comptes bloqués"
-          degat="Une liste de blocage inventée montrerait des noms de personnes que tu n'as jamais bloquées. C'est le seul endroit du produit où une simulation accuserait quelqu'un."
           etat={etat}
           hauteur={2}
           style={{ marginTop: 16 }}

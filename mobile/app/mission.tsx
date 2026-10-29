@@ -29,7 +29,6 @@ export default function Mission() {
         etat={NON_BRANCHE}
         quoi="ta mission rendue"
         origine="du serveur"
-        degat="Une mission rendue au téléphone sans être enregistrée serait perdue au premier rafraîchissement — et tu la croirais en relecture."
       />
 
       <Rubrique>Retours</Rubrique>
@@ -37,7 +36,6 @@ export default function Mission() {
         etat={NON_BRANCHE}
         quoi="les retours de ta cohorte"
         origine="du serveur"
-        degat="Un retour porte le nom de la personne qui l'a écrit. Aucun n'est inventé."
       />
 
       <Surface level="flat" style={{ marginTop: 16, padding: 18 }}>

@@ -89,7 +89,6 @@ export default function Cours() {
       {miennes.length === 0 ? (
         <SansDonnees
           quoi="tes formations"
-          degat="Une formation inventée ici est une formation qu'on croit posséder. Cette liste ne montre que ce que ton compte ouvre vraiment."
           etat={cours.phase === 'servie' || cours.phase === 'replique'
             ? { phase: 'vide', valeur: null, source: cours.source, asOf: cours.asOf }
             : cours}

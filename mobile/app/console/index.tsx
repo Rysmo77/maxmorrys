@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, Button, Num, Pipeline, SansDonnees, StatTile, useToken, Ligne, Liste, Rubrique,
+  Button, Num, Pipeline, SansDonnees, StatTile, useToken, Ligne, Liste, Rubrique,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
 import { provenance, useConsole } from '../../donnees';
@@ -72,7 +72,6 @@ export default function Console() {
         <SansDonnees
           quoi="ce qu'il y a à traiter"
           origine="du serveur"
-          degat="Une demande inventée ferait rappeler quelqu'un qui n'a rien demandé, et masquerait qu'il n'y a rien à faire."
           style={{ marginTop: 14 }}
         />
       ) : (
@@ -125,10 +124,6 @@ export default function Console() {
 
       <PiedDePortee quoi="Cet écran ne montre que ce qui attend une action." />
 
-      <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12 }}>
-        Un garde de route est du code client : il cache, il n'interdit pas. Le vrai
-        cloisonnement est dans les règles de la base.
-      </Body>
     </ConsoleScreen>
   );
 }

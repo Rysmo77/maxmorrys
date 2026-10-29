@@ -118,8 +118,7 @@ export default function ClubOpportunites() {
       <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
         <Eyebrow>Les budgets ne sont pas vérifiés</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Ils sont annoncés par la personne qui publie. La plateforme ne les contrôle pas, et
-          c'est écrit ici plutôt que caché.
+          Ils sont annoncés par la personne qui publie : la plateforme ne les contrôle pas.
         </Body>
         <Body muted style={{ marginTop: 10, fontSize: 12.5, lineHeight: 19 }}>
           Je ne prends aucune commission sur ce qui se conclut, et je ne classe pas les

@@ -129,7 +129,6 @@ export default function Notes() {
       {liste.length === 0 ? (
         <SansDonnees
           quoi="tes notes"
-          degat="Une note inventée met une phrase dans ta bouche. C'est le seul contenu du produit que personne d'autre que toi n'a écrit."
           etat={notes}
           hauteur={3}
           style={{ marginTop: 14 }}

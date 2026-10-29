@@ -131,7 +131,6 @@ export default function Espace() {
       {espace.valeur === null ? (
         <SansDonnees
           quoi="ta progression"
-          degat="Une leçon inventée ici est une leçon qu'on croit avoir commencée : elle décale le compte, et elle rend faux le seul chiffre que tu viens vérifier."
           etat={espace}
           hauteur={4}
           style={{ marginTop: 20 }}

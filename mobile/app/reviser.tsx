@@ -21,7 +21,6 @@ export default function Reviser() {
         etat={nonBranche()}
         quoi="les notions à revoir"
         origine="du serveur"
-        degat="Un pourcentage de maîtrise inventé déciderait à ta place de ce que tu révises."
         style={{ marginTop: 18 }}
         action={<Button tone="transforme" size="sm" label="Poser une question" onPress={() => router.navigate('/repetiteur')} />}
       />

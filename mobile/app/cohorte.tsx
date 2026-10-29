@@ -41,7 +41,6 @@ export default function Cohorte() {
         etat={NON_BRANCHE}
         quoi="la progression de ta cohorte"
         origine="du serveur"
-        degat="Une répartition inventée te placerait en avance ou en retard sur des gens qui n'existent pas."
       />
 
       <Rubrique>Missions à relire</Rubrique>
@@ -49,7 +48,6 @@ export default function Cohorte() {
         etat={NON_BRANCHE}
         quoi="les missions de ta cohorte"
         origine="du serveur"
-        degat="Une mission à relire porte le travail et le nom de quelqu'un. Rien n'est affiché tant que le serveur ne les transmet pas."
       />
 
       <Surface level="flat" style={{ marginTop: 16, padding: 18 }}>

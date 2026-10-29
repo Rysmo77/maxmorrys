@@ -38,7 +38,6 @@ export default function Live() {
         etat={NON_BRANCHE}
         quoi="les questions du live"
         origine="du serveur"
-        degat="Une question votée porte le nom de la personne qui l'a posée. Aucune n'est affichée tant que le live ne les transmet pas."
       />
 
       <Verite titre="Ce que le live consomme">

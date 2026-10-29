@@ -33,7 +33,6 @@ export default function Quiz() {
         etat={NON_BRANCHE}
         quoi="les questions du quiz"
         origine="du serveur"
-        degat="Un quiz rejoué sans être compté validerait un module au téléphone qui ne l'est pas sur ton compte."
         style={{ marginTop: 16 }}
       />
       <Verite titre={`${ia} est en pause`}>

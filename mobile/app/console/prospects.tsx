@@ -51,7 +51,6 @@ export default function Prospects() {
         <SansDonnees
           quoi="la file des prospects"
           origine="du serveur"
-          degat="Un prospect inventé porte le nom d'un commerce et un budget. Le rappeler mettrait quelqu'un devant une demande qu'il n'a pas faite."
           style={{ marginTop: 14 }}
         />
       ) : (

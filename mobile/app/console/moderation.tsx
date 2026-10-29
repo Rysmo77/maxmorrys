@@ -16,7 +16,6 @@ export default function ConsoleModeration() {
       <SansDonnees
         quoi="la file des signalements"
         origine="du serveur"
-        degat="Un signalement inventé ferait sanctionner — ou blanchir — quelqu'un sur la foi d'un message qu'il n'a pas écrit."
         style={{ marginTop: 18 }}
       />
       <Verite titre="Comment se tranche un signalement">

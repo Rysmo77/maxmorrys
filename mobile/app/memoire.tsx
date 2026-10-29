@@ -190,7 +190,6 @@ export default function Memoire() {
           quoi="ce qu'il a retenu"
           etat={efface ? { phase: 'vide', valeur: null, source: 'server', asOf: new Date() } : rep}
           hauteur={3}
-          degat="Un souvenir inventé ferait croire qu'il sait de toi une chose que tu ne lui as jamais dite."
           style={{ marginTop: 10 }}
         />
       ) : (

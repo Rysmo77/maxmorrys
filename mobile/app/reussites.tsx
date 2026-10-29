@@ -50,7 +50,6 @@ export default function Succes() {
         etat={NON_BRANCHE}
         quoi="tes badges"
         origine="du serveur"
-        degat="Un badge affiché est une étape qu'on croit franchie. Ils apparaîtront ici quand le serveur les comptera pour l'application, comme il le fait pour le site."
       />
 
       <Rubrique>Quêtes du jour</Rubrique>
@@ -58,7 +57,6 @@ export default function Succes() {
         etat={NON_BRANCHE}
         quoi="les quêtes du jour"
         origine="du serveur"
-        degat="Une quête qu'on « récupère » sans que le serveur la compte donnerait de l'XP qui disparaîtrait au rafraîchissement."
       />
 
       <Rubrique>Ce qui est déjà vérifiable</Rubrique>

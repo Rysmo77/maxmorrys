@@ -93,7 +93,6 @@ export default function Fil() {
       {fil.length === 0 ? (
         <SansDonnees
           quoi="le fil du Club"
-          degat="Un message inventé porte le nom de quelqu'un — un nom, un métier, un quartier qui appartiennent à une personne réelle. C'est le contenu du produit où fabriquer coûte le plus cher."
           etat={club}
           hauteur={4}
           style={{ marginTop: 14 }}

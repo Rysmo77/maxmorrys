@@ -26,7 +26,6 @@ export default function ConsoleTransactions() {
       <SansDonnees
         quoi={statut === 'Tout' ? 'les transactions' : `les transactions « ${statut.toLowerCase()} »`}
         origine="du serveur"
-        degat="Un montant encaissé inventé fausserait la seule ligne qu'on vérifie avant de rembourser."
         style={{ marginTop: 14 }}
       />
       <Verite titre="Lecture seule sur téléphone">

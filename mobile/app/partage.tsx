@@ -59,7 +59,6 @@ export default function Partage() {
         <SansDonnees
           quoi="le lien de vérification"
           origine="du certificat lui-même"
-          degat="Ce qui part d'ici est un lien qu'un employeur ouvrira. Le fabriquer produirait une adresse qui ne vérifie rien."
           style={{ marginTop: 20 }}
         />
       </Screen>
@@ -90,7 +89,6 @@ export default function Partage() {
         <SansDonnees
           quoi="le lien de vérification"
           origine="du certificat lui-même"
-          degat="Ce qui part d'ici est un lien qu'un employeur ouvrira. Le fabriquer produirait une adresse qui ne vérifie rien."
           style={{ marginTop: 20 }}
         />
       </Screen>

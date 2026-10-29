@@ -5,7 +5,6 @@ import {
 } from '../../ds';
 import { QUOTA } from '../../contenu/demo';
 import { ONGLETS_CLUB } from '../../contenu/club';
-import { CLUB_OUVERT_EN } from '../../contenu/termes';
 import { useClub, useRafraichir } from '../../donnees';
 
 /**
@@ -161,9 +160,8 @@ export default function Club() {
       <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
         <Eyebrow>Ce que je ne te promets pas</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Le Club a ouvert en {CLUB_OUVERT_EN}. Je ne t'annonce pas un nombre de membres, parce qu'il
-          serait faux — et parce que tu le vérifierais dès le premier écran. Ni des
-          clients, ni un revenu : l'abonnement donne l'accès, le reste dépend de ce que tu y mets.
+          Ni des clients, ni un revenu : l'abonnement donne l'accès, le reste dépend de ce que tu
+          y mets.
         </Body>
       </Surface>
     </Screen>

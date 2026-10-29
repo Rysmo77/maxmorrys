@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import type { ReactNode } from 'react';
-import { Body, Eyebrow } from './Type';
+import { Body } from './Type';
 import { Button } from './Button';
 import { Surface } from './Surface';
 import { Skeleton, SqueletteGroupe } from './Skeleton';
@@ -20,12 +20,13 @@ import { useToken } from './theme';
  *   1 · CE QUI MANQUE, nommé — « tes cours », « ce fil », pas « les données ».
  *   2 · D'OÙ ÇA VIENDRA — le compte, le serveur. C'est ce qui distingue « pas encore branché »
  *       de « cassé », et ça évite d'écrire au support.
- *   3 · POURQUOI RIEN N'EST INVENTÉ À LA PLACE. C'est la phrase qui change le ton : on ne
- *       s'excuse pas d'un vide, on explique un refus.
+ *
+ * Un troisième temps disait « pourquoi rien n'est inventé à la place » (prop `degat`). Il a été
+ * retiré le 29/10/2026 (décision produit, même passe que le web) : c'était une note d'équipe
+ * adressée à l'utilisateur. Ne pas le remettre.
  *
  * Un composant et pas une phrase recopiée : à 27 écrans, une phrase recopiée devient 27
- * formulations qui divergent, et la troisième ligne — la seule qui demande un effort — est la
- * première à sauter.
+ * formulations qui divergent.
  *
  * ── ET DEPUIS QUE L'APPLICATION INTERROGE UN SERVEUR ─────────────────────────────────
  * « Rien » n'a plus un seul sens. Six situations mènent ici, et les confondre fait mentir
@@ -44,18 +45,12 @@ import { useToken } from './theme';
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 export function SansDonnees({
-  quoi, origine = 'de ton compte', degat, action, etat, hauteur = 3, style,
+  quoi, origine = 'de ton compte', action, etat, hauteur = 3, style,
 }: {
   /** Ce qui manque, nommé : « ta formation », « le fil du Club ». */
   quoi: string;
   /** D'où ça viendra. « de ton compte » par défaut — la réponse vraie neuf fois sur dix. */
   origine?: string;
-  /**
-   * Le dommage qu'une simulation causerait, propre à cet écran. C'est la ligne qui porte la
-   * décision : un cours inventé est un cours qu'on croit avoir, un message inventé porte le
-   * nom de quelqu'un. Omise, une phrase générale prend sa place — mais elle dit moins.
-   */
-  degat?: string;
   action?: ReactNode;
   /** L'état de la donnée. Absent, l'écran est réputé pas encore branché. */
   etat?: Etat<unknown>;
@@ -136,20 +131,10 @@ export function SansDonnees({
         </Body>
       </View>
 
-      {/* ⚠️ CETTE PHRASE EST DEVENUE CONDITIONNELLE, et c'est le point. Elle disait « cette
-          application ne l'interroge pas encore » sur TOUS les écrans. Le jour où l'un d'eux
-          interroge vraiment, la phrase devient fausse là où le vide est réel — et le vrai
-          défaut de la fois précédente n'était pas le contenu simulé, c'était la
-          documentation qui le niait. */}
       <Body muted style={{ marginTop: 10, lineHeight: 22 }}>
         {phase === 'vide'
           ? `Ça vient ${origine}, et il n'y a rien pour l'instant.`
-          : `Ça vient ${origine}, et cette application ne l'interroge pas encore.`}
-      </Body>
-
-      <Eyebrow style={{ marginTop: 16 }}>Pourquoi il n'y a rien à la place</Eyebrow>
-      <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-        {degat ?? "Parce qu'inventer une valeur ici la rendrait crédible. Un contenu de démonstration se reconnaît sur une maquette ; dans la main de quelqu'un, il ne se distingue plus du vrai."}
+          : `Ça vient ${origine}. Ce n'est pas encore disponible dans l'application.`}
       </Body>
 
       {action !== undefined ? <View style={{ marginTop: 16 }}>{action}</View> : null}

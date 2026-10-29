@@ -40,7 +40,6 @@ export default function ClubParrainage() {
         <SansDonnees
           quoi="ton code de parrainage"
           origine="de ton compte"
-          degat="Un code inventé partagé à quelqu'un ne lui donnerait aucune remise — et c'est toi qui l'aurais promise."
           etat={etat}
           style={{ marginTop: 20 }}
         />

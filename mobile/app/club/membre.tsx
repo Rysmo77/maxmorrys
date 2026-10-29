@@ -149,7 +149,6 @@ export default function ClubMembre() {
         <SansDonnees
           quoi="cette fiche"
           origine="du compte de la personne"
-          degat="Une fiche inventée attribue un métier et un quartier à quelqu'un. Et ce qui n'y figure jamais — ni numéro, ni adresse — vaut aussi pour une fiche fabriquée."
           etat={fiche}
           style={{ marginTop: enLecture ? 4 : 20 }}
         />

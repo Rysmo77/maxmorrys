@@ -15,7 +15,6 @@ export default function ConsoleCompte() {
       <SansDonnees
         quoi="la fiche de ce compte"
         origine="du serveur"
-        degat="Une fiche inventée ferait agir — réinitialiser, octroyer, suspendre — sur une personne qui n'est pas celle qu'on croit."
         style={{ marginTop: 18 }}
       />
       <Verite titre="Chaque action">

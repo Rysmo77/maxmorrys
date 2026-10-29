@@ -33,14 +33,12 @@ export default function Lecteur() {
         etat={NON_BRANCHE}
         quoi="le lecteur intégré"
         origine="d'un fichier vidéo lisible par l'application"
-        degat="Des commandes qui ne lisent rien feraient croire à une vidéo en panne. Elles restent grisées tant que le lecteur n'existe pas."
         style={{ marginTop: 12 }}
       />
       <SansDonnees
         etat={NON_BRANCHE}
         quoi="la transcription synchronisée"
         origine="du serveur"
-        degat="Une transcription inventée mettrait dans la bouche de la leçon des phrases qu'elle ne dit pas."
         style={{ marginTop: 12 }}
       />
       <Button tone="quiet" label="Revenir à la leçon" style={{ marginTop: 16 }} onPress={() => router.back()} />

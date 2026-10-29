@@ -54,7 +54,6 @@ function WidgetAtelier() {
         <Display size={27} lines={['Le widget', 'reste vide.']} style={{ marginTop: 10 }} />
         <SansDonnees
           quoi="ta progression"
-          degat="Le widget affiche ce qui reste vrai sans réseau. Sans progression relevée, il n'a rien de vrai à afficher — et un widget qui ment est un mensonge posé sur l'écran d'accueil."
           style={{ marginTop: 20 }}
         />
       </Screen>

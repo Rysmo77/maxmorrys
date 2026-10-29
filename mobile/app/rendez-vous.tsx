@@ -26,7 +26,6 @@ export default function RendezVous() {
         etat={NON_BRANCHE}
         quoi="les créneaux de Max"
         origine="de son agenda, servi au site"
-        degat="Un créneau affiché sans venir de l'agenda serait un rendez-vous que personne n'attend."
       />
 
       <Surface level="flat" style={{ marginTop: 16, padding: 18 }}>

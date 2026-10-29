@@ -37,7 +37,6 @@ export default function ChoisirLecon() {
       {programme.length === 0 ? (
         <SansDonnees
           quoi="le programme de ta formation"
-          degat="Une leçon proposée ici sans exister orienterait ta question vers un cours que tu n'as pas."
           etat={espace.valeur ? lecon : espace}
           hauteur={4}
         />

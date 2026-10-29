@@ -52,7 +52,6 @@ export default function Media() {
         <Display size={27} lines={['Rien à écouter', 'pour l’instant.']} style={{ marginTop: 10 }} />
         <SansDonnees
           quoi="le pôle média"
-          degat="Un épisode inventé porte le nom d'un invité qui n'a rien enregistré, et un poids en mégaoctets qui déciderait de charger ou pas."
           etat={media}
           style={{ marginTop: 20 }}
         />

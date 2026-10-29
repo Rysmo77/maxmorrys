@@ -21,7 +21,6 @@ export default function ClubMembres() {
       <SansDonnees
         quoi="l'annuaire des membres"
         origine="d'une vue que le serveur ne sert pas encore — « appClubListe.membre » rend UNE fiche"
-        degat="Un annuaire d'exemple ferait croire à un Club plus grand qu'il n'est, et donnerait un métier et un quartier à des gens qui ne les ont pas renseignés."
         style={{ marginTop: 16 }}
       />
       <Surface level="truth" style={{ marginTop: 16, padding: 16 }}>

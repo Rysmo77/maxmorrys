@@ -167,7 +167,6 @@ export default function Lecon() {
         <SansDonnees
           quoi="cette leçon"
           origine={enEchec ? 'du serveur — et elle n\'a pas été gardée sur ce téléphone' : undefined}
-          degat="Une leçon inventée est une leçon qu'on croit avoir lue."
           etat={servi}
           hauteur={6}
           style={{ marginTop: 14 }}
@@ -311,7 +310,6 @@ export default function Lecon() {
       {programme.length === 0 ? (
         <SansDonnees
           quoi="le programme de ce module"
-          degat="Une leçon inventée est une leçon qu'on croit avoir à regarder."
           etat={lecon}
           hauteur={5}
           style={{ marginTop: 14 }}

@@ -150,7 +150,6 @@ export default function Acces() {
         <SansDonnees
           quoi="cette transaction"
           origine={suivi.etape === 'panne' ? suivi.motif : "de ton compte — elle n'existe pas, ou elle appartient à un autre compte"}
-          degat="Annoncer un accès que le serveur ne confirme pas te ferait chercher un cours qui n'est pas ouvert."
           style={{ marginTop: 20 }}
         />
       )}

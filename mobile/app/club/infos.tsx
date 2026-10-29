@@ -4,7 +4,6 @@ import {
 } from '../../ds';
 import { ClubScreen } from './_layout';
 import { CLUB_GARANTI, CLUB_PAS_GARANTI } from '../../contenu/engagement';
-import { CLUB_OUVERT_EN } from '../../contenu/termes';
 import { provenance, useClub } from '../../donnees';
 
 /**
@@ -79,14 +78,6 @@ export default function ClubInfos() {
             : <Num value={echeance} {...provenance(club)} style={{ fontSize: 12.5 }} />}
           , ton accès s'arrête et tu réabonnes si tu veux. Personne n'est débité par surprise,
           et personne n'a à chercher où résilier.
-        </Body>
-      </Surface>
-
-      <Surface level="flat" style={{ marginTop: 12, padding: 17 }}>
-        <Eyebrow>Et pas de nombre de membres</Eyebrow>
-        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Le Club a ouvert en {CLUB_OUVERT_EN}. Je ne t'annonce pas un nombre de membres, parce qu'il
-          serait faux — et parce que tu le vérifierais dès le premier écran.
         </Body>
       </Surface>
 
