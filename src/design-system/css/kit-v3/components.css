@@ -527,7 +527,6 @@
 
 /* ───────────── Garde-fous ───────────── */
 
-@supports not ((}}
 .lowfi .mm-glass{background:var(--bento)}
 .lowfi .mm-mesh b,.lowfi .mm-float,.lowfi .mm-empty__ico{animation:none}
 
