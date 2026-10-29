@@ -10,6 +10,7 @@ import { slideUp } from '../../../lib/animations';
 import { useClubData } from '../hooks/useClubData';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import ClubSubscriptionGate from './club/ClubSubscriptionGate';
+import ClubRenewalCard from './club/ClubRenewalCard';
 import ClubFeed from './club/ClubFeed';
 import ClubLeaderboard from './club/ClubLeaderboard';
 import ClubMembers from './club/ClubMembers';
@@ -159,6 +160,7 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
               <aside className="space-y-4" aria-label={t('panel.upcomingEyebrow')}>
                 <CirclesCard title={t('v3.circles.title')} body={t('v3.circles.body')} />
                 <ClubAgendaPanel data={data} />
+                <ClubRenewalCard autoRenew={clubSubscription!.autoRenew} onChanged={handleRefresh} />
               </aside>
             </div>
           </>

@@ -71,7 +71,15 @@ export interface Env {
   GOOGLE_AI_API_KEY?: string;
   TYPESENSE_URL?: string;
   TYPESENSE_ADMIN_KEY?: string;
+  /** Clé PUBLIQUE : la seule que la doc Bictorys prescrit pour l'API `charges`. */
   BICTORYS_API_KEY?: string;
+  /**
+   * Clé SECRÈTE (privée) : clients, plans et abonnements — l'API de facturation récurrente.
+   * Droits accordés : CheckoutsWr, CustomersWr, Subscription(Plan)Rd/Wr. PAS CustomersRd :
+   * on ne relit jamais un client, on garde son id chez nous.
+   */
+  BICTORYS_SECRET_KEY?: string;
+  /** Envoyé EN CLAIR par Bictorys dans l'en-tête `X-Secret-Key` de chaque webhook. */
   BICTORYS_WEBHOOK_SECRET?: string;
   META_ACCESS_TOKEN?: string;
   /** Secret de signature des liens de téléchargement d'export. */

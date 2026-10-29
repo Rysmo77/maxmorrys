@@ -48,6 +48,7 @@ import {
   createClubCharge,
   createRysmoPackCharge,
   createRysmoSubscriptionCharge,
+  setClubAutoRenew,
 } from './handlers/payments';
 import { quoteCheckout } from './handlers/quoteCheckout';
 import { reserverSession } from './handlers/reserverSession';
@@ -144,6 +145,8 @@ export const HANDLERS: Record<string, CallHandler> = {
   quoteCheckout,
   createBictorysCharge,
   createClubCharge,
+  // Coupe ou rétablit le renouvellement du Club (annule l'abonnement Bictorys).
+  setClubAutoRenew,
   createRysmoPackCharge,
   createRysmoSubscriptionCharge,
   // RGPD

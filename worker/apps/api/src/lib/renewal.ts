@@ -1,31 +1,20 @@
 /**
  * LE RAPPEL D'ÉCHÉANCE — J-15 avant la fin d'un abonnement au Club.
  *
- * ── POURQUOI CE N'EST PAS UN RENOUVELLEMENT AUTOMATIQUE ──
+ * ── DEUX CAS DEPUIS LE 29/10/2026 ──
  *
- * L'article 5 des CGV promettait qu'« en cas de renouvellement automatique, le Client est
- * informé par e-mail au moins quinze (15) jours avant l'échéance ». Deux choses manquaient,
- * pas une : le préavis ET le renouvellement lui-même. `expiresAt` était écrit à l'achat et
- * plus jamais relu — aucun code du dépôt ne traitait une échéance.
+ * Ce module disait que « Bictorys n'expose aucun endpoint d'abonnement ». C'était vrai quand il
+ * a été écrit, plus maintenant : l'API `billing/v1/subscriptions` existe. Ce qu'elle fait n'est
+ * pourtant PAS un prélèvement — Wave et Orange Money n'ont toujours pas de mandat : à chaque
+ * échéance, Bictorys envoie au client un LIEN de paiement. Rien n'est débité sans qu'il paie.
  *
- * Le renouvellement automatique n'est pas réalisable sur les rails de paiement du marché :
+ *   · Renouvellement programmé (`bictorysSubscriptionId` + `renewalLinkDate`, voir
+ *     `club-autorenew.ts`) : le rappel annonce la date du lien et où le couper.
+ *   · Sinon (adhésions antérieures, ou renouvellement coupé) : le rappel d'origine, avec le
+ *     lien pour se réabonner en un geste.
  *
- *   · Bictorys n'expose aucun endpoint d'abonnement, de mandat ou de récurrent.
- *   · Sa tokenisation est réservée aux CARTES, et `tokenizedCardObject` exige le CVV à chaque
- *     charge — donc la personne doit être présente, ce qui est la définition inverse d'un
- *     prélèvement automatique.
- *   · Wave n'a pas de mandat récurrent, et c'est le moyen de paiement dominant ici. Un
- *     agrégateur ne peut pas fabriquer par-dessus un mandat que l'opérateur n'offre pas.
- *
- * Un prélèvement automatique ne serait donc possible qu'en carte — c'est-à-dire pour la
- * minorité, en excluant exactement le marché pour lequel le produit existe. On ne l'a pas
- * construit. Ce module fait le maximum honnête à la place : prévenir à temps, avec le lien
- * pour se réabonner en un geste.
- *
- * `autoRenew` change donc de sens et garde son nom en base : il ne veut plus dire « prélève-moi »
- * — il n'a jamais rien prélevé — mais « préviens-moi ». Réinterpréter dans ce sens est sans
- * risque : les personnes qui avaient coché reçoivent un rappel au lieu de rien, et personne
- * n'est débité de quoi que ce soit.
+ * Dans les deux cas le message DIT que rien n'est prélevé — `test/helpers/voix-echeance.ts`
+ * le garde, et cette garde reste juste : un lien n'est pas un débit.
  */
 import type { Firestore } from '@mm/firestore-rest';
 
@@ -77,6 +66,11 @@ const T = {
     lien: 'Reprendre mon abonnement',
     apres: "Si tu préfères t'arrêter là, tu n'as rien à faire : l'accès se termine tout seul à la date ci-dessus.",
     signature: 'Max-Morrys',
+    programme: (lien: string) =>
+      `Ton renouvellement est activé : le ${lien}, tu recevras par e-mail un lien de paiement Bictorys (Wave, Orange Money ou carte).`,
+    rienProgramme: "Rien ne sera prélevé sans que tu paies ce lien. Si tu ne le paies pas, l'accès s'arrête simplement à la date ci-dessus.",
+    couper: 'Tu préfères arrêter ? Coupe le renouvellement depuis ton espace Club :',
+    lienCouper: 'Gérer mon abonnement',
   },
   en: {
     subject: 'Your Club access ends in 15 days',
@@ -87,6 +81,11 @@ const T = {
     lien: 'Renew my membership',
     apres: "If you'd rather stop, there's nothing to do: access ends on its own on the date above.",
     signature: 'Max-Morrys',
+    programme: (lien: string) =>
+      `Your renewal is on: on ${lien}, you'll get a Bictorys payment link by email (Wave, Orange Money or card).`,
+    rienProgramme: "Nothing will be charged unless you pay that link. If you don't, access simply ends on the date above.",
+    couper: 'Rather stop? Turn renewal off from your Club area:',
+    lienCouper: 'Manage my membership',
   },
 } as const;
 
@@ -98,8 +97,39 @@ export function buildRenewalNotice(
   abonnement: { userName?: string; expiresAt: string; langue: Langue },
   dateLisible: string,
   urlReabonnement: string,
+  /** Renouvellement programmé : date lisible du lien, et page où le couper. */
+  programme?: { lienLe: string; urlGerer: string },
 ): { subject: string; html: string; text: string } {
   const t = T[abonnement.langue];
+  if (programme) {
+    const html = DS.page({
+      langue: abonnement.langue,
+      apercu: t.corps(dateLisible),
+      contenu: [
+        DS.paragraphe(t.bonjour(abonnement.userName)),
+        DS.titre(t.corps(dateLisible)),
+        DS.paragraphe(t.programme(programme.lienLe)),
+        DS.paragraphe(t.rienProgramme, true),
+        DS.filet(),
+        DS.paragraphe(t.couper),
+        DS.bouton(t.lienCouper, programme.urlGerer),
+        DS.paragraphe(t.signature),
+      ].join('\n'),
+    });
+    const text = [
+      t.bonjour(abonnement.userName),
+      '',
+      t.corps(dateLisible),
+      t.programme(programme.lienLe),
+      t.rienProgramme,
+      '',
+      t.couper,
+      programme.urlGerer,
+      '',
+      t.signature,
+    ].join('\n');
+    return { subject: t.subject, html, text };
+  }
   /*
    * LA DATE EST LE TITRE.
    *
@@ -188,15 +218,22 @@ export async function sendRenewalNotices(
     const prefs = profil?.data.preferences as { language?: string } | undefined;
     const langue: Langue = prefs?.language === 'en' ? 'en' : 'fr';
 
-    const fin = new Date(expiresAt);
-    const dateLisible = langue === 'fr'
-      ? `${fin.getUTCDate()}/${String(fin.getUTCMonth() + 1).padStart(2, '0')}/${fin.getUTCFullYear()}`
-      : `${String(fin.getUTCMonth() + 1).padStart(2, '0')}/${fin.getUTCDate()}/${fin.getUTCFullYear()}`;
+    const lisible = (date: Date) => langue === 'fr'
+      ? `${date.getUTCDate()}/${String(date.getUTCMonth() + 1).padStart(2, '0')}/${date.getUTCFullYear()}`
+      : `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${date.getUTCDate()}/${date.getUTCFullYear()}`;
+    const dateLisible = lisible(new Date(expiresAt));
+
+    const lien = typeof d.renewalLinkDate === 'string' ? new Date(d.renewalLinkDate) : null;
+    const programme = d.autoRenew === true && typeof d.bictorysSubscriptionId === 'string'
+      && lien && !Number.isNaN(lien.getTime())
+      ? { lienLe: lisible(lien), urlGerer: urlSite(env.APP_BASE_URL, '/mon-espace/club', langue) }
+      : undefined;
 
     const message = buildRenewalNotice(
       { userName: typeof d.userName === 'string' ? d.userName : undefined, expiresAt, langue },
       dateLisible,
       urlSite(env.APP_BASE_URL, '/club-des-digitos', langue),
+      programme,
     );
 
     const envoi = await sendEmail(env, { to: destinataire, ...message });

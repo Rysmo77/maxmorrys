@@ -2,8 +2,8 @@
   "tab": {
     "memberActive": "Club des Digitos · Active member",
     "expiresOn": "Expires on {{date}}",
-    "autoRenew": " · Reminder on",
-    "manual": " · No reminder",
+    "autoRenew": " · Renewal on",
+    "manual": " · No renewal",
     "refresh": "Refresh",
     "more": "More",
     "nav": {
@@ -196,8 +196,8 @@
     "pendingText": "Your payment is awaiting confirmation. Your access will be activated automatically once received. If you run into an issue, ",
     "contactUs": "write to me",
     "activateTitle": "Activate the Club des Digitos",
-    "autoRenewLabel": "Remind me before it ends ",
-    "autoRenewHint": "(an email 15 days ahead — nothing gets charged)",
+    "autoRenewLabel": "Renew every year ",
+    "autoRenewHint": "(a payment link 7 days before it ends — nothing is charged without you)",
     "processing": "Processing...",
     "joinCta": "Join the Club",
     "eyebrow": "I'll push you further · paid, closed",
@@ -544,5 +544,13 @@
       "noDebit": "No automatic debit",
       "backEdu": "back to my space"
     }
+  },
+  "renewal": {
+    "title": "Renewal",
+    "onBody": "On: 7 days before your membership ends, you get a Bictorys payment link by email (Wave, Orange Money or card). Nothing is charged unless you pay it.",
+    "offBody": "Off: no link will be sent. You only get a reminder 15 days before the end, and access stops on that date.",
+    "onToast": "Renewal turned on.",
+    "offToast": "Renewal turned off — no link will be sent.",
+    "error": "Couldn't save this setting. Try again."
   }
 }

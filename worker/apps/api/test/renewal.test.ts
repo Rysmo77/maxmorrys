@@ -83,6 +83,19 @@ describe('buildRenewalNotice', () => {
     assertNePrometAucunPrelevement(m);
   });
 
+  it('renouvellement programmé : annonce la date du lien, où le couper, et ne prélève rien', () => {
+    for (const langue of ['fr', 'en'] as const) {
+      const m = buildRenewalNotice({ ...ab, langue }, '15/09/2026', 'https://x', {
+        lienLe: '08/09/2026',
+        urlGerer: 'https://club.maxmorrys.me/mon-espace/club',
+      });
+      expect(m.text).toContain('08/09/2026');
+      expect(m.text).toContain('https://club.maxmorrys.me/mon-espace/club');
+      assertDitQueRienNestPreleve(m);
+      assertNePrometAucunPrelevement(m);
+    }
+  });
+
   it('rend toujours une version texte non vide', () => {
     const m = buildRenewalNotice(ab, '15/09/2026', 'https://x');
     expect(m.text.trim().length).toBeGreaterThan(80);

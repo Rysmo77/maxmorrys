@@ -35,6 +35,7 @@ import { estRouteTransfert, handleSessionTransfer } from './sessionTransfer';
 import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
 import { runImportSpotify, runSyncMediaStats } from './lib/media-sync';
+import { programmerRenouvellementsClub } from './lib/club-autorenew';
 import { sendRenewalNotices } from './lib/renewal';
 import { sendRysmoRenewalNotices } from './lib/rysmo-renewal';
 import { rebuildLeaderboard } from './lib/leaderboard';
@@ -171,6 +172,14 @@ export default {
           qui lèverait emporterait tous les suivants s'ils partageaient un seul bloc.
         */
         const etapes: Array<[string, () => Promise<string>]> = [
+          /*
+            AVANT le rappel : un renouvellement programmé ce matin a sa date de lien, que le
+            rappel de J-15 annonce.
+          */
+          ['Renouvellements du Club (Bictorys)', async () => {
+            const b = await programmerRenouvellementsClub(db, env);
+            return `${b.programmes} programmé(s), ${b.echecs} échec(s), sur ${b.examines} candidat(s)`;
+          }],
           ['Rappels d’échéance du Club', async () => {
             const b = await sendRenewalNotices(db, env);
             return `${b.envoyes} envoyé(s), ${b.echecs} échec(s), sur ${b.examines} abonnement(s) actif(s)`;

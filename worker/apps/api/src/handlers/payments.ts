@@ -12,6 +12,7 @@ import {
   type ChargeCustomer,
 } from '../lib/bictorys';
 import { asText, toDate } from '../lib/values';
+import { annulerAbonnementBictorys } from '../lib/bictorys-billing';
 import { resolveCheckoutTotal } from '../lib/checkout';
 import type { AchatKind } from '../lib/purchase';
 import { SUBSCRIPTION_QUOTAS } from '../lib/rysmo-quota';
@@ -223,6 +224,12 @@ export async function createClubCharge(data: unknown, context: CallContext): Pro
     startedAt: now.toISOString(),
     expiresAt: expiresAt.toISOString(),
     autoRenew: autoRenew ?? true,
+    /*
+     * Le CONSENTEMENT au renouvellement par lien Bictorys (voir `lib/club-autorenew.ts`).
+     * Distinct de `autoRenew` parce que les adhésions antérieures portaient `autoRenew: true`
+     * au sens de « préviens-moi » seulement : elles ne sont pas inscrites d'office.
+     */
+    ...((autoRenew ?? true) ? { autoRenewMode: 'bictorys', autoRenewConsentAt: new Date().toISOString() } : {}),
     status: 'pending',
     amount,
     chargeId: result.chargeId,
@@ -239,6 +246,51 @@ export async function createClubCharge(data: unknown, context: CallContext): Pro
   });
 
   return { checkoutUrl: result.link, transactionId: txn.id };
+}
+
+/**
+ * Active ou coupe le renouvellement du Club, depuis l'espace du membre — ce que l'article 5.4
+ * des CGV promet « à tout moment ».
+ *
+ * Couper ANNULE l'abonnement chez Bictorys avant d'écrire chez nous : si l'annulation échoue,
+ * la personne doit le savoir, sinon elle recevrait un lien qu'elle croit avoir refusé.
+ * Activer ne crée rien ici : le cron de 08:00 programme le renouvellement (et retente seul).
+ */
+export async function setClubAutoRenew(data: unknown, context: CallContext): Promise<unknown> {
+  const { uid } = requireAuth(context);
+  const { enabled } = (data ?? {}) as { enabled?: unknown };
+  if (typeof enabled !== 'boolean') throw new HttpsError('invalid-argument', 'enabled doit être un booléen.');
+
+  const path = `club_subscriptions/${uid}`;
+  const abonnement = await context.db.get(path);
+  if (!abonnement) throw new HttpsError('not-found', "Tu n'as pas d'abonnement au Club.");
+
+  if (!enabled) {
+    const subscriptionId = asText(abonnement.data.bictorysSubscriptionId);
+    if (subscriptionId) {
+      try {
+        await annulerAbonnementBictorys(context.env, subscriptionId);
+      } catch (error: unknown) {
+        console.error('Annulation Bictorys échouée pour', uid, error);
+        throw new HttpsError('unavailable', "Le renouvellement n'a pas pu être coupé. Réessaie dans un instant.");
+      }
+    }
+    await context.db.update(path, {
+      autoRenew: false,
+      autoRenewMode: 'off',
+      bictorysSubscriptionId: null,
+      renewalLinkDate: null,
+      autoRenewCancelledAt: new Date().toISOString(),
+    });
+    return { autoRenew: false };
+  }
+
+  await context.db.update(path, {
+    autoRenew: true,
+    autoRenewMode: 'bictorys',
+    autoRenewConsentAt: new Date().toISOString(),
+  });
+  return { autoRenew: true };
 }
 
 /* ─────────────────────────── Packs et abos Rysmo ────────────────────────── */

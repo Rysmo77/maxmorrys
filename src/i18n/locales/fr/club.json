@@ -2,8 +2,8 @@
   "tab": {
     "memberActive": "Club des Digitos · Membre actif",
     "expiresOn": "Expire le {{date}}",
-    "autoRenew": " · Rappel activé",
-    "manual": " · Sans rappel",
+    "autoRenew": " · Renouvellement activé",
+    "manual": " · Sans renouvellement",
     "refresh": "Actualiser",
     "more": "Plus",
     "nav": {
@@ -196,8 +196,8 @@
     "pendingText": "Ton paiement est en attente de confirmation. Ton accès sera activé automatiquement dès réception. Si tu as un souci, ",
     "contactUs": "écris-moi",
     "activateTitle": "Activer le Club des Digitos",
-    "autoRenewLabel": "Préviens-moi avant l'échéance ",
-    "autoRenewHint": "(un e-mail 15 jours avant, rien n'est prélevé)",
+    "autoRenewLabel": "Renouveler chaque année ",
+    "autoRenewHint": "(un lien de paiement 7 jours avant l'échéance — rien n'est prélevé sans toi)",
     "processing": "Traitement...",
     "joinCta": "Rejoindre le Club",
     "eyebrow": "Je te transforme · payant, fermé",
@@ -544,5 +544,13 @@
       "noDebit": "Aucun prélèvement automatique",
       "backEdu": "retourner à mon espace"
     }
+  },
+  "renewal": {
+    "title": "Renouvellement",
+    "onBody": "Activé : 7 jours avant l'échéance, tu reçois par e-mail un lien de paiement Bictorys (Wave, Orange Money ou carte). Rien n'est prélevé sans que tu le paies.",
+    "offBody": "Coupé : aucun lien ne te sera envoyé. Tu reçois seulement un rappel 15 jours avant la fin, et l'accès s'arrête à l'échéance.",
+    "onToast": "Renouvellement activé.",
+    "offToast": "Renouvellement coupé — aucun lien ne te sera envoyé.",
+    "error": "Le réglage n'a pas pu être enregistré. Réessaie."
   }
 }
