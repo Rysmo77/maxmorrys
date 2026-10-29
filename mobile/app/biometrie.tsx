@@ -44,7 +44,7 @@ export default function Biometrie() {
   const [pose, setPose] = useState(false);
   useEffect(() => {
     if (!pose) return undefined;
-    const m = setTimeout(() => router.replace('/espace'), 1100);
+    const m = setTimeout(() => router.replace('/nommer'), 1100);
     return () => clearTimeout(m);
   }, [pose]);
 
@@ -133,7 +133,7 @@ export default function Biometrie() {
             tone="quiet"
             label="Continuer"
             style={{ marginTop: 18 }}
-            onPress={() => router.replace('/espace')}
+            onPress={() => router.replace('/nommer')}
           />
         </>
       ) : actif ? (
@@ -142,7 +142,7 @@ export default function Biometrie() {
             tone="digitalise"
             label="C'est bon"
             style={{ marginTop: 18 }}
-            onPress={() => router.replace('/espace')}
+            onPress={() => router.replace('/nommer')}
           />
           <Button
             tone="quiet"
@@ -161,7 +161,7 @@ export default function Biometrie() {
             disabled={capacite === null || occupe}
             onPress={() => { void poser(); }}
           />
-          <Button tone="quiet" label="Non merci" style={{ marginTop: 9 }} onPress={() => router.replace('/espace')} />
+          <Button tone="quiet" label="Non merci" style={{ marginTop: 9 }} onPress={() => router.replace('/nommer')} />
         </>
       )}
     </Screen>

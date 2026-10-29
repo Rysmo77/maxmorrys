@@ -7,7 +7,7 @@ import {
 } from '../../ds';
 import { RELEVE as REFERENCE_ASOF, SOURCE as REFERENCE_SOURCE } from '../../contenu/demo';
 import { provenance, useApercuClub, useClub } from '../../donnees';
-import { ONGLETS_CLUB, ongletDe, type OngletClub } from '../../contenu/club';
+import { NOM_SERVEUR, ONGLETS_CLUB, ongletDe, type OngletClub } from '../../contenu/club';
 import { VERROUS } from '../../contenu/verrous';
 
 /**
@@ -46,6 +46,7 @@ export default function ClubLayout() {
     <Stack screenOptions={{ headerShown: false, animation: reduit ? 'none' : 'fade', animationDuration: 180 }}>
       <Stack.Screen name="membre" options={{ animation: reduit ? 'none' : screenAnimation }} />
       <Stack.Screen name="bloques" options={{ animation: reduit ? 'none' : screenAnimation }} />
+      <Stack.Screen name="publication" options={{ animation: reduit ? 'none' : screenAnimation }} />
     </Stack>
   );
 }
@@ -180,7 +181,8 @@ function CorpsVerrouille({ onglet }: { onglet: OngletClub | null }) {
   /* Les compteurs RÉELS, avec LEURS libellés : c'est le serveur qui sait ce qu'il mesure.
      Tant qu'il n'a pas répondu, les libellés du kit restent, chacun « non relevé ». */
   const apercu = useApercuClub();
-  const servis = onglet ? apercu.valeur?.onglets.find((o) => o.onglet === onglet.libelle)?.compteurs : undefined;
+  const nomServeur = onglet ? (NOM_SERVEUR[onglet.libelle] ?? onglet.libelle) : null;
+  const servis = nomServeur ? apercu.valeur?.onglets.find((o) => o.onglet === nomServeur)?.compteurs : undefined;
   const compteurs = servis ?? v?.compteurs.map((l) => ({ l, n: null })) ?? [];
   return (
     <>

@@ -55,13 +55,6 @@ export const VERROUS: Readonly<Record<OngletClub['libelle'], Verrou>> = {
     apercuTitre: 'Une session, en entier',
     apercuQuoi: "Une session avec son jour, son horaire, son lieu et ce qui s'y fait.",
   },
-  Classement: {
-    titre: ['TA VAGUE,', 'PAS UN PALMARÈS.'],
-    quoi: "Ta place parmi les personnes arrivées en même temps que toi. Pas face à celles qui ont deux ans d'avance — il n'y a aucun classement général, et il n'y en aura pas.",
-    compteurs: ['dans ta vague', 'vues de progression', 'classement absolu'],
-    apercuTitre: 'Ce que tu verrais',
-    apercuQuoi: 'Ta place dans ta vague d’arrivée, et ce que tu as gagné cette semaine.',
-  },
   Opportunités: {
     titre: ['LES MISSIONS', 'OUVERTES.'],
     quoi: "Des budgets annoncés par la personne qui publie. Ils ne sont pas vérifiés par la plateforme, et c'est écrit sur l'écran plutôt que caché dans les CGV.",
@@ -69,7 +62,14 @@ export const VERROUS: Readonly<Record<OngletClub['libelle'], Verrou>> = {
     apercuTitre: 'Une mission, en entier',
     apercuQuoi: 'Une mission avec son lieu, sa date de publication et son budget annoncé.',
   },
-  Informations: {
+  Défis: {
+    titre: ['UN DÉFI', 'PAR SEMAINE.'],
+    quoi: "Un défi lancé le lundi, une capture avant / après à publier. Pas de vote : des coups de cœur choisis et expliqués en session.",
+    compteurs: ['défi en cours', 'participations', 'coups de cœur'],
+    apercuTitre: 'Un défi, en entier',
+    apercuQuoi: "Le défi de la semaine, sa date de clôture, ce qu'il rapporte, et la liste des participations.",
+  },
+  Infos: {
     titre: ['CE QUI EST', 'GARANTI.'],
     quoi: "Ce que le Club garantit, ce qu'il ne garantit pas, et comment se passe l'échéance — écrit avant d'entrer, pas en bas de page.",
     compteurs: ['digests publiés', 'par semaine', 'e-mail envoyé'],

@@ -98,7 +98,8 @@ describe('exigences des magasins — textes légaux et suppression de compte', (
      * tout d'un contrôle — et AUCUN `onPress`. Sur l'écran des données, c'est le pire
      * endroit pour un bouton mort : on repart en croyant que l'export n'existe pas.
      */
-    const profil = sansCommentaires(lire('(tabs)/profil.tsx'));
+    /* Passe 2 (29/10/2026) : l'export a suivi les réglages dans Préférences (maquette 47). */
+    const profil = sansCommentaires(lire('preferences.tsx'));
     const titre = profil.indexOf('Exporter mes données');
     expect(titre, 'la ligne d’export a disparu — le test ne vérifie plus rien').toBeGreaterThan(-1);
 

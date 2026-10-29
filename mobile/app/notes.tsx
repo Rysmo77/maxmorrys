@@ -6,6 +6,7 @@ import {
 } from '../ds';
 import { ErreurAppel, ecrireUneNote, provenance, useEspace, useNotes } from '../donnees';
 import { BandeauHorsLigne } from '../ecrans/BandeauHorsLigne';
+import { BandeApprendre } from '../ecrans/BandeApprendre';
 
 /**
  * ══ 5 · MES NOTES ══
@@ -102,6 +103,7 @@ export default function Notes() {
       <BandeauHorsLigne />
       <Eyebrow style={{ marginTop: 6 }}>{espace.valeur?.moduleEnCours ?? 'Tes notes'}</Eyebrow>
       <Display size={27} lines={['Mes notes']} style={{ marginTop: 8 }} />
+      <BandeApprendre />
 
       <View style={{
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

@@ -26,7 +26,7 @@ import type { TransactionVue } from '../donnees/contrat.generated';
 function destination(t: TransactionVue): { libelle: string; aller: () => void } {
   if (t.ligne === 'club') return { libelle: 'Ouvrir le Club', aller: () => router.replace('/club') };
   if (t.ligne === 'rysmoPack' || t.ligne === 'rysmoSubscription') {
-    return { libelle: 'Ouvrir le répétiteur', aller: () => router.replace('/repetiteur') };
+    return { libelle: 'Ouvrir ton assistant', aller: () => router.replace('/repetiteur') };
   }
   if (t.slug) return { libelle: 'Ouvrir la formation', aller: () => router.replace({ pathname: '/formation', params: { slug: t.slug as string } }) };
   return { libelle: 'Ouvrir mes cours', aller: () => router.replace('/cours') };

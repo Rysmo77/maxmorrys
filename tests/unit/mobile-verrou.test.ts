@@ -183,7 +183,8 @@ describe('le verrou biométrique — la racine attend', () => {
 });
 
 describe('le verrou biométrique — le profil dit la vérité', () => {
-  const profil = code('app/(tabs)/profil.tsx');
+  /* Passe 2 (29/10/2026) : les réglages ont quitté le Profil pour Préférences (maquette 47). */
+  const profil = code('app/preferences.tsx');
 
   it("l'interrupteur reflète l'état réel, il ne l'invente pas", () => {
     /*
@@ -192,7 +193,7 @@ describe('le verrou biométrique — le profil dit la vérité', () => {
      */
     expect(profil).not.toMatch(/useState\(true\)[\s\S]{0,40}bio/);
     expect(profil).not.toMatch(/const \[bio,/);
-    expect(profil).toMatch(/from '\.\.\/\.\.\/donnees\/verrou'/);
+    expect(profil).toMatch(/from '\.\.\/donnees\/verrou'/);
     expect(profil).toMatch(/verrou\.actif/);
   });
 

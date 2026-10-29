@@ -19,12 +19,13 @@ const RACINE = resolve(__dirname, '../..');
 const CLUB = join(RACINE, 'mobile/app/club');
 const lire = (p: string) => readFileSync(p, 'utf8');
 
-/** `CLUB_ORDRE` du kit, lu dans le fichier — c'est lui qui fait autorité sur le rendu. */
+/**
+ * L'ordre des maquettes v3 (Rysmo-iOS/Android-25…33) et du PRD rév. 6, C-09 — décision du porteur
+ * du 29/10/2026 : maquettes, DS et PRD font foi. Le `CLUB_ORDRE` de `DS_Final/ui_kits/native`
+ * est antérieur (il portait encore « Classement », sorti de l'app : R-05, FR-078).
+ */
 function ordreDuKit(): string[] {
-  const shell = lire(join(RACINE, 'DS_Final/ui_kits/native/NativeShell.js'));
-  const m = /const CLUB_ORDRE\s*=\s*\[([^\]]*)\]/.exec(shell);
-  if (!m) throw new Error('CLUB_ORDRE introuvable dans le kit natif');
-  return [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]);
+  return ['Fil', 'Discussions', 'Agenda', 'Opportunités', 'Membres', 'Défis', 'Infos', 'Parrainage'];
 }
 
 describe('la bande des huit onglets', () => {

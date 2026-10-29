@@ -49,7 +49,7 @@ export function ChatBubble({
       <Revele>
         <View
           accessible
-          accessibilityLabel={`${auteur ?? 'Le répétiteur'} écrit une réponse`}
+          accessibilityLabel={`${auteur ?? "L'assistant"} écrit une réponse`}
           accessibilityLiveRegion="polite"
           style={[base, {
             alignSelf: 'flex-start', borderBottomLeftRadius: 6,
@@ -59,7 +59,7 @@ export function ChatBubble({
         >
           <Onde actif taille={16} />
           <Text style={{ fontFamily: POLICE.corps, fontSize: 13.5, color: t('textMuted') }}>
-            {auteur ?? 'Le répétiteur'} réfléchit…
+            {auteur ?? "L'assistant"} réfléchit…
           </Text>
         </View>
       </Revele>

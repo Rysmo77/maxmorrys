@@ -1,7 +1,7 @@
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Pressoir,
+  Pressoir, IconButton,
   Avatar, Body, Button, Display, Eyebrow, Gradient, Icon, Ligne, Liste, Num,
   ProgressBar, QuotaMeter, Reprise, Rubrique, SansDonnees, Screen, Surface, useActionGradient,
   useToken, useTutorNom,
@@ -99,14 +99,21 @@ export default function Espace() {
       /* La cloche ÉTEINTE est partie : aucun canal de notification n'existe, et une icône qui
          ne répond pas, en haut du premier écran, dit « inachevé » avant tout le reste. */
       droite={
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Ton profil"
-          onPress={() => router.push('/(tabs)/profil')}
-          hitSlop={4}
-        >
-          <Avatar initials={moi.valeur?.initiale ?? ''} size={38} decoratif />
-        </Pressable>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {/* Passe 2 (maquette 08/09) : la cloche revient, et elle mène à une boîte RÉELLE —
+              vide, et qui dit pourquoi. Elle n'est plus une affordance qui ne répond pas. */}
+          <IconButton label="Notifications" onPress={() => router.push('/notifications')}>
+            <Icon name="bell" size={18} color={t('textBody')} strokeWidth={2} />
+          </IconButton>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ton profil"
+            onPress={() => router.push('/(tabs)/profil')}
+            hitSlop={4}
+          >
+            <Avatar initials={moi.valeur?.initiale ?? ''} size={38} decoratif />
+          </Pressable>
+        </View>
       }
     >
       <BandeauHorsLigne />
@@ -232,8 +239,18 @@ export default function Espace() {
         </Surface>
       </Pressoir>
 
+      {/* Passe 2 (maquette 08) : « De Max-Morrys » — les contenus et l'appel s'ouvrent d'ici
+          (PRD rév. 6 §5.1). Les épisodes eux-mêmes viennent du pôle média, qui les relève. */}
+      <Rubrique>De Max-Morrys</Rubrique>
+      <Liste>
+        <Ligne icone="mic" fondIcone={t('mmOrange')} titre="Écouter et lire" sous="le podcast, les vidéos, les articles" onPress={() => router.push('/media')} />
+        <Ligne icone="phone" titre="Réserver un appel" sous="30 min · gratuit" onPress={() => router.push('/rendez-vous')} />
+        <Ligne icone="store" titre="Commerces et TPE" sous="un site pour ta boutique" onPress={() => router.push('/presence')} />
+      </Liste>
+
       <Rubrique>Dans ton espace</Rubrique>
       <Liste>
+        <Ligne icone="card" titre="Mes paiements" sous="faits sur le site" onPress={() => router.push('/paiements')} />
         {ESPACE.map((e) => (
           <Ligne
             key={e.href}

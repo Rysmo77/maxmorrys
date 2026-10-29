@@ -40,7 +40,7 @@ import { deconnexion } from '../donnees/identite';
 const CE_QUI_PART = [
   { titre: 'Tes inscriptions et leur progression', meta: 'les formations ouvertes sur ce compte' },
   { titre: 'Tes notes personnelles', meta: 'elles ne sont nulle part ailleurs' },
-  { titre: 'La mémoire de ton répétiteur', meta: 'effaçable seule, sans supprimer le compte' },
+  { titre: 'La mémoire de ton assistant', meta: 'effaçable seule, sans supprimer le compte' },
   { titre: 'Ton abonnement au Club, s’il est actif', meta: 'il s’arrête avec le compte' },
   /* La déconnexion GARDE les leçons et la file (une file non envoyée est un geste de la
      personne) ; la suppression du compte efface tout (`effacerHorsLigne`). */

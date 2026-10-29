@@ -108,6 +108,14 @@ export default function Console() {
         ))}
       </Liste>
 
+      {/* Passe 2 (maquettes 51 à 53) : les trois écrans de la console mobile. */}
+      <Rubrique>Sur téléphone</Rubrique>
+      <Liste>
+        <Ligne icone="shield" titre="Club · modération" sous="les signalements à trancher" onPress={() => router.push('/console/moderation')} />
+        <Ligne icone="card" titre="Transactions" sous="lecture seule" onPress={() => router.push('/console/transactions')} />
+        <Ligne icone="user" titre="Un compte" sous="rôle, accès, quota, traces" onPress={() => router.push('/console/compte')} />
+      </Liste>
+
       <Button
         tone="quiet"
         label="Voir ce que le rôle n'atteint pas"

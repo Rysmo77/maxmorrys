@@ -16,6 +16,11 @@ import {
  * Chaque onglet actif prend la teinte de SON espace (`data-space`) : encre pour l'accueil et
  * le profil, bleu pour Apprendre, violet pour le Club et l'assistant.
  *
+ * ⭐ PASSE 2 (29/10/2026) — PRD rév. 6, C-03 : l'onglet s'appelle « Assistant », comme sur les
+ * 58 maquettes (Rysmo-iOS/Android-*). Le NOM de l'assistant (« Rysmo IA » par défaut,
+ * renommable) reste lu par `useTutorNom()` : il est annoncé au lecteur d'écran avec l'onglet
+ * et s'affiche en titre de l'écran. Le paragraphe suivant décrit l'état antérieur.
+ *
  * L'ONGLET DE L'ASSISTANT PORTE UN NOM QUI N'EST PAS À NOUS. `tutorNom()` renvoie « Répétiteur » par
  * défaut, mais une personne peut renommer son tuteur — et c'est alors SON nom qui doit
  * s'afficher dans SA barre. Écrire « Rysmo » ici casserait ce renommage, et confondrait au
@@ -118,7 +123,7 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="repetiteur"
-        options={{ title: tuteur, tabBarActiveTintColor: actif(club), tabBarIcon: ({ focused }) => <IconeOnglet nom="sparkles" actif={focused} espace="ia" /> }}
+        options={{ title: 'Assistant', tabBarAccessibilityLabel: `Assistant · ${tuteur}`, tabBarActiveTintColor: actif(club), tabBarIcon: ({ focused }) => <IconeOnglet nom="sparkles" actif={focused} espace="ia" /> }}
       />
       <Tabs.Screen
         name="profil"

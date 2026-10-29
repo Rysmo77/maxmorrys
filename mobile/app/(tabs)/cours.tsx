@@ -1,119 +1,50 @@
-import { useState } from 'react';
-import { View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import {
-  Body, Button, ChipRow, Display, Eyebrow, Fondu, Num, Reprise, Rubrique,
-  SansDonnees, Screen, Surface, TerritoryCard, isIOS, useToken,
+  Body, Button, Display, Eyebrow, Ligne, Liste, Num, Reprise, Rubrique,
+  SansDonnees, Screen, isIOS, useToken,
 } from '../../ds';
-
-/**
- * LA BANDE D'APPRENDRE (`mm-r-band` du kit v4.5). Le kit en dessine six — Mes formations,
- * Catalogue, Cohorte, Notes, Succès, Téléchargements. Seules existent ici celles qui ont un
- * écran : la cohorte et les succès n'ont ni données ni code, et le catalogue EST cette page.
- * Les certificats, qui existent, prennent la place des succès.
- */
-const BANDE = [
-  { libelle: 'Mes formations', href: null },
-  { libelle: 'Notes', href: '/notes' },
-  { libelle: 'Certificats', href: '/certificats' },
-  { libelle: 'Téléchargements', href: '/telechargements' },
-] as const;
-import { provenance, useCours, useEspace, useMoi, useRafraichir } from '../../donnees';
+import { provenance, useCertificats, useCours, useEspace, useMoi, useRafraichir } from '../../donnees';
 import { BandeauHorsLigne } from '../../ecrans/BandeauHorsLigne';
+import { BandeApprendre } from '../../ecrans/BandeApprendre';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
- * ══ 1 · LE CATALOGUE ══ — DEUX FORMATIONS, ET RIEN QUI RESSEMBLE À UNE PREUVE SOCIALE.
+ * ══ 11 · MES FORMATIONS ══ — l'onglet Apprendre (maquette Rysmo-iOS-11, PRD rév. 6 §5.1).
  *
- * NI NOTE, NI COMPTEUR D'INSCRITS, NI TÉMOIGNAGE. Ce n'est pas de la modestie : la plateforme
- * vient d'ouvrir, il n'y a rien d'honnête à en dire, et un chiffre de façade est ce qui se
- * vérifie le plus vite — au premier écran après le paiement. Ce qui prend leur place, c'est
- * l'encart de vérité : il dit pourquoi il n'y a que deux titres.
+ * ⭐ PASSE 2 (29/10/2026). L'onglet rendait le catalogue ; la maquette en fait la page de ce
+ * que la personne POSSÈDE : la reprise en tête, la cohorte, la liste de ses formations, puis
+ * les leçons libres. Le catalogue est devenu la deuxième section de la bande (`/catalogue`).
  *
- * ── DEUX ÉTATS, ET LA DIFFÉRENCE ENTRE EUX EST L'INFORMATION ─────────────────────────────
- * Le nombre de formations arrive par la route quand le serveur l'a compté (`?compte=`), et
- * l'écran distingue alors trois situations que la plupart des applications confondent :
- *
- *   compte absent  → le contenu de RÉFÉRENCE du transfert, cité comme tel.
- *   compte = 0     → « le catalogue ouvre bientôt » : un zéro DATÉ est une information.
- *   compte > 0     → la liste transmise.
- *
- * Un tiret ne dirait aucune des trois.
+ * TOUT EST DÉRIVÉ. « Mes formations · N » compte les formations que le serveur marque
+ * `acquise` ; « terminée · certifiée » vient des certificats émis, avec leur code. Ce que le
+ * serveur ne transmet pas (date d'ouverture d'une liste d'attente, cohorte, leçons libres
+ * isolées) n'est pas écrit : la ligne renvoie à l'écran qui le dira.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 export default function Cours() {
-  const { compte } = useLocalSearchParams<{ compte?: string }>();
-  const compteServeur = compte ? Number(compte) : Number.NaN;
-  const videConfirme = Number.isFinite(compteServeur) && compteServeur === 0;
-
-  /* En production le catalogue est vide — pas parce qu'il n'y a rien à vendre, mais parce que
-     rien ne l'a transmis. Les deux cas ne se disent pas de la même façon, et c'est toute la
-     raison d'être des trois branches ci-dessous. */
   const t = useToken();
   const cours = useCours();
   const moi = useMoi();
   const espace = useEspace();
-  const catalogue = cours.valeur ?? [];
+  const certificats = useCertificats();
   const { enRafraichissement, rafraichir } = useRafraichir();
-  const enLecture = cours.phase === 'charge' || cours.phase === 'restauration';
 
-  /*
-    LE FILTRE SE DÉRIVE DU CATALOGUE, IL NE LE DÉCRIT PAS DE MÉMOIRE.
-
-    Un niveau n'apparaît dans les onglets que s'il existe au moins une formation qui le
-    porte, et son compte est celui qu'on obtient en comptant. Une formation dont le serveur
-    ne renvoie pas de niveau reste dans « Tout » et n'invente aucun onglet — elle n'est pas
-    rangée dans un niveau qu'on lui aurait prêté.
-
-    L'ordre des onglets suit celui du catalogue, pas un ordre alphabétique : c'est
-    l'administration qui décide de ce qui vient en premier, et un tri ici la contredirait.
-  */
-  const [filtre, setFiltre] = useState('Tout');
-  const niveaux = catalogue
-    .map((f) => f.niveau)
-    .filter((n): n is string => typeof n === 'string' && n.length > 0)
-    .filter((n, i, tous) => tous.indexOf(n) === i);
-  /* `combien`, pas `compte` : `compte` est déjà le paramètre de route qui porte le nombre
-     de formations annoncé par le serveur (ligne 32). Deux sens pour un mot dans la même
-     portée, et le second l'emporte en silence. */
-  const combien = (n: string) => catalogue.filter((f) => f.niveau === n).length;
-  const majuscule = (n: string) => n.charAt(0).toUpperCase() + n.slice(1);
-
-  /* ⚠️ L'ÉTAT PORTE LE NIVEAU NU, JAMAIS LE LIBELLÉ. Le libellé contient un COMPTE, et le
-     compte change : il vaut « Tout · 0 » pendant le chargement, puis « Tout · 2 » quand la
-     réponse arrive. Un état initialisé sur le libellé ne correspondrait alors plus à aucune
-     option, et la liste se viderait à l'instant précis où elle vient de se remplir. */
-  const cles = ['Tout', ...niveaux];
-  const etiquette = (n: string) => (n === 'Tout' ? `Tout · ${catalogue.length}` : `${majuscule(n)} · ${combien(n)}`);
-  const optionsFiltre = cles.map(etiquette);
-  const visibles = filtre === 'Tout' ? catalogue : catalogue.filter((f) => f.niveau === filtre);
+  const miennes = (cours.valeur ?? []).filter((f) => f.acquise);
+  const certifiee = (titre: string) =>
+    certificats.valeur?.certificats.find((c) => c.formation === titre) ?? null;
 
   return (
     <Screen
       territory="forme"
       tabbar
-      titre={isIOS ? undefined : 'Mes cours'}
-      /* La loupe et la cloche ÉTEINTES sont parties : deux affordances qui ne répondent pas,
-         sur l'écran qu'on ouvre le plus, se lisent comme une application inachevée. */
+      titre={isIOS ? undefined : 'Apprendre'}
       onRefresh={rafraichir}
       enRafraichissement={enRafraichissement}
     >
       <BandeauHorsLigne />
-      {/* Le grand titre et la bande, communs aux trois états : on sait où l'on est avant de
-          savoir ce que le serveur a répondu. */}
-      <Eyebrow style={{ marginTop: 6 }}>Je te forme</Eyebrow>
+      <Eyebrow style={{ marginTop: 6 }}>Je te forme · accès à vie</Eyebrow>
       <Display size={32} lines={['Apprendre']} style={{ marginTop: 6 }} />
-      <ChipRow
-        options={BANDE.map((b) => b.libelle)}
-        value="Mes formations"
-        height={38}
-        debord={18}
-        onChange={(libelle) => {
-          const cible = BANDE.find((b) => b.libelle === libelle);
-          if (cible?.href) router.push(cible.href);
-        }}
-        style={{ marginTop: 14 }}
-      />
+      <BandeApprendre />
 
       {/* LA REPRISE, PREMIER OBJET (`mm-r-resume`) — seulement quand un module est en cours :
           une carte « reprendre » sans rien à reprendre promettrait un endroit qui n'existe pas. */}
@@ -121,7 +52,7 @@ export default function Cours() {
         <Reprise
           espace="edu"
           style={{ marginTop: 16 }}
-          surtitre="En cours"
+          surtitre={`En cours · ${espace.valeur.titreCourt}`}
           titre={espace.valeur.leconEnCours ?? espace.valeur.moduleEnCours}
           progression={espace.valeur.progression}
           meta={
@@ -136,110 +67,65 @@ export default function Cours() {
             : '/lecon')}
         />
       ) : null}
-      {videConfirme ? (
-        <>
-          <Display size={24} lines={['LE CATALOGUE', 'OUVRE BIENTÔT.']} style={{ marginTop: 22 }} />
-          <Surface level="hero" style={{ marginTop: 20, padding: 22 }}>
-            <Body style={{ fontWeight: '700' }}>Aucune formation n'est encore en ligne.</Body>
-            <Body muted style={{ marginTop: 9 }}>
-              Je préfère te le dire que te faire cliquer dans le vide.
-            </Body>
-            <Num
-              value={0}
-              {...provenance(cours)}
-              unit="formation en ligne"
-              style={{ fontSize: 15, marginTop: 12 }}
-            />
-          </Surface>
-        </>
-      ) : catalogue.length === 0 ? (
-        <>
-          {/* Le titre n'affirme l'absence qu'APRÈS la lecture : « N'EST PAS ARRIVÉ » pendant
-              le chargement se lisait comme une panne. */}
-          <Display size={24} lines={enLecture ? ['LE CATALOGUE.'] : ['LE CATALOGUE', "N'EST PAS ARRIVÉ."]} style={{ marginTop: 22 }} />
-          <SansDonnees
-            quoi="le catalogue"
-            origine="du serveur"
-            degat="Une formation inventée est une formation qu'on croit pouvoir suivre. Le catalogue est la promesse du produit : ce qui y figure doit exister."
-            etat={cours}
-            hauteur={4}
-            style={{ marginTop: 20 }}
+
+      {/* LA COHORTE — la carte de la maquette porte la date du prochain live. Le serveur ne la
+          transmet pas encore : la ligne mène à l'écran de la cohorte, qui le dit. */}
+      {moi.valeur ? (
+        <Liste style={{ marginTop: 14 }}>
+          <Ligne
+            icone="video"
+            titre="Ta cohorte"
+            sous="live, missions à relire, règles"
+            onPress={() => router.push('/cohorte')}
           />
-        </>
+        </Liste>
+      ) : null}
+
+      <Rubrique>
+        {cours.phase === 'servie' || cours.phase === 'replique'
+          ? `Mes formations · ${miennes.length}`
+          : 'Mes formations'}
+      </Rubrique>
+      {miennes.length === 0 ? (
+        <SansDonnees
+          quoi="tes formations"
+          degat="Une formation inventée ici est une formation qu'on croit posséder. Cette liste ne montre que ce que ton compte ouvre vraiment."
+          etat={cours.phase === 'servie' || cours.phase === 'replique'
+            ? { phase: 'vide', valeur: null, source: cours.source, asOf: cours.asOf }
+            : cours}
+          hauteur={3}
+          action={<Button tone="forme" size="sm" label="Voir le catalogue" onPress={() => router.push('/catalogue')} />}
+        />
       ) : (
-        <>
-          {/* ⚠️ CE TITRE DISAIT « 2 FORMATIONS. » EN DUR. Il l'affirmait avant toute lecture,
-              et il serait resté faux le jour où le catalogue en compte trois — ou une. Un
-              nombre écrit dans un titre est un nombre que personne ne rectifie, parce qu'il
-              ne ressemble pas à une donnée. Il est COMPTÉ maintenant. */}
-          <Rubrique>
-            {catalogue.length === 1 ? 'Le catalogue · 1 formation' : `Le catalogue · ${catalogue.length} formations`}
-          </Rubrique>
-          <Body muted style={{ marginTop: 2, fontSize: 14.5, lineHeight: 22 }}>
-            Ouvre une fiche pour voir son programme. Quand une formation a un module
-            d'ouverture, il se lit ici, tout de suite.
-          </Body>
-
-          {/* Le filtre porte SON compte : « Tout · 2 » dit la taille du catalogue en même
-              temps qu'il propose de le réduire.
-
-              ⚠️ CES TROIS COMPTES ÉTAIENT ÉCRITS EN DUR — « Tout · 2 », « Débutant · 1 »,
-              « Avancé · 1 » — à quinze lignes du titre dont le commentaire explique
-              justement pourquoi un nombre en dur est faux. Et le `ChipRow` n'avait pas
-              d'`onChange` : trois onglets qui ne filtraient rien, sous des comptes qui
-              n'auraient plus rien décrit dès la troisième formation.
-
-              `mobile-controles-morts.test.ts` ne pouvait pas le voir : la porte cherche un
-              `onPress` manquant, or un composant à choix se pilote par `onChange`. Le test
-              est étendu dans le même lot. */}
-          <ChipRow
-            options={optionsFiltre}
-            value={etiquette(filtre)}
-            onChange={(choix) => setFiltre(cles[optionsFiltre.indexOf(choix)] ?? 'Tout')}
-            style={{ marginTop: 18 }}
-          />
-
-          <Fondu cle={filtre} style={{ marginTop: 16 }}>
-            {visibles.map((f, i) => (
-              <TerritoryCard
+        <Liste>
+          {miennes.map((f) => {
+            const c = certifiee(f.titre);
+            return (
+              <Ligne
                 key={f.slug}
-                first={i === 0}
-                /* TOUTES LES CARTES SONT `forme`. Le transfert alterne bleu et violet pour le
-                   rythme ; ici le liseré porte du SENS — une formation relève de « je te
-                   forme », et lui donner la teinte de « je te transforme » dirait quelque
-                   chose de faux sur ce qu'on achète. */
-                territory="forme"
-                meta={f.meta}
-                title={f.titre}
-                titleSize={21}
-              >
-                {/* ⚠️ LE PRIX A QUITTÉ CETTE CARTE, et le paramètre `prix` avec lui.
-                    Un catalogue qui affiche des montants EST une vitrine, quel que soit le
-                    libellé du bouton — et le transmettre à l'écran suivant reconstituait le
-                    tunnel qu'on vient de retirer. Ce qui reste décrit le contenu : le sujet,
-                    le format, la durée. */}
-                <View style={{
-                  flexDirection: 'row', alignItems: 'flex-end',
-                  justifyContent: 'flex-end', gap: 12, marginTop: 16,
-                }}>
-                  <Button
-                    tone="primary"
-                    size="sm"
-                    label="Voir le programme"
-                    onPress={() => router.push({
-                      pathname: '/formation',
-                      params: { slug: f.slug, titre: f.titre },
-                    })}
-                  />
-                </View>
-              </TerritoryCard>
-            ))}
-          </Fondu>
-        </>
+                icone={c ? 'award' : 'book'}
+                fondIcone={c ? t('ok') : undefined}
+                titre={f.titre}
+                sous={c ? `Terminée · certifiée · ${c.code}` : f.meta}
+                onPress={() => router.push({ pathname: '/formation', params: { slug: f.slug, titre: f.titre } })}
+              />
+            );
+          })}
+        </Liste>
       )}
 
-      {/* La reprise n'a de sens que s'il y a une leçon en cours. Sans elle, la carte annoncerait
-          un endroit où revenir qui n'existe pas. */}
+      <Rubrique>Leçons libres</Rubrique>
+      <Liste>
+        <Ligne
+          icone="play"
+          titre="Les leçons d'ouverture"
+          sous="dans chaque fiche du catalogue, sans compte"
+          onPress={() => router.push('/catalogue')}
+        />
+      </Liste>
+      <Body muted style={{ marginTop: 10, fontSize: 12.5, lineHeight: 18 }}>
+        Les leçons libres se lisent depuis la fiche de leur formation.
+      </Body>
     </Screen>
   );
 }
