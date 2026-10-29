@@ -409,7 +409,7 @@ export default function RysmoWidget() {
       {/* ── Panneau de chat ── */}
       {open && (
         <div
-          className="fixed z-50 flex flex-col overflow-hidden bg-surface-sheet mm-drop inset-0 rounded-none border-0 shadow-none stack:inset-auto stack:bottom-24 stack:right-6 stack:w-96 stack:h-[600px] stack:max-h-[calc(100dvh-8rem)] stack:rounded-2xl stack:border stack:border-[color:var(--line)] stack:dark:border-[color:var(--border-hair)] stack:shadow-2xl"
+          className="fixed z-50 flex flex-col overflow-hidden bg-surface-sheet mm-drop inset-0 rounded-none border-0 shadow-none stack:inset-auto stack:bottom-24 stack:right-6 stack:w-96 stack:h-[600px] stack:max-h-[calc(100dvh-8rem)] stack:rounded-xl stack:border stack:border-[color:var(--line)] stack:dark:border-[color:var(--border-hair)] stack:shadow-lift"
         >
 
           {/* Header */}
@@ -485,7 +485,7 @@ export default function RysmoWidget() {
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                  className={`max-w-[80%] px-3 py-2.5 rounded-card text-sm leading-relaxed ${
                     msg.role === 'user'
                       ? 'bg-digitalise text-white rounded-tr-sm'
                       : 'bg-[color:var(--fill-2)] text-ink rounded-tl-sm'
@@ -504,7 +504,7 @@ export default function RysmoWidget() {
                 {/* Les trois points de `ChatBubble`, pas un rond : le système les décrit comme
                     « un ÉVÉNEMENT, pas un décor » — quelqu'un est en train de répondre. Ils
                     n'animent que l'opacité et une translation de 3 px. */}
-                <div className="bg-[color:var(--fill-2)] rounded-2xl rounded-tl-sm px-3 py-2.5 flex items-center gap-1.5" role="status" aria-live="polite">
+                <div className="bg-[color:var(--fill-2)] rounded-card rounded-tl-sm px-3 py-2.5 flex items-center gap-1.5" role="status" aria-live="polite">
                   <span className="sr-only">{t('thinking')}</span>
                   {[0, 0.15, 0.3].map((d) => (
                     <i
@@ -660,7 +660,7 @@ export default function RysmoWidget() {
       {/* ── FAB bouton ── */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`fixed bottom-24 stack:bottom-6 right-4 stack:right-6 z-50 w-14 h-14 rounded-full shadow-lg items-center justify-center transition duration-300 ${
+        className={`fixed bottom-24 stack:bottom-6 right-4 stack:right-6 z-50 w-14 h-14 rounded-full shadow-lift items-center justify-center transition duration-300 ${
           open ? 'hidden stack:flex bg-[color:var(--night-3)] rotate-12 scale-90' : 'flex bg-digitalise hover:bg-digitalise hover:scale-105'
         }`}
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}

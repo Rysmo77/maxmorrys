@@ -9,7 +9,7 @@ import { contentPath } from '../../lib/contentPath';
 import type { Formation, Enrollment, Certificate } from '../../types';
 import { Icon } from '@ds';
 import { estAVenir } from '../../types/formationRelease';
-import FormationArt from './FormationArt';
+import CourseCover from './CourseCover';
 
 function isRecent(dateString?: string): boolean {
   if (!dateString) return false;
@@ -58,8 +58,8 @@ export default function FormationCard({ formation, variant = 'default', enrollme
     const done = enrollment?.completedLessons.length ?? 0;
     const isComplete = progress === 100;
     return (
-      <div className="group flex flex-col bg-surface-sheet border border-[color:var(--line)] rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-md transition duration-300">
-        <LocalizedLink to={`/cours/${formation.slug}`} className="relative block aspect-[16/9] overflow-hidden">
+      <div className="mm-prod group overflow-hidden">
+        <LocalizedLink to={`/cours/${formation.slug}`} className="relative block aspect-[16/9] overflow-hidden rounded-card">
           <img
             src={formation.coverImage}
             alt={formation.title}
@@ -72,14 +72,14 @@ export default function FormationCard({ formation, variant = 'default', enrollme
             </span>
           </div>
         </LocalizedLink>
-        <div className="flex flex-col flex-1 p-4">
+        <div className="flex flex-col flex-1 px-2 pb-2">
           <TranslatedText text={formation.title} as="p" className="font-bold text-ink text-sm line-clamp-2 mb-3 flex-1" />
           <div className="flex justify-between text-xs text-ink-2 mb-1">
             <span>{t('card.progress')}</span>
             <span className="font-semibold">{progress}%</span>
           </div>
-          <div className="h-1.5 bg-[color:var(--fill-3)] rounded-full overflow-hidden mb-1.5">
-            <div className="h-full bg-[color:var(--mm-bleu)] rounded-full prog-fill transition-[width] duration-500" style={{ width: `${progress}%` }} />
+          <div className="mm-progress mb-1.5" aria-hidden="true">
+            <i style={{ ['--p' as string]: Math.min(1, Math.max(0, progress / 100)) }} />
           </div>
           <p className="text-xs text-ink-2 mb-3">
             {t(done !== 1 ? 'card.lessonsDoneOther' : 'card.lessonsDoneOne', { count: done })}
@@ -113,7 +113,7 @@ export default function FormationCard({ formation, variant = 'default', enrollme
     <div className="group relative h-full">
       <Link
         to={formationPath}
-        className="flex flex-col h-full bg-surface-sheet border border-[color:var(--line)] rounded-2xl overflow-hidden hover:border-[color-mix(in_srgb,var(--mm-bleu)_40%,transparent)] hover:shadow-lg transition duration-300"
+        className="mm-prod h-full overflow-hidden"
       >
         {/*
           ⚠️ L'IMAGE NUE NE GÉRAIT PAS SON ÉCHEC. Cette carte est rendue au bas de CHAQUE
@@ -125,12 +125,15 @@ export default function FormationCard({ formation, variant = 'default', enrollme
           16:9 ET le repère des badges posés en absolu juste dessous. Le survol n'anime qu'un
           `transform` (règle 3 / AD-16).
         */}
-        <div className="relative aspect-[16/9] overflow-hidden">
-          <FormationArt
-            src={formation.coverImage}
-            radius="0"
-            fallback="linear-gradient(150deg,var(--g-forme-1) 0%,var(--g-forme-2) 100%)"
-            imgClassName="transition-transform duration-500 group-hover:scale-105"
+        <div className="relative">
+          <CourseCover
+            title={formation.title}
+            category={formation.category}
+            slug={formation.slug}
+            id={formation.id}
+            coverImage={formation.coverImage}
+            kicker={formation.category}
+            size="sm"
           />
           {/*
             ⚠️ « BIENTÔT » PASSE DEVANT « À LA UNE » ET « NOUVEAU ».
@@ -154,7 +157,7 @@ export default function FormationCard({ formation, variant = 'default', enrollme
             </span>
           ) : null}
         </div>
-        <div className="flex flex-col flex-1 p-4">
+        <div className="flex flex-col flex-1 px-2 pb-2">
           <TranslatedText
             text={formation.category}
             as="p"
@@ -210,7 +213,7 @@ export default function FormationCard({ formation, variant = 'default', enrollme
       {/* Popover détail — desktop uniquement (réplique le hover Udemy) */}
       {enablePopover && (
       <div className="hidden wide:block absolute inset-x-0 top-full z-30 -mt-1 pt-3 opacity-0 translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition duration-200">
-        <div className="bg-surface-sheet border border-[color:var(--line)] rounded-2xl shadow-2xl p-5">
+        <div className="bg-surface-sheet border border-[color:var(--line)] rounded-card shadow-lift p-5">
           <p className="text-xs font-bold tracking-[0.18em] uppercase text-forme mb-2">
             <TranslatedText text={formation.category} /> · {levelLabels[formation.level] ?? formation.level}
           </p>

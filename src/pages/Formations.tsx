@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Button, CheckLine, EmptyState, GlassPanel, Icon, Num, Skeleton, TerritoryCard } from '@ds';
+import { Button, CheckLine, EmptyState, Icon, Num, Skeleton, TerritoryCard } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
@@ -16,6 +16,7 @@ import { estAVenir, ouverture } from '../types/formationRelease';
 import { queryKeys } from '../lib/queryClient';
 import CourseCover from '../components/formations/CourseCover';
 
+import Bento from '../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * /formations — LE CATALOGUE, dans ses deux états.
@@ -418,7 +419,7 @@ export default function Formations() {
               {t(vide || riencOuvert ? 'index.whyBodyEmpty' : 'index.whyBody')}
             </p>
           </div>
-          <GlassPanel level="flat" padding={24} className="rv" style={{ ['--i' as string]: 2 }}>
+          <Bento padding={24} className="rv" style={{ ['--i' as string]: 2 }}>
             {/* Le sourcil manquait : quatre lignes à coche nues, sans ce qui les qualifie.
                 Le kit ouvre ce panneau par « Ce que comprend chaque formation »
                 (`pages-formations.jsx`), et c'est cette ligne qui dit de quoi la liste parle. */}
@@ -433,7 +434,7 @@ export default function Formations() {
                 </CheckLine>
               ))}
             </div>
-          </GlassPanel>
+          </Bento>
         </div>
       </SiteBand>
 

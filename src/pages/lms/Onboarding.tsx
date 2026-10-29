@@ -159,7 +159,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         aria-modal="true"
         aria-labelledby="onboarding-titre"
         tabIndex={-1}
-        className="w-full max-w-lg bg-surface-sheet rounded-3xl shadow-2xl overflow-hidden"
+        className="w-full max-w-lg overflow-hidden rounded-xl border border-[color:var(--line)] bg-surface-sheet shadow-lift"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -169,11 +169,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         <h2 id="onboarding-titre" className="sr-only">{t('onboarding.dialogLabel')}</h2>
 
         {/* Progress bar */}
-        <div className="h-1 bg-[color:var(--fill-3)]">
-          <div
-            className="h-full bg-[color:var(--mm-bleu)] prog-fill transition-[width] duration-500"
-            style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
-          />
+        {/* La barre du kit (`mm-progress`) : `transform: scaleX`, jamais `width` (AD-16). */}
+        <div className="mm-progress rounded-none" aria-hidden="true">
+          <i style={{ ['--p' as string]: (step + 1) / STEPS.length }} />
         </div>
 
         {/* Step indicators */}
@@ -203,7 +201,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           {step === 0 && (
             <div className="space-y-5">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-black text-ink mb-1">
+                <h2 className="mm-d mb-2 text-[30px] text-ink">
                   {t('onboarding.welcomeTitle')}
                 </h2>
                 <p className="text-sm text-ink-2">
@@ -274,7 +272,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           {step === 1 && (
             <div className="space-y-5">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-black text-ink mb-1">
+                <h2 className="mm-d mb-2 text-[30px] text-ink">
                   {t('onboarding.exploreTitle')}
                 </h2>
                 <p className="text-sm text-ink-2">
@@ -293,7 +291,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   { glyph: 'award', tint: 'var(--mm-orange)', ink: 'var(--mm-orange-t)',  title: t('onboarding.feature3Title'), desc: t('onboarding.feature3Desc') },
                   { glyph: 'users', tint: 'var(--mm-teal)',   ink: 'var(--mm-teal-t)',    title: t('onboarding.feature4Title'), desc: t('onboarding.feature4Desc') },
                 ].map((item) => (
-                  <div key={item.title} className="flex items-start gap-3 p-3 rounded-xl bg-[color:var(--fill-1)]">
+                  <div key={item.title} className="mm-bento flex items-start gap-3" style={{ padding: '12px' }}>
                     <span
                       className="w-9 h-9 rounded-m grid place-items-center flex-shrink-0"
                       style={{ background: `color-mix(in srgb, ${item.tint} 14%, transparent)` }}
@@ -335,7 +333,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 >
                   <Icon name="check" size={30} color="var(--text-invert)" strokeWidth={3.4} />
                 </div>
-                <h2 className="text-2xl font-black text-ink mb-1">
+                <h2 className="mm-d mb-2 text-[30px] text-ink">
                   {t('onboarding.readyTitle')}
                 </h2>
                 <p className="text-sm text-ink-2 max-w-xs mx-auto">
