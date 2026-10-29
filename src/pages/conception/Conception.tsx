@@ -9,7 +9,8 @@ import MyOnomaBridge from '../../components/brand/MyOnomaBridge';
 import { ConceptionSubNav } from '../../components/navigation/PisteSubNav';
 import StepList from '../../components/conception/StepList';
 import { ClientWorkCard, VentureWorkCard } from '../../components/conception/WorkCard';
-import { PageSite, SiteBand, SiteDisplay, SiteEyebrow, SiteExit } from '../../components/site';
+import { PageSite, SiteDisplay, SiteEyebrow, SiteExit } from '../../components/site';
+import { SiteHero } from '../../components/site/v3/SiteHero';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 import {
   categoryKey,
@@ -20,6 +21,7 @@ import {
   practices,
   ventures,
 } from '../../lib/brand';
+import { Bento } from '../../components/site/v3/Bento';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -181,49 +183,33 @@ export default function Conception() {
       />
       <JsonLd data={jsonLd} />
 
-      <PageSite>
-        {/* La sous-navigation de piste est une primitive de PAGE : elle vit DANS le
-            `PageSite`, en tête, et elle existe aux trois largeurs. `active={null}` parce
-            que la page mère n'est aucun des trois niveaux. */}
-        <ConceptionSubNav active={null} />
-
-        {/* ── LE HÉROS — le studio à gauche, ce qu'il fait à droite ─────────── */}
-        <div className="mm-arc-host mt-[26px] grid items-center gap-11 pb-[14px] wide:grid-cols-[1.05fr_.95fr]">
-          <div>
-            {/* La seule marque de couleur de la piste, et sa version TEXTE : #FF6E7F fait
-                2,70:1 sur blanc et ne porte jamais de texte (AD-20). */}
-            <SiteEyebrow className="text-corail-txt">
-              {t('page.eyebrow', { brand: build.brand })}
-            </SiteEyebrow>
-
-            <SiteDisplay
-              arc
-              lines={t('page.titleLines', { returnObjects: true }) as string[]}
-              size={46}
-              from={1}
-              style={{ marginTop: '9px' }}
-            />
-
-            <p className="rv mt-4 max-w-[48ch] text-[16px] leading-[1.55] text-ink-2" style={rv(5)}>
-              {t('page.lede')}
-            </p>
-
-            {/*
-              L'ENCART DE VÉRITÉ — il nomme ce que la page NE vend pas, et où ça se vend.
-              Une absence silencieuse se lit comme une lacune ; une absence motivée se lit
-              comme une frontière, et c'est ce qu'elle est.
-            */}
-            <GlassPanel level="truth" className="rv mt-[22px] max-w-[52ch]" style={rv(6)}>
-              <SiteEyebrow style={{ marginBottom: '6px' }}>{t('page.truthTitle')}</SiteEyebrow>
-              <p className="m-0 text-meta-2 leading-[1.6] text-ink-2">
-                {t('page.truthStart')}
-                <b className="text-ink">{t('page.truthStrong', { company: legalEntity.name })}</b>
-                {t('page.truthEnd')}
-              </p>
-            </GlassPanel>
-          </div>
-
-          {/* ── CE QUE FAIT LE STUDIO — le seul panneau héros de la page ─────── */}
+      {/*
+        ── LE HÉROS — kit v3 (`Site-Services`) ────────────────────────────────────────
+        La dalle de nuit porte la sous-navigation de piste (primitive de PAGE, aux trois
+        largeurs ; `active={null}` : la page mère n'est aucun des trois niveaux), le titre,
+        l'encart de vérité à gauche et ce que fait le studio à droite.
+      */}
+      <SiteHero
+        mesh="nuit"
+        top={<ConceptionSubNav active={null} />}
+        /* La seule marque de couleur de la piste, et sa version TEXTE (AD-20). */
+        eyebrowClassName="text-corail-txt"
+        eyebrow={t('page.eyebrow', { brand: build.brand })}
+        titleLines={t('page.titleLines', { returnObjects: true }) as string[]}
+        size={46}
+        lede={t('page.lede')}
+        actions={
+          <>
+            <Button href="#niveaux" tone="highlight" arrow fullWidth={false}>
+              {t('page.ctaLevels')}
+            </Button>
+            <Button href={path('/conception/realisations')} tone="ghost" fullWidth={false}>
+              {tc('cta.realisations')}
+            </Button>
+          </>
+        }
+        aside={
+          /* ── CE QUE FAIT LE STUDIO — le seul panneau héros de la page ─────── */
           <GlassPanel level="hero" padding={26} className="rv" style={rv(6)} as="section">
             <SiteEyebrow style={{ margin: 0 }}>{t('page.studioEyebrow')}</SiteEyebrow>
             <p className="mt-2 mb-0 text-[15px] leading-[1.6] text-ink-2">{t('page.studioLede')}</p>
@@ -235,8 +221,22 @@ export default function Conception() {
               ))}
             </div>
           </GlassPanel>
-        </div>
-      </PageSite>
+        }
+      >
+        {/*
+          L'ENCART DE VÉRITÉ — il nomme ce que la page NE vend pas, et où ça se vend.
+          Une absence silencieuse se lit comme une lacune ; une absence motivée se lit
+          comme une frontière, et c'est ce qu'elle est.
+        */}
+        <GlassPanel level="truth" className="rv mt-[26px] max-w-[52ch]" style={rv(7)}>
+          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('page.truthTitle')}</SiteEyebrow>
+          <p className="m-0 text-meta-2 leading-[1.6] text-ink-2">
+            {t('page.truthStart')}
+            <b className="text-ink">{t('page.truthStrong', { company: legalEntity.name })}</b>
+            {t('page.truthEnd')}
+          </p>
+        </GlassPanel>
+      </SiteHero>
 
       {/*
         ── LES DEUX NIVEAUX D'ENGAGEMENT ───────────────────────────────────────────────
@@ -245,7 +245,7 @@ export default function Conception() {
         carte plus haute que l'autre, ou l'une en pleine largeur et l'autre en encart,
         rétablirait la hiérarchie que le CDC refuse.
       */}
-      <SiteBand>
+      <PageSite id="niveaux" style={{ paddingTop: 'var(--site-section-gap)' }}>
         <SiteEyebrow>{t('levels.eyebrow')}</SiteEyebrow>
         <SiteDisplay as="h2" lines={t('levels.titleLines', { returnObjects: true }) as string[]} size={34} />
         <p className="rv mt-3 max-w-[60ch] text-[15.5px] leading-[1.6] text-ink-2" style={rv(1)}>
@@ -255,8 +255,7 @@ export default function Conception() {
         <div className="mt-[22px] grid items-stretch gap-[18px] wide:grid-cols-2">
           {/* Le niveau productisé porte le teal : « Je te digitalise » est un des quatre
               verbes, et c'est le seul des deux niveaux qui s'y range. */}
-          <GlassPanel
-            level="flat"
+          <Bento
             padding={26}
             className="rv flex h-full flex-col"
             style={{ ...rv(1), borderColor: 'color-mix(in srgb, var(--mm-teal) 24%, transparent)' }}
@@ -291,10 +290,9 @@ export default function Conception() {
               {t('levels.shops.cta')}
               <Icon name="forward" size={16} />
             </Button>
-          </GlassPanel>
+          </Bento>
 
-          <GlassPanel
-            level="flat"
+          <Bento
             padding={26}
             className="rv flex h-full flex-col"
             style={{ ...rv(2), borderColor: 'color-mix(in srgb, var(--mm-corail) 28%, transparent)' }}
@@ -323,9 +321,9 @@ export default function Conception() {
               {t('levels.custom.cta')}
               <Icon name="forward" size={16} />
             </Button>
-          </GlassPanel>
+          </Bento>
         </div>
-      </SiteBand>
+      </PageSite>
 
       {/* ── LA MÉTHODE ───────────────────────────────────────────────────────── */}
       <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
@@ -348,7 +346,7 @@ export default function Conception() {
         vérifient SUR LE LIVRABLE. Aucun d'eux n'est un chiffre — ce serait une promesse
         qu'on demande de croire, et AD-5 ferme ce chemin de toute façon.
       */}
-      <SiteBand>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <SiteEyebrow>{t('guarantees.eyebrow')}</SiteEyebrow>
         <SiteDisplay as="h2" lines={t('guarantees.titleLines', { returnObjects: true }) as string[]} size={34} />
         <p className="rv mt-3 max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2" style={rv(1)}>
@@ -357,13 +355,13 @@ export default function Conception() {
 
         <div className="mt-[22px] grid gap-[14px] stack:grid-cols-2 wide:grid-cols-4">
           {guarantees.map((item, i) => (
-            <GlassPanel level="flat" key={item.title} padding={20} className="rv h-full" style={rv(i + 1)}>
+            <Bento key={item.title} padding={20} className="rv h-full" style={rv(i + 1)}>
               <p className="m-0 font-display text-[17px] font-black tracking-[-.03em] text-ink">{item.title}</p>
               <p className="mt-[7px] mb-0 text-meta leading-[1.5] text-ink-2">{item.body}</p>
-            </GlassPanel>
+            </Bento>
           ))}
         </div>
-      </SiteBand>
+      </PageSite>
 
       {/*
         ── L'APERÇU DE RÉALISATIONS ────────────────────────────────────────────────────
@@ -448,7 +446,7 @@ export default function Conception() {
         levée et partenaires. La carte nomme le produit, sa catégorie et son domaine — rien
         d'autre —, et n'appelle aucun service de capture, comme l'aperçu client au-dessus.
       */}
-      <SiteBand>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <SiteEyebrow>{t('ventures.eyebrow')}</SiteEyebrow>
         <SiteDisplay as="h2" lines={t('ventures.titleLines', { returnObjects: true }) as string[]} size={34} />
         <p className="rv mt-3 max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2" style={rv(1)}>
@@ -472,7 +470,7 @@ export default function Conception() {
             </li>
           ))}
         </ul>
-      </SiteBand>
+      </PageSite>
 
       {/*
         LE PASSAGE VERS MY ONOMA — fourni par l'orchestrateur, et rendu tel quel.

@@ -7,6 +7,7 @@ import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
+import { SiteHero } from '../components/site/v3/SiteHero';
 import ShareButtons from '../components/shared/ShareButtons';
 import TranslatedText from '../components/shared/TranslatedText';
 import { useLocalizedPath } from '../contexts/LanguageContext';
@@ -15,6 +16,7 @@ import { getAllFAQ } from '../lib/firestore';
 import { faqSlug, findFaqBySlug } from '../lib/faq/slug';
 import { queryKeys } from '../lib/queryClient';
 import { SITE_URL } from '../components/seo/seo-config';
+import { Bento } from '../components/site/v3/Bento';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -121,32 +123,33 @@ export default function FAQQuestion() {
         }],
       }} />
 
+      {/* LE HÉROS — kit v3 : la dalle de nuit des pages du site. `wrap` : la question vient
+          de la base, personne n'en a écrit les coupures. L'adresse elle-même — le sujet de la
+          page — reste sélectionnable, donc copiable. */}
+      <SiteHero
+        mesh="edu"
+        wrap
+        size={38}
+        top={
+          <Breadcrumb
+            label={t('question.breadcrumbRoot')}
+            items={[
+              { label: t('question.breadcrumbRoot'), href: path('/faq') },
+              ...(item.category ? [{ label: item.category }] : []),
+            ]}
+          />
+        }
+        eyebrow={t('index.eyebrow')}
+        titleLines={[question]}
+      >
+        <p className="mm-num rv mt-4 mb-0 select-all text-small text-ink-2" style={{ ['--i' as string]: 4 }}>
+          {address}
+        </p>
+      </SiteHero>
+
       <PageSite>
-        <Breadcrumb
-          label={t('question.breadcrumbRoot')}
-          items={[
-            { label: t('question.breadcrumbRoot'), href: path('/faq') },
-            ...(item.category ? [{ label: item.category }] : []),
-          ]}
-        />
-
-        {/*
-          La colonne de lecture ne s'élargit jamais (AD-14) : la question, la réponse et les
-          voisines tiennent dans la même mesure, à 390 px comme à 1400.
-        */}
-        <div className="mt-4 max-w-prose">
-          <SiteEyebrow>{t('index.eyebrow')}</SiteEyebrow>
-          {/*
-            `wrap` : le titre vient de la base, personne n'en a écrit les coupures. Sans lui,
-            `nowrap` ferait déborder une question de soixante caractères hors de l'écran.
-          */}
-          <SiteDisplay wrap lines={[question]} size={38} from={1} />
-
-          {/* L'adresse elle-même — le sujet de la page. Sélectionnable, donc copiable. */}
-          <p className="mm-num rv mt-3 mb-0 select-all text-small text-ink-2" style={{ ['--i' as string]: 4 }}>
-            {address}
-          </p>
-
+        {/* La colonne de lecture ne s'élargit jamais (AD-14). */}
+        <div className="max-w-prose">
           {/*
             PAS DE BANDEAU DE TRADUCTION ICI, ET C'EST UN CHOIX ARGUMENTÉ.
 
@@ -189,7 +192,7 @@ export default function FAQQuestion() {
           {/* ── Questions voisines ─────────────────────────────────────────── */}
           <SiteEyebrow style={{ marginTop: '30px' }}>{t('question.neighboursTitle')}</SiteEyebrow>
           {neighbours.length > 0 ? (
-            <GlassPanel level="flat" padding="6px 18px" className="rv" style={{ ['--i' as string]: 7 }}>
+            <Bento padding="6px 18px" className="rv" style={{ ['--i' as string]: 7 }}>
               {neighbours.map((other, i) => (
                 <LessonRow
                   key={other.id}
@@ -200,7 +203,7 @@ export default function FAQQuestion() {
                   last={i === neighbours.length - 1}
                 />
               ))}
-            </GlassPanel>
+            </Bento>
           ) : (
             <p className="m-0 text-meta text-ink-2">{t('question.neighboursEmpty')}</p>
           )}

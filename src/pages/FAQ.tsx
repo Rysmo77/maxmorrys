@@ -5,13 +5,15 @@ import { Button, ChipRow, GlassPanel, Icon, LessonRow, SearchPill, Skeleton } fr
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import DsNavHost from '../components/layout/DsNavHost';
-import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
+import { PageSite, SiteEyebrow } from '../components/site';
+import { SiteHero } from '../components/site/v3/SiteHero';
 import TranslatedText from '../components/shared/TranslatedText';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { getAllFAQ } from '../lib/firestore';
 import { faqSlug } from '../lib/faq/slug';
 import { queryKeys } from '../lib/queryClient';
 import type { FAQ as FAQItem } from '../types';
+import { Bento } from '../components/site/v3/Bento';
 
 /**
  * /faq — LE MOTIF « INDEX » appliqué aux questions.
@@ -90,22 +92,19 @@ export default function FAQPage() {
         }} />
       )}
 
-      <PageSite>
-        {/* NI SOURCIL, NI TITRE SUR DEUX LIGNES. Le kit ouvre cette page par un seul mot
-            d'affichage à 50 px — « Questions fréquentes » (`PagesUtiles.js:22`) — sans sourcil
-            de territoire au-dessus. C'est aussi le libellé du pied de page : la page et le lien
-            qui y mène disaient deux choses différentes. */}
-        <SiteDisplay lines={t('index.titleLines', { returnObjects: true }) as string[]} size={50} />
-        <p className="rv mt-[14px] max-w-[54ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 4 }}>
-          {t('index.lede')}
-        </p>
-
-        <div className="rv mt-[22px] max-w-[520px]" style={{ ['--i' as string]: 5 }}>
-          {/* LE LIBELLÉ REDEVIENT VISIBLE. Le kit le rend en deux temps DANS la pilule —
-              « Cherche » en gras, « une question » en gris (`PagesUtiles.js:24`) : c'est ce qui
-              donne au champ sa silhouette et dit ce qu'on remplit avant d'y toucher. `labelHidden`
-              le réservait au lecteur d'écran, et il ne restait qu'un placeholder — qui disparaît,
-              lui, à la première frappe. */}
+      {/*
+        LE HÉROS — kit v3 (`Site-FAQ`) : la dalle de nuit, le titre, le chapô et la RECHERCHE
+        dans le premier écran. Ni sourcil ni territoire : le titre est aussi le libellé du
+        lien de pied de page, et la page dit la même chose que le lien qui y mène. Le libellé
+        de la pilule reste visible (« Cherche » en gras, « une question » en gris).
+      */}
+      <SiteHero
+        mesh="edu"
+        titleLines={t('index.titleLines', { returnObjects: true }) as string[]}
+        size={50}
+        lede={t('index.lede')}
+      >
+        <div className="rv mt-7 max-w-[520px]" style={{ ['--i' as string]: 6 }}>
           <SearchPill
             label={t('index.searchLabel')}
             hint={t('index.searchHint')}
@@ -114,9 +113,11 @@ export default function FAQPage() {
             onChange={setSearch}
           />
         </div>
+      </SiteHero>
 
+      <PageSite>
         {categories.length > 0 && (
-          <div className="rv mt-[18px] max-w-[620px]" style={{ ['--i' as string]: 6 }}>
+          <div className="rv max-w-[620px]" style={{ ['--i' as string]: 1 }}>
             <ChipRow
               label={t('index.eyebrow')}
               options={chips}
@@ -147,7 +148,7 @@ export default function FAQPage() {
               <div key={name}>
                 <SiteEyebrow style={{ marginTop: '22px' }}>{name}</SiteEyebrow>
                 {/* `"6px 22px"` — le contenant canonique d'une liste de `LessonRow`. */}
-                <GlassPanel level="flat" padding="6px 22px" className="rv" style={{ ['--i' as string]: 7 + g }}>
+                <Bento padding="6px 22px" className="rv" style={{ ['--i' as string]: 7 + g }}>
                   {items.map((item, i) => (
                     <LessonRow
                       key={item.id}
@@ -158,7 +159,7 @@ export default function FAQPage() {
                       last={i === items.length - 1}
                     />
                   ))}
-                </GlassPanel>
+                </Bento>
               </div>
                 ))}
 

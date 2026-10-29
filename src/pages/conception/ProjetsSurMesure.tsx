@@ -7,12 +7,14 @@ import { SITE_URL, buildCanonical } from '../../components/seo/seo-config';
 import DsNavHost from '../../components/layout/DsNavHost';
 import { ConceptionSubNav } from '../../components/navigation/PisteSubNav';
 import StepList from '../../components/conception/StepList';
-import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../../components/site';
+import { PageSite, SiteDisplay, SiteEyebrow } from '../../components/site';
+import { SiteHero } from '../../components/site/v3/SiteHero';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 import { trackEvent } from '../../lib/tracking';
 import { agencyLeadConfig } from '../../lib/agency/engagement';
 import { corporateUrl, legalEntity, legalName, practices } from '../../lib/brand';
 import { DESCRIPTION_MAX, useAgencyEngagement } from './useAgencyEngagement';
+import { Bento } from '../../components/site/v3/Bento';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -184,12 +186,12 @@ export default function ProjetsSurMesure() {
                 <Num source asOf> ou ne s'affiche pas (AD-5). Ce qui reste — le type, la
                 forme d'engagement communiquée, le statut — est du texte, et c'est ce que
                 la personne vient vérifier. */}
-            <GlassPanel level="flat" padding={18} className="rv mt-5" style={rv(5)}>
+            <Bento padding={18} className="rv mt-5" style={rv(5)}>
               <SiteEyebrow style={{ marginBottom: '9px' }}>{t('sent.recapEyebrow')}</SiteEyebrow>
               <DocLine label={t('sent.recapType')} value={t(`form.projectTypes.${receipt.projectType}`)} />
               <DocLine label={t('sent.recapEngagement')} value={t('sent.recapEngagementValue')} />
               <DocLine label={t('sent.recapStatus')} value={t('sent.recapStatusValue')} last />
-            </GlassPanel>
+            </Bento>
 
             {/*
               LA CARTE DE RÉORIENTATION — le SEUL endroit de la page où Cléa est nommée, et
@@ -197,8 +199,7 @@ export default function ProjetsSurMesure() {
               ce panneau explique ce qui vient d'arriver, il ne demande rien de plus.
             */}
             {receipt.growth && (
-              <GlassPanel
-                level="flat"
+              <Bento
                 padding={18}
                 className="rv mt-[14px]"
                 style={{ ...rv(6), borderColor: 'color-mix(in srgb, var(--mm-corail) 30%, transparent)' }}
@@ -222,7 +223,7 @@ export default function ProjetsSurMesure() {
                 >
                   {t('sent.growCta')}
                 </a>
-              </GlassPanel>
+              </Bento>
             )}
 
             <Button tone="quiet" className="rv mt-4" style={rv(7)} onClick={lead.reset}>
@@ -244,54 +245,56 @@ export default function ProjetsSurMesure() {
     <DsNavHost>
       {head}
 
-      <PageSite>
-        <ConceptionSubNav active="surMesure" />
+      {/*
+        ── LE HÉROS — kit v3 (`Site-Services`, bloc « Projet sur mesure ») ─────────────
+        La promesse et l'encart de vérité sur la dalle de nuit ; le formulaire juste dessous,
+        sur une tuile opaque claire — un formulaire se remplit mieux sur du clair, et le kit
+        le pose hors du héros.
+      */}
+      <SiteHero
+        mesh="nuit"
+        top={<ConceptionSubNav active="surMesure" />}
+        eyebrowClassName="text-corail-txt"
+        eyebrow={t('custom.eyebrow')}
+        titleLines={t('custom.titleLines', { returnObjects: true }) as string[]}
+        size={52}
+        lede={t('custom.lede')}
+        actions={
+          <Button href="#formulaire" tone="highlight" arrow fullWidth={false}>
+            {t('form.eyebrow')}
+          </Button>
+        }
+      >
+        {/*
+          L'ENCART DE VÉRITÉ — il ne s'excuse pas d'une absence de prix, il en donne le
+          motif ET la sortie : l'autre niveau d'engagement, qui a, lui, une grille
+          publique. Le lien est nommé pour ce qu'il a, pas offert en consolation.
+        */}
+        <GlassPanel level="truth" className="rv mt-[26px] max-w-[52ch]" style={rv(7)}>
+          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('custom.truthTitle')}</SiteEyebrow>
+          <p className="m-0 text-meta-2 leading-[1.6] text-ink-2">
+            {t('custom.truthStart')}
+            <b className="text-ink">{t('custom.truthStrong')}</b>
+            {t('custom.truthEnd')}
+          </p>
+          <a
+            href={path('/conception/commerces-et-tpe')}
+            className="mt-3 inline-flex items-center gap-2 text-meta font-bold text-digitalise-txt"
+          >
+            {t('levels.shops.cta')}
+            <Icon name="forward" size={16} />
+          </a>
+        </GlassPanel>
+      </SiteHero>
 
-        {/* ── LE HÉROS — la promesse à gauche, le formulaire à droite ───────── */}
-        <div className="mm-arc-host mt-[26px] grid items-center gap-11 pb-[14px] wide:grid-cols-2">
-          <div>
-            <SiteEyebrow className="text-corail-txt">{t('custom.eyebrow')}</SiteEyebrow>
-
-            <SiteDisplay
-              arc
-              lines={t('custom.titleLines', { returnObjects: true }) as string[]}
-              size={52}
-              from={1}
-              style={{ marginTop: '9px' }}
-            />
-
-            <p className="rv mt-4 max-w-[46ch] text-[16px] leading-[1.55] text-ink-2" style={rv(5)}>
-              {t('custom.lede')}
-            </p>
-
-            {/*
-              L'ENCART DE VÉRITÉ — il ne s'excuse pas d'une absence de prix, il en donne le
-              motif ET la sortie : l'autre niveau d'engagement, qui a, lui, une grille
-              publique. Le lien est nommé pour ce qu'il a, pas offert en consolation.
-            */}
-            <GlassPanel level="truth" className="rv mt-[22px] max-w-[52ch]" style={rv(6)}>
-              <SiteEyebrow style={{ marginBottom: '6px' }}>{t('custom.truthTitle')}</SiteEyebrow>
-              <p className="m-0 text-meta-2 leading-[1.6] text-ink-2">
-                {t('custom.truthStart')}
-                <b className="text-ink">{t('custom.truthStrong')}</b>
-                {t('custom.truthEnd')}
-              </p>
-              <a
-                href={path('/conception/commerces-et-tpe')}
-                className="mt-3 inline-flex items-center gap-2 text-meta font-bold text-digitalise-txt"
-              >
-                {t('levels.shops.cta')}
-                <Icon name="forward" size={16} />
-              </a>
-            </GlassPanel>
-          </div>
-
+      <PageSite id="formulaire">
+        <div className="mx-auto max-w-[720px]">
           {/* ── LE FORMULAIRE ────────────────────────────────────────────────
               Les trois premiers champs qualifient ; les trois suivants ne sont pas
               négociables : `firestore.rules` exige `name`, `company` et `email` à la
               création d'un `engagement_lead`, et une réponse écrite n'est tenable que si
               une adresse est arrivée. */}
-          <GlassPanel level="hero" padding={26} className="rv" style={rv(6)} as="section">
+          <Bento padding={26} className="rv shadow-lift" style={rv(1)} as="section">
             <SiteEyebrow style={{ margin: 0 }}>{t('form.eyebrow')}</SiteEyebrow>
             <p className="mt-2 mb-4 text-[14.5px] leading-[1.6] text-ink-2">{t('form.lede')}</p>
 
@@ -420,24 +423,24 @@ export default function ProjetsSurMesure() {
             <p className="mt-[10px] mb-0 text-center text-small leading-[1.5] text-ink-2">
               {t('form.reply')}
             </p>
-          </GlassPanel>
+          </Bento>
         </div>
       </PageSite>
 
       {/* ── LE PÉRIMÈTRE — cinq familles, la liste que le CDC nomme ─────────── */}
-      <SiteBand>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <SiteEyebrow>{t('scope.eyebrow')}</SiteEyebrow>
         <SiteDisplay as="h2" lines={t('scope.titleLines', { returnObjects: true }) as string[]} size={34} />
 
         <div className="mt-[22px] grid gap-[14px] stack:grid-cols-2 wide:grid-cols-3">
           {scopeItems.map((item, i) => (
-            <GlassPanel level="flat" key={item.title} padding={20} className="rv h-full" style={rv(i + 1)}>
+            <Bento key={item.title} padding={20} className="rv h-full" style={rv(i + 1)}>
               <p className="m-0 font-display text-[17px] font-black tracking-[-.03em] text-ink">{item.title}</p>
               <p className="mt-[7px] mb-0 text-meta leading-[1.5] text-ink-2">{item.body}</p>
-            </GlassPanel>
+            </Bento>
           ))}
         </div>
-      </SiteBand>
+      </PageSite>
 
       {/*
         ── LE PARCOURS D'ENGAGEMENT ────────────────────────────────────────────────────
@@ -474,7 +477,7 @@ export default function ProjetsSurMesure() {
         qu'elle décide de ce que vaut le reste : un livrable dont on ne peut pas sortir
         n'est pas un livrable, c'est une dépendance.
       */}
-      <SiteBand>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <SiteEyebrow>{t('delivery.eyebrow')}</SiteEyebrow>
         <SiteDisplay as="h2" lines={t('delivery.titleLines', { returnObjects: true }) as string[]} size={34} />
         <p className="rv mt-3 max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2" style={rv(1)}>
@@ -483,7 +486,7 @@ export default function ProjetsSurMesure() {
 
         <div className="mt-[22px] grid gap-[14px] stack:grid-cols-3">
           {commitments.map((block, i) => (
-            <GlassPanel level="flat" key={block.key} padding={24} className="rv h-full" style={rv(i + 1)}>
+            <Bento key={block.key} padding={24} className="rv h-full" style={rv(i + 1)}>
               <p className="m-0 font-display text-[18px] font-black tracking-[-.03em] text-ink">{block.title}</p>
               <p className="mt-2 mb-0 text-meta leading-[1.55] text-ink-2">{block.body}</p>
               <div className="mt-3">
@@ -493,10 +496,10 @@ export default function ProjetsSurMesure() {
                   </CheckLine>
                 ))}
               </div>
-            </GlassPanel>
+            </Bento>
           ))}
         </div>
-      </SiteBand>
+      </PageSite>
     </DsNavHost>
   );
 }

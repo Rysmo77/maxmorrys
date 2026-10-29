@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Breadcrumb, Button, GlassPanel, MediaCard, Skeleton, SubNav, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
-import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
 import ShareButtons from '../components/shared/ShareButtons';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -294,7 +294,7 @@ export default function PodcastDetail() {
       </PageSite>
 
       {others.length > 0 && (
-        <SiteBand>
+        <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
           <SiteDisplay as="h2" lines={t('detail.nextTitle', { returnObjects: true }) as string[]} size={34} />
           <div className="mt-5 grid gap-4 stack:grid-cols-3">
             {others.slice(0, 3).map((other, i) => (
@@ -312,7 +312,7 @@ export default function PodcastDetail() {
               </div>
             ))}
           </div>
-        </SiteBand>
+        </PageSite>
       )}
     </DsNavHost>
   );

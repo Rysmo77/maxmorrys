@@ -7,8 +7,9 @@ import { SITE_URL, buildCanonical } from '../components/seo/seo-config';
 import DsNavHost from '../components/layout/DsNavHost';
 import { ApprendreSubNav } from '../components/navigation/PisteSubNav';
 import {
-  PageSite, SiteBand, SiteDisplay, SiteEyebrow, SiteExit, TerritoryRow, useTerritoryLayout,
+  PageSite, SiteDisplay, SiteEyebrow, SiteExit, TerritoryRow, useTerritoryLayout,
 } from '../components/site';
+import { SiteHero } from '../components/site/v3/SiteHero';
 import { useLanguage, useLocalizedPath } from '../contexts/LanguageContext';
 import { CLUB_PRICE_XOF } from '../lib/club/pricing';
 
@@ -172,55 +173,45 @@ export default function Apprendre() {
       <SEOHead title={t('seo.title')} description={t('seo.description')} />
       <JsonLd data={jsonLd} />
 
-      <PageSite>
-        {/* La sous-navigation de piste est une primitive de PAGE : elle vit DANS le `PageSite`,
-            en tête, et `active={null}` n'allume aucune entrée — cette page n'est aucun des
-            quatre étages, elle les présente. */}
-        <ApprendreSubNav active={null} />
+      {/*
+        LE HÉROS — kit v3 : la dalle de nuit des pages du site, maillage `edu`. La
+        sous-navigation de piste (primitive de PAGE) vit en tête, `active={null}` : cette page
+        n'est aucun des quatre étages, elle les présente.
 
-        <div className="mm-arc-host mt-[26px]">
-          <SiteEyebrow>{t('hero.eyebrow')}</SiteEyebrow>
-          <SiteDisplay
-            arc
-            lines={t('hero.titleLines', { returnObjects: true }) as string[]}
-            size={54}
-            from={1}
-          />
-
-          <p className="rv mt-[18px] max-w-[46ch] text-[16.5px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 5 }}>
-            {t('hero.lede')}
-          </p>
-
-          <div className="rv mt-5 flex flex-wrap gap-2" style={{ ['--i' as string]: 6 }}>
-            <Tag tone="ok">{t('hero.tagFree')}</Tag>
-            <Tag>{t('hero.tagPaid')}</Tag>
-          </div>
-
-          {/*
-            LE BOUTON PLEIN OUVRE CE QUI EST OUVERT, et il porte donc l'orange de sa
-            destination, pas le bleu de cette page. Le précédent est sur l'accueil, qui bascule
-            exactement ces deux tons entre le blog et le catalogue — à ceci près qu'il lit
-            Firestore pour trancher. Ici, rien n'est lu : la règle du système décide seule, et
-            elle dit que le gratuit passe devant. Un bouton plein vers une page payante, en
-            premier appel d'une page qui vient de promettre l'inverse, se contredirait à deux
-            lignes d'intervalle.
-          */}
-          <div className="rv mt-6 flex flex-wrap gap-3" style={{ ['--i' as string]: 7 }}>
-            <Button href={path('/blog')} tone="informe" fullWidth={false}>
+        LE BOUTON PLEIN OUVRE CE QUI EST OUVERT : le gratuit passe devant (la règle du système
+        décide seule). Le surlignage orange du kit est aussi la teinte de « Je t'informe » :
+        il dit les deux à la fois.
+      */}
+      <SiteHero
+        mesh="edu"
+        top={<ApprendreSubNav active={null} />}
+        eyebrow={t('hero.eyebrow')}
+        titleLines={t('hero.titleLines', { returnObjects: true }) as string[]}
+        size={54}
+        lede={t('hero.lede')}
+        actions={
+          <>
+            <Button href={path('/blog')} tone="highlight" arrow fullWidth={false}>
               {t('hero.ctaFree')}
             </Button>
             <Button href={path('/formations')} tone="ghost" fullWidth={false}>
               {tc('cta.formations')}
             </Button>
-          </div>
-
-          <p className="rv mt-5 max-w-[58ch] text-small leading-[1.5] text-ink-2" style={{ ['--i' as string]: 8 }}>
-            {t('hero.note')}
-          </p>
+          </>
+        }
+      >
+        <div className="rv mt-5 flex flex-wrap gap-2" style={{ ['--i' as string]: 7 }}>
+          <Tag tone="ok">{t('hero.tagFree')}</Tag>
+          <Tag>{t('hero.tagPaid')}</Tag>
         </div>
+        <p className="rv mt-4 mb-0 max-w-[58ch] text-small leading-[1.5] text-ink-2" style={{ ['--i' as string]: 8 }}>
+          {t('hero.note')}
+        </p>
+      </SiteHero>
 
+      <PageSite>
         {/* ── LES QUATRE ENTRÉES ────────────────────────────────────────────────────── */}
-        <div className="mm-section">
+        <div>
           <SiteDisplay
             arc
             as="h2"
@@ -309,7 +300,7 @@ export default function Apprendre() {
           Une bande pleine largeur, et pas un encart de bas de page. Le CDC la veut mise en
           avant depuis la piste ; un lien noyé sous les cartes l'aurait mentionnée sans la
           montrer. */}
-      <SiteBand>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <div className="grid items-start gap-[34px] wide:grid-cols-[1.05fr_.95fr]">
           <div className="min-w-0">
             <SiteEyebrow>{t('verify.eyebrow')}</SiteEyebrow>
@@ -346,7 +337,7 @@ export default function Apprendre() {
             withheld={t('verify.withheld', { returnObjects: true }) as string[]}
           />
         </div>
-      </SiteBand>
+      </PageSite>
 
       {/* ── LA SORTIE ─────────────────────────────────────────────────────────────────
           Une page mère doit finir sur une porte, pas sur un silence. Celle-ci ne vend rien :

@@ -1,14 +1,15 @@
 import type { CSSProperties } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Breadcrumb, Button, GlassPanel, Icon, Num, Tag, TruthPanel } from '@ds';
+import { Breadcrumb, Button, Icon, Num, Tag, TruthPanel } from '@ds';
 import SEOHead from '../../components/seo/SEOHead';
 import JsonLd from '../../components/seo/JsonLd';
 import { SITE_URL, buildCanonical } from '../../components/seo/seo-config';
 import DsNavHost from '../../components/layout/DsNavHost';
 import { ConceptionSubNav } from '../../components/navigation/PisteSubNav';
 import RealisationPreview from '../../components/conception/RealisationPreview';
-import { PageSite, SiteBand, SiteDisplay, SiteEyebrow, SiteExit } from '../../components/site';
+import { PageSite, SiteEyebrow, SiteExit } from '../../components/site';
+import { SiteHero } from '../../components/site/v3/SiteHero';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 import NotFound from '../NotFound';
 import {
@@ -21,6 +22,7 @@ import {
   getClientProject,
   legalName,
 } from '../../lib/brand';
+import { Bento } from '../../components/site/v3/Bento';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -131,36 +133,41 @@ export default function RealisationDetail() {
       />
       <JsonLd data={jsonLd} />
 
-      <PageSite>
-        <ConceptionSubNav active="realisations" activeKind="section" />
-
-        <div className="mt-8">
-          <Breadcrumb
-            label={t('fiche.breadcrumbAria')}
-            items={[
-              { label: t('fiche.breadcrumbRoot'), href: path('/conception') },
-              { label: t('fiche.breadcrumbIndex'), href: path('/conception/realisations') },
-              { label: project.name },
-            ]}
-          />
-
-          <SiteEyebrow className="text-corail-txt" style={{ marginTop: '12px' }}>
-            {t('fiche.eyebrow')}
-          </SiteEyebrow>
-
-          {/* `wrap` : le nom vient des DONNÉES, pas d'un rédacteur. AD-13 protège les coupures
-              ÉCRITES ; un nom lu n'en a pas, et `nowrap` le ferait déborder à 390 px. */}
-          <SiteDisplay wrap lines={[project.name]} size={46} from={1} style={{ marginTop: '6px', maxWidth: '18ch' }} />
-
-          <div className="rv mt-4 flex flex-wrap items-center gap-3" style={rv(4)}>
-            <span className="text-[15px] text-ink-2">{categorie}</span>
-            {/* ⚠️ « Client product » s'oppose à « A MY ONOMA Venture » et ne cohabite jamais
-                avec elle : on annonce un RÔLE tenu, jamais une propriété. */}
-            <Tag tone="neutral">{CLIENT_RELATION}</Tag>
-          </div>
+      {/* LE HÉROS — kit v3 : la dalle de nuit des pages du site, la sous-navigation et le fil
+          d'Ariane en tête. `wrap` : le nom vient des DONNÉES, pas d'un rédacteur. */}
+      <SiteHero
+        mesh="hub"
+        wrap
+        size={46}
+        top={
+          <>
+            <ConceptionSubNav active="realisations" activeKind="section" />
+            <div className="mt-6">
+              <Breadcrumb
+                label={t('fiche.breadcrumbAria')}
+                items={[
+                  { label: t('fiche.breadcrumbRoot'), href: path('/conception') },
+                  { label: t('fiche.breadcrumbIndex'), href: path('/conception/realisations') },
+                  { label: project.name },
+                ]}
+              />
+            </div>
+          </>
+        }
+        eyebrowClassName="text-corail-txt"
+        eyebrow={t('fiche.eyebrow')}
+        titleLines={[project.name]}
+      >
+        <div className="rv mt-5 flex flex-wrap items-center gap-3" style={rv(4)}>
+          <span className="text-[15px] text-ink-2">{categorie}</span>
+          {/* ⚠️ « Client product » s'oppose à « A MY ONOMA Venture » et ne cohabite jamais
+              avec elle : on annonce un RÔLE tenu, jamais une propriété. */}
+          <Tag tone="neutral">{CLIENT_RELATION}</Tag>
         </div>
+      </SiteHero>
 
-        <div className="mt-9 grid items-start gap-10 wide:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] wide:gap-12">
+      <PageSite>
+        <div className="mt-2 grid items-start gap-10 wide:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] wide:gap-12">
           {/* ── LA COLONNE DE LECTURE ──────────────────────────────────────── */}
           <div className="min-w-0">
             {/* CONTEXTE — absent quand aucune description validée n'existe. Le blanc est
@@ -261,7 +268,7 @@ export default function RealisationDetail() {
               compte : « je n'ai rien d'honnête à en dire » se lit tout autrement qu'un blanc
               silencieux. Et elle porte sa condition de disparition, ce qui lui donne une fin.
             */}
-            <GlassPanel level="flat" padding={20} className="rv mt-8 max-w-[64ch]" style={rv(10)}>
+            <Bento padding={20} className="rv mt-8 max-w-[64ch]" style={rv(10)}>
               <div className="flex items-start gap-3">
                 <span aria-hidden="true" className="mt-0.5 shrink-0 text-ink-2">
                   <Icon name="info" size={18} />
@@ -274,7 +281,7 @@ export default function RealisationDetail() {
                   <p className="mt-2 mb-0 text-small leading-[1.5] text-ink-2">{t('debt.footer')}</p>
                 </div>
               </div>
-            </GlassPanel>
+            </Bento>
           </div>
 
           {/* ── L'ASIDE : l'aperçu, le lien, l'autorisation ─────────────────── */}
@@ -320,7 +327,7 @@ export default function RealisationDetail() {
       </PageSite>
 
       {/* ── LA SORTIE : les voisines, puis la porte ────────────────────────── */}
-      <SiteBand>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <nav aria-label={t('fiche.navAria')} className="flex flex-wrap items-center justify-between gap-4">
           {precedent ? (
             <a
@@ -367,7 +374,7 @@ export default function RealisationDetail() {
           cta={t('fiche.nextStepCta')}
           href={path('/contact')}
         />
-      </SiteBand>
+      </PageSite>
     </DsNavHost>
   );
 }

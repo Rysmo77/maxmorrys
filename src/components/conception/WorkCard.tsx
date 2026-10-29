@@ -75,7 +75,7 @@ function WorkCard({ href, external, relation, name, meta, cta, description, stac
         /* `rounded-card` — le rayon que le kit destine aux cartes et panneaux (`--r-l`).
            PAS `rounded-2xl` : les défauts de Tailwind survivent sous `extend`, et celui-là
            rend 16 px là où le kit en veut 30 — un écart qu'aucune porte ne signale. */
-        className="group mm-press flex h-full flex-col rounded-card border border-[color:var(--line)] bg-[color:var(--fill-1)] p-6 no-underline transition-colors hover:border-[color-mix(in_srgb,var(--mm-corail)_46%,transparent)] focus:outline-none"
+        className="group mm-press flex h-full flex-col rounded-card border border-[color:var(--line)] bg-bento p-6 shadow-v3-soft no-underline transition-colors hover:border-[color-mix(in_srgb,var(--mm-corail)_46%,transparent)] focus:outline-none"
       >
         <div className="flex items-start justify-between gap-3">
           <p className="mm-eyebrow m-0 text-corail-txt">{meta}</p>

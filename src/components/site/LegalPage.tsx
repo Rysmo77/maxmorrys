@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { GlassPanel } from '@ds';
 import LocalizedLink from '../shared/LocalizedLink';
 import SEOHead from '../seo/SEOHead';
 import { PageSite } from './PageSite';
-import { SiteDisplay, SiteEyebrow } from './SiteType';
+import { SiteHero } from './v3/SiteHero';
+import { Bento } from './v3/Bento';
 
 /**
  * LE MOTIF « LECTURE », appliqué aux cinq documents contractuels.
@@ -61,8 +61,12 @@ export function LegalPage({
   const { t } = useTranslation('legal');
 
   return (
-    <PageSite>
+    <>
       <SEOHead title={seoTitle} description={seoDescription} />
+      {/* Kit v3 : la dalle de nuit des pages du site porte le titre du document ; le texte
+          juridique, lui, reste sur le clair, à la mesure de lecture. */}
+      <SiteHero mesh="nuit" eyebrow={eyebrow} titleLines={titleLines} size={44} />
+    <PageSite>
 
       {/*
         `min-w-0` SUR LES DEUX ENFANTS. Sous `wide`, la grille retombe à une colonne, et un
@@ -77,7 +81,7 @@ export function LegalPage({
             coller une liste de cinq entrées sur un écran de 844 px mangerait le
             tiers du champ de lecture. */}
         <aside className="wide:sticky wide:top-[calc(var(--header-h)+1rem)]">
-          <GlassPanel level="flat" padding={20} as="nav" aria-label={t('common.navLabel')}>
+          <Bento padding={20} as="nav" aria-label={t('common.navLabel')}>
             <ul className="list-none m-0 p-0 grid gap-[9px]">
               {LEGAL_DOCS.map((doc) => {
                 const active = doc.key === current;
@@ -96,7 +100,7 @@ export function LegalPage({
                 );
               })}
             </ul>
-          </GlassPanel>
+          </Bento>
 
           {/*
             CETTE PHRASE ÉTAIT ÉCRITE EN FRANÇAIS, EN DUR, DANS LE JSX.
@@ -120,18 +124,16 @@ export function LegalPage({
         </aside>
 
         <div>
-          {eyebrow && <SiteEyebrow>{eyebrow}</SiteEyebrow>}
-          <SiteDisplay lines={titleLines} size={44} from={eyebrow ? 1 : 0} />
-
           {/* `.mm-prose` porte la mesure de 68 caractères. Ne pas la redéclarer. */}
           {/* `break-words` : le seul recours pour un jeton qu'aucune langue ne coupe — une
               URL, une adresse électronique, un numéro de registre. Il vaut mieux le couper
               que le laisser pousser la page. */}
-          <div className="rv mm-prose mt-[18px] legal-prose break-words" style={{ ['--i' as string]: 2 }}>
+          <div className="rv mm-prose legal-prose break-words" style={{ ['--i' as string]: 2 }}>
             {children}
           </div>
         </div>
       </div>
     </PageSite>
+    </>
   );
 }

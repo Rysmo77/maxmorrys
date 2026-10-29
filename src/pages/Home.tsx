@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Button, GlassPanel, Num, TerritoryCard } from '@ds';
+import { Button, GlassPanel, Icon, Num } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SOCIAL_URLS } from '../components/seo/seo-config';
 import DsNavHost from '../components/layout/DsNavHost';
 import MyOnomaBridge from '../components/brand/MyOnomaBridge';
-import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
+import { SiteHero } from '../components/site/v3/SiteHero';
 import { useLanguage, useLocalizedPath } from '../contexts/LanguageContext';
 import { portrait } from '../lib/author';
 import { contentPath } from '../lib/contentPath';
@@ -82,8 +83,8 @@ import type { BlogPost, Podcast } from '../types';
  * même structure de contenu, et `fill` pour que les deux pieds tombent sur la même ligne.
  */
 const PISTES = [
-  { key: 'conception', territory: 'rose', to: '/conception', cta: 'cta.pisteConception' },
-  { key: 'apprendre', territory: 'forme', to: '/apprendre', cta: 'cta.pisteApprendre' },
+  { key: 'conception', territory: 'rose', art: 'is-club', to: '/conception', cta: 'cta.pisteConception' },
+  { key: 'apprendre', territory: 'forme', art: 'is-edu', to: '/apprendre', cta: 'cta.pisteApprendre' },
 ] as const;
 
 export default function Home() {
@@ -166,117 +167,104 @@ export default function Home() {
         sameAs: Object.values(SOCIAL_URLS),
       }} />
 
-      <PageSite>
-        {/*
-          ── 1 · LA PRÉSENTATION ───────────────────────────────────────────────────────
-          Une personne, un métier, un lieu — et un vrai portrait. Pas de slogan : le titre
-          NOMME, il ne promet pas. Le fragment entre crochets reste l'arc de couleur rendu
-          par `SiteDisplay`, c'est la seule mise en valeur du bloc.
+      {/*
+        ── 1 · LA PRÉSENTATION ─────────────────────────────────────────────────────────
+        Kit v3 (`Main`, `PersonalHero`) : la dalle de nuit, le titre géant, le portrait à
+        droite. Une personne, un métier, un lieu — le titre NOMME, il ne promet pas, et le
+        fragment entre crochets prend l'orange du surlignage.
 
-          La colonne du portrait est FIXE (380 px), comme sur `/a-propos` : une personne a une
-          taille naturelle, et la moitié d'une page n'en est pas une. `minmax(0,1fr)` à gauche,
-          sans quoi la piste `fr` garde `min-width:auto` et refuse de descendre sous son texte.
-        */}
-        <div className="mm-arc-host grid items-center gap-[46px] pb-[14px] wide:grid-cols-[minmax(0,1fr)_380px]">
-          <div className="min-w-0">
-            <SiteEyebrow>{t('hero.eyebrow')}</SiteEyebrow>
-            <SiteDisplay
-              arc
-              lines={t('hero.titleLines', { returnObjects: true }) as string[]}
-              size={60}
-              from={1}
-              style={{ marginTop: '9px' }}
-            />
-            <p
-              className="mm-prose rv mt-[18px] max-w-[48ch] text-[16.5px] leading-[1.55] text-ink-2"
-              style={{ ['--i' as string]: 5 }}
-            >
-              {t('hero.lede')}
-            </p>
-            <div className="rv mt-6" style={{ ['--i' as string]: 6 }}>
-              <Button href={path('/a-propos')} tone="ghost" fullWidth={false}>
-                {t('hero.cta')}
-              </Button>
-            </div>
-          </div>
-
-          {/* Le portrait est au-dessus de la ligne de flottaison : ni `lazy`, ni différé. Le
-              passe-partout de 14 px en aplat de marque est la seule surface colorée du bloc. */}
+        ⚠️ ÉCART DÉLIBÉRÉ À LA MAQUETTE : `PersonalHero` y aligne quatre faits chiffrés (une
+        date d'immatriculation, un nombre de projets, des personnes formées, des pays). FR-122
+        et le CDC § 4.1 tiennent : aucun compteur sur l'accueil, le seul fait daté est la
+        dernière parution (bloc 3). La colonne du portrait reste FIXE (380 px) : une personne
+        a une taille naturelle.
+      */}
+      <SiteHero
+        mesh="club"
+        eyebrow={t('hero.eyebrow')}
+        titleLines={t('hero.titleLines', { returnObjects: true }) as string[]}
+        size={60}
+        lede={t('hero.lede')}
+        actions={
+          <Button href={path('/a-propos')} tone="highlight" arrow fullWidth={false}>
+            {t('hero.cta')}
+          </Button>
+        }
+        asideCols="portrait"
+        aside={
+          /* Au-dessus de la ligne de flottaison : ni `lazy`, ni différé. */
           <figure
-            className="rv-s w-full max-w-[380px] rounded-card p-[14px]"
+            className="rv-s m-0 w-full max-w-[380px] rounded-media p-[10px] shadow-lift"
             style={{
-              background:
-                'linear-gradient(150deg,var(--mm-orange-c),var(--mm-rose-c) 48%,var(--mm-violet-c))',
-              boxShadow: '0 20px 46px color-mix(in srgb, var(--mm-orange) 24%, transparent)',
+              background: 'linear-gradient(150deg,var(--mm-orange-c),var(--mm-rose-c) 48%,var(--mm-violet-c))',
               ['--i' as string]: 4,
             }}
           >
             <img
               src={portrait.src}
               srcSet={portrait.srcSet}
-              /* La largeur AFFICHÉE : la piste de 380 px moins le passe-partout de 2 × 14. */
-              sizes="352px"
+              /* La largeur AFFICHÉE : la piste de 380 px moins le passe-partout de 2 × 10. */
+              sizes="360px"
               width={portrait.width}
               height={portrait.height}
               alt={tShared('portrait.alt')}
               fetchPriority="high"
               decoding="async"
-              className="block w-full rounded-xs object-cover"
+              className="block w-full rounded-card object-cover"
               style={{ aspectRatio: '4 / 5' }}
             />
           </figure>
-        </div>
-      </PageSite>
+        }
+      />
 
       {/*
         ── 2 · LES DEUX PISTES ─────────────────────────────────────────────────────────
-        Le seul aiguillage de la page, et son centre de gravité. Les deux cartes sont
-        rigoureusement identiques en dessin : ce qui les distingue est leur territoire et
-        leur texte, jamais leur taille, leur padding ni la présence d'un chiffre.
+        Le seul aiguillage de la page, et son centre de gravité. Kit v3 : les cartes de
+        service de `Main` (« Apprendre avec moi, ou construire avec moi »). Les deux sont
+        rigoureusement identiques en dessin — même tuile, même aplat, même pied ; ce qui les
+        distingue est leur teinte et leur texte, jamais leur taille ni un chiffre.
       */}
-      <SiteBand>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <SiteDisplay as="h2" lines={t('pistes.titleLines', { returnObjects: true }) as string[]} size={34} />
         <p className="mm-prose rv mt-3 max-w-[58ch] text-lede text-ink-2" style={{ ['--i' as string]: 3 }}>
           {t('pistes.lede')}
         </p>
 
-        <div className="mt-[22px] grid gap-5 stack:grid-cols-2">
+        <div className="mt-7 grid gap-5 stack:grid-cols-2">
           {PISTES.map((piste, i) => (
-            <div key={piste.key} className="rv min-w-0" style={{ ['--i' as string]: i + 1 }}>
-              <TerritoryCard
-                layout="plain"
-                fill
-                territory={piste.territory}
-                href={path(piste.to)}
-                padding={26}
-                meta={t(`pistes.${piste.key}Meta`)}
-                title={t(`pistes.${piste.key}Title`)}
-                titleSize={26}
-              >
-                <p className="mt-[13px] mb-0 text-[14.5px] leading-[1.55]" style={{ color: 'var(--card-ink-2)' }}>
-                  {t(`pistes.${piste.key}Body`)}
-                </p>
-                {/* L'élément élastique que `fill` attend de l'appelant : c'est lui qui pousse
-                    les deux pieds sur la même ligne, quelle que soit la longueur des textes. */}
-                <span aria-hidden="true" className="min-h-[18px] flex-1" />
-                <p className="mm-eyebrow mt-0 mb-0" style={{ color: 'var(--card-ink)' }}>
-                  {tc(piste.cta)}
-                </p>
-              </TerritoryCard>
-            </div>
+            <a
+              key={piste.key}
+              href={path(piste.to)}
+              className="mm-bento rv group flex min-w-0 flex-col text-ink no-underline"
+              style={{ ['--i' as string]: i + 1, padding: 'var(--sp-24)' }}
+            >
+              <span className="flex items-center justify-between gap-3">
+                <span className="mm-tag">{t(`pistes.${piste.key}Meta`)}</span>
+                <span
+                  aria-hidden="true"
+                  className="grid h-10 w-10 place-items-center rounded-pill bg-ink text-paper transition-transform duration-ui ease-ds-out group-hover:-rotate-45"
+                >
+                  <Icon name="forward" size={16} />
+                </span>
+              </span>
+              <span className="mt-5 block font-display text-[clamp(24px,2.6vw,30px)] font-black leading-[1] tracking-[-.035em]">
+                {t(`pistes.${piste.key}Title`)}
+              </span>
+              <span className="mt-3 block text-[15px] leading-[1.55] text-ink-2">{t(`pistes.${piste.key}Body`)}</span>
+              {/* L'élément élastique : il pousse les deux pieds sur la même ligne. */}
+              <span aria-hidden="true" className="min-h-[18px] flex-1" />
+              <span className="mm-eyebrow">{tc(piste.cta)}</span>
+              <span aria-hidden="true" className={`mm-photo ${piste.art} mt-5 block`} style={{ minHeight: '150px' }} />
+            </a>
           ))}
         </div>
-      </SiteBand>
+      </PageSite>
 
       {/*
         ── 3 · LA PREUVE ───────────────────────────────────────────────────────────────
-        UN SEUL FAIT DATÉ, et le renvoi vers ce qui a déménagé. Les quatre comptes de
-        production vivaient ici ET sur `/a-propos`, lus par le même `getPublicCounts()` :
-        c'était deux fois le même relevé à deux dates de lecture. Il ne reste que la date de
-        la dernière parution — celle-là, `/a-propos` ne la porte pas.
-
-        Tout nombre passe toujours par <Num> : c'est le seul chemin du dépôt vers la
-        monospace, et il exige sa source et sa date au typage.
+        UN SEUL FAIT DATÉ, et le renvoi vers ce qui a déménagé (le décompte vit sur
+        `/a-propos`). Kit v3 : la statistique (`mm-stat`) dans une tuile. Tout nombre passe
+        toujours par <Num> : source et date exigées au typage.
       */}
       <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <div className="grid items-start gap-[46px] wide:grid-cols-[1fr_.95fr]">
@@ -295,59 +283,63 @@ export default function Home() {
             </GlassPanel>
           </div>
 
-          {/* LE PANNEAU NE PORTE PLUS QU'UN FAIT : la date de la dernière parution. La grille
-              des quatre comptes et sa ligne de relevé sont parties sur `/a-propos`, où elles
-              ne sont plus un doublon — et `proof.truthBody`, ci-contre, y mène. */}
-          <GlassPanel level="hero" padding={26} className="min-w-0 rv" style={{ ['--i' as string]: 4 }}>
-            <p className="m-0 text-[12.5px] text-ink-2">{t('proof.lastLabel')}</p>
-            {/* 26 px, la taille que la grille des comptes portait : seul dans son panneau,
-                ce fait est ce que le bloc vient dire, il n'en est plus la note de bas de page. */}
-            <p className="mt-[2px] mb-0 text-[26px] text-ink">
-              <Num
-                value={derniere ? new Date(derniere).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }) : null}
-                source="db"
-                asOf={asOf}
-                fallback={t('proof.lastNone')}
-              />
-            </p>
-          </GlassPanel>
+          <div className="mm-bento rv min-w-0" style={{ ['--i' as string]: 4, padding: 'var(--sp-24)' }}>
+            <div className="mm-stat">
+              <span className="mm-stat__v">
+                <Num
+                  value={derniere ? new Date(derniere).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }) : null}
+                  source="db"
+                  asOf={asOf}
+                  fallback={t('proof.lastNone')}
+                />
+              </span>
+              <span className="mm-stat__l">{t('proof.lastLabel')}</span>
+            </div>
+          </div>
         </div>
       </PageSite>
 
       {/*
         ── 4 · LES DERNIÈRES PUBLICATIONS ──────────────────────────────────────────────
         Alimentées automatiquement : trois entrées, articles et épisodes mêlés, prises sur la
-        même frise chronologique. Rien n'y est choisi à la main, donc rien n'y périme.
+        même frise chronologique. Kit v3 : les cartes d'article de `Main` (étiquette, titre,
+        aplat). Rien n'y est choisi à la main, donc rien n'y périme.
       */}
-      <SiteBand>
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <SiteDisplay as="h2" lines={t('latest.titleLines', { returnObjects: true }) as string[]} size={34} />
-          <Button href={path('/blog')} tone="quiet" size="sm" fullWidth={false}>
+          <Button href={path('/blog')} tone="quiet" size="sm" arrow fullWidth={false}>
             {t('latest.all')}
           </Button>
         </div>
 
         {latest.length > 0 ? (
-          <div className="mt-[22px] grid gap-4 stack:grid-cols-3">
+          <div className="mt-7 grid gap-4 stack:grid-cols-3">
             {latest.map((item, i) => (
-              <div key={item.to} className="rv min-w-0" style={{ ['--i' as string]: i + 1 }}>
-                <TerritoryCard
-                  layout="plain"
-                  territory={item.territory}
-                  href={item.to}
-                  padding={22}
-                  meta={item.meta}
-                  title={item.title}
-                  titleSize={19}
+              <a
+                key={item.to}
+                href={item.to}
+                className="mm-bento rv flex min-w-0 flex-col text-ink no-underline"
+                style={{ ['--i' as string]: i + 1, padding: 'var(--sp-20)' }}
+              >
+                <span className="mm-tag self-start">{item.meta}</span>
+                <span className="mt-4 block font-display text-[20px] font-black leading-[1.05] tracking-[-.03em]">
+                  {item.title}
+                </span>
+                <span aria-hidden="true" className="min-h-[14px] flex-1" />
+                <span
+                  aria-hidden="true"
+                  className={`mm-photo ${item.territory === 'informe' ? 'is-informe' : 'is-club'} mt-4 block`}
+                  style={{ minHeight: '120px' }}
                 />
-              </div>
+              </a>
             ))}
           </div>
         ) : (
           /* Un état vide DIT ce qui manque et oriente. Jamais « oups », jamais un vide muet. */
           <p className="mm-prose mt-[22px] max-w-prose text-lede text-ink-2">{t('latest.empty')}</p>
         )}
-      </SiteBand>
+      </PageSite>
 
       {/*
         ── 5 · LE LIEN MY ONOMA ────────────────────────────────────────────────────────
