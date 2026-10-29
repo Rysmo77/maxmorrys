@@ -1,36 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import LocalizedLink from '../shared/LocalizedLink';
 import PopupHeading from './PopupHeading';
-import { CTA_TRANSFORME, DISMISS, BODY, ACTIONS, LINK_TRANSFORME } from './popupStyles';
+import { TONES, ARROW, LINK, DISMISS, BODY, NOTE, ACTIONS } from './popupStyles';
 import { Icon } from '@ds';
 
 /**
- * Retenue à la sortie de `/club-des-digitos`.
+ * Retenue sur les pages publiques du Club (club.maxmorrys.me).
  *
- * ── CE QU'ELLE NE REDIT PAS, ET POURQUOI ─────────────────────────────────────────────────
- *
- * Ni le prix, ni le mensuel, ni le prix parrainé, ni ce que contient l'abonnement. La page les
- * affiche déjà — le prix trois fois, le contenu dans un panneau dédié. Une fenêtre qui les
- * répéterait deux secondes plus tard ferait exactement ce que `BlogEndPopup` documente avoir
- * arrêté de faire : proposer une seconde fois la même chose, et donner l'impression d'être
- * poursuivi. Deux sollicitations ne se justifient que si elles disent deux choses différentes.
- *
- * ── CE QU'ELLE DIT, ET QUE LA PAGE TAIT ──────────────────────────────────────────────────
- *
- * L'ÉTAPE SUIVANTE. Le bouton « Je rejoins le Club » de la page pointe vers `/mon-espace/club`,
- * et ce chemin est GARDÉ (`ProtectedRoute`). Un visiteur déconnecté qui l'active tombe sur un
- * mur de connexion qu'aucun texte ne lui avait annoncé — c'est le décrochage que cette fenêtre
- * adresse, et le seul. Elle nomme la marche, et propose de la monter : créer le compte, qui est
- * gratuit, puis l'abonnement depuis l'espace.
- *
- * ⚠️ **Aucune mention du prix parrainé.** `clubReferralPrice()` existe (16 915 F), mais la
- * remise s'applique côté serveur à un filleul PORTEUR d'un code, et les codes vivent dans
- * l'espace apprenant — où `PopupManager`, monté dans `PublicLayout`, ne va jamais. L'afficher
- * ici serait annoncer un tarif que le visiteur n'a aucun moyen d'obtenir.
- *
- * ⚠️ Registre : TUTOIEMENT, celui de la page qui la porte.
+ * Elle ne redit ni le prix ni le contenu de l'adhésion — la page les affiche. Son seul objet :
+ * nommer l'étape que la page CACHE. Le bouton d'`/adhesion` mène à l'espace du Club, qui exige
+ * un compte ; un visiteur déconnecté y rencontre un mur sans avoir été prévenu.
  */
-
 interface ClubExitPopupProps {
   onAccept: () => void;
   onSecondary: () => void;
@@ -39,28 +19,26 @@ interface ClubExitPopupProps {
 
 export default function ClubExitPopup({ onAccept, onSecondary, onDismiss }: ClubExitPopupProps) {
   const { t } = useTranslation('shared');
+  const tone = TONES.club;
 
   return (
     <div>
       <PopupHeading
+        tone="club"
         eyebrow={t('popups.clubExit.eyebrow')}
         title={t('popups.clubExit.title')}
-        sticker={t('popups.clubExit.sticker')}
-        tone="transforme"
+        highlight={t('popups.clubExit.sticker')}
       />
-
       <p className={BODY}>{t('popups.clubExit.text')}</p>
 
       <div className={ACTIONS}>
-        <LocalizedLink to="/inscription" onClick={onAccept} className={CTA_TRANSFORME}>
+        {/* `/inscription` est servie sur chaque hôte : on crée son compte sur le Club même. */}
+        <LocalizedLink to="/inscription" onClick={onAccept} className={tone.cta}>
           {t('popups.clubExit.cta')}
-          <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
+          <span className={ARROW}><Icon name="forward" size={16} /></span>
         </LocalizedLink>
-        {/*
-          Sortie pour qui a DÉJÀ un compte : la fenêtre ne doit pas renvoyer vers une inscription
-          quelqu'un qui n'en a pas besoin. Elle mène au seul endroit où l'abonnement se crée.
-        */}
-        <LocalizedLink to="/mon-espace/club" onClick={onSecondary} className={LINK_TRANSFORME}>
+        {/* Pour qui a DÉJÀ un compte : l'espace du Club, seul endroit où l'adhésion se crée. */}
+        <LocalizedLink to="/mon-espace/club" onClick={onSecondary} className={`${LINK} ${tone.link}`}>
           {t('popups.clubExit.secondary')}
         </LocalizedLink>
         <button type="button" onClick={onDismiss} className={DISMISS}>
@@ -68,8 +46,8 @@ export default function ClubExitPopup({ onAccept, onSecondary, onDismiss }: Club
         </button>
       </div>
 
-      {/* La contrainte, nommée — le produit ne cache pas que la marche existe. */}
-      <p className="mt-3 mb-0 text-xs leading-[1.5] text-white/50">{t('popups.clubExit.note')}</p>
+      {/* La contrainte, nommée : le produit ne cache pas que la marche existe. */}
+      <p className={NOTE}>{t('popups.clubExit.note')}</p>
     </div>
   );
 }

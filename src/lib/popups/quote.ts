@@ -1,3 +1,4 @@
+import { lirePartage, ecrirePartage, effacerPartage } from '../sharedStore';
 /**
  * Marqueur de simulateur de devis engagé, puis abandonné.
  *
@@ -25,8 +26,8 @@ const TTL_MS = 3 * 24 * 60 * 60 * 1000;
 /** Enregistre l'engagement dans le simulateur. Idempotent : la première frappe fait foi. */
 export function markQuoteStarted(): void {
   try {
-    if (localStorage.getItem(KEY)) return; // ne pas repousser l'échéance à chaque frappe
-    localStorage.setItem(KEY, String(Date.now()));
+    if (lirePartage(KEY)) return; // ne pas repousser l'échéance à chaque frappe
+    ecrirePartage(KEY, String(Date.now()), 'durable', TTL_MS / 1000);
   } catch {
     // Stockage indisponible : pas de rappel, ce n'est pas bloquant.
   }
@@ -35,7 +36,7 @@ export function markQuoteStarted(): void {
 /** Efface le marqueur — devis envoyé, ou rappel déjà présenté. */
 export function clearQuoteStarted(): void {
   try {
-    localStorage.removeItem(KEY);
+    effacerPartage(KEY);
   } catch {
     // Rien à effacer si le stockage est inaccessible.
   }
@@ -44,7 +45,7 @@ export function clearQuoteStarted(): void {
 /** Vrai si un simulateur a été engagé récemment sans aboutir. Nettoie un marqueur périmé. */
 export function hasQuoteStarted(): boolean {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = lirePartage(KEY);
     if (!raw) return false;
     const at = Number(raw);
     if (!Number.isFinite(at) || at <= 0) return false;

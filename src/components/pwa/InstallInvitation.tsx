@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
    Ces trois-là étaient les seuls du dépôt à sauter l'étage : le jour où une primitive change
    de fichier, c'est ce fichier-ci, et lui seul, qui casse sans que rien ne l'ait annoncé. */
 import { Button, Icon, IconButton } from '@ds';
+import { lirePartage, ecrirePartage } from '../../lib/sharedStore';
 
 /**
  * L'INVITATION À INSTALLER — et tout ce qu'elle refuse de faire.  (AD-17)
@@ -35,6 +36,8 @@ interface BeforeInstallPromptEvent extends Event {
 const VISITS_KEY = 'mm-visits';
 const DISMISSED_KEY = 'mm-install-dismissed';
 const MIN_VISITS = 2;
+/** Le plafond de session des pop-ups (`lib/popups/rules.ts`), lu sans importer le module. */
+const POPUP_SESSION_KEY = 'mm-popup-session';
 
 /** Compte les visites. Appelé une fois au démarrage, avant tout rendu. */
 export function countVisit(): void {
@@ -58,19 +61,26 @@ export default function InstallInvitation() {
     let dismissed = false;
     let visits = 0;
     try {
-      dismissed = localStorage.getItem(DISMISSED_KEY) === '1';
+      dismissed = lirePartage(DISMISSED_KEY) === '1';
       visits = Number(localStorage.getItem(VISITS_KEY) ?? '0');
     } catch {
       return;
     }
     if (dismissed || visits < MIN_VISITS) return;
+    /* Une sollicitation par session, toutes surfaces confondues : si une pop-up contextuelle
+       s'est déjà ouverte, l'invitation attend la session suivante. Elle n'est pas dans le
+       registre (elle dépend d'un événement du navigateur, pas d'une page), mais elle partage
+       son plafond — sinon les deux s'empilaient. */
+    if (lirePartage(POPUP_SESSION_KEY, 'session') === '1') return;
 
     const onPrompt = (e: Event) => {
       // On empêche la bannière native du navigateur pour poser la nôtre — la native
       // apparaît n'importe quand, y compris au milieu d'une leçon.
       e.preventDefault();
+      if (lirePartage(POPUP_SESSION_KEY, 'session') === '1') return;
       setDeferred(e as BeforeInstallPromptEvent);
       setVisible(true);
+      ecrirePartage(POPUP_SESSION_KEY, '1', 'session');
     };
     window.addEventListener('beforeinstallprompt', onPrompt);
     return () => window.removeEventListener('beforeinstallprompt', onPrompt);
@@ -79,11 +89,8 @@ export default function InstallInvitation() {
   const close = (permanent: boolean) => {
     setVisible(false);
     if (permanent) {
-      try {
-        localStorage.setItem(DISMISSED_KEY, '1');
-      } catch {
-        /* rien à faire : au pire la bannière reviendra une fois. */
-      }
+      // Refus partagé par les trois hôtes : ne pas reposer la question sur edu. puis club.
+      ecrirePartage(DISMISSED_KEY, '1');
     }
   };
 

@@ -1412,7 +1412,11 @@
     "popupMediaEndLabel": "End of a podcast or video",
     "popupMediaEndDesc": "At 90% scroll: a route to the Club, the only next step these two pages offer",
     "popupQuoteAbandonLabel": "Quote started, never sent",
-    "popupQuoteAbandonDesc": "On exit, for someone who engaged the simulator without sending it — takes priority over the generic prompt"
+    "popupQuoteAbandonDesc": "On exit, for someone who engaged the simulator without sending it — takes priority over the generic prompt",
+    "popupEduExitLabel": "School home exit prompt (edu.)",
+    "popupEduExitDesc": "edu. home, method and catalogue: offers a free account to signed-out visitors, on exit intent.",
+    "popupProjectExitLabel": "Selected work exit prompt",
+    "popupProjectExitDesc": "Conception portfolio: offers to book a call, on exit intent."
   },
   "users": {
     "title": "Users",

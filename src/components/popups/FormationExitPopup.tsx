@@ -1,72 +1,62 @@
 import { useTranslation } from 'react-i18next';
 import LocalizedLink from '../shared/LocalizedLink';
 import PopupHeading from './PopupHeading';
-import { CTA_BRAND, DISMISS, BODY, ACTIONS } from './popupStyles';
+import { TONES, ARROW, DISMISS, BODY, ACTIONS, TILE, TILE_ICON, TILE_LABEL, TILE_DESC, TILE_ARROW } from './popupStyles';
 import { Icon } from '@ds';
 
 /**
- * Retenue sur une fiche formation — le moment de plus forte intention d'achat du site.
+ * Retenue sur une fiche formation (edu.) — le moment de plus forte intention d'achat du site.
  *
- * Deux issues volontairement inégales : revenir à la formation consultée (l'intention exprimée) ou
- * découvrir le Club, qui donne accès à tout. Le Club est présenté en SECOND et en retrait : le
- * proposer d'abord détournerait un visiteur déjà décidé sur une formation précise vers une offre
- * plus large qu'il n'a pas demandée.
+ * DEUX ÉTATS depuis le 2026-10-29, parce que les formations publiées sont « Bientôt » :
  *
- * Registre : tutoiement — territoire LEARN (`docs/UX-AUDIT.md §2`).
+ *   · `open`  la formation est en vente → « Je m'inscris », droit au tunnel de paiement.
+ *             L'ancien bouton disait « Reprendre la formation » à quelqu'un qui ne l'avait pas
+ *             commencée, et la ramenait sur la page qu'il quittait.
+ *   · `soon`  elle est annoncée → « Être prévenu·e à l'ouverture » (un compte garde la place),
+ *             exactement le geste que la fiche propose à un visiteur déconnecté. L'ancien texte
+ *             promettait « commence aujourd'hui » sur une formation qu'on ne peut pas acheter.
+ *
+ * La pastille « Sans risque » est retirée : elle frôlait la promesse de remboursement que les
+ * CGV (art. 6) excluent (kit v3, D-13).
+ *
+ * Le renvoi vers le Club mène à sa page PUBLIQUE, plus à l'espace gardé, et ne prétend plus
+ * qu'il « contient toutes les formations » : il offre une remise sur chacune.
  */
-
 interface FormationExitPopupProps {
-  /** Chemin de la formation consultée, déjà localisé. */
-  formationPath: string;
+  mode: 'open' | 'soon';
+  checkoutPath: string;
   onAccept: () => void;
   onClub: () => void;
   onDismiss: () => void;
 }
 
-export default function FormationExitPopup({
-  formationPath, onAccept, onClub, onDismiss,
-}: FormationExitPopupProps) {
+export default function FormationExitPopup({ mode, checkoutPath, onAccept, onClub, onDismiss }: FormationExitPopupProps) {
   const { t } = useTranslation('shared');
+  const k = (key: string) => t(`popups.formationExit.${mode}.${key}`);
 
   return (
     <div>
-      <PopupHeading
-        eyebrow={t('popups.formationExit.eyebrow')}
-        title={t('popups.formationExit.title')}
-        sticker={t('popups.formationExit.sticker')}
-        tone="brand"
-      />
-
-      <p className={BODY}>{t('popups.formationExit.text')}</p>
+      <PopupHeading tone="edu" eyebrow={k('eyebrow')} title={k('title')} highlight={mode === 'soon' ? k('sticker') : undefined} />
+      <p className={BODY}>{k('text')}</p>
 
       <div className={ACTIONS}>
-        <LocalizedLink to={formationPath} onClick={onAccept} className={CTA_BRAND}>
-          {t('popups.formationExit.cta')}
-          <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
+        <LocalizedLink to={mode === 'open' ? checkoutPath : '/inscription'} onClick={onAccept} className={TONES.edu.cta}>
+          {k('cta')}
+          <span className={ARROW}><Icon name="forward" size={16} /></span>
         </LocalizedLink>
         <button type="button" onClick={onDismiss} className={DISMISS}>
           {t('popups.formationExit.dismiss')}
         </button>
       </div>
 
-      {/* Le Club, en second et en retrait : il élargit sans détourner. */}
-      <LocalizedLink
-        to="/mon-espace/club"
-        onClick={onClub}
-        className="group mt-5 wide:mt-7 hidden wide:flex items-center gap-3 p-4 rounded-2xl border border-white/10 bg-surface-sheet/[0.03] hover:bg-surface-sheet/[0.07] hover:border-[color-mix(in_srgb,var(--mm-violet)_50%,transparent)] transition duration-300 focus:outline-none"
-      >
-        <span className="w-10 h-10 rounded-xl bg-[color-mix(in_srgb,var(--mm-violet)_15%,transparent)] text-transforme flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
-          <Icon name="sparkles" size={20} />
+      {/* Le Club, en second et en retrait : il élargit sans détourner. Masqué sous `wide`. */}
+      <LocalizedLink to="/club-des-digitos" onClick={onClub} className={`${TILE} mt-6 hidden wide:flex`}>
+        <span className={`${TILE_ICON} ${TONES.club.tint}`}><Icon name="sparkles" size={20} /></span>
+        <span className="min-w-0 flex-1">
+          <span className={TILE_LABEL}>{t('popups.formationExit.clubLabel')}</span>
+          <span className={TILE_DESC}>{t('popups.formationExit.clubDesc')}</span>
         </span>
-        <span className="flex-1 min-w-0">
-          <span className="block text-sm font-bold text-white leading-snug">
-            {t('popups.formationExit.clubLabel')}
-          </span>
-          <span className="block mt-0.5 text-xs text-white/50 leading-relaxed">
-            {t('popups.formationExit.clubDesc')}
-          </span>
-        </span>
-        <Icon name="forward" size={16} className="shrink-0 text-white/30 group-hover:text-transforme group-hover:translate-x-1 transition duration-300" />
+        <Icon name="forward" size={16} className={TILE_ARROW} />
       </LocalizedLink>
     </div>
   );

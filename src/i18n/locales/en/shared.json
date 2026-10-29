@@ -62,34 +62,42 @@
   },
   "popups": {
     "agencyExit": {
-      "title": "Before you go",
-      "eyebrow": "One question only",
-      "sticker": "3 doors",
-      "intro": "Tell us what you're looking for and we'll point you to the right place.",
-      "buildLabel": "I want a product built",
-      "buildDesc": "Platform, application, rebuild — this is the practice that handles it.",
-      "presenceLabel": "I want to digitalise my shop",
+      "title": "Before you go, one question",
+      "eyebrow": "Conception",
+      "intro": "Tell us what you're looking for and we'll take you to the right place.",
+      "buildLabel": "Have a product built",
+      "buildDesc": "Platform, app, rebuild: describe your project in three fields.",
+      "presenceLabel": "Put my shop online",
       "presenceDesc": "Website, Google listing, WhatsApp catalogue. Published prices.",
-      "learnLabel": "I want to learn",
-      "learnDesc": "Digital marketing, SEO, AI — hands-on courses and free content.",
+      "learnLabel": "Learn",
+      "learnDesc": "Digital marketing, SEO, AI: Max-Morrys's online school.",
       "continue": "Continue without choosing"
     },
     "formationsEntry": {
       "title": "You're in the right place to learn",
       "text": "Digital marketing, SEO, artificial intelligence: hands-on courses built to be applied the very next day.",
-      "eyebrow": "Most popular course",
+      "eyebrow": "Featured",
       "cta": "Browse the courses",
       "ctaWithFormation": "Explore this course",
       "dismiss": "Later"
     },
     "formationExit": {
-      "title": "One second",
-      "eyebrow": "Before you close this",
-      "sticker": "No risk",
-      "text": "You can start this course today and move at your own pace. Lifetime access, certificate included.",
-      "cta": "Back to the course",
-      "clubLabel": "Or join Club Digitos",
-      "clubDesc": "Every course, the community and live sessions, for a single subscription.",
+      "title": "Before you close this course",
+      "open": {
+        "eyebrow": "Before you close this",
+        "title": "It's open, and it's waiting for you",
+        "text": "Pay once, keep lifetime access and go at your own pace. Wave, Orange Money or card.",
+        "cta": "Enrol now"
+      },
+      "soon": {
+        "eyebrow": "Coming soon",
+        "title": "Save your seat for the launch",
+        "sticker": "Free account",
+        "text": "This course isn't open yet. Create your account: I'll let you know the moment it opens, and you'll find this page in your space.",
+        "cta": "Notify me at launch"
+      },
+      "clubLabel": "Or join the Club des Digitos",
+      "clubDesc": "Live sessions every month, a discount on every course in the school and more questions to the assistant.",
       "dismiss": "No thanks"
     },
     "presenceExit": {
@@ -125,7 +133,7 @@
       "title": "There's one step first",
       "eyebrow": "Before you close this",
       "sticker": "Free account",
-      "text": "The “Join the Club” button leads to your space, and your space needs an account. The account is free and takes a minute. The subscription itself comes right after, from the Club tab.",
+      "text": "The “Join the Club” button leads to your space, and your space needs an account. The account is free and takes a minute; membership is paid right after, from the Club space.",
       "cta": "Create my account",
       "secondary": "I already have an account",
       "dismiss": "Later",
@@ -147,6 +155,25 @@
       "text": "You started describing your business and stopped. What you typed is still there — a few fields left, and I send back a priced proposal.",
       "cta": "Finish my quote",
       "secondary": "Or talk on WhatsApp",
+      "dismiss": "Later"
+    },
+    "eduExit": {
+      "eyebrow": "Before you go",
+      "title": "A free account, and the school is yours",
+      "sticker": "Free",
+      "text": "Your seat saved for the courses' launch, and {{count}} questions a day to Rysmo, the school's assistant. No card, no commitment.",
+      "cta": "Create my account",
+      "secondary": "See the assistant",
+      "dismiss": "Later",
+      "note": "No payment starts here. A course is paid once, when you choose it."
+    },
+    "projectExit": {
+      "eyebrow": "Selected work",
+      "title": "Does your project look like one of these?",
+      "sticker": "No commitment",
+      "text": "Walk us through it on a call. We'll tell you frankly whether it's for us, and how we'd run it.",
+      "cta": "Book a call",
+      "secondary": "See custom projects",
       "dismiss": "Later"
     }
   },

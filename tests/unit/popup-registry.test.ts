@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { findEligible, isCheckoutPath, isQuotePath, isUnder, POPUP_REGISTRY } from '../../src/lib/popups/registry';
+import { espaceDe, findEligible, isCheckoutPath, isQuotePath, isUnder, POPUP_REGISTRY } from '../../src/lib/popups/registry';
 import type { PopupContext } from '../../src/lib/popups/registry';
 
 const base: PopupContext = {
@@ -49,7 +49,8 @@ describe('règles par page', () => {
 
   it('la retenue formation vise une FICHE, pas le catalogue', () => {
     expect(findEligible(ctx({ path: '/formations/seo' }))?.id).toBe('formationExit');
-    expect(findEligible(ctx({ path: '/formations' }))).toBeNull();
+    // Le catalogue a sa propre fenêtre depuis les sous-domaines : celle de l'école.
+    expect(findEligible(ctx({ path: '/formations' }))?.id).toBe('eduExit');
   });
 
   it('la fin d’article vise un ARTICLE, pas l’index du blog', () => {
@@ -186,6 +187,40 @@ describe('arrivée depuis les réseaux sociaux', () => {
 
   it('mais une arrivée directe reste hors découverte', () => {
     expect(findEligible(ctx({ path: '/a-propos', entrySource: 'direct' }))).toBeNull();
+  });
+});
+
+describe('distribution par espace (hub · edu. · club.)', () => {
+  it('chaque fenêtre ne vit que dans ses espaces, d’après la table des sous-domaines', () => {
+    for (const def of POPUP_REGISTRY) expect(def.espaces.length).toBeGreaterThan(0);
+    expect(espaceDe('/formations/seo')).toBe('edu');
+    expect(espaceDe('/club-des-digitos/adhesion')).toBe('club');
+    expect(espaceDe('/conception/realisations')).toBe('hub');
+  });
+
+  it('la reprise de panier suit le visiteur sur le hub et l’école, jamais sur le Club', () => {
+    expect(findEligible(ctx({ path: '/blog/x', hasPendingCart: true }))?.id).toBe('cartRecovery');
+    expect(findEligible(ctx({ path: '/apprendre', hasPendingCart: true }))?.id).toBe('cartRecovery');
+    expect(findEligible(ctx({ path: '/club-des-digitos', hasPendingCart: true }))?.id).toBe('clubExit');
+  });
+
+  it('la découverte reste sur le hub : l’école a sa propre fenêtre', () => {
+    expect(findEligible(ctx({ path: '/apprendre', entrySource: 'search' }))?.id).toBe('eduExit');
+    expect(findEligible(ctx({ path: '/apprendre/methode', entrySource: 'search', isSignedIn: true }))).toBeNull();
+    expect(findEligible(ctx({ path: '/apprendre/assistant', entrySource: 'search' }))).toBeNull();
+  });
+
+  it('la retenue du Club couvre ses trois pages publiques, adhésion comprise', () => {
+    for (const path of ['/club-des-digitos', '/club-des-digitos/sessions', '/club-des-digitos/adhesion']) {
+      expect(findEligible(ctx({ path }))?.id).toBe('clubExit');
+    }
+  });
+
+  it('les réalisations proposent un appel, pas une formation', () => {
+    expect(findEligible(ctx({ path: '/conception/realisations', entrySource: 'search' }))?.id).toBe('projectExit');
+    expect(findEligible(ctx({ path: '/conception/realisations/un-projet' }))?.id).toBe('projectExit');
+    expect(findEligible(ctx({ path: '/conception/projets-sur-mesure' }))).toBeNull();
+    expect(POPUP_REGISTRY.find((d) => d.id === 'projectExit')?.mobileSurface).toBe('sheet');
   });
 });
 

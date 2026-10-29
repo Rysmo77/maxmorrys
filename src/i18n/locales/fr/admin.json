@@ -1412,7 +1412,11 @@
     "popupMediaEndLabel": "Fin d'un podcast ou d'une vidéo",
     "popupMediaEndDesc": "À 90 % de lecture : passage vers le Club, seule suite proposée sur ces deux fiches",
     "popupQuoteAbandonLabel": "Devis commencé, jamais envoyé",
-    "popupQuoteAbandonDesc": "À la sortie, pour qui a engagé le simulateur sans l'envoyer — passe avant la retenue générique"
+    "popupQuoteAbandonDesc": "À la sortie, pour qui a engagé le simulateur sans l'envoyer — passe avant la retenue générique",
+    "popupEduExitLabel": "Retenue sur l'accueil de l'école (edu.)",
+    "popupEduExitDesc": "Accueil, méthode et catalogue d'edu. : propose un compte gratuit aux visiteurs déconnectés, sur intention de sortie.",
+    "popupProjectExitLabel": "Retenue sur les réalisations",
+    "popupProjectExitDesc": "Portfolio de la piste Conception : propose de réserver un appel, sur intention de sortie."
   },
   "users": {
     "title": "Utilisateurs",

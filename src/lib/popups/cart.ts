@@ -1,3 +1,4 @@
+import { lirePartage, ecrirePartage, effacerPartage } from '../sharedStore';
 /**
  * Marqueur de tunnel de paiement abandonné.
  *
@@ -25,7 +26,7 @@ interface PendingCart {
 /** Enregistre l'entrée dans un tunnel de paiement. */
 export function markCartPending(slug: string): void {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ slug, at: Date.now() } satisfies PendingCart));
+    ecrirePartage(KEY, JSON.stringify({ slug, at: Date.now() } satisfies PendingCart), 'durable', TTL_MS / 1000);
   } catch {
     // Stockage indisponible : pas de rappel, ce n'est pas bloquant.
   }
@@ -34,7 +35,7 @@ export function markCartPending(slug: string): void {
 /** Efface le marqueur — paiement abouti, ou rappel déjà présenté. */
 export function clearCartPending(): void {
   try {
-    localStorage.removeItem(KEY);
+    effacerPartage(KEY);
   } catch {
     // Rien à effacer si le stockage est inaccessible.
   }
@@ -43,7 +44,7 @@ export function clearCartPending(): void {
 /** Le slug laissé en plan, ou `null` si aucun ou périmé. Nettoie au passage un marqueur expiré. */
 export function getPendingCart(): string | null {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = lirePartage(KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<PendingCart>;
     if (typeof parsed.slug !== 'string' || typeof parsed.at !== 'number') return null;

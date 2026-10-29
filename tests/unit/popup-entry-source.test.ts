@@ -61,6 +61,13 @@ describe('classifyEntry — autres contextes', () => {
     expect(classifyEntry(`https://${SELF.toUpperCase()}/blog`, '', SELF)).toBe('direct');
   });
 
+  it('un passage d’un espace à l’autre reste une navigation interne', () => {
+    // Sans quoi un visiteur venu de Google devenait « inconnu » en ouvrant edu.
+    expect(classifyEntry('https://maxmorrys.me/blog/x', '', 'edu.maxmorrys.me')).toBe('direct');
+    expect(classifyEntry('https://edu.maxmorrys.me/', '', 'club.maxmorrys.me')).toBe('direct');
+    expect(classifyEntry('https://pasmaxmorrys.me/', '', 'edu.maxmorrys.me')).toBe('unknown');
+  });
+
   it('classe un referrer externe inconnu en unknown', () => {
     expect(classifyEntry('https://un-blog-quelconque.example/', '', SELF)).toBe('unknown');
   });

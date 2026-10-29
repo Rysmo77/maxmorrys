@@ -2,20 +2,13 @@ import { useTranslation } from 'react-i18next';
 import LocalizedLink from '../shared/LocalizedLink';
 import PopupHeading from './PopupHeading';
 import { whatsappUrl } from '../../lib/presence/whatsapp';
-import { CTA_LAGOON, DISMISS, BODY, ACTIONS, LINK_LAGOON } from './popupStyles';
+import { TONES, ARROW, LINK, DISMISS, BODY, ACTIONS } from './popupStyles';
 import { Icon } from '@ds';
 
 /**
- * Miroir commerçant de l'aiguilleur : retenue à la sortie de `/presence-digitale`.
- *
- * Le CTA ouvre WhatsApp plutôt qu'un formulaire. Ce n'est pas une commodité : l'ICP de cette offre
- * est un commerçant de proximité qui traite déjà tout son commerce sur WhatsApp
- * (`docs/AGENCY-POSITIONING.md §9`). Lui demander de remplir un formulaire web serait lui imposer
- * un canal qui n'est pas le sien.
- *
- * Registre : tutoiement — c'est celui de `/presence-digitale`, et il ne change pas ici.
+ * Retenue sur l'offre commerçants (`/conception/commerces-et-tpe`). L'étage commerçants de la
+ * piste Conception TUTOIE (kit v3, « Voix par piste ») ; la page mère, elle, vouvoie.
  */
-
 interface PresenceExitPopupProps {
   onAccept: () => void;
   onSecondary: () => void;
@@ -24,38 +17,25 @@ interface PresenceExitPopupProps {
 
 export default function PresenceExitPopup({ onAccept, onSecondary, onDismiss }: PresenceExitPopupProps) {
   const { t } = useTranslation('shared');
+  const tone = TONES.studio;
 
   return (
     <div>
       <PopupHeading
+        tone="studio"
         eyebrow={t('popups.presenceExit.eyebrow')}
         title={t('popups.presenceExit.title')}
-        sticker={t('popups.presenceExit.sticker')}
-        tone="lagoon"
+        highlight={t('popups.presenceExit.sticker')}
       />
-
       <p className={BODY}>{t('popups.presenceExit.text')}</p>
 
       <div className={ACTIONS}>
-        {/*
-          `whatsappUrl()` sans message : le visiteur n'a rien simulé, on ne préremplit donc pas un
-          devis qu'il n'a pas formulé. Le message vide le laisse décrire son commerce lui-même.
-        */}
-        <a
-          href={whatsappUrl()}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={onAccept}
-          className={CTA_LAGOON}
-        >
+        {/* Sans message prérempli : le visiteur n'a rien simulé, il décrit son commerce lui-même. */}
+        <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer" onClick={onAccept} className={tone.cta}>
           {t('popups.presenceExit.cta')}
-          <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
+          <span className={ARROW}><Icon name="forward" size={16} /></span>
         </a>
-        <LocalizedLink
-          to="/conception/commerces-et-tpe#packs"
-          onClick={onSecondary}
-          className={LINK_LAGOON}
-        >
+        <LocalizedLink to="/conception/commerces-et-tpe#packs" onClick={onSecondary} className={`${LINK} ${tone.link}`}>
           {t('popups.presenceExit.secondary')}
         </LocalizedLink>
         <button type="button" onClick={onDismiss} className={DISMISS}>

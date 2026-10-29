@@ -1,5 +1,6 @@
 import type { PopupId } from './rules';
 import type { EntrySource } from './entrySource';
+import { placer, type Espace } from '../espaces';
 
 /**
  * Registre déclaratif des pop-ups — quelle fenêtre, sur quelle page, à quel déclencheur.
@@ -43,11 +44,26 @@ export interface PopupContext {
 
 export interface PopupDefinition {
   id: PopupId;
+  /**
+   * Les espaces où la fenêtre a le droit de vivre (kit v3 : un compte, trois espaces).
+   *
+   * Les chemins du registre sont LOGIQUES (`/formations/x`), et `lib/espaces.ts` dit sur quel
+   * hôte chacun est servi : `formationExit` ne peut donc s'ouvrir que sur edu., et le dire ici
+   * ne change rien pour elle. Le champ compte pour les règles qui ne regardent PAS le chemin —
+   * la reprise de panier, la découverte — et qui, sans lui, auraient suivi le visiteur partout,
+   * jusque sur le Club où elles parlent d'une autre offre que celle de la page.
+   */
+  espaces: readonly Espace[];
   trigger: PopupTrigger;
   /** Surface sous `lg`. `sheet` est OBLIGATOIRE partout où le trafic organique domine. */
   mobileSurface: 'modal' | 'sheet';
   /** Vrai si la pop-up a un sens dans ce contexte. Les plafonds sont évalués ailleurs. */
   eligible: (ctx: PopupContext) => boolean;
+}
+
+/** L'espace qui sert un chemin logique — d'après la table unique `lib/espaces.ts`. */
+export function espaceDe(path: string): Espace {
+  return placer(path).espace;
 }
 
 /** Vrai si `path` est le chemin exact ou l'un de ses descendants. */
@@ -118,6 +134,13 @@ const FORMATIONS_ENTRY_EXCLUDED: readonly string[] = [
   '/presence-digitale',
 ];
 
+/** Les pages publiques du Club, en chemins logiques. `/adhesion` compris : c'est elle qui mène au mur. */
+const CLUB_PUBLIC_PATHS: readonly string[] = [
+  '/club-des-digitos',
+  '/club-des-digitos/sessions',
+  '/club-des-digitos/adhesion',
+];
+
 export const POPUP_REGISTRY: readonly PopupDefinition[] = [
   /*
     La reprise de panier passe en premier : un visiteur qui a laissé un paiement en route est le
@@ -125,6 +148,9 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
   */
   {
     id: 'cartRecovery',
+    /* Le hub et l'école. PAS le Club : ses pages vendent l'adhésion, et une formation laissée
+       au paiement y ferait deux offres sur un écran — la faute que `isQuotePath` documente. */
+    espaces: ['hub', 'edu'],
     trigger: 'return',
     mobileSurface: 'sheet',
     eligible: (c) => c.hasPendingCart && !isCheckoutPath(c.path) && !isQuotePath(c.path),
@@ -136,9 +162,34 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
   */
   {
     id: 'formationExit',
+    espaces: ['edu'],
     trigger: 'exitIntent',
     mobileSurface: 'modal',
     eligible: (c) => isUnder(c.path, '/formations') && c.path !== '/formations',
+  },
+
+  /*
+    Accueil et catalogue de l'école — NOUVELLE le 2026-10-29, avec les sous-domaines.
+
+    edu.maxmorrys.me a ouvert sans aucune fenêtre sur ses pages publiques : la découverte
+    (`formationsEntry`) n'y a pas de sens — le visiteur est déjà à l'école — et la retenue
+    formation ne vise qu'une fiche. Or l'accueil d'edu. est la page la plus fréquentée de
+    l'espace, et ses formations sont annoncées « Bientôt ».
+
+    Elle ne vend donc rien : elle nomme ce qu'un compte gratuit ouvre DÈS AUJOURD'HUI — la place
+    gardée à l'ouverture et les questions quotidiennes à l'assistant (`RYSMO_BASE_DAILY`). Deux
+    faits vérifiables, aucune promesse sur le catalogue.
+
+    `sheet` sous `lg` : l'accueil d'edu. reçoit le trafic de recherche.
+  */
+  {
+    id: 'eduExit',
+    espaces: ['edu'],
+    trigger: 'exitIntent',
+    mobileSurface: 'sheet',
+    eligible: (c) =>
+      !c.isSignedIn
+      && (c.path === '/apprendre' || isUnder(c.path, '/apprendre/methode') || c.path === '/formations'),
   },
 
   /*
@@ -157,9 +208,14 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
   */
   {
     id: 'clubExit',
+    espaces: ['club'],
     trigger: 'exitIntent',
     mobileSurface: 'modal',
-    eligible: (c) => c.path === '/club-des-digitos' && !c.isSignedIn,
+    /* Étendue le 2026-10-29 aux trois pages publiques du Club. La marche qu'elle nomme a
+       DÉMÉNAGÉ : le bouton de l'accueil mène désormais à `/adhesion`, page publique, et c'est
+       le bouton d'`/adhesion` qui mène à l'espace gardé. Ne la monter que sur l'accueil la
+       retirait précisément de la page où le mur se dresse. */
+    eligible: (c) => CLUB_PUBLIC_PATHS.includes(c.path) && !c.isSignedIn,
   },
 
   /*
@@ -173,6 +229,7 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
   */
   {
     id: 'agencyExit',
+    espaces: ['hub'],
     trigger: 'exitIntent',
     mobileSurface: 'modal',
     eligible: (c) => c.path === '/conception',
@@ -193,6 +250,7 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
   */
   {
     id: 'quoteAbandon',
+    espaces: ['hub'],
     trigger: 'exitIntent',
     mobileSurface: 'modal',
     eligible: (c) => c.path === '/conception/commerces-et-tpe' && c.hasStartedQuote,
@@ -204,9 +262,31 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
   */
   {
     id: 'presenceExit',
+    espaces: ['hub'],
     trigger: 'exitIntent',
     mobileSurface: 'modal',
     eligible: (c) => c.path === '/conception/commerces-et-tpe',
+  },
+
+  /*
+    Réalisations — NOUVELLE le 2026-10-29.
+
+    Le portfolio est la page où un décideur vérifie qu'on a déjà fait ce qu'il cherche ; il
+    n'avait AUCUNE fenêtre (la découverte l'exclut, à raison : `/conception` entier lui est
+    fermé). Elle propose l'action principale que le kit v3 donne au site personnel —
+    « Réserver un appel », une par écran — vers le même `/contact?rdv=1` que le bouton de la
+    page. Vouvoiement : c'est la piste Conception.
+
+    ⚠️ Pas sur `/conception/projets-sur-mesure` : cette page EST l'appel, la retenir dessus
+    répéterait son propre bouton. `sheet` sous `lg` : une modale sur un portfolio haut de gamme
+    abîmerait ce qu'il cherche à prouver.
+  */
+  {
+    id: 'projectExit',
+    espaces: ['hub'],
+    trigger: 'exitIntent',
+    mobileSurface: 'sheet',
+    eligible: (c) => isUnder(c.path, '/conception/realisations'),
   },
 
   /*
@@ -218,6 +298,7 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
   */
   {
     id: 'blogEnd',
+    espaces: ['hub'],
     trigger: 'scroll',
     mobileSurface: 'sheet',
     eligible: (c) => isUnder(c.path, '/blog') && c.path !== '/blog' && !c.isSignedIn,
@@ -237,6 +318,7 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
   */
   {
     id: 'mediaEnd',
+    espaces: ['hub'],
     trigger: 'scroll',
     mobileSurface: 'sheet',
     eligible: (c) =>
@@ -252,6 +334,9 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
   */
   {
     id: 'formationsEntry',
+    /* Le hub seulement. Sur edu. le visiteur est déjà à l'école (`eduExit` y parle à sa
+       place) ; sur club. elle détournerait vers une autre offre que celle de la page. */
+    espaces: ['hub'],
     trigger: 'dwell',
     mobileSurface: 'sheet',
     eligible: (c) =>
@@ -264,7 +349,8 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
 
 /** La première pop-up pertinente dans ce contexte, ou `null`. Les plafonds sont vus ailleurs. */
 export function findEligible(ctx: PopupContext): PopupDefinition | null {
-  return POPUP_REGISTRY.find((def) => def.eligible(ctx)) ?? null;
+  const espace = espaceDe(ctx.path);
+  return POPUP_REGISTRY.find((def) => def.espaces.includes(espace) && def.eligible(ctx)) ?? null;
 }
 
 export function getDefinition(id: PopupId): PopupDefinition | undefined {

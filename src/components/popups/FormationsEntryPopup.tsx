@@ -1,163 +1,51 @@
 import { useTranslation } from 'react-i18next';
-import { motion, useReducedMotion } from 'framer-motion';
 import LocalizedLink from '../shared/LocalizedLink';
-import TranslatedText from '../shared/TranslatedText';
+import PopupHeading from './PopupHeading';
+import FormationTile from './FormationTile';
+import { TONES, ARROW, DISMISS, BODY, ACTIONS } from './popupStyles';
+import type { Formation } from '../../types';
 import { contentPath } from '../../lib/contentPath';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useFormat } from '../../hooks/useFormat';
-import { PriceApprox } from '../shared/PriceApprox';
-import { staggerContainer, staggerItem } from '../../lib/animations';
-import type { Formation } from '../../types';
 import { Icon } from '@ds';
 
 /**
- * Mise en avant de « Je te forme » pour un visiteur arrivé depuis un moteur de recherche ou
- * depuis la signature de pied de page d'un site construit par l'agence.
+ * Découverte de l'école, pour un inconnu arrivé par la recherche, un réseau ou un site client.
+ * Vit sur le hub seulement ; elle mène à edu.
  *
- * Registre : TUTOIEMENT. Les formations relèvent du territoire LEARN, où le système « Je te… »
- * est l'actif de marque à préserver (`docs/UX-AUDIT.md §2`).
+ * Corrigé le 2026-10-29 :
+ *   · le bouton posait de l'encre sur un aplat `--mm-bleu` — 2,78:1 en clair, 1,91:1 en
+ *     sombre — le défaut que le 02/09 avait corrigé partout SAUF ici ;
+ *   · le sourcil disait « La formation la plus suivie » : une preuve sociale que rien ne
+ *     mesure, interdite par le kit. Il dit désormais « À la une ».
  *
- * Quand une formation est disponible, la pop-up montre la VRAIE fiche — note, inscrits, prix — et
- * sa couverture devient le panneau de droite du dialogue (voir `PopupManager`). `formation` peut
- * être `null` : la pop-up retombe alors sur son texte statique et s'affiche quand même. Elle ne
- * dépend JAMAIS du réseau pour exister.
- *
- * ⚠️ Deux mises en page dans un seul composant, et c'est voulu. Sous `lg` cette pop-up s'affiche
- * en bandeau bas plafonné à 30 vh : titre réduit, vignette en ligne, aucun ornement. À partir de
- * `lg` elle devient le dialogue éditorial pleine largeur. Tout ce qui grossit est donc conditionné
- * par `wide:` — ajouter un élément non conditionné pousserait le CTA sous la ligne de flottaison du
- * bandeau sur un petit téléphone.
+ * `PopupManager` ne l'ouvre que si au moins une formation est réellement en vente.
  */
-
 interface FormationsEntryPopupProps {
-  /** Formation vedette à mettre en avant, ou `null` pour le repli textuel. */
   formation: Formation | null;
   onAccept: () => void;
   onDismiss: () => void;
 }
 
-/** CTA « blob » : coins très arrondis et aplat de marque, dans l'esprit du bouton de référence. */
-const ctaCls = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[color:var(--mm-bleu)] hover:bg-[color:var(--mm-bleu)] text-ink font-black text-sm uppercase tracking-wide transition duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-forme focus:outline-none';
-const dismissCls = 'text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none rounded';
-
 export default function FormationsEntryPopup({ formation, onAccept, onDismiss }: FormationsEntryPopupProps) {
   const { t } = useTranslation('shared');
   const { language } = useLanguage();
-  /* Le prix passe par le formateur LOCALISÉ. `formatPrice` de `lib/utils` retombe sur
-     `fr-FR` quand on ne lui donne pas de locale : sur /en, cette carte rendait « 95 000 F CFA »
-     — groupement français et nom de devise français — là où le système écrit « 95,000 F ». */
-  const { formatPrice } = useFormat();
-  const reduced = useReducedMotion();
-
-  const containerProps = reduced
-    ? {}
-    : { variants: staggerContainer, initial: 'hidden' as const, animate: 'visible' as const };
-  const itemProps = reduced ? {} : { variants: staggerItem };
-
-  const title = (
-    <h2 className="text-base wide:text-5xl font-bold wide:font-black wide:uppercase wide:tracking-tight wide:leading-[0.95] text-white text-balance">
-      {t('popups.formationsEntry.title')}
-    </h2>
-  );
-
-  if (!formation) {
-    return (
-      <div>
-        <p className="hidden wide:block text-[0.625rem] font-bold tracking-[0.3em] uppercase text-forme">
-          {t('popups.formationsEntry.eyebrow')}
-        </p>
-        <div className="wide:mt-3">{title}</div>
-        <p className="mt-2 wide:mt-4 text-sm text-white/60 leading-relaxed max-w-md">
-          {t('popups.formationsEntry.text')}
-        </p>
-        <div className="mt-4 wide:mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
-          <LocalizedLink to="/formations" onClick={onAccept} className={ctaCls}>
-            {t('popups.formationsEntry.cta')}
-            <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
-          </LocalizedLink>
-          <button type="button" onClick={onDismiss} className={dismissCls}>
-            {t('popups.formationsEntry.dismiss')}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const price = formation.promoPrice ?? formation.price;
-  const hasPromo = formation.promoPrice != null && formation.promoPrice < formation.price;
+  /* « Découvrir cette formation » menait au CATALOGUE, pas à la formation nommée. */
+  const target = formation ? contentPath('formations', formation, language) : '/formations';
 
   return (
-    <motion.div {...containerProps}>
-      <motion.p
-        {...itemProps}
-        className="hidden wide:block text-[0.625rem] font-bold tracking-[0.3em] uppercase text-forme"
-      >
-        {t('popups.formationsEntry.eyebrow')}
-      </motion.p>
+    <div>
+      <PopupHeading tone="edu" eyebrow={t('popups.formationsEntry.eyebrow')} title={t('popups.formationsEntry.title')} />
+      {formation ? <FormationTile formation={formation} /> : <p className={BODY}>{t('popups.formationsEntry.text')}</p>}
 
-      <motion.div {...itemProps} className="wide:mt-3">{title}</motion.div>
-
-      {/*
-        Fiche de la formation. Sous `lg`, la vignette reste en ligne : la couverture pleine largeur
-        ne s'affiche que dans le panneau de droite du dialogue, qui n'existe pas sur mobile.
-      */}
-      <motion.div
-        {...itemProps}
-        className="mt-3 wide:mt-6 flex items-start gap-3 wide:gap-4 wide:p-4 wide:rounded-2xl wide:border wide:border-white/10 wide:bg-surface-sheet/[0.03]"
-      >
-        <LocalizedLink
-          to={contentPath('formations', formation, language)}
-          onClick={onAccept}
-          className="group block shrink-0 overflow-hidden rounded-xl w-14 h-14 wide:w-20 wide:h-20 focus:outline-none"
-        >
-          <img
-            src={formation.coverImage}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+      <div className={ACTIONS}>
+        <LocalizedLink to={target} onClick={onAccept} className={TONES.edu.cta}>
+          {t(formation ? 'popups.formationsEntry.ctaWithFormation' : 'popups.formationsEntry.cta')}
+          <span className={ARROW}><Icon name="forward" size={16} /></span>
         </LocalizedLink>
-
-        <div className="min-w-0 flex-1">
-          <TranslatedText
-            text={formation.title}
-            as="p"
-            className="text-sm wide:text-base font-bold text-white leading-snug line-clamp-2"
-          />
-          {/*
-            LA NOTE ET LE NOMBRE D'INSCRITS ONT ÉTÉ RETIRÉS D'ICI.
-
-            Ils y étaient rendus ensemble — une étoile suivie de `formation.rating`, puis
-            `formation.students`. Ce sont deux des interdits ABSOLUS du système, listés côte à
-            côte : « note en étoiles, nombre d'avis, nombre d'élèves ou d'inscrits, taux de
-            réussite, témoignage, logo client » (REGLES-DE-REVUE.md § 6, README § 13). Ce
-            n'est pas une préférence de ton — ces chiffres se vérifient en trente secondes, et
-            un visiteur qui les prend en défaut ne revient pas. Le catalogue et la fiche les
-            avaient déjà perdus ; ils survivaient sur le déclencheur le plus large du registre
-            de pop-ups, c'est-à-dire là où le plus de monde les voyait.
-
-            Reste ce qui se prouve : le prix, et le prix barré quand il y a une promotion.
-          */}
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
-            <span className="font-bold text-white">{formatPrice(price)}</span>
-            {hasPromo && (
-              <span className="line-through text-white/30">{formatPrice(formation.price)}</span>
-            )}
-            <PriceApprox xof={price} />
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div {...itemProps} className="mt-4 wide:mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <LocalizedLink to="/formations" onClick={onAccept} className={ctaCls}>
-          {t('popups.formationsEntry.ctaWithFormation')}
-          <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
-        </LocalizedLink>
-        <button type="button" onClick={onDismiss} className={dismissCls}>
+        <button type="button" onClick={onDismiss} className={DISMISS}>
           {t('popups.formationsEntry.dismiss')}
         </button>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }

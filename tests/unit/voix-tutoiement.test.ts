@@ -62,6 +62,7 @@ type Trouvaille = { fichier: string; chemin: string; valeur: string };
 
 function parcourir(o: unknown, chemin: string, fichier: string, out: Trouvaille[]) {
   if (typeof o === 'string') {
+    if (sertConception(fichier, chemin)) return;
     if (VOUVOIEMENT.test(o.replace(EXEMPT, ''))) out.push({ fichier, chemin, valeur: o });
   } else if (Array.isArray(o)) {
     o.forEach((v, i) => parcourir(v, `${chemin}[${i}]`, fichier, out));
@@ -105,6 +106,20 @@ const EXEMPT_TU = /$^/;
  */
 const SOUS_ARBRES_TU = ['levels.shops.'];
 
+/**
+ * Les SOUS-ARBRES hors piste Conception qui la servent, donc VOUVOIENT — nommés un par un.
+ *
+ * Deux pop-ups vivent sur des pages de la piste mais leurs textes sont dans `shared.json`, où
+ * l'arbitre les cherche (`popups.<id>`, verrouillé par `popup-id-mirrors.test.ts`) :
+ * l'aiguilleur de `/conception` et la retenue des réalisations (29/10/2026). Ils tutoyaient
+ * sur la seule page qui vouvoie. La seconde règle vérifie qu'ils ne tutoient plus.
+ */
+const SOUS_ARBRES_VOUS: Record<string, string[]> = {
+  'shared.json': ['popups.agencyExit.', 'popups.projectExit.'],
+};
+const sertConception = (fichier: string, chemin: string) =>
+  (SOUS_ARBRES_VOUS[fichier] ?? []).some((p) => chemin.startsWith(p));
+
 describe('voix de marque — tutoiement', () => {
   it('aucun catalogue français ne vouvoie, hors piste Conception', () => {
     const trouvailles: Trouvaille[] = [];
@@ -132,6 +147,16 @@ describe('voix de marque — tutoiement', () => {
       const chemin = join(FR, f);
       if (!existsSync(chemin)) continue;
       chercher(JSON.parse(readFileSync(chemin, 'utf8')), '', f);
+    }
+    // Les sous-arbres qui servent la piste depuis un autre catalogue suivent sa voix.
+    for (const [f, prefixes] of Object.entries(SOUS_ARBRES_VOUS)) {
+      const racine = JSON.parse(readFileSync(join(FR, f), 'utf8')) as Record<string, unknown>;
+      for (const p of prefixes) {
+        const cle = p.replace(/\.$/, '').split('.');
+        const noeud = cle.reduce<unknown>((o, k) => (o as Record<string, unknown> | undefined)?.[k], racine);
+        expect(noeud, `${f} → ${p} : sous-arbre déclaré mais introuvable`).toBeTruthy();
+        chercher(noeud, p.replace(/\.$/, ''), f);
+      }
     }
     const rapport = trouvailles.map((t) => `  ${t.fichier} → ${t.chemin}\n    « ${t.valeur} »`).join('\n');
     expect(trouvailles, `Tutoiement dans ${trouvailles.length} chaîne(s) de la piste Conception :\n${rapport}`).toEqual([]);

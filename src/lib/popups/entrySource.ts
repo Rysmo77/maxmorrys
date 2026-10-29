@@ -1,4 +1,6 @@
 import { clientProjects } from '../brand';
+import { lirePartage, ecrirePartage } from '../sharedStore';
+import { DOMAINE } from '../espaces';
 
 /**
  * Classification du CONTEXTE D'ARRIVÉE d'un visiteur — source unique.
@@ -116,6 +118,9 @@ export function classifyEntry(referrer: string, search: string, selfHostname?: s
 
   // Navigation interne (rechargement, retour arrière) : la session a déjà commencé ailleurs.
   if (selfHostname && hostname === selfHostname.toLowerCase()) return 'direct';
+  /* Un passage d'un espace à l'autre (hub → edu. → club.) est une navigation interne, pas une
+     arrivée. Sans cette ligne, un visiteur venu de Google devenait « inconnu » en ouvrant edu. */
+  if (hostname === DOMAINE || hostname.endsWith(`.${DOMAINE}`)) return 'direct';
 
   return 'unknown';
 }
@@ -128,7 +133,7 @@ export function captureEntrySource(): EntrySource {
   if (typeof window === 'undefined') return 'unknown';
 
   try {
-    const stored = sessionStorage.getItem(STORAGE_KEY);
+    const stored = lirePartage(STORAGE_KEY, 'session');
     if (isValidSource(stored)) return stored;
   } catch {
     // sessionStorage indisponible (navigation privée verrouillée) — on reclasse à chaque appel.
@@ -136,7 +141,7 @@ export function captureEntrySource(): EntrySource {
 
   const source = classifyEntry(document.referrer, window.location.search, window.location.hostname);
   try {
-    sessionStorage.setItem(STORAGE_KEY, source);
+    ecrirePartage(STORAGE_KEY, source, 'session');
   } catch {
     // Écriture impossible : la classification reste correcte pour ce chargement.
   }
@@ -147,7 +152,7 @@ export function captureEntrySource(): EntrySource {
 export function getEntrySource(): EntrySource {
   if (typeof window === 'undefined') return 'unknown';
   try {
-    const stored = sessionStorage.getItem(STORAGE_KEY);
+    const stored = lirePartage(STORAGE_KEY, 'session');
     return isValidSource(stored) ? stored : 'unknown';
   } catch {
     return 'unknown';

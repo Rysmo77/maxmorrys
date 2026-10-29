@@ -1,3 +1,4 @@
+import { lirePartage, ecrirePartage } from '../sharedStore';
 /**
  * Répartition A/B des pop-ups — groupe témoin contre groupe exposé.
  *
@@ -23,11 +24,14 @@ export const DEFAULT_TREATMENT_SHARE = 0.5;
 
 function readOrCreateVisitorId(): string | null {
   try {
-    const existing = localStorage.getItem(VISITOR_KEY);
+    /* Partagé entre les trois hôtes (`lib/sharedStore`) : tiré une fois, le groupe suit le
+       visiteur sur edu. et club. Sinon il était retiré sur chaque sous-domaine. */
+    const existing = lirePartage(VISITOR_KEY);
     if (existing) return existing;
+    localStorage.getItem(VISITOR_KEY); // sonde : jette si le stockage est interdit
     const created = crypto.randomUUID();
-    localStorage.setItem(VISITOR_KEY, created);
-    return created;
+    ecrirePartage(VISITOR_KEY, created);
+    return lirePartage(VISITOR_KEY) === created ? created : null;
   } catch {
     // Stockage indisponible : pas d'identifiant stable, donc pas d'appartenance stable non plus.
     return null;

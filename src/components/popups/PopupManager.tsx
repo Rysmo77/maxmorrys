@@ -3,8 +3,7 @@ import { useBlocker, useLocation, type BlockerFunction } from 'react-router-dom'
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { localizedPath } from '../../i18n/routing';
-import { toLogicalPath } from '../../lib/hosts';
+import { toLogicalPath, espaceCourant } from '../../lib/hosts';
 import { trackEvent } from '../../lib/tracking';
 import { queryClient, queryKeys } from '../../lib/queryClient';
 // Imports directs plutôt que via le barrel `lib/firestore` : celui-ci fait
@@ -20,7 +19,8 @@ import { sendPopupEvent } from '../../lib/popups/beacon';
 import { getPendingCart, clearCartPending } from '../../lib/popups/cart';
 import { hasQuoteStarted, clearQuoteStarted } from '../../lib/popups/quote';
 import { useExitIntent } from '../../hooks/useExitIntent';
-import { accepteAchat, formationsOuvertes, formationMiseEnAvant } from '../../types/formationRelease';
+import { accepteAchat, estAVenir, formationsOuvertes, formationMiseEnAvant } from '../../types/formationRelease';
+import type { PopupTone } from './popupStyles';
 /*
   L'arbitre reste en import direct (cf. son montage dans `App.tsx`), mais les
   surfaces qu'il rend ne le sont plus : elles pesaient dans le chunk d'entrée de
@@ -28,7 +28,7 @@ import { accepteAchat, formationsOuvertes, formationMiseEnAvant } from '../../ty
   temps. Elles ne sont demandées qu'au moment où une pop-up devient active.
 */
 const PopupSurface = lazy(() => import('./PopupSurface'));
-const PopupAurora = lazy(() => import('./PopupAurora'));
+const PopupPanel = lazy(() => import('./PopupPanel'));
 const AudienceRouterPopup = lazy(() => import('./AudienceRouterPopup'));
 const FormationsEntryPopup = lazy(() => import('./FormationsEntryPopup'));
 const FormationExitPopup = lazy(() => import('./FormationExitPopup'));
@@ -38,6 +38,8 @@ const CartRecoveryPopup = lazy(() => import('./CartRecoveryPopup'));
 const ClubExitPopup = lazy(() => import('./ClubExitPopup'));
 const MediaEndPopup = lazy(() => import('./MediaEndPopup'));
 const QuoteAbandonPopup = lazy(() => import('./QuoteAbandonPopup'));
+const EduExitPopup = lazy(() => import('./EduExitPopup'));
+const ProjectExitPopup = lazy(() => import('./ProjectExitPopup'));
 
 /**
  * Arbitre UNIQUE des pop-ups contextuelles du site public.
@@ -52,7 +54,28 @@ const QuoteAbandonPopup = lazy(() => import('./QuoteAbandonPopup'));
  * entrée de registre plus un composant de contenu, jamais une condition supplémentaire ici.
  *
  * Monté dans `PublicLayout` — donc jamais sur le LMS, l'authentification ni l'administration.
+ *
+ * ⚠️ TROIS HÔTES, UN SEUL ARBITRE (2026-10-29). La même build sert maxmorrys.me, edu. et club.,
+ * et ce composant tourne sur les trois. Le registre dit dans quel espace chaque fenêtre a le
+ * droit de vivre (`espaces`), et les plafonds, le groupe témoin, le panier et la source
+ * d'arrivée sont rangés dans le cookie de domaine (`lib/sharedStore`) : un visiteur qui passe
+ * du hub à l'école reste UN visiteur, avec UNE pop-up par session.
  */
+
+/** Le ton — donc le panneau — de chaque fenêtre : l'espace dont elle parle. */
+const TONE_OF: Record<PopupId, PopupTone> = {
+  agencyExit: 'hub',
+  projectExit: 'hub',
+  blogEnd: 'hub',
+  formationsEntry: 'edu',
+  formationExit: 'edu',
+  cartRecovery: 'edu',
+  eduExit: 'edu',
+  clubExit: 'club',
+  mediaEnd: 'club',
+  presenceExit: 'studio',
+  quoteAbandon: 'studio',
+};
 
 /** Déclencheur effectif, `forced` en plus de ceux du registre (mode aperçu). */
 type ActiveTrigger = PopupTrigger | 'forced';
@@ -99,6 +122,12 @@ export default function PopupManager() {
     vers ce que le produit ne peut pas tenir.
   */
   const [cartGone, setCartGone] = useState<boolean | null>(null);
+  /*
+    La fiche quittée : en vente (`open`), annoncée (`soon`), ou introuvable (`gone`). `null` tant
+    qu'on ne l'a pas lue. Même motif que `cartGone` : la fenêtre ne doit pas promettre un achat
+    que le produit refuse — les formations publiées sont « Bientôt ».
+  */
+  const [exitFormation, setExitFormation] = useState<{ slug: string; mode: 'open' | 'soon' | 'gone'; slugFr?: string } | null>(null);
 
   const path = normalizePath(pathname);
   const activeTrigger = active?.trigger ?? null;
@@ -216,7 +245,13 @@ export default function PopupManager() {
    * La précommande fait exception : son tunnel accepte, donc le panier est encore bon.
    */
   const cartStale = candidate?.id === 'cartRecovery' && cartGone !== false;
-  const enabled = settingAllows && !shopClosed && !cartStale;
+  const exitSlug = path.startsWith('/formations/') ? path.slice('/formations/'.length) : null;
+  const exitInfo = exitFormation && exitFormation.slug === exitSlug ? exitFormation : null;
+  /* Une formation annoncée ne s'adresse qu'aux visiteurs sans compte : la fenêtre leur propose
+     d'en créer un pour être prévenus. Un apprenant connecté a son bouton sur la fiche. */
+  const formationExitStale = candidate?.id === 'formationExit'
+    && (exitInfo === null || exitInfo.mode === 'gone' || (exitInfo.mode === 'soon' && context.isSignedIn));
+  const enabled = settingAllows && !shopClosed && !cartStale && !formationExitStale;
   const armed = enabled && variant === 'treatment' && active === null;
 
   // ── Données nécessaires, préchargées AVANT l'ouverture ───────────────────────────────────────
@@ -299,6 +334,23 @@ export default function PopupManager() {
     return () => { alive = false; };
   }, [settingAllows, candidate, pendingCartSlug, cartGone]);
 
+  useEffect(() => {
+    if (!settingAllows || candidate?.id !== 'formationExit' || !exitSlug) return;
+    if (exitFormation?.slug === exitSlug) return;
+    let alive = true;
+    import('../../lib/firestore/formations')
+      .then((m) => m.getFormationBySlug(exitSlug, language))
+      .then((found) => {
+        if (!alive) return;
+        if (!found) setExitFormation({ slug: exitSlug, mode: 'gone' });
+        else if (accepteAchat(found)) setExitFormation({ slug: exitSlug, mode: 'open', slugFr: found.slug });
+        else setExitFormation({ slug: exitSlug, mode: estAVenir(found) ? 'soon' : 'gone' });
+      })
+      // Lecture impossible : on n'ouvre pas une fenêtre dont on ignore la promesse.
+      .catch(() => { if (alive) setExitFormation({ slug: exitSlug, mode: 'gone' }); });
+    return () => { alive = false; };
+  }, [settingAllows, candidate, exitSlug, exitFormation, language]);
+
   // ── Diagnostic console ───────────────────────────────────────────────────────────────────────
   /*
     `rules.ts` connaît ses propres verrous ; lui seul ignore le contexte de page. On le lui injecte,
@@ -340,7 +392,7 @@ export default function PopupManager() {
   const open = useCallback((id: PopupId, trigger: ActiveTrigger) => {
     markShown(id); // consomme le plafond de session AVANT l'affichage : une seule fenêtre passera
     setActive({ id, trigger });
-    trackEvent('popup_impression', { popup_id: id, trigger, variant: 'treatment' });
+    trackEvent('popup_impression', { popup_id: id, trigger, variant: 'treatment', espace: espaceCourant() });
     sendPopupEvent(id, 'impression', 'treatment');
   }, []);
 
@@ -355,14 +407,14 @@ export default function PopupManager() {
     if (withheldRef.current === candidate.id) return;
     withheldRef.current = candidate.id;
     markShown(candidate.id); // même plafond que le groupe exposé, sinon les populations divergent
-    trackEvent('popup_withheld', { popup_id: candidate.id, variant: 'control' });
+    trackEvent('popup_withheld', { popup_id: candidate.id, variant: 'control', espace: espaceCourant() });
     sendPopupEvent(candidate.id, 'withheld', 'control');
   }, [enabled, variant, candidate]);
 
   /** Émetteur unique. Un affichage FORCÉ n'émet rien : l'aperçu ne doit pas gonfler les compteurs. */
   const emit = useCallback((event: string, params: Record<string, unknown>) => {
     if (activeTrigger === 'forced') return;
-    trackEvent(event, { ...params, trigger: activeTrigger, variant: 'treatment' });
+    trackEvent(event, { ...params, trigger: activeTrigger, variant: 'treatment', espace: espaceCourant() });
     const id = params.popup_id;
     if (typeof id === 'string') {
       sendPopupEvent(id as PopupId, event === 'popup_click' ? 'click' : 'dismiss', 'treatment');
@@ -450,13 +502,13 @@ export default function PopupManager() {
   const handleAgencyChoose = useCallback((destination: 'build' | 'presence' | 'learn') => {
     close('agencyExit', destination, false);
     /*
-      Filet pour la porte BUILD, une simple ancre `#projet`. Tant que la fenêtre est montée, le
+      Filet pour la porte BUILD, une simple ancre `#qualif` (le formulaire de `/conception`). Tant que la fenêtre est montée, le
       scroll du corps est verrouillé : si le saut de fragment natif part avant le démontage, il ne
       va nulle part. On repositionne à la frame suivante — sans effet si le saut a déjà eu lieu.
     */
     if (destination === 'build') {
       requestAnimationFrame(() => {
-        document.getElementById('projet')?.scrollIntoView({ block: 'start' });
+        document.getElementById('qualif')?.scrollIntoView({ block: 'start' });
       });
     }
   }, [close]);
@@ -477,6 +529,8 @@ export default function PopupManager() {
   const mobileSurface = definitionForActive?.mobileSurface ?? 'modal';
 
   /** Enveloppe commune : la surface ne varie que par son panneau média et son contenu. */
+  const panel = (formation?: Formation | null) => <PopupPanel tone={TONE_OF[active.id]} formation={formation} />;
+
   const surface = (media: React.ReactNode, children: React.ReactNode) => (
     // `null` en repli : une pop-up qui apparaît une fraction de seconde plus tard
     // est préférable à un état de chargement par-dessus la page.
@@ -484,7 +538,10 @@ export default function PopupManager() {
       <PopupSurface
         open
         onClose={() => close(active.id, 'close')}
-        title={t(`popups.${active.id}.title`)}
+        /* Nom accessible = titre visible. `formationExit` a deux titres, un par état. */
+        title={t(active.id === 'formationExit'
+          ? `popups.formationExit.${exitInfo?.mode === 'open' ? 'open' : 'soon'}.title`
+          : `popups.${active.id}.title`)}
         mobileSurface={mobileSurface}
         media={media}
       >
@@ -496,7 +553,7 @@ export default function PopupManager() {
   switch (active.id) {
     case 'agencyExit':
       return surface(
-        <PopupAurora tone="lagoon" />,
+        panel(),
         <AudienceRouterPopup
           onChoose={handleAgencyChoose}
           onContinue={() => close('agencyExit', 'continue')}
@@ -505,7 +562,7 @@ export default function PopupManager() {
 
     case 'formationsEntry':
       return surface(
-        featured ? <CoverPanel formation={featured} /> : <PopupAurora tone="brand" />,
+        panel(featured),
         <FormationsEntryPopup
           formation={featured}
           onAccept={() => close('formationsEntry', 'formations', false)}
@@ -515,9 +572,10 @@ export default function PopupManager() {
 
     case 'formationExit':
       return surface(
-        <PopupAurora tone="brand" />,
+        panel(),
         <FormationExitPopup
-          formationPath={path}
+          mode={exitInfo?.mode === 'open' ? 'open' : 'soon'}
+          checkoutPath={`/checkout/${exitInfo?.slugFr ?? exitSlug ?? ''}`}
           onAccept={() => close('formationExit', 'formation', false)}
           onClub={() => close('formationExit', 'club', false)}
           onDismiss={() => close('formationExit', 'close')}
@@ -526,7 +584,7 @@ export default function PopupManager() {
 
     case 'quoteAbandon':
       return surface(
-        <PopupAurora tone="lagoon" />,
+        panel(),
         <QuoteAbandonPopup
           onResume={() => close('quoteAbandon', 'resume', false)}
           onWhatsapp={() => {
@@ -542,7 +600,7 @@ export default function PopupManager() {
 
     case 'presenceExit':
       return surface(
-        <PopupAurora tone="lagoon" />,
+        panel(),
         <PresenceExitPopup
           onAccept={() => close('presenceExit', 'whatsapp', false)}
           onSecondary={() => close('presenceExit', 'packs', false)}
@@ -552,7 +610,7 @@ export default function PopupManager() {
 
     case 'clubExit':
       return surface(
-        <PopupAurora tone="transforme" />,
+        panel(),
         <ClubExitPopup
           onAccept={() => close('clubExit', 'register', false)}
           onSecondary={() => close('clubExit', 'clubTab', false)}
@@ -562,7 +620,7 @@ export default function PopupManager() {
 
     case 'mediaEnd':
       return surface(
-        <PopupAurora tone="transforme" />,
+        panel(),
         <MediaEndPopup
           onAccept={() => close('mediaEnd', 'club', false)}
           onSecondary={() => close('mediaEnd', 'pole', false)}
@@ -572,42 +630,46 @@ export default function PopupManager() {
 
     case 'blogEnd':
       return surface(
-        <PopupAurora tone="brand" />,
+        panel(),
         <BlogEndPopup onDismiss={() => close('blogEnd', 'close')} />,
       );
 
     case 'cartRecovery':
       return surface(
-        cartFormation ? <CoverPanel formation={cartFormation} /> : <PopupAurora tone="brand" />,
+        panel(cartFormation),
         <CartRecoveryPopup
           formation={cartFormation}
           /*
             Le slug du marqueur suffit à reconstruire l'URL, même si le document n'a pas pu être
             chargé : le tunnel de paiement s'atteint par le slug, pas par le document.
           */
-          checkoutPath={localizedPath(`/checkout/${cartFormation?.slug ?? pendingCartSlug ?? ''}`, language)}
+          checkoutPath={`/checkout/${cartFormation?.slug ?? pendingCartSlug ?? ''}`}
           onAccept={handleCartAccept}
           onDismiss={handleCartDismiss}
+        />,
+      );
+
+    case 'eduExit':
+      return surface(
+        panel(),
+        <EduExitPopup
+          onAccept={() => close('eduExit', 'register', false)}
+          onSecondary={() => close('eduExit', 'assistant', false)}
+          onDismiss={() => close('eduExit', 'close')}
+        />,
+      );
+
+    case 'projectExit':
+      return surface(
+        panel(),
+        <ProjectExitPopup
+          onAccept={() => close('projectExit', 'call', false)}
+          onSecondary={() => close('projectExit', 'custom', false)}
+          onDismiss={() => close('projectExit', 'close')}
         />,
       );
 
     default:
       return null;
   }
-}
-
-/** Panneau média : la couverture réelle d'une formation, fondue vers la colonne de contenu. */
-function CoverPanel({ formation }: { formation: Formation }) {
-  return (
-    <>
-      <img
-        src={formation.coverImage}
-        alt=""
-        loading="lazy"
-        decoding="async"
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 bg-[image:linear-gradient(to_right,var(--night-2),color-mix(in_srgb,var(--night-2)_40%,transparent),transparent)]" />
-    </>
-  );
 }

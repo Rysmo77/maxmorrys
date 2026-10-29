@@ -277,7 +277,9 @@ export default function PresenceDigitale() {
       </KitSection>
 
       {/* ── 5 · LE FORMULAIRE DE DEVIS (produit le récapitulatif) ────────────── */}
-      <KitSection className="pt-12 wide:pt-24">
+      {/* `id="devis"` : la pop-up `quoteAbandon` y ramène (« Reprendre mon devis »). L'ancre
+          avait disparu avec la refonte et le bouton ne menait plus nulle part. */}
+      <KitSection id="devis" className="scroll-mt-[var(--header-h)] pt-12 wide:pt-24">
         <div ref={q.formRef} className="grid items-start gap-11 wide:grid-cols-[.95fr_1.05fr]">
           <div>
             <KitH2 size="clamp(36px, 4.5vw, 56px)">{t('form.title')}</KitH2>

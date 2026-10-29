@@ -1,85 +1,128 @@
 /**
- * Classes partagées par les contenus de pop-up.
- *
- * ⚠️ Écrites en littéral et exportées comme constantes : `cn()` de ce dépôt n'est PAS
- * `tailwind-merge` (`src/lib/utils.ts`), il ne résout aucun conflit. Deux `bg-*` concurrents
- * seraient départagés par l'ordre du CSS, pas par l'ordre d'appel — mieux vaut une chaîne complète
- * par variante qu'une composition qui semble marcher.
+ * La grammaire visuelle des pop-ups — kit v3 (29/10/2026).
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * ⚠️ POURQUOI L'APLAT DE MARQUE A DISPARU DES CTA (corrigé le 2026-09-02)
+ * CE QUI A CHANGÉ, ET POURQUOI
  *
- * Les trois CTA s'écrivaient `bg-[color:var(--mm-bleu)] … text-ink`. Les deux jetons
- * BASCULENT sous `.dk`, que `ThemeContext` pose sur `<html>` — mais `PopupSurface` est en
- * `--night-2` dans LES DEUX thèmes. Le fond de la fenêtre ne suivait donc pas le thème,
- * tandis que l'encre et l'aplat du bouton, si. Résultat mesuré sur le bouton principal,
- * c'est-à-dire sur la seule chose qu'on vient y cliquer :
+ * Jusqu'ici, toutes les fenêtres étaient en `--night-2` dans les DEUX thèmes, avec des titres
+ * en sans-serif capitales, des boutons en capitales et une pastille inclinée. Cette surface
+ * figée obligeait chaque jeton à porter sa variante « nuit » (`--mm-*-n`, `--paper-fixed`), et
+ * trois défauts de contraste en sont nés, dont deux encore en ligne le 29/10 (`FormationsEntry`
+ * posait de l'encre sur un aplat bleu à 2,78:1 ; l'aiguilleur lisait `text-digitalise-txt` sur
+ * nuit à 2,84:1).
  *
- *     thème clair   encre #0E1116 sur #0057BC  →  2,78:1   ✗
- *     thème sombre  encre #ECF0F5 sur #6FB1FF  →  1,91:1   ✗
+ * Le kit v3 tranche autrement : « Menus, tiroirs, palette de commandes : opaques, sur un
+ * voile » ; surfaces `bento` ; « Un seul flou par écran : le chrome fixe ». La fenêtre devient
+ * donc une tuile `bento` qui SUIT le thème — l'encre, les accents et les boutons basculent seuls,
+ * et plus aucune variante nuit n'est nécessaire. Le voile perd son flou.
  *
- * Sous le seuil dans les deux sens, et invisible en revue : chacun ne voit que son thème,
- * et le défaut ne se voit pas sur une capture — il se calcule.
- *
- * Le système avait déjà écrit la réponse, elle n'était simplement pas employée ici :
- * `--action-*` sont des dégradés en hexadécimal FIXE (`tokens/semantic.css`) et `--paper-fixed`
- * est déclaré sur `:root,.dk` (`overrides/ad-06`), donc aucun des deux ne bascule. C'est
- * exactement le couple que `Button` du kit applique à ses tons de territoire — voir sa table
- * `TONE`, qui porte l'avertissement en toutes lettres : « `--ink` deviendrait blanc sous
- * `.dk` ». Blanc sur dégradé de marque : 7,19:1 en violet, 6,80:1 en bleu, dans les deux thèmes.
+ *   · Sourcil : `mm-eyebrow` (mono capitales entre crochets), teinté par espace.
+ *   · Titre : Fraunces 900, casse de phrase, jamais sous 22 px.
+ *   · Boutons : `mm-btn` du kit, casse de phrase, flèche dans sa pastille.
+ *   · Mise en avant : UNE pilule `highlight` (orange), à la place de la pastille inclinée.
  * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * ⚠️ CHAÎNES LITTÉRALES, JAMAIS UNE FABRIQUE. Tailwind lit le texte source : une classe formée
+ * par interpolation ne serait jamais générée. Et `cn()` n'est pas `tailwind-merge` — deux
+ * classes concurrentes se départagent par l'ordre du CSS, pas par l'ordre d'appel.
  */
-
-/*
-  ⚠️ CHAÎNES LITTÉRALES, ET SURTOUT PAS UNE FABRIQUE. Une première version composait ces trois
-  valeurs par une fonction `cta(action, shadow)` — c'était plus court, et Tailwind n'aurait
-  produit AUCUNE des trois : son analyseur lit le texte source et ne voit jamais un nom de
-  classe formé par interpolation. Le bouton serait resté sans aplat, en silence, au build
-  seulement. Même piège que la table `TONES` de `PopupHeading`, qui porte déjà l'avertissement.
-*/
-
-/** CTA principal, teinte lagoon — agence et commerce de proximité. */
-export const CTA_LAGOON = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[image:var(--action-digitalise)] text-[color:var(--paper-fixed)] font-black text-sm uppercase tracking-wide transition duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-digitalise focus:outline-none';
-
-/** CTA principal, teinte brand — territoire de l'apprentissage. */
-export const CTA_BRAND = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[image:var(--action-forme)] text-[color:var(--paper-fixed)] font-black text-sm uppercase tracking-wide transition duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-forme focus:outline-none';
-
-/** CTA principal, teinte transforme — le Club, seul territoire à abonnement. */
-export const CTA_TRANSFORME = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[image:var(--action-transforme)] text-[color:var(--paper-fixed)] font-black text-sm uppercase tracking-wide transition duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-transforme focus:outline-none';
 
 /**
- * Bouton discret sur la surface nuit — remplace `Button tone="quiet"` du kit, inutilisable ici.
+ * Le ton d'une fenêtre = l'espace dont elle parle (kit v3, « Les trois espaces »).
  *
- * ⚠️ TROUVÉ PAR UNE CAPTURE, PAS PAR UNE RELECTURE (2026-09-03). Le ton `quiet` compose
- * `background: var(--surface-quiet)` et `color: var(--ink)`, et les DEUX basculent sous `.dk`
- * alors que cette surface est nuit dans les deux thèmes. Valeurs effectives en thème clair :
- * fond `rgba(14,17,22,.065)` sur `--night-2`, encre `#0E1116`. Soit du noir sur du noir — les
- * deux seules actions de la fin d'article (« Ouvrir » le flux, « Créer un compte ») étaient
- * illisibles sur la surface au trafic organique le plus fort du site. Le ton `ghost` porte le
- * même défaut : n'employer dans une pop-up que les tons dont l'encre est `--paper-fixed`.
- *
- * Pourquoi ce n'est pas corrigé dans le kit : `Button` pose ses tons en style EN LIGNE, qu'aucune
- * feuille d'override ne peut battre sans `!important`. Les valeurs ci-dessous sont en blanc
- * translucide — donc identiques dans les deux thèmes, ce qui est la propriété qui manquait.
+ *   hub     site personnel — encre, accent violet ; « Réserver un appel » en `is-club`
+ *   edu     l'école — bleu
+ *   club    le Club des Digitos — violet
+ *   studio  la piste Conception, étage commerçants — teal
  */
-export const BTN_NIGHT = 'inline-flex shrink-0 items-center gap-1.5 mm-press-sm rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-white/20 focus:outline-none';
+export type PopupTone = 'hub' | 'edu' | 'club' | 'studio';
 
-/** Action secondaire, discrète mais atteignable au clavier. */
-export const DISMISS = 'text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none rounded';
+interface ToneClasses {
+  eyebrow: string;
+  /** Action principale. */
+  cta: string;
+  /** Lien secondaire, souligné, dans l'accent de l'espace. */
+  link: string;
+  /** Pastille d'icône des tuiles. */
+  tint: string;
+  /** Maillage du panneau. */
+  mesh: string;
+  /** Le panneau est-il sombre dans les deux thèmes ? (`m-club` l'est, par le kit.) */
+  nightPanel: boolean;
+}
+
+export const TONES: Record<PopupTone, ToneClasses> = {
+  hub: {
+    eyebrow: 'mm-eyebrow',
+    cta: 'mm-btn is-club has-arrow',
+    link: 'text-ink decoration-[color:var(--mm-violet)]',
+    tint: 'bg-[color-mix(in_srgb,var(--ink)_7%,transparent)] text-ink',
+    mesh: 'mm-mesh m-hub',
+    nightPanel: false,
+  },
+  edu: {
+    eyebrow: 'mm-eyebrow is-edu',
+    cta: 'mm-btn is-edu has-arrow',
+    link: 'text-[color:var(--mm-bleu)] decoration-[color:var(--mm-bleu)]',
+    tint: 'bg-[color-mix(in_srgb,var(--mm-bleu)_12%,transparent)] text-[color:var(--mm-bleu)]',
+    mesh: 'mm-mesh m-edu',
+    nightPanel: false,
+  },
+  club: {
+    eyebrow: 'mm-eyebrow is-club',
+    cta: 'mm-btn is-club has-arrow',
+    link: 'text-[color:var(--mm-violet)] decoration-[color:var(--mm-violet)]',
+    tint: 'bg-[color-mix(in_srgb,var(--mm-violet)_12%,transparent)] text-[color:var(--mm-violet)]',
+    mesh: 'mm-mesh m-club',
+    nightPanel: true,
+  },
+  studio: {
+    eyebrow: 'mm-eyebrow is-studio',
+    cta: 'mm-btn is-studio has-arrow',
+    link: 'text-[color:var(--mm-teal-t)] decoration-[color:var(--mm-teal-t)]',
+    tint: 'bg-[color-mix(in_srgb,var(--mm-teal)_14%,transparent)] text-[color:var(--mm-teal-t)]',
+    mesh: 'mm-mesh m-digitalise',
+    nightPanel: false,
+  },
+};
 
 /**
- * Lien secondaire de territoire, sur la surface nuit.
+ * La pastille de flèche d'un `mm-btn has-arrow`.
  *
- * ⚠️ Les variantes `--mm-*-n` et NON `--mm-*-t`. Le kit les a écrites pour ce cas exact, et
- * son commentaire le dit : « Versions nuit des teintes illisibles sur fond noir (#0057BC tombe
- * à 2,84:1) ». Elles vivent au `:root` et ne basculent pas — ce qui est la propriété qu'il
- * faut ici, puisque la surface est nuit quel que soit le thème.
+ * ⚠️ Le kit la peint `background: var(--paper); color: var(--ink)`. En thème sombre, `--ink`
+ * devient clair et la pastille reste claire : flèche blanche sur blanc, invisible (vu au
+ * navigateur le 29/10). Sur les trois boutons dégradés employés ici, la pastille est blanche
+ * dans les deux thèmes, donc la flèche est fixée en encre. Le défaut reste dans le kit.
  */
-export const LINK_LAGOON = 'text-xs font-semibold text-[color:var(--mm-teal-n)] hover:text-white transition-colors focus:outline-none rounded';
-export const LINK_TRANSFORME = 'text-xs font-semibold text-[color:var(--mm-violet-n)] hover:text-white transition-colors focus:outline-none rounded';
+export const ARROW = 'mm-btn__arrow !bg-[color:var(--paper-fixed)] !text-[color:var(--night)]';
 
-/** Paragraphe de corps. */
-export const BODY = 'mt-2 wide:mt-4 text-sm text-white/60 leading-relaxed max-w-md';
+/** Lien secondaire : gras, souligné, atteignable au clavier. La couleur vient de `TONES[t].link`. */
+export const LINK = 'text-[14px] font-bold underline decoration-2 underline-offset-[5px] transition-opacity hover:opacity-75 rounded-sm';
 
-/** Rangée d'actions : le CTA et la sortie, jamais empilés sur mobile. */
-export const ACTIONS = 'mt-4 wide:mt-7 flex flex-wrap items-center gap-x-5 gap-y-2';
+/**
+ * Sortie neutre. `ink-2` et non `ink-3` : `--ink-3` vaut #98A1AE en clair, 2,5:1 sur blanc — le
+ * kit en fait un plancher décoratif, pas une couleur de texte cliquable.
+ */
+export const DISMISS = 'text-[13px] font-semibold text-ink-2 hover:text-ink transition-colors rounded-sm';
+
+/** Paragraphe de corps (`body` 15 px, `ink-2`, ≤ 46 caractères comme un chapô). */
+export const BODY = 'mt-3 mb-0 max-w-[46ch] text-[15px] leading-[1.55] text-ink-2';
+
+/** Note de contrainte, sous les actions. */
+export const NOTE = 'mt-4 mb-0 max-w-[52ch] text-[12.5px] leading-[1.5] text-ink-2';
+
+/** Rangée d'actions : le bouton, le lien, la sortie. */
+export const ACTIONS = 'mt-5 wide:mt-7 flex flex-wrap items-center gap-x-5 gap-y-3';
+
+/**
+ * Tuile cliquable (portes de l'aiguilleur, fiche de formation, renvoi vers le Club).
+ * `bento-2` sur `bento` : la tuile se lit sans bordure colorée — le kit les interdit.
+ */
+export const TILE = 'group flex w-full items-center gap-4 rounded-[18px] border border-[color:var(--line)] bg-[color:var(--bento-2)] p-3.5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--sh-lift)] active:scale-[.985] motion-reduce:transition-none motion-reduce:hover:translate-y-0';
+
+/** Pastille d'icône d'une tuile (44 px : la cible tactile du kit). */
+export const TILE_ICON = 'grid h-11 w-11 shrink-0 place-items-center rounded-[13px]';
+
+export const TILE_LABEL = 'block text-[14.5px] font-bold leading-snug text-ink';
+export const TILE_DESC = 'mt-0.5 block text-[13px] leading-[1.45] text-ink-2';
+export const TILE_ARROW = 'shrink-0 text-ink-2 transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transition-none';

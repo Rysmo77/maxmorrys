@@ -62,34 +62,42 @@
   },
   "popups": {
     "agencyExit": {
-      "title": "Avant de partir",
-      "eyebrow": "Une seule question",
-      "sticker": "3 portes",
-      "intro": "Dis-moi ce que tu cherches, je t'emmène au bon endroit.",
-      "buildLabel": "Je veux faire construire un produit",
-      "buildDesc": "Plateforme, application, refonte : c'est la practice qui porte ce sujet.",
-      "presenceLabel": "Je veux digitaliser mon commerce",
+      "title": "Avant de partir, une question",
+      "eyebrow": "Conception",
+      "intro": "Dites-nous ce que vous cherchez : nous vous menons au bon endroit.",
+      "buildLabel": "Faire construire un produit",
+      "buildDesc": "Plateforme, application, refonte : décrivez votre projet en trois champs.",
+      "presenceLabel": "Mettre mon commerce en ligne",
       "presenceDesc": "Site, fiche Google, catalogue WhatsApp. Tarifs publics.",
-      "learnLabel": "Je veux me former",
-      "learnDesc": "Marketing digital, SEO, IA : formations pratiques et contenus gratuits.",
+      "learnLabel": "Me former",
+      "learnDesc": "Marketing digital, SEO, IA : l'école en ligne de Max-Morrys.",
       "continue": "Continuer sans choisir"
     },
     "formationsEntry": {
       "title": "Tu es au bon endroit pour apprendre",
       "text": "Marketing digital, SEO, intelligence artificielle : des formations pratiques, en français, pensées pour être appliquées dès le lendemain.",
-      "eyebrow": "La formation la plus suivie",
+      "eyebrow": "À la une",
       "cta": "Voir les formations",
       "ctaWithFormation": "Découvrir cette formation",
       "dismiss": "Plus tard"
     },
     "formationExit": {
-      "title": "Une seconde",
-      "eyebrow": "Avant de refermer",
-      "sticker": "Sans risque",
-      "text": "Tu peux commencer cette formation aujourd'hui et avancer à ton rythme. Accès à vie, certificat à la clé.",
-      "cta": "Reprendre la formation",
-      "clubLabel": "Ou rejoins le Club Digitos",
-      "clubDesc": "Toutes les formations, la communauté et les sessions en direct, pour un seul abonnement.",
+      "title": "Avant de refermer cette formation",
+      "open": {
+        "eyebrow": "Avant de refermer",
+        "title": "Elle est ouverte, et elle t'attend",
+        "text": "Tu paies une fois, tu gardes l'accès à vie et tu avances à ton rythme. En Wave, Orange Money ou carte.",
+        "cta": "Je m'inscris"
+      },
+      "soon": {
+        "eyebrow": "Bientôt en ligne",
+        "title": "Garde ta place pour l'ouverture",
+        "sticker": "Compte gratuit",
+        "text": "Cette formation n'est pas encore ouverte. Crée ton compte : je te préviens dès qu'elle l'est, et tu retrouves cette fiche dans ton espace.",
+        "cta": "Être prévenu·e à l'ouverture"
+      },
+      "clubLabel": "Ou rejoins le Club des Digitos",
+      "clubDesc": "Des sessions en direct chaque mois, une remise sur chaque formation de l'école et plus de questions à l'assistant.",
       "dismiss": "Non merci"
     },
     "presenceExit": {
@@ -125,7 +133,7 @@
       "title": "Il y a une marche",
       "eyebrow": "Avant de refermer",
       "sticker": "Compte gratuit",
-      "text": "Le bouton « Je rejoins le Club » mène à ton espace, et ton espace demande un compte. Le compte est gratuit et se crée en une minute. L'abonnement, lui, se souscrit juste après, depuis l'onglet Club.",
+      "text": "Le bouton « Rejoindre le Club » mène à ton espace, et ton espace demande un compte. Le compte est gratuit et se crée en une minute ; l'adhésion se règle juste après, depuis l'espace du Club.",
       "cta": "Créer mon compte",
       "secondary": "J'ai déjà un compte",
       "dismiss": "Plus tard",
@@ -147,6 +155,25 @@
       "text": "Tu as commencé à décrire ton commerce et tu t'es arrêté. Ce que tu as saisi est toujours là — il reste quelques champs, et je te renvoie une proposition chiffrée.",
       "cta": "Reprendre mon devis",
       "secondary": "Ou en parler sur WhatsApp",
+      "dismiss": "Plus tard"
+    },
+    "eduExit": {
+      "eyebrow": "Avant de partir",
+      "title": "Un compte gratuit, et l'école est à toi",
+      "sticker": "Gratuit",
+      "text": "Ta place gardée pour l'ouverture des formations, et {{count}} questions par jour à Rysmo, l'assistant de l'école. Sans carte, sans engagement.",
+      "cta": "Créer mon compte",
+      "secondary": "Voir l'assistant",
+      "dismiss": "Plus tard",
+      "note": "Aucun paiement ne part d'ici. Une formation se paie une fois, quand tu la choisis."
+    },
+    "projectExit": {
+      "eyebrow": "Réalisations",
+      "title": "Votre projet ressemble à l'un de ceux-ci ?",
+      "sticker": "Sans engagement",
+      "text": "Décrivez-le pendant un appel. Nous vous disons franchement s'il est pour nous, et comment nous le mènerions.",
+      "cta": "Réserver un appel",
+      "secondary": "Voir les projets sur mesure",
       "dismiss": "Plus tard"
     }
   },

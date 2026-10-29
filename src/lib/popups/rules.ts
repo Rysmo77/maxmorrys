@@ -22,6 +22,8 @@
  * de s'afficher. La pertinence vit dans `components/popups/PopupManager.tsx`.
  */
 
+import { lirePartage, ecrirePartage, effacerPartage, clesPartagees } from '../sharedStore';
+
 export type PopupId =
   | 'agencyExit'
   | 'formationsEntry'
@@ -31,7 +33,9 @@ export type PopupId =
   | 'cartRecovery'
   | 'clubExit'
   | 'mediaEnd'
-  | 'quoteAbandon';
+  | 'quoteAbandon'
+  | 'eduExit'
+  | 'projectExit';
 
 /** Motif de blocage, ou `null` si la pop-up peut s'afficher. Consommé par le diagnostic. */
 export type PopupBlocker = 'sessionCap' | 'cooldown' | 'suppressed' | 'noStorage';
@@ -58,21 +62,18 @@ export const STORAGE_PREFIX = 'mm-popup';
 const shownKey = (id: PopupId) => `${STORAGE_PREFIX}-${id}`;
 const suppressedKey = (id: PopupId) => `${STORAGE_PREFIX}-${id}-off`;
 
+/*
+  Lecture et écriture passent par `lib/sharedStore` : un cookie sur `.maxmorrys.me` en
+  production, que le hub, edu. et club. lisent tous. Sans lui, chaque sous-domaine avait son
+  propre plafond — trois pop-ups par session au lieu d'une. Hors production, il retombe sur
+  `localStorage` / `sessionStorage` sous les mêmes clés.
+*/
 function readLocal(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    // Stockage indisponible : on se comporte comme si rien n'avait jamais été affiché.
-    return null;
-  }
+  return lirePartage(key, 'durable');
 }
 
 function writeLocal(key: string, value: string): void {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // Écriture impossible — le plafond de session reste le garde-fou.
-  }
+  ecrirePartage(key, value, 'durable');
 }
 
 /** Horodatage stocké, ou `0` si absent ou illisible. */
@@ -82,11 +83,7 @@ function readStamp(key: string): number {
 }
 
 function sessionCapReached(): boolean {
-  try {
-    return sessionStorage.getItem(SESSION_KEY) === '1';
-  } catch {
-    return false;
-  }
+  return lirePartage(SESSION_KEY, 'session') === '1';
 }
 
 /**
@@ -116,11 +113,7 @@ export function canShow(id: PopupId): boolean {
 /** Enregistre un affichage : consomme le plafond de session et démarre le délai de sept jours. */
 export function markShown(id: PopupId): void {
   writeLocal(shownKey(id), String(Date.now()));
-  try {
-    sessionStorage.setItem(SESSION_KEY, '1');
-  } catch {
-    // Sans plafond de session persistant, le délai de sept jours reste le garde-fou.
-  }
+  ecrirePartage(SESSION_KEY, '1', 'session');
 }
 
 /**
@@ -141,15 +134,6 @@ export function markSuppressed(id: PopupId): void {
  * navigateur, en connaissant le nom exact des clés.
  */
 export function clearAllPopupState(): void {
-  try {
-    const doomed: string[] = [];
-    for (let i = 0; i < localStorage.length; i += 1) {
-      const key = localStorage.key(i);
-      if (key?.startsWith(STORAGE_PREFIX)) doomed.push(key);
-    }
-    doomed.forEach((key) => localStorage.removeItem(key));
-    sessionStorage.removeItem(SESSION_KEY);
-  } catch {
-    // Stockage inaccessible : il n'y avait alors aucun verrou à lever.
-  }
+  clesPartagees(STORAGE_PREFIX, 'durable').forEach((key) => effacerPartage(key, 'durable'));
+  effacerPartage(SESSION_KEY, 'session');
 }

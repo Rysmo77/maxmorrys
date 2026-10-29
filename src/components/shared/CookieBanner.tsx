@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { grantPixelConsent, revokePixelConsent } from '../../lib/meta-pixel';
 import { Button, Icon } from '@ds';
+import { lirePartage, ecrirePartage } from '../../lib/sharedStore';
+
+/*
+  UN SEUL CONSENTEMENT POUR LES TROIS ESPACES (kit v3, « Consentement et mesure »).
+  Il vivait en `localStorage`, rangé par origine : un choix fait sur maxmorrys.me n'existait
+  pas sur edu. ni club., où le bandeau reposait la question. Il vit désormais dans le cookie
+  de domaine `.maxmorrys.me` (`lib/sharedStore`). Une copie reste en `localStorage` : le script
+  de Consent Mode d'`index.html` s'exécute avant React et lit les deux.
+*/
+const CONSENT_KEY = 'mm-cookie-consent';
 
 export interface CookieConsent {
   analytics: boolean;
@@ -20,7 +30,7 @@ declare global {
 /** Returns the stored consent, or null if not yet given. */
 export function getCookieConsent(): CookieConsent | null {
   try {
-    const raw = localStorage.getItem('mm-cookie-consent');
+    const raw = lirePartage(CONSENT_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as CookieConsent;
     // Migrate legacy format { level: 'all' | 'essential' }
@@ -75,11 +85,17 @@ function pushConsentToGoogle(analytics: boolean, marketing: boolean): void {
 export const COOKIE_CONSENT_EVENT = 'mm-cookie-consent-change';
 
 function saveAndApplyConsent(analytics: boolean, marketing: boolean): void {
-  localStorage.setItem('mm-cookie-consent', JSON.stringify({
+  const value = JSON.stringify({
     analytics,
     marketing,
     date: new Date().toISOString(),
-  } as CookieConsent));
+  } as CookieConsent);
+  ecrirePartage(CONSENT_KEY, value);
+  try {
+    localStorage.setItem(CONSENT_KEY, value);
+  } catch {
+    // Copie de confort pour `index.html` : le cookie fait foi.
+  }
   pushConsentToGoogle(analytics, marketing);
   if (marketing) {
     grantPixelConsent();
@@ -97,8 +113,7 @@ export default function CookieBanner() {
   const [marketing, setMarketing] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('mm-cookie-consent');
-    if (!consent) {
+    if (!getCookieConsent()) {
       const timer = setTimeout(() => setVisible(true), 1500);
       return () => clearTimeout(timer);
     }

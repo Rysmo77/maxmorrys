@@ -57,6 +57,8 @@ interface Settings {
   popup_clubExit: boolean;
   popup_mediaEnd: boolean;
   popup_quoteAbandon: boolean;
+  popup_eduExit: boolean;
+  popup_projectExit: boolean;
   /*
     Part du trafic exposée aux pop-ups ; le reste sert de groupe témoin et n'en voit aucune.
     ⚠️ La descendre à 1 supprime le témoin — et avec lui toute possibilité de savoir si les
@@ -92,6 +94,8 @@ const DEFAULT: Settings = {
   popup_clubExit: true,
   popup_mediaEnd: true,
   popup_quoteAbandon: true,
+  popup_eduExit: true,
+  popup_projectExit: true,
   popupTreatmentShare: 0.5,
 };
 
@@ -149,8 +153,10 @@ export default function AdminSettings() {
   const popups: { key: BooleanKey; label: string; desc: string }[] = [
     { key: 'popup_agencyExit', label: t('settings.popupAudienceRouterLabel'), desc: t('settings.popupAudienceRouterDesc') },
     { key: 'popup_formationExit', label: t('settings.popupFormationExitLabel'), desc: t('settings.popupFormationExitDesc') },
+    { key: 'popup_eduExit', label: t('settings.popupEduExitLabel'), desc: t('settings.popupEduExitDesc') },
     { key: 'popup_quoteAbandon', label: t('settings.popupQuoteAbandonLabel'), desc: t('settings.popupQuoteAbandonDesc') },
     { key: 'popup_presenceExit', label: t('settings.popupPresenceExitLabel'), desc: t('settings.popupPresenceExitDesc') },
+    { key: 'popup_projectExit', label: t('settings.popupProjectExitLabel'), desc: t('settings.popupProjectExitDesc') },
     { key: 'popup_cartRecovery', label: t('settings.popupCartRecoveryLabel'), desc: t('settings.popupCartRecoveryDesc') },
     { key: 'popup_clubExit', label: t('settings.popupClubExitLabel'), desc: t('settings.popupClubExitDesc') },
     { key: 'popup_blogEnd', label: t('settings.popupBlogEndLabel'), desc: t('settings.popupBlogEndDesc') },
