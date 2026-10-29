@@ -170,8 +170,8 @@ Produits conçus, détenus et opérés par MY ONOMA.
 
 | Venture | Catégorie | Domaine | Relation |
 | --- | --- | --- | --- |
-| **DOVEN** | Social Technology | doven.app | A MY ONOMA Venture |
-| **NAYO** | Creative Production OS | myonoma.com | A MY ONOMA Venture |
+| **DOVEN** | Social Technology | myonoma.com | A MY ONOMA Venture |
+| **NAYO** | Creative Production OS | nayo.pro | A MY ONOMA Venture |
 | **STEPS** | Media | stepsmag.com | A MY ONOMA Venture |
 
 ### Règles
