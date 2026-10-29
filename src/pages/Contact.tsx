@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { Avatar, Button, CheckLine, DocLine, Field, GlassPanel, Icon, type IconName } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
-import { GlyphTile, PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { GlyphTile, PageSite, SiteEyebrow } from '../components/site';
+import { SiteHero } from '../components/site/v3/SiteHero';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
@@ -18,6 +19,7 @@ import {
 } from './contact/useContactMessage';
 import { useAppointment } from './contact/useAppointment';
 import { BookingDialog } from './contact/BookingDialog';
+import { Bento } from '../components/site/v3/Bento';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -190,16 +192,18 @@ export default function Contact() {
         sameAs: [WHATSAPP_BASE_URL, ...SOCIAL_URLS],
       }} />
 
+      {/* LE HÉROS — kit v3 (`Site-Contact`) : la dalle de nuit, le titre, un chapô qui se lit
+          d'un regard (46ch). La première question suit, sur le clair. */}
+      <SiteHero
+        mesh="club"
+        titleLines={t('page.titleLines', { returnObjects: true }) as string[]}
+        size={52}
+        lede={t('page.lede')}
+      />
+
       <PageSite>
         {/* ── LA PREMIÈRE QUESTION ────────────────────────────────────────── */}
-        <div className="mm-arc-host">
-          <SiteDisplay arc lines={t('page.titleLines', { returnObjects: true }) as string[]} size={52} />
-
-          {/* 46ch : le chapô se lit d'un regard, il ne se parcourt pas. */}
-          <p className="rv mt-[14px] max-w-[46ch] text-[16px] leading-[1.55] text-ink-2" style={rv(3)}>
-            {t('page.lede')}
-          </p>
-
+        <div>
           <GlassPanel
             level="hero"
             padding={26}
@@ -237,11 +241,10 @@ export default function Contact() {
                   `ds:check` ne voit pas. `GlassPanel` accepte maintenant `as="button"` avec
                   `type`, `onClick` et `aria-pressed` ; la géométrie passe par `padding`.
                 */
-                <GlassPanel
+                <Bento
                   key={key}
                   as="button"
                   type="button"
-                  level="flat"
                   padding={18}
                   aria-pressed={branch === key}
                   onClick={() => setBranch(key)}
@@ -260,7 +263,7 @@ export default function Contact() {
                   <span className="mt-1.5 block text-meta leading-[1.5] text-ink-2">
                     {t(`page.route.${key}Body`)}
                   </span>
-                </GlassPanel>
+                </Bento>
               ))}
             </div>
           </GlassPanel>
@@ -274,7 +277,7 @@ export default function Contact() {
         {branch && (
           <div className="mm-section grid items-start gap-11 wide:grid-cols-[.95fr_1.05fr]">
             <div>
-              <GlassPanel level="flat" padding={22} className="rv" style={rv(1)}>
+              <Bento padding={22} className="rv" style={rv(1)}>
                 <SiteEyebrow style={{ margin: 0 }}>{t('page.triage.title')}</SiteEyebrow>
                 {/*
                   ⚠️ CES LIGNES REDESSINAIENT `CheckLine` À LA MAIN, ET AVAIENT DÉJÀ DÉRIVÉ.
@@ -294,9 +297,9 @@ export default function Contact() {
                     </span>
                   </CheckLine>
                 ))}
-              </GlassPanel>
+              </Bento>
 
-              <GlassPanel level="flat" padding={22} className="rv mt-[14px]" style={rv(2)}>
+              <Bento padding={22} className="rv mt-[14px]" style={rv(2)}>
                 <SiteEyebrow style={{ margin: 0 }}>{t('page.channels.title')}</SiteEyebrow>
                 <div className="mt-2">
                   {channels.map((channel, i) => (
@@ -329,7 +332,7 @@ export default function Contact() {
                   <Icon name="calendar" size={16} strokeWidth={2.4} />
                   {t('booking.cardButton')}
                 </Button>
-              </GlassPanel>
+              </Bento>
             </div>
 
             <div>
@@ -339,14 +342,14 @@ export default function Contact() {
                     {message.account && (
                       /* Panneau plat IMBRIQUÉ dans le panneau héros — c'est la composition du
                          kit, et aucun des deux ne porte de flou : le héros est du faux verre. */
-                      <GlassPanel level="flat" padding={14} className="mb-2 flex items-center gap-3">
+                      <Bento padding={14} className="mb-2 flex items-center gap-3">
                         <Avatar initials={message.account.initials} size={36} />
                         <div className="flex-1">
                           <p className="m-0 text-[13.5px] font-semibold text-ink">{t('page.account.title')}</p>
                           <p className="m-0 text-meta-2 text-ink-2">{t('page.account.body')}</p>
                         </div>
                         <Icon name="check" size={15} color="var(--ok)" strokeWidth={3.2} title={t('page.account.signedIn')} />
-                      </GlassPanel>
+                      </Bento>
                     )}
 
                     <form onSubmit={message.handleSubmit} noValidate>
@@ -477,10 +480,10 @@ export default function Contact() {
         )}
       </PageSite>
 
-      <SiteBand>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <div className="grid gap-4 stack:grid-cols-3">
           {facts.map((fact, i) => (
-            <GlassPanel level="flat" key={fact.key} padding={22} className="rv" style={rv(i)}>
+            <Bento key={fact.key} padding={22} className="rv" style={rv(i)}>
               <SiteEyebrow style={{ margin: 0 }}>{fact.label}</SiteEyebrow>
               {/* LA PREMIÈRE CASE DOMINE — 26 px contre 20, comme dans le kit
                   (`PagesUtiles.js:96`). Les trois étaient uniformisées, et la bande n'avait
@@ -491,10 +494,10 @@ export default function Contact() {
                 {fact.value}
               </p>
               <p className="m-0 mt-1 text-meta text-ink-2">{fact.note}</p>
-            </GlassPanel>
+            </Bento>
           ))}
         </div>
-      </SiteBand>
+      </PageSite>
 
       <BookingDialog booking={booking} />
     </DsNavHost>

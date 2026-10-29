@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Button, GlassPanel } from '@ds';
+import { Button } from '@ds';
 
 /**
  * LA PORTE DE SORTIE D'UNE PAGE — une question, une phrase, un bouton.
@@ -35,20 +35,31 @@ interface SiteExitProps {
 }
 
 export function SiteExit({ title, body, cta, href }: SiteExitProps) {
+  /*
+   * KIT V3 — LA BANDE « RÉSERVER UN APPEL » (`BookCallBand` des maquettes `Site-*`).
+   * Une dalle de nuit, encartée, à maillage lent ; le titre en Fraunces à gauche, l'action
+   * à droite. Le ton reste `primary` (voir plus haut, et `sortie-contact.test.ts`) : sous la
+   * portée `.dk`, il bascule en pilule claire sur la nuit — le bouton par défaut du kit sur
+   * une dalle sombre. Le sombre est une portée, jamais une prop (AD-3).
+   */
   return (
-    <GlassPanel
-      level="flat"
-      padding={24}
-      as="aside"
-      className="rv mt-10 flex flex-wrap items-start justify-between gap-5"
-    >
-      <div className="min-w-0 flex-1 basis-[260px]">
-        <p className="m-0 font-display text-[18px] font-black tracking-[-.03em] text-ink">{title}</p>
-        <p className="mt-2 mb-0 text-[14.5px] leading-[1.55] text-ink-2">{body}</p>
+    <aside className="dk rv relative isolate mt-10 overflow-hidden rounded-xl bg-night text-ink">
+      <div aria-hidden="true" className="mm-mesh m-hub">
+        <b />
+        <b />
+        <b />
       </div>
-      <Button href={href} tone="primary" size="sm" fullWidth={false}>
-        {cta}
-      </Button>
-    </GlassPanel>
+      <div className="relative flex flex-wrap items-center justify-between gap-6 px-6 py-9 stack:px-12 stack:py-14">
+        <div className="min-w-0 flex-1 basis-[280px]">
+          <p className="m-0 font-display text-[clamp(26px,3.4vw,40px)] font-black leading-[.95] tracking-[-.035em] text-ink">
+            {title}
+          </p>
+          <p className="mt-3 mb-0 max-w-[52ch] text-[15px] leading-[1.55] text-ink-2">{body}</p>
+        </div>
+        <Button href={href} tone="primary" arrow fullWidth={false}>
+          {cta}
+        </Button>
+      </div>
+    </aside>
   );
 }

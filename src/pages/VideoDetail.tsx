@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Breadcrumb, Button, GlassPanel, MediaCard, Num, Skeleton, SubNav, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
-import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
 import ShareButtons from '../components/shared/ShareButtons';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -19,6 +19,7 @@ import { useContentEngagement } from '../hooks/useContentEngagement';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
+import { Bento } from '../components/site/v3/Bento';
 
 
 
@@ -305,7 +306,7 @@ export default function VideoDetail() {
                   )}
                 </div>
 
-                <GlassPanel level="flat" padding={18} className="mt-3">
+                <Bento padding={18} className="mt-3">
                   <SiteEyebrow style={{ marginBottom: '6px' }}>{t('detail.gateEyebrow')}</SiteEyebrow>
                   <p className="m-0 text-meta leading-[1.55] text-ink-2">
                     {embed?.type === 'native' ? t('detail.gateBodyFile') : t('detail.gateBody')}
@@ -326,7 +327,7 @@ export default function VideoDetail() {
                       </Button>
                     )}
                   </div>
-                </GlassPanel>
+                </Bento>
               </div>
             ) : (
               <div className="mt-5 overflow-hidden rounded-media bg-[color:var(--fill-2)]">
@@ -385,7 +386,7 @@ export default function VideoDetail() {
               le type, mais l'encart de vérité du pôle promet en toutes lettres qu'aucun
               compteur d'écoute n'est affiché ; le montrer ici démentirait la page d'à côté.
             */}
-            <GlassPanel level="flat" padding={22}>
+            <Bento padding={22}>
               <SiteEyebrow style={{ marginBottom: '10px' }}>{t('detail.facts')}</SiteEyebrow>
               <dl className="m-0 grid gap-[10px] text-meta-2">
                 <div className="flex items-baseline justify-between gap-3">
@@ -411,7 +412,7 @@ export default function VideoDetail() {
                   </div>
                 )}
               </dl>
-            </GlassPanel>
+            </Bento>
 
             <GlassPanel level="hero" padding={22}>
               <SiteEyebrow style={{ marginBottom: '8px' }}>{t('detail.chapters')}</SiteEyebrow>
@@ -427,7 +428,7 @@ export default function VideoDetail() {
       </PageSite>
 
       {others.length > 0 && (
-        <SiteBand>
+        <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
           <SiteDisplay as="h2" lines={t('detail.nextTitleVideo', { returnObjects: true }) as string[]} size={34} />
           <div className="mt-5 grid gap-4 stack:grid-cols-3">
             {others.slice(0, 3).map((other, i) => (
@@ -445,7 +446,7 @@ export default function VideoDetail() {
               </div>
             ))}
           </div>
-        </SiteBand>
+        </PageSite>
       )}
     </DsNavHost>
   );

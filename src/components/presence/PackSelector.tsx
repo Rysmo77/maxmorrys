@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, GlassPanel, PayOption, StepDots, TerritoryCard } from '@ds';
+import { Button, DocLine, PayOption, StepDots, TerritoryCard } from '@ds';
 import { SELECTOR_QUESTIONS, recommend, type SelectorAnswers, type Recommendation } from '../../lib/presence/offer';
+import { Bento } from '../site/v3/Bento';
 
 interface Props {
   /**
@@ -152,7 +153,7 @@ export default function PackSelector({ onRecommend, onAccept, onReset, resetSign
   const currentAnswer = question ? answers[question.key as QuestionKey] : undefined;
 
   return (
-    <GlassPanel level="flat" padding={26}>
+    <Bento padding={26}>
       <StepDots
         total={TOTAL}
         current={Math.min(step + 1, TOTAL)}
@@ -280,6 +281,6 @@ export default function PackSelector({ onRecommend, onAccept, onReset, resetSign
       </div>
 
       <p className="m-0 mt-[13px] text-meta-2 text-ink-3">{t('selector.privacy')}</p>
-    </GlassPanel>
+    </Bento>
   );
 }

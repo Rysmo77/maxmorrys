@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { GlassPanel } from '@ds';
+import { Icon } from '@ds';
 
 /**
  * LA BANDE DE QUATRE ÉTAPES NUMÉROTÉES — une seule écriture pour les deux pistes qui en
@@ -33,22 +33,30 @@ interface StepListProps {
 /** Décalage de la cascade d'entrée. */
 const rv = (i: number): CSSProperties => ({ ['--i' as string]: i });
 
+/**
+ * KIT V3 — `ProcessAccordion` des maquettes (« Notre méthode, simplifiée. »).
+ * Une étape ouverte à la fois n'est PAS imposée : ce sont des `<details>` natifs, lisibles
+ * sans script, au clavier, et dont le contenu reste dans la page pour les moteurs. La
+ * première est ouverte au chargement pour que le dessin se comprenne d'un coup d'œil.
+ * Le numéro est un ornement d'ordre, retiré de l'arbre : l'ordre est porté par `<ol>`.
+ */
 export default function StepList({ steps }: StepListProps) {
   return (
-    /* Une liste ORDONNÉE : l'ordre est porté par le balisage, ce qui laisse le grand numéro
-       être ce qu'il est — un ornement, retiré de l'arbre d'accessibilité. */
-    <ol className="mt-[22px] grid list-none gap-4 p-0 stack:grid-cols-2 wide:grid-cols-4">
+    <ol className="mm-acc mt-[22px] list-none p-0">
       {steps.map((step, i) => (
-        <li key={step.n}>
-          <GlassPanel level="flat" padding={24} className="rv h-full" style={rv(i + 1)}>
-            <p className="mm-num m-0" style={{ fontSize: '30px', color: 'var(--fill-5)' }} aria-hidden="true">
-              {step.n}
-            </p>
-            <p className="mt-2 mb-0 font-display text-[18px] font-black tracking-[-.03em] text-ink">
+        <li key={step.n} className="rv" style={rv(i + 1)}>
+          <details className="mm-acc__item" open={i === 0}>
+            <summary>
+              <span className="mm-acc__n" aria-hidden="true">
+                {step.n}
+              </span>
               {step.title}
-            </p>
-            <p className="mt-2 mb-0 text-[14px] leading-[1.55] text-ink-2">{step.body}</p>
-          </GlassPanel>
+              <span className="mm-acc__plus" aria-hidden="true">
+                <Icon name="plus" size={16} />
+              </span>
+            </summary>
+            <div className="mm-acc__body">{step.body}</div>
+          </details>
         </li>
       ))}
     </ol>

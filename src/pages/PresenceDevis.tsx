@@ -18,6 +18,7 @@ import {
 } from '../lib/presence/offer';
 import { whatsappUrl } from '../lib/presence/whatsapp';
 import type { AgencyQuote } from '../types';
+import { Bento } from '../components/site/v3/Bento';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -184,7 +185,7 @@ export default function PresenceDevis() {
             {quoteUrl.replace(/^https?:\/\//, '')}
           </p>
 
-          <GlassPanel level="flat" padding={24} className="rv mt-4" style={{ ['--i' as string]: 5 }}>
+          <Bento padding={24} className="rv mt-4" style={{ ['--i' as string]: 5 }}>
             <DocLine label={t('quote.forBusiness')} value={`${quote.businessName}${quote.city ? `, ${quote.city}` : ''}`} />
 
             {pack && (
@@ -326,7 +327,7 @@ export default function PresenceDevis() {
             <p className="mm-prose mt-[10px] mb-0 max-w-[58ch] text-[11.5px] leading-[1.5] text-ink-2">
               {t('quote.notIncluded')}
             </p>
-          </GlassPanel>
+          </Bento>
 
           {/* Les actions sortent de l'impression : elles ne servent à rien sur du papier. */}
           <div className="print:hidden">

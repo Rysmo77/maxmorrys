@@ -9,7 +9,8 @@ import DsNavHost from '../../components/layout/DsNavHost';
 import { ConceptionSubNav } from '../../components/navigation/PisteSubNav';
 import { ClientWorkCard } from '../../components/conception/WorkCard';
 import RealisationFilters from '../../components/conception/RealisationFilters';
-import { PageSite, SiteDisplay, SiteEyebrow, SiteExit } from '../../components/site';
+import { PageSite, SiteExit } from '../../components/site';
+import { SiteHero } from '../../components/site/v3/SiteHero';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 import { categoryKey, clientCategories, clientProjects, legalName, corporateUrl } from '../../lib/brand';
 
@@ -128,35 +129,25 @@ export default function Realisations() {
       <SEOHead title={t('seo.title')} description={t('seo.description')} />
       <JsonLd data={jsonLd} />
 
+      {/*
+        LE HÉROS — kit v3 (`Site-Realisations`) : la dalle de nuit, la sous-navigation de piste
+        en tête (primitive de PAGE), le titre géant. ⚠️ ÉCART À LA MAQUETTE : elle écrit
+        « Onze projets » en toutes lettres ; le nombre n'est pas recopié, la grille le montre
+        et le filtre le compte depuis `clients.ts`.
+      */}
+      <SiteHero
+        mesh="hub"
+        top={<ConceptionSubNav active="realisations" />}
+        /* La seule marque de couleur de la piste Conception, en version TEXTE (AD-20). */
+        eyebrowClassName="text-corail-txt"
+        eyebrow={t('index.eyebrow')}
+        titleLines={t('index.titleLines', { returnObjects: true }) as string[]}
+        size={52}
+        lede={t('index.lede')}
+      />
+
       <PageSite>
-        {/* La sous-navigation est une primitive de PAGE : elle vit DANS le `PageSite`, pas
-            au-dessus — voir l'en-tête de `design-system/react/navigation/SubNav.tsx`. */}
-        <ConceptionSubNav active="realisations" />
-
-        {/*
-          LE HÉROS A BESOIN D'UNE FRONTIÈRE. Le remplissage de l'arc (AD-23) répond au survol
-          de son hôte : posé sur `PageSite`, il ferait de la page ENTIÈRE la cible et le
-          fragment entre crochets resterait peint en permanence.
-        */}
-        <div className="mm-arc-host mt-8">
-          {/* La seule marque de couleur de la piste Conception, et sa version TEXTE :
-              `#FF6E7F` fait 2,70:1 sur blanc, d'où `--mm-corail-t` (AD-20). */}
-          <SiteEyebrow className="text-corail-txt">{t('index.eyebrow')}</SiteEyebrow>
-
-          <SiteDisplay
-            arc
-            lines={t('index.titleLines', { returnObjects: true }) as string[]}
-            size={52}
-            from={1}
-            style={{ marginTop: '8px' }}
-          />
-
-          <p className="rv mt-[14px] max-w-[54ch] text-[16px] leading-[1.55] text-ink-2" style={rv(5)}>
-            {t('index.lede')}
-          </p>
-        </div>
-
-        <div className="rv mt-8" style={rv(6)}>
+        <div className="rv mt-2" style={rv(1)}>
           <RealisationFilters
             categories={clientCategories}
             active={categorieValide}

@@ -2,18 +2,20 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Button, ChipRow, EmptyState, GlassPanel, Icon, SearchPill, Skeleton, TerritoryCard } from '@ds';
+import { Button, ChipRow, EmptyState, Icon, SearchPill, Skeleton, TerritoryCard } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
 import DsNavHost from '../components/layout/DsNavHost';
-import { CoverImage, PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { CoverImage, PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
+import { SiteHero } from '../components/site/v3/SiteHero';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useFormat } from '../hooks/useFormat';
 import { getPublishedPosts } from '../lib/firestore';
 import { queryKeys } from '../lib/queryClient';
 import { categoryToPole } from '../lib/blogCategories';
 import { trackSearch } from '../lib/tracking';
+import { Bento } from '../components/site/v3/Bento';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -183,53 +185,27 @@ export default function Blog() {
         }} />
       )}
 
+      {/*
+        LE HÉROS — kit v3 (`Site-Blog`) : la dalle de nuit, le titre géant, le chapô.
+
+        La première ligne porte un COMPTE RÉEL, dérivé de la liste, composé puis rendu
+        insécable (AD-13). ⚠️ ELLE N'ANNONCE PAS « 0 » TANT QUE LA BASE N'A PAS RÉPONDU : le
+        zéro d'un chargement n'est pas une valeur (règle 6). Le repli ne porte pas de compte,
+        et la seconde ligne ne bouge pas : rien ne saute quand la vraie ligne arrive.
+      */}
+      <SiteHero
+        mesh="club"
+        eyebrow={t('index.eyebrow')}
+        titleLines={[
+          isLoading ? t('index.loadingLine') : t('index.countLine', { count: posts.length }),
+          t('index.freeLine'),
+        ]}
+        size={52}
+        lede={t('index.lede')}
+      />
+
       <PageSite>
-        {/*
-          LE HÉROS A BESOIN D'UNE FRONTIÈRE, ET IL N'EN AVAIT PAS.
-
-          Sourcil, titre et chapô étaient des enfants DIRECTS de `PageSite`, comme la liste
-          qui suit : rien dans le DOM ne disait où le héros s'arrête. Le remplissage de l'arc
-          (AD-23) répond au survol du héros — posé sur `PageSite`, il aurait fait de la page
-          ENTIÈRE la cible, et le fragment serait resté peint en permanence.
-
-          Ce conteneur est neutre à la mise en page : `PageSite` ne déclare aucun `display`,
-          c'est donc un bloc, et trois blocs enveloppés dans un bloc tombent au même endroit.
-        */}
-        <div className="mm-arc-host">
-          <SiteEyebrow>{t('index.eyebrow')}</SiteEyebrow>
-          {/*
-            La première ligne porte un COMPTE RÉEL, dérivé de la liste. La contrainte d'AD-13
-            n'est pas que la ligne soit une constante — c'est qu'elle ne se replie jamais toute
-            seule. Elle est composée, puis rendue insécable.
-
-            ⚠️ ELLE N'ANNONCE PAS « 0 » TANT QUE LA BASE N'A PAS RÉPONDU.
-            `posts` vaut `[]` par défaut, donc le titre d'affichage — l'élément le plus lu de
-            la page, en 52 px — affirmait « 0 article » pendant tout le chargement, AU-DESSUS
-            de ses propres squelettes qui disent en même temps que du contenu arrive. La base
-            en publiait 46 : le premier écran contredisait le second.
-            C'est la règle 6 retournée contre elle-même — un nombre affiché sans avoir été
-            mesuré. Le zéro DATÉ reste une valeur ; le zéro d'un chargement n'en est pas une.
-            Le repli ne porte donc pas de compte, et la seconde ligne ne bouge pas : rien ne
-            saute quand la vraie ligne prend sa place.
-          */}
-          <SiteDisplay
-            arc
-            lines={[
-              isLoading ? t('index.loadingLine') : t('index.countLine', { count: posts.length }),
-              t('index.freeLine'),
-            ]}
-            size={52}
-            from={1}
-            /* Le kit pose 8 px sous le sourcil (`pages-core.jsx` § Blog). */
-            style={{ marginTop: '8px' }}
-          />
-
-          <p className="rv mt-[14px] max-w-[52ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 4 }}>
-            {t('index.lede')}
-          </p>
-        </div>
-
-        <div className="rv mt-6 flex flex-wrap items-center justify-between gap-5" style={{ ['--i' as string]: 5 }}>
+        <div className="rv flex flex-wrap items-center justify-between gap-5" style={{ ['--i' as string]: 1 }}>
           <div className="min-w-0 flex-1 max-w-[640px]">
             <ChipRow
               label={t('index.eyebrow')}
@@ -468,7 +444,7 @@ export default function Blog() {
       </PageSite>
 
       {/* ── Le renvoi vers le pôle média, et ce qu'on peut suivre ─────────────── */}
-      <SiteBand>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <div className="grid items-center gap-9 wide:grid-cols-2">
           <div>
             <SiteDisplay as="h2" lines={t('index.listenTitle', { returnObjects: true }) as string[]} size={34} />
@@ -487,7 +463,7 @@ export default function Blog() {
             </Button>
           </div>
 
-          <GlassPanel level="flat" padding={22} className="rv" style={{ ['--i' as string]: 2 }}>
+          <Bento padding={22} className="rv" style={{ ['--i' as string]: 2 }}>
             <SiteEyebrow style={{ margin: 0 }}>{t('index.followTitle')}</SiteEyebrow>
             <div className="flex items-center justify-between gap-3 border-b border-[color:var(--border-hair)] py-[11px]">
               <b className="text-[14px]">{t('index.rss')}</b>
@@ -503,9 +479,9 @@ export default function Blog() {
               `/blog` lisait donc deux fois la même phrase sur un seul écran, à trois cents
               pixels d'écart. La contrainte reste nommée — elle l'est en bas, une fois.
             */}
-          </GlassPanel>
+          </Bento>
         </div>
-      </SiteBand>
+      </PageSite>
     </DsNavHost>
   );
 }

@@ -5,6 +5,7 @@ import { Button, GlassPanel, Icon, LessonRow, MediaCard, Num, Segmented, Skeleto
 import SEOHead from '../components/seo/SEOHead';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
+import { SiteHero } from '../components/site/v3/SiteHero';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useTranslatedList } from '../hooks/useTranslatedContent';
 import { useFormat } from '../hooks/useFormat';
@@ -13,6 +14,7 @@ import { queryKeys } from '../lib/queryClient';
 import { podcastPlatform, socialLinks } from '../lib/brand';
 import { CLUB_PRICE_XOF } from '../lib/club/pricing';
 import { PriceApprox } from '../components/shared/PriceApprox';
+import { Bento } from '../components/site/v3/Bento';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -148,61 +150,34 @@ export default function MediaPole() {
         description={t('pole.lede')}
       />
 
-      <PageSite>
-        {/* Garde-fou 1 : les deux étages du territoire, montrés ensemble. */}
-        <SubNav
-          label={t('pole.eyebrow')}
-          /* `SubNav` compare `active` au LIBELLÉ d'une entrée. Cette ligne passait
-             `pole.filterAll` — « Tout », le libellé du filtre de la liste plus bas, qui ne
-             correspond à aucune des deux entrées : la sous-navigation ne marquait donc
-             AUCUNE entrée active, ni au voile ni en `aria-current`. C'est le premier des
-             trois garde-fous que ce fichier revendique en tête — celui qui dit « tu es à
-             l'étage gratuit » — et il ne disait rien. */
-          active={t('pole.subnavFree')}
-          items={[
-            { label: t('pole.subnavFree'), href: path('/podcast-et-videos'), territory: 'transforme' },
-            { label: t('pole.subnavClub'), href: path('/club-des-digitos'), territory: 'transforme' },
-          ]}
-        />
-
-        {/*
-          ── LE HÉROS EN DEUX COLONNES, AVEC SA CARTE VEDETTE ────────────────────────
-          `Pages.js:215-234` : grille `.92fr 1.08fr`, gouttière 44, alignée au centre. À
-          gauche le sourcil, le titre, le chapô, les deux étiquettes et la note de rythme ;
-          à DROITE une `MediaCard` du dernier média publié, en grand — vignette de 190 px,
-          titre à 25.
-
-          La production rendait une colonne unique : la page d'entrée du territoire violet
-          n'avait aucune image, et rien ne donnait envie d'écouter avant la grille.
-
-          La carte vedette est le média le plus récent, pas un choix éditorial : il n'existe
-          aucun champ « à la une » sur `Podcast` ni sur `Video`.
-        */}
-        <div className="mm-arc-host mt-[26px] grid items-center gap-[44px] wide:grid-cols-[.92fr_1.08fr]">
-          <div>
-            {/* Garde-fou 2 : « gratuit » est dans le premier écran, dans le sourcil. */}
-            <SiteEyebrow>{t('pole.eyebrow')}</SiteEyebrow>
-            <SiteDisplay arc lines={t('pole.titleLines', { returnObjects: true }) as string[]} size={52} from={1} />
-
-            <p className="rv mt-4 max-w-[42ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 5 }}>
-              {t('pole.lede')}
-            </p>
-
-            <div className="rv mt-5 flex flex-wrap gap-2" style={{ ['--i' as string]: 6 }}>
-              <Tag tone="ok">{t('pole.tagFree')}</Tag>
-              <Tag>{t('pole.tagTranscript')}</Tag>
-            </div>
-
-            {/* La note de rythme remonte DANS le héros — c'est là que le kit la pose, et
-                c'est là qu'elle répond à « est-ce que ce truc est encore vivant ». */}
-            <p className="rv mt-4 max-w-[56ch] text-small leading-[1.5] text-ink-2" style={{ ['--i' as string]: 7 }}>
-              {t('pole.rhythm')}
-            </p>
-          </div>
-
-          {loading ? (
+      {/*
+        ── LE HÉROS — kit v3 (`Site-Media`) ───────────────────────────────────────────
+        La dalle de nuit porte les trois garde-fous de la page : la sous-navigation (les deux
+        étages du territoire, montrés ensemble ; `active` = LIBELLÉ de l'entrée), « gratuit »
+        dans le sourcil du premier écran, et la note de rythme. À droite, la carte vedette :
+        le média le plus récent, jamais un choix éditorial (aucun champ « à la une »).
+      */}
+      <SiteHero
+        mesh="club"
+        top={
+          <SubNav
+            label={t('pole.eyebrow')}
+            active={t('pole.subnavFree')}
+            items={[
+              { label: t('pole.subnavFree'), href: path('/podcast-et-videos'), territory: 'transforme' },
+              { label: t('pole.subnavClub'), href: path('/club-des-digitos'), territory: 'transforme' },
+            ]}
+          />
+        }
+        eyebrow={t('pole.eyebrow')}
+        titleLines={t('pole.titleLines', { returnObjects: true }) as string[]}
+        size={52}
+        lede={t('pole.lede')}
+        asideCols="half"
+        aside={
+          loading ? (
             <Skeleton height={360} radius="var(--r-l)" label={t('pole.eyebrow')} />
-          ) : vedette && (
+          ) : vedette ? (
             <div className="rv" style={{ ['--i' as string]: 6 }}>
               <MediaCard
                 format={vedette.format}
@@ -214,19 +189,27 @@ export default function MediaPole() {
                 playHref={path(vedette.to)}
                 playLabel={`${vedette.format === 'video' ? t('pole.featuredWatch') : t('pole.featuredPlay')} — ${vedette.title}`}
                 actions={
-                  <Button href={path(vedette.to)} tone="transforme" size="sm" fullWidth={false}>
+                  <Button href={path(vedette.to)} tone="highlight" arrow size="sm" fullWidth={false}>
                     {vedette.format === 'video' ? t('pole.featuredWatch') : t('pole.featuredPlay')}
                   </Button>
                 }
               />
             </div>
-          )}
+          ) : undefined
+        }
+      >
+        <div className="rv mt-5 flex flex-wrap gap-2" style={{ ['--i' as string]: 6 }}>
+          <Tag tone="ok">{t('pole.tagFree')}</Tag>
+          <Tag>{t('pole.tagTranscript')}</Tag>
         </div>
+        <p className="rv mt-4 mb-0 max-w-[56ch] text-small leading-[1.5] text-ink-2" style={{ ['--i' as string]: 7 }}>
+          {t('pole.rhythm')}
+        </p>
+      </SiteHero>
 
-        {/* Le titre de la grille et le sélecteur, sur la même ligne — `Pages.js:236-240`.
-            La section n'avait aucun titre : la grille suivait le héros sans qu'on sache ce
-            qu'elle listait. */}
-        <div className="mm-section flex flex-wrap items-center justify-between gap-5">
+      <PageSite>
+        {/* Le titre de la grille et le sélecteur, sur la même ligne. */}
+        <div className="flex flex-wrap items-center justify-between gap-5">
           <SiteDisplay as="h2" lines={t('pole.gridTitle', { returnObjects: true }) as string[]} size={34} />
           <div className="w-full max-w-[320px] shrink-0">
             <Segmented
@@ -311,7 +294,7 @@ export default function MediaPole() {
               {t('pole.elsewhereNote')}
             </p>
           </div>
-          <GlassPanel level="flat" padding="6px 22px" className="rv" style={{ ['--i' as string]: 5 }}>
+          <Bento padding="6px 22px" className="rv" style={{ ['--i' as string]: 5 }}>
             {/*
               LA TROISIÈME RANGÉE DU KIT, LE JOUR OÙ ELLE A UNE ADRESSE. Elle est dessinée par
               `Pages.js:261-272` et n'a jamais été rendue, faute d'URL de show. Elle vient de
@@ -354,7 +337,7 @@ export default function MediaPole() {
                 </Button>
               }
             />
-          </GlassPanel>
+          </Bento>
         </div>
 
         {/* L'aveu ne se rend que tant qu'il est vrai — voir `podcastPlatform`. */}

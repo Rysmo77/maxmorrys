@@ -5,6 +5,7 @@ import {
 } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { SiteHero } from '../components/site/v3/SiteHero';
 import { ConceptionSubNav } from '../components/navigation/PisteSubNav';
 import LocalizedLink from '../components/shared/LocalizedLink';
 import MapsProof from '../components/presence/MapsProof';
@@ -23,6 +24,7 @@ import {
 import { doitMentionnerLaTaxe, regimeDe, tauxEnPourcent, ventilerDepuisHT } from '../lib/tax/senegal';
 import { whatsappUrl } from '../lib/presence/whatsapp';
 import { usePresenceQuote } from './presence/usePresenceQuote';
+import { Bento } from '../components/site/v3/Bento';
 
 /*
  * LE CATALOGUE EST DATÉ, ET C'EST CE QUI AUTORISE `source="db"` — la date vit désormais DANS
@@ -205,112 +207,58 @@ export default function PresenceDigitale() {
         },
       }} />
 
-      <PageSite>
-        {/* La sous-navigation de la piste Conception. Elle est DANS le `PageSite` et non
-            autour : c'est une primitive de PAGE, cf. l'en-tête de `SubNav.tsx`. */}
-        <ConceptionSubNav active="commerces" />
+      {/*
+        ── HÉROS — kit v3 (`Site-Commerces`) ────────────────────────────────────────────
+        La dalle de nuit porte, dans l'ordre de lecture : la sous-navigation de piste
+        (primitive de PAGE), le BANDEAU DE SEGMENT, puis le titre et, à droite, la PREUVE.
 
-        {/* ── LE BANDEAU DE SEGMENT — UNE LIGNE, ET ELLE TRAVAILLE POUR DEUX PUBLICS ──
-            Cette page tutoie, chiffre en francs CFA et parle de boutiques de quartier. C'est
-            voulu et ça ne change pas ; mais le visiteur qui cherche une plateforme d'entreprise
-            arrive désormais ici par la piste Conception, et rien ne lui disait qu'il s'était
-            trompé d'étage. Le bandeau NOMME le segment, puis donne la sortie — sans la sortie
-            il ne ferait qu'éconduire, ce qui coûte le contact au lieu de l'orienter.
+        LE BANDEAU DE SEGMENT reste AVANT le titre : il est lu par quelqu'un qui vient
+        d'arriver et n'a pas encore décidé s'il lit la suite. Il NOMME le segment et donne la
+        sortie, sans poser de question (la question vit une seule fois, au pont du bas). Les
+        trois villes nomment un MARCHÉ, pas des bureaux.
 
-            Il se pose AVANT le héros, parce qu'il est lu par quelqu'un qui vient d'arriver et
-            qui n'a pas encore décidé s'il lit la suite. En pied, il arriverait après le doute.
-
-            ⚠️ ET IL NE POSE PLUS DE QUESTION. Il en posait une — « Un projet d'entreprise à
-            construire ? » — et le pont du bas de page en posait une jumelle, avec le MÊME
-            bouton vers la MÊME destination. La distinction que défend le commentaire du pont
-            est juste (ici on éconduit à l'arrivée, là-bas on suit un besoin qui a grandi en
-            lisant), mais deux questions identiques ne la portent pas : elles se lisent comme
-            un doublon. Le bandeau redevient donc un PANNEAU INDICATEUR — il nomme ce qui se
-            trouve à l'autre étage, sans rien demander. La question reste au pont, une fois.
-
-            ⚠️ LES TROIS VILLES NOMMENT UN MARCHÉ, PAS DES BUREAUX. C'est déjà ce que le miroir
-            SEO sert aux robots (`worker/apps/site/src/prerender/static-pages.ts` : « les
-            commerces de Dakar, Abidjan et Cotonou ») ; la seule adresse du dépôt est Dakar
-            (`src/lib/brand/company.ts`). Le libellé dit « offre » et doit le rester : écrire
-            une implantation à Abidjan ou à Cotonou serait une affirmation que rien ne soutient. */}
-        <div className="mb-6 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-[color:var(--border-hair)] pb-3 text-meta-2 leading-[1.5]">
-          <span className="font-bold text-ink">{t('segmentBand.label')}</span>
-          <span className="text-ink-3">{t('segmentBand.switch')}</span>
-          <LocalizedLink
-            to="/conception/projets-sur-mesure"
-            className="mm-touch-extend font-semibold text-digitalise-txt underline underline-offset-2"
-          >
-            {tc('cta.projetsSurMesure')}
-          </LocalizedLink>
-        </div>
-
-        {/* ── HÉROS — 1.05fr .95fr, la PREUVE posée à côté du titre ──
-            L'aside portait l'encart de prix. Il porte maintenant le test Google Maps, et
-            l'échange n'est pas une préférence de mise en page : le titre affirme « ils
-            trouvent tes concurrents », et la seule chose de cette page qui le démontre
-            vivait quatre écrans plus bas. Une affirmation et sa preuve se tiennent.
-
-            L'encart de prix, lui, désamorce une objection TARIFAIRE : il est descendu
-            là où les tarifs sont. */}
-        <div className="mm-arc-host grid items-center gap-11 pb-[14px] wide:grid-cols-[1.05fr_.95fr]">
-          <div>
-            <SiteEyebrow>{t('eyebrow')}</SiteEyebrow>
-            <SiteDisplay
-              /* TROIS lignes, comme le kit (`PagesCore.js:207`) : « Ta boutique, / trouvable /
-                 sur Google. » Le titre en faisait deux, et le bloc perdait la masse que trois
-                 lignes courtes lui donnent — c'est la règle des titres écrits par langue. */
-              arc
-              lines={[t('heroTitle1'), t('heroTitle2'), t('heroTitle3')]}
-              size={56}
-              style={{ marginTop: '9px' }}
-            />
-            <p className="rv mt-4 max-w-[44ch] text-lede text-ink-2" style={{ ['--i' as string]: 4 }}>
-              {t('heroSubtitle')}
-            </p>
-            <div className="rv mt-6 flex flex-wrap gap-3" style={{ ['--i' as string]: 5 }}>
-              {/* « Trouve ton pack en 3 questions » ouvre LES TROIS QUESTIONS, et non le
-                  formulaire de devis : c'est ce que dit son libellé, et c'est ce que la
-                  maquette promet — « aucune donnée personnelle n'est demandée avant que tu
-                  aies vu la recommandation ». */}
-              <Button
-                tone="digitalise"
-                fullWidth={false}
-                onClick={q.jumpToSelector}
+        LA PREUVE À CÔTÉ DU TITRE : le titre affirme « ils trouvent tes concurrents », et le
+        test Google Maps le démontre sans coûter une donnée personnelle. Un seul premier geste
+        en plus d'elle : les trois questions (« En parler sur WhatsApp » vit dans
+        `StickyWhatsApp`, en bas de page).
+      */}
+      <SiteHero
+        mesh="digitalise"
+        top={
+          <>
+            <ConceptionSubNav active="commerces" />
+            <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-[color:var(--border-hair)] pb-3 text-meta-2 leading-[1.5]">
+              <span className="font-bold text-ink">{t('segmentBand.label')}</span>
+              <span className="text-ink-2">{t('segmentBand.switch')}</span>
+              <LocalizedLink
+                to="/conception/projets-sur-mesure"
+                className="mm-touch-extend font-semibold text-digitalise-txt underline underline-offset-2"
               >
-                {t('heroCta')}
-              </Button>
-              {/*
-                ── « EN PARLER SUR WHATSAPP » A QUITTÉ LE HÉROS ─────────────────────────────
-                Le premier écran offrait TROIS premiers gestes concurrents : ce bouton, celui
-                des trois questions, et le module de test à droite avec le sien. Trois
-                chemins, trois engagements différents, aucun ordre — sur l'écran où
-                l'intention est la plus forte et où le persona est le moins à l'aise avec le
-                numérique. C'est la loi de Hick au plus mauvais endroit de l'entonnoir.
-
-                Le canal n'est pas perdu, et c'est ce qui rend le retrait gratuit :
-                `StickyWhatsApp` est monté en bas de cette même page (voir la fin du
-                fichier), il suit le défilement et porte exactement le même
-                `q.quickMessage`. Le doubler ici ne gagnait aucune joignabilité — il
-                divisait l'attention et rien d'autre.
-
-                Le module de test reste le second geste possible, et c'est le bon : il est la
-                meilleure preuve que cette page puisse offrir, et il ne coûte aucune donnée
-                personnelle.
-              */}
+                {tc('cta.projetsSurMesure')}
+              </LocalizedLink>
             </div>
-          </div>
-
-          {/*
-            LA DÉMONSTRATION, ET ELLE COÛTE ZÉRO DONNÉE PERSONNELLE. Deux champs, un bouton,
-            et la vérification se termine chez Google — hors de ce site, dans un outil que je
-            ne contrôle pas. C'est la seule preuve qu'une page qui s'interdit les témoignages
-            puisse offrir, et c'est aussi la moins chère à essayer.
-          */}
+          </>
+        }
+        eyebrow={t('eyebrow')}
+        /* TROIS lignes, comme le kit : « Ta boutique, / trouvable / sur Google. » */
+        titleLines={[t('heroTitle1'), t('heroTitle2'), t('heroTitle3')]}
+        size={56}
+        lede={t('heroSubtitle')}
+        actions={
+          /* « Trouve ton pack en 3 questions » ouvre LES TROIS QUESTIONS, et non le
+             formulaire de devis : aucune donnée personnelle avant la recommandation. */
+          <Button tone="highlight" arrow fullWidth={false} onClick={q.jumpToSelector}>
+            {t('heroCta')}
+          </Button>
+        }
+        aside={
           <div className="rv" style={{ ['--i' as string]: 5 }}>
             <MapsProof />
           </div>
-        </div>
+        }
+      />
 
+      <PageSite>
         {/* ── CE QUE TU ACHÈTES — EN BANDE, JUSTE APRÈS LA PREUVE ──
             Cinq colonnes qui se PARCOURENT, là où c'étaient cinq rangées qui se LISAIENT.
             Le bloc répond à « qu'est-ce que j'achète » et doit donc précéder « combien » ;
@@ -338,7 +286,7 @@ export default function PresenceDigitale() {
           <ul className="mt-6 grid list-none gap-4 p-0 stack:grid-cols-3 wide:grid-cols-5">
             {JOURNEY_STEPS.map((step, i) => (
               <li key={step} className="rv" style={{ ['--i' as string]: i + 3 }}>
-                <GlassPanel level="flat" padding={18} style={{ height: '100%' }}>
+                <Bento padding={18} style={{ height: '100%' }}>
                   <span
                     className="grid h-7 w-7 place-items-center rounded-full"
                     style={{ background: 'color-mix(in srgb, var(--mm-teal) 18%, transparent)' }}
@@ -351,7 +299,7 @@ export default function PresenceDigitale() {
                   <p className="m-0 mt-[6px] text-meta-2 leading-[1.5] text-ink-2">
                     {t(`journey.${step}.text`)}
                   </p>
-                </GlassPanel>
+                </Bento>
               </li>
             ))}
           </ul>
@@ -598,7 +546,7 @@ export default function PresenceDigitale() {
             que l'encart du héros vient de faire : une décision séparée. L'imbriquer dans les
             cartes la reprendrait d'une main après l'avoir donnée de l'autre.
           */}
-          <GlassPanel level="flat" padding={22} className="rv mt-4" style={{ ['--i' as string]: 6 }}>
+          <Bento padding={22} className="rv mt-4" style={{ ['--i' as string]: 6 }}>
             <div className="flex flex-col items-start justify-between gap-5 stack:flex-row">
               <div className="max-w-[60ch]">
                 <p className="m-0 font-display text-[18px] font-black tracking-[-.03em]">
@@ -689,7 +637,7 @@ export default function PresenceDigitale() {
                 {t('plansAside.cta')}
               </Button>
             </div>
-          </GlassPanel>
+          </Bento>
         </SiteBand>
 
 
@@ -761,7 +709,7 @@ export default function PresenceDigitale() {
                 ce qui ne s'affiche pas. Ce bloc-ci relit les choix du visiteur ; le peindre du
                 même voile faisait passer un récapitulatif de formulaire pour une preuve, et
                 diluait la seule surface à qui cette page confie ce rôle. */}
-            <GlassPanel level="flat" className="rv mt-5" style={{ ['--i' as string]: 3 }}>
+            <Bento className="rv mt-5" style={{ ['--i' as string]: 3 }}>
               <SiteEyebrow style={{ marginBottom: '6px' }}>{t('form.knownLabel')}</SiteEyebrow>
               <div className="grid gap-[2px]">
                 <DocLine label={t('form.sector')} value={t(`form.sectors.${q.form.sector}`)} />
@@ -780,7 +728,7 @@ export default function PresenceDigitale() {
                 />
               </div>
               <p className="m-0 mt-3 text-meta-2 leading-[1.55] text-ink-3">{t('form.moreHint')}</p>
-            </GlassPanel>
+            </Bento>
           </div>
 
           <GlassPanel level="hero" padding={26} className="rv" style={{ ['--i' as string]: 4 }}>
@@ -1067,7 +1015,7 @@ export default function PresenceDigitale() {
             `flat` et non `truth` : un pont vers l'autre étage de la piste n'est pas une vérité
             retenue. Sur cette page, la surface de vérité ne désigne plus qu'une chose — le
             panneau qui nomme ce qui se vérifie et ce qui ne s'affiche pas. */}
-        <GlassPanel level="flat" className="mm-section">
+        <Bento className="mm-section">
           <SiteEyebrow style={{ marginBottom: '6px' }}>{t('agencyBridge.title')}</SiteEyebrow>
           <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('agencyBridge.body')}</p>
           <div className="mt-3">
@@ -1075,7 +1023,7 @@ export default function PresenceDigitale() {
               {tc('cta.projetsSurMesure')}
             </Button>
           </div>
-        </GlassPanel>
+        </Bento>
       </PageSite>
 
       <StickyWhatsApp message={q.quickMessage} hideNear={q.formRef} />

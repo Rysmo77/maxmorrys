@@ -5,7 +5,8 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Avatar, Breadcrumb, Button, GlassPanel, Icon, Num, ReadingBar, Skeleton, TerritoryCard, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import ShareButtons from '../components/shared/ShareButtons';
-import { CoverImage, PageSite, SiteBand, SiteDisplay, SiteEyebrow, useActiveHeading, useReadingProgress } from '../components/site';
+import { CoverImage, PageSite, SiteDisplay, SiteEyebrow, useActiveHeading, useReadingProgress } from '../components/site';
+import { SiteHero } from '../components/site/v3/SiteHero';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
 import { getPostBySlug, getPublishedFormations, getPublishedPosts, incrementBlogViews } from '../lib/firestore';
@@ -23,6 +24,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { contentPath } from '../lib/contentPath';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from '../components/seo/seo-config';
+import { Bento } from '../components/site/v3/Bento';
 
 
 
@@ -261,31 +263,14 @@ export default function BlogPost() {
       */}
       <ReadingBar value={progress} label={translatedTitle || post.title} />
 
-      <PageSite>
-        {/*
-          LA GRILLE DE LECTURE — le gabarit du kit, celui qu'il livre et que personne ne
-          posait : `1fr minmax(0, --measure-prose) 300px 1fr`, gouttière 44 px
-          (`brand/breakpoints.css` § `.mm-article-grid`).
-
-          CE QU'IL CHANGE. La page était en `1fr 300px` : la prose garde ses 68 caractères
-          — la seule règle de mise en page sans exception du produit — mais son RAIL en
-          faisait 850, donc trois cents et quelques pixels de vide s'ouvraient entre la
-          dernière lettre et le sommaire, qui partait se coller au bord droit. Les quatre
-          pistes rendent ce vide aux DEUX marges : la colonne de lecture se centre, et le
-          sommaire revient à côté du texte qu'il résume.
-
-          Le fil passe dans la colonne de lecture, où le kit le met lui aussi
-          (`ui_kits/responsive/Responsive.js:155`) : laissé à la gouttière de page, il
-          n'aurait plus été aligné sur rien.
-
-          La classe du kit n'est pas posée telle quelle : elle est déclarée sans requête
-          média et donnerait quatre colonnes à 375 px. On reprend ses pistes à `wide:`,
-          et les deux cales n'existent pas en dessous.
-        */}
-        <div className="mt-4 grid items-start gap-x-11 gap-y-12 wide:grid-cols-[1fr_minmax(0,var(--measure-prose))_300px_1fr]">
-          <div className="hidden wide:block" aria-hidden="true" />
-
-          <article ref={articleRef} className="min-w-0">
+      {/* LE HÉROS — kit v3 (`Site-Article`) : la dalle de nuit porte le fil, le titre (venu
+          des DONNÉES : il se replie) et la signature. Le corps reste sur le clair. */}
+      <SiteHero
+        mesh="club"
+        wrap
+        size={46}
+        top={
+          <>
             <Breadcrumb
               label={t('index.eyebrow')}
               /* TROIS NIVEAUX, comme le kit (`PagesCore.js:139`) : le VERBE du territoire, puis
@@ -298,9 +283,12 @@ export default function BlogPost() {
                 { label: translatedPole || categoryToPole(post.category) },
               ]}
             />
-            <SiteDisplay wrap lines={[translatedTitle || post.title]} size={46} style={{ marginTop: '12px', maxWidth: '20ch' }} />
+          </>
+        }
+        titleLines={[translatedTitle || post.title]}
+      >
 
-            <div className="rv mt-[18px] flex max-w-prose flex-wrap items-center justify-between gap-5" style={{ ['--i' as string]: 3 }}>
+            <div className="rv mt-6 flex max-w-prose flex-wrap items-center justify-between gap-5" style={{ ['--i' as string]: 3 }}>
               <div className="flex items-center gap-3">
                 {/*
                   LE VISAGE NE SUIT QUE LA SIGNATURE DE LA MAISON. La pastille d'initiales
@@ -351,7 +339,33 @@ export default function BlogPost() {
                 contentId={post.id}
               />
             </div>
+      </SiteHero>
 
+      <PageSite>
+        {/*
+          LA GRILLE DE LECTURE — le gabarit du kit, celui qu'il livre et que personne ne
+          posait : `1fr minmax(0, --measure-prose) 300px 1fr`, gouttière 44 px
+          (`brand/breakpoints.css` § `.mm-article-grid`).
+
+          CE QU'IL CHANGE. La page était en `1fr 300px` : la prose garde ses 68 caractères
+          — la seule règle de mise en page sans exception du produit — mais son RAIL en
+          faisait 850, donc trois cents et quelques pixels de vide s'ouvraient entre la
+          dernière lettre et le sommaire, qui partait se coller au bord droit. Les quatre
+          pistes rendent ce vide aux DEUX marges : la colonne de lecture se centre, et le
+          sommaire revient à côté du texte qu'il résume.
+
+          Le fil passe dans la colonne de lecture, où le kit le met lui aussi
+          (`ui_kits/responsive/Responsive.js:155`) : laissé à la gouttière de page, il
+          n'aurait plus été aligné sur rien.
+
+          La classe du kit n'est pas posée telle quelle : elle est déclarée sans requête
+          média et donnerait quatre colonnes à 375 px. On reprend ses pistes à `wide:`,
+          et les deux cales n'existent pas en dessous.
+        */}
+        <div className="mt-4 grid items-start gap-x-11 gap-y-12 wide:grid-cols-[1fr_minmax(0,var(--measure-prose))_300px_1fr]">
+          <div className="hidden wide:block" aria-hidden="true" />
+
+          <article ref={articleRef} className="min-w-0">
             {/*
               LE BANDEAU DE TRADUCTION, obligatoire en tête de tout article anglais — jamais
               en pied, où un avertissement n'avertit plus. La traduction est générée au
@@ -471,12 +485,12 @@ export default function BlogPost() {
                    d'écran, et deux ancres pour chaque section. */
                 className="hidden wide:block"
               >
-                <GlassPanel level="flat" padding={20} className="rv" style={{ ['--i' as string]: 5 }}>
+                <Bento padding={20} className="rv" style={{ ['--i' as string]: 5 }}>
                   <SiteEyebrow style={{ margin: 0 }}>{t('article.tocTitle')}</SiteEyebrow>
                   <div className="mt-3">
                     <Sommaire headings={corps.headings} actif={titreActif} />
                   </div>
-                </GlassPanel>
+                </Bento>
               </nav>
             )}
 
@@ -521,7 +535,7 @@ export default function BlogPost() {
       </PageSite>
 
       {relatedPosts.length > 0 && (
-        <SiteBand>
+        <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
           <SiteDisplay as="h2" lines={t('article.nextTitle', { returnObjects: true }) as string[]} size={34} />
           <div className="mt-5 grid gap-4 stack:grid-cols-3">
             {relatedPosts.slice(0, 3).map((related, i) => (
@@ -555,7 +569,7 @@ export default function BlogPost() {
               </div>
             ))}
           </div>
-        </SiteBand>
+        </PageSite>
       )}
 
     </DsNavHost>

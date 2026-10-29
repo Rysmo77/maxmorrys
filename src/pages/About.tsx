@@ -6,7 +6,8 @@ import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SOCIAL_URLS } from '../components/seo/seo-config';
 import DsNavHost from '../components/layout/DsNavHost';
-import { GlyphTile, PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { GlyphTile, PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
+import { SiteHero } from '../components/site/v3/SiteHero';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useFormat } from '../hooks/useFormat';
 import { HOUSE_AUTHOR_FULL_NAME, portrait } from '../lib/author';
@@ -17,6 +18,7 @@ import {
 } from '../lib/brand';
 import { getPublicCounts, type PublicCounts } from '../lib/firestore';
 import { queryKeys } from '../lib/queryClient';
+import { Bento } from '../components/site/v3/Bento';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -199,113 +201,68 @@ export default function About() {
         sameAs: [...SOCIAL_URLS],
       }} />
 
-      <PageSite>
-        {/* ── 1 · Le héros — le positionnement, puis l'aveu ─────────────────── */}
-        {/*
-          LA COLONNE DU PORTRAIT EST FIXE, PAS PROPORTIONNELLE.
-
-          `1.04fr / .96fr` partageait la page en deux moitiés quasi égales — une règle qui a du
-          sens pour deux blocs de contenu, aucun pour une personne : un portrait a une taille
-          naturelle, et la moitié d'une page n'en est pas une. À la mesure du kit, cette moitié
-          fait 554 px pour un 4:5 qui n'en veut que 380 ; le reste devenait du vide entre le
-          texte et l'image, et l'image y flottait sans bord à quoi s'aligner.
-
-          380 px de piste, donc, et la prose prend tout ce qui reste. `minmax(0,1fr)` et non
-          `1fr` : une piste `fr` garde `min-width:auto` et refuse de descendre sous son contenu
-          — c'est le même défaut que celui déjà corrigé au panneau des profils, plus bas.
-        */}
-        <div className="mm-arc-host grid items-center gap-[46px] pb-[14px] wide:grid-cols-[minmax(0,1fr)_380px]">
-          <div>
-            <SiteEyebrow>{t('page.eyebrow')}</SiteEyebrow>
-            {/* Écrit ligne par ligne, jamais replié (AD-13). */}
-            <SiteDisplay
-              arc
-              lines={t('page.titleLines', { returnObjects: true }) as string[]}
-              size={60}
-              from={1}
-              style={{ marginTop: '9px' }}
-            />
-
-            <p
-              className="mm-prose rv mt-4 max-w-[46ch] text-[17px] leading-[1.55] text-ink-2"
-              style={{ ['--i' as string]: 4 }}
-            >
-              {t('page.lede')}
-            </p>
-            <p
-              className="mm-prose rv mt-[14px] max-w-[46ch] text-[14.5px] leading-[1.6] text-ink-2"
-              style={{ ['--i' as string]: 5 }}
-            >
-              {t('page.aloneBody')} <b className="text-ink">{t('page.aloneStrong')}</b>
-            </p>
-
-            <div className="rv mt-6 flex flex-wrap gap-3" style={{ ['--i' as string]: 6 }}>
-              <Button href={path('/contact')} tone="primary" fullWidth={false}>
-                {t('page.ctaContact')}
-              </Button>
-              <Button href={path('/formations')} tone="ghost" fullWidth={false}>
-                {tc('cta.formations')}
-              </Button>
-            </div>
-          </div>
-
-          {/*
-            LE PORTRAIT. FR-084 est CLOS : la photographie est réelle, en 4:5, et elle remplace
-            l'emplacement déclaré qui disait publiquement pourquoi il n'y en avait pas.
-
-            LE DÉGRADÉ NE DISPARAÎT PAS SOUS L'IMAGE, IL DEVIENT SON CADRE. Les trois pastels
-            du kit — `PagesCore.js:392`, `#FFDCA8 → #FFC9CE 48% → #DFD0FF`, déjà déclarés en
-            jetons — tenaient toute la place quand il n'y avait rien à montrer. Ils restent
-            visibles en passe-partout de 14 px : c'est la seule surface de la page qui porte la
-            couleur de marque en aplat, et la perdre coûterait au héros sa signature.
-            (La production posait ici `--action-informe`, le dégradé d'ACTION : un orange
-            saturé de bouton, à la place d'une plage de couleur.)
-
-            LA PROPORTION COMMANDE, LA HAUTEUR SUIT. Le `400px` d'origine tenait parce qu'un
-            bloc de couleur se moque de sa proportion ; une personne, non. Le cadre remplit
-            maintenant sa piste de 380 px et le 4:5 déduit la hauteur — une seule règle, la
-            même à toutes les largeurs, là où un `clamp` de hauteur faisait varier le cadrage
-            du portrait d'un écran à l'autre sans que personne l'ait demandé.
-          */}
+      {/*
+        ── 1 · Le héros — le positionnement, puis l'aveu ───────────────────────────────
+        Kit v3 (`Site-Parcours`) : la dalle de nuit, le titre géant, le portrait à droite.
+        La colonne du portrait reste FIXE (380 px) : un portrait a une taille naturelle, et la
+        moitié d'une page n'en est pas une. FR-084 est clos : la photographie est réelle, en
+        4:5, dans un passe-partout aux trois pastels du kit — la seule surface de la page qui
+        porte la couleur de marque en aplat.
+      */}
+      <SiteHero
+        mesh="club"
+        eyebrow={t('page.eyebrow')}
+        titleLines={t('page.titleLines', { returnObjects: true }) as string[]}
+        size={60}
+        lede={t('page.lede')}
+        asideCols="portrait"
+        actions={
+          <>
+            <Button href={path('/contact')} tone="highlight" arrow fullWidth={false}>
+              {t('page.ctaContact')}
+            </Button>
+            <Button href={path('/formations')} tone="ghost" fullWidth={false}>
+              {tc('cta.formations')}
+            </Button>
+          </>
+        }
+        aside={
           <figure
-            /* PAS DE `mx-auto`. Dans la piste de 380 px, le cadre remplit exactement — centrer
-               n'y change rien. À une colonne, en revanche, le centrer le décrochait du titre,
-               du chapô et des deux boutons, tous alignés à gauche : entre 700 et 1080 px, le
-               portrait flottait seul au milieu d'une pile ferrée à gauche. La marge de
-               `<figure>` est déjà remise à zéro par le préflet Tailwind. */
-            className="rv-s w-full max-w-[380px] rounded-card p-[14px]"
+            className="rv-s m-0 w-full max-w-[380px] rounded-media p-[10px] shadow-lift"
             style={{
-              background:
-                'linear-gradient(150deg,var(--mm-orange-c),var(--mm-rose-c) 48%,var(--mm-violet-c))',
-              boxShadow: '0 20px 46px color-mix(in srgb, var(--mm-orange) 24%, transparent)',
+              background: 'linear-gradient(150deg,var(--mm-orange-c),var(--mm-rose-c) 48%,var(--mm-violet-c))',
               ['--i' as string]: 5,
             }}
           >
             <img
               src={portrait.src}
               srcSet={portrait.srcSet}
-              /* La largeur AFFICHÉE, pas celle du fichier : la piste de 380 px moins le
-                 passe-partout de 2 × 14. Constante à toutes les ruptures, comme le cadre. */
-              sizes="352px"
+              /* La largeur AFFICHÉE : la piste de 380 px moins le passe-partout de 2 × 10. */
+              sizes="360px"
               width={portrait.width}
               height={portrait.height}
               alt={tShared('portrait.alt')}
-              /* Le portrait est au-dessus de la ligne de flottaison : ni `lazy`, ni différé.
-                 `fetchPriority` le sort de la file d'attente des images ordinaires — il entre
-                 en concurrence avec la police d'affichage, et c'est lui qu'on veut d'abord. */
+              /* Au-dessus de la ligne de flottaison : ni `lazy`, ni différé. */
               fetchPriority="high"
               decoding="async"
-              className="block w-full rounded-xs object-cover"
-              /* La proportion en style plutôt qu'en classe : sans elle, `w-full` laisserait
-                 l'image retomber sur ses 800 × 1000 intrinsèques et casserait le cadre. */
+              className="block w-full rounded-card object-cover"
               style={{ aspectRatio: '4 / 5' }}
             />
           </figure>
-        </div>
-      </PageSite>
+        }
+      >
+        {/* L'AVEU reste sous les actions : il dit ce que la page n'est pas — un studio de
+            vingt personnes. Une absence motivée se lit comme une frontière. */}
+        <p
+          className="mm-prose rv mt-6 mb-0 max-w-[50ch] text-[14.5px] leading-[1.6] text-ink-2"
+          style={{ ['--i' as string]: 7 }}
+        >
+          {t('page.aloneBody')} <b className="text-ink">{t('page.aloneStrong')}</b>
+        </p>
+      </SiteHero>
 
       {/* ── 2 · Les deux pistes, et ce que j'y fais ──────────────────────────── */}
-      <SiteBand>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <SiteDisplay as="h2" lines={t('page.doesTitle', { returnObjects: true }) as string[]} size={34} />
         <p
           className="mm-prose rv mt-[11px] max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2"
@@ -315,7 +272,7 @@ export default function About() {
         </p>
         <div className="mt-6 grid gap-4 stack:grid-cols-2">
           {PISTES.map((item, i) => (
-            <GlassPanel level="flat" padding={24} key={item.key} className="rv" style={{ ['--i' as string]: i + 2 }}>
+            <Bento padding={24} key={item.key} className="rv" style={{ ['--i' as string]: i + 2 }}>
               {/* La pastille passait par une géométrie écrite à la main — 38 px de côté,
                   rayon 12, voile à 16 %. `GlyphTile` DÉRIVE son rayon de son côté
                   (0,32 × 38 = 12) : la valeur cesse d'être une constante à retaper, et la
@@ -334,10 +291,10 @@ export default function About() {
                   {tc(item.key === 'Conception' ? 'cta.pisteConception' : 'cta.pisteApprendre')}
                 </Button>
               </div>
-            </GlassPanel>
+            </Bento>
           ))}
         </div>
-      </SiteBand>
+      </PageSite>
 
       {/* ── 3 · Le parcours, et ce qu'il a réellement produit ────────────────── */}
       <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
@@ -369,12 +326,12 @@ export default function About() {
               finissent à hauteur voisine, et le tri devient lisible : la PROSE avec la prose
               à gauche, les NOMBRES avec les nombres à droite.
             */}
-            <GlassPanel level="flat" padding={24} className="rv mt-[18px]" style={{ ['--i' as string]: 3 }}>
+            <Bento padding={24} className="rv mt-[18px]" style={{ ['--i' as string]: 3 }}>
               <SiteEyebrow style={{ margin: 0 }}>{t('page.soloTitle')}</SiteEyebrow>
               <p className="mm-prose mt-[9px] mb-0 max-w-[46ch] text-[14.5px] leading-[1.6] text-ink-2">
                 {t('page.soloBody')} <b className="text-ink">{t('page.soloStrong')}</b>
               </p>
-            </GlassPanel>
+            </Bento>
           </div>
 
           <div>
@@ -507,7 +464,7 @@ export default function About() {
       </PageSite>
 
       {/* ── 4 · Où tout ça se range — l'arbre de marque ──────────────────────── */}
-      <SiteBand>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <SiteDisplay as="h2" lines={t('page.treeTitle', { returnObjects: true }) as string[]} size={34} />
         {/*
           LA PHRASE QUI RANGE LES DEUX NOMS (CDC § 4.4), et les deux noms n'y sont PAS retapés.
@@ -532,8 +489,7 @@ export default function About() {
 
         <div className="mt-[22px] grid gap-4 stack:grid-cols-3">
           {tree.map((branch, i) => (
-            <GlassPanel
-              level="flat"
+            <Bento
               padding={24}
               key={branch.name}
               className="rv"
@@ -553,12 +509,12 @@ export default function About() {
                 {branch.name}
               </p>
               <p className="mm-prose mt-2 mb-0 max-w-[42ch] text-[14px] leading-[1.55] text-ink-2">{branch.body}</p>
-            </GlassPanel>
+            </Bento>
           ))}
         </div>
 
         {/* Les trois faits corporate. Ils viennent de `legalEntity`, qui porte les pièces. */}
-        <GlassPanel level="flat" padding={22} className="rv mt-[18px]" style={{ ['--i' as string]: 6 }}>
+        <Bento padding={22} className="rv mt-[18px]" style={{ ['--i' as string]: 6 }}>
           <div className="grid gap-6 stack:grid-cols-3">
             <div>
               <p className="m-0 text-[12.5px] text-ink-2">{t('page.treeRegistered')}</p>
@@ -581,8 +537,8 @@ export default function About() {
               <p className="mt-[2px] mb-0 text-[18px] font-semibold text-ink">{pillars.join(' · ')}</p>
             </div>
           </div>
-        </GlassPanel>
-      </SiteBand>
+        </Bento>
+      </PageSite>
 
       {/* ── 5 · Où me trouver ────────────────────────────────────────────────── */}
       <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
@@ -620,7 +576,7 @@ export default function About() {
             piste de 333 — et comme les deux enfants partagent la colonne, le titre et le
             paragraphe de gauche s'élargissaient avec le panneau, donc toute la page.
           */}
-          <GlassPanel level="flat" padding={24} className="min-w-0 rv" style={{ ['--i' as string]: 3 }}>
+          <Bento padding={24} className="min-w-0 rv" style={{ ['--i' as string]: 3 }}>
             {publicProfiles.map((profile, i) => (
               <a
                 key={profile.name}
@@ -662,22 +618,19 @@ export default function About() {
                 <span className="shrink-0"><Tag>{t('page.findDeclared')}</Tag></span>
               </a>
             ))}
-          </GlassPanel>
+          </Bento>
         </div>
 
         {/* ── 6 · L'appel final ─────────────────────────────────────────────── */}
-        <div
-          className="rv mm-section grid items-center gap-9 rounded-xl p-[34px] wide:grid-cols-[1.2fr_.8fr]"
-          style={{
-            /* Les TROIS arrêts du kit — `PagesCore.js:530` : orange, corail à 58 %, violet.
-               `--action-informe` n'en a que deux et s'arrête au corail : la moitié violette du
-               dégradé manquait, et c'est elle qui porte le texte blanc à un contraste tenable. */
-            background:
-              'linear-gradient(140deg,var(--mm-orange),var(--mm-corail) 58%,var(--mm-violet))',
-            color: 'var(--paper-fixed)',
-            boxShadow: '0 20px 48px color-mix(in srgb, var(--mm-orange) 30%, transparent)',
-          }}
-        >
+        {/* Kit v3 (`Site-Parcours`, « On en parle ? ») : la bande de nuit à maillage lent,
+            l'action en surlignage. Le sombre est une portée `.dk` (AD-3). */}
+        <div className="dk rv mm-section relative isolate overflow-hidden rounded-xl bg-night text-ink">
+          <div aria-hidden="true" className="mm-mesh m-club">
+            <b />
+            <b />
+            <b />
+          </div>
+          <div className="relative grid items-center gap-9 p-[34px] stack:p-12 wide:grid-cols-[1.2fr_.8fr]">
           <div>
             <SiteDisplay
               as="h2"
@@ -702,26 +655,14 @@ export default function About() {
             langues — « Contacte-moi » et « Talk to me » — et le ferrage à droite raccroche la
             pile au bord du bloc plutôt que de la laisser flotter.
           */}
-          <div className="flex flex-col gap-[10px] wide:ml-auto wide:w-[260px]">
-            <Button
-              href={path('/blog')}
-              focusInvert
-              style={{ background: 'var(--paper-fixed)', color: 'var(--ink-fixed)', boxShadow: 'none' }}
-            >
-              {t('page.closingBlog')}
-            </Button>
-            <Button
-              href={path('/contact')}
-              focusInvert
-              style={{
-                background: 'color-mix(in srgb, var(--paper-fixed) 16%, transparent)',
-                color: 'var(--paper-fixed)',
-                border: '1px solid color-mix(in srgb, var(--paper-fixed) 30%, transparent)',
-                boxShadow: 'none',
-              }}
-            >
+          <div className="flex flex-col gap-[10px] wide:ml-auto wide:w-[280px]">
+            <Button href={path('/contact')} tone="highlight" arrow>
               {t('page.closingContact')}
             </Button>
+            <Button href={path('/blog')} tone="ghost">
+              {t('page.closingBlog')}
+            </Button>
+          </div>
           </div>
         </div>
       </PageSite>
