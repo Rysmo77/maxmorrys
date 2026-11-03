@@ -56,7 +56,6 @@
   // Secrets (jamais dans vars) :
   //   npx wrangler secret put GCP_SA_JSON < ../../../max-morrys-<id>.json
   //   npx wrangler secret put GOOGLE_AI_API_KEY
-  //   npx wrangler secret put ANTHROPIC_API_KEY   (secours de la traduction quand Gemini échoue)
 
   "observability": { "enabled": true },
 

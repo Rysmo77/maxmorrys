@@ -19,7 +19,7 @@ import { injectMeta } from './rewriter';
 import { canonicalizeSegments, enPath } from './segments';
 import { applySecurityHeaders, getSpaShell } from './shell';
 import { staticPages } from './static-pages';
-import { translateMetaToEnDetaille } from '@mm/shared';
+import { translateMetaToEn } from '@mm/shared';
 import { publierMeta } from '../espaces';
 import type { PageMeta } from './types';
 
@@ -36,15 +36,8 @@ const CONTENT_TTL_SECONDS = 300;
 /** Les routes inconnues sont mises en cache moins longtemps, mais mises en cache : les robots les martèlent. */
 const MISS_TTL_SECONDS = 60;
 
-/**
- * Une page anglaise dont la traduction a ÉCHOUÉ (Gemini puis Claude) est servie en français,
- * mais n'est gardée qu'une minute : sinon le repli occupait la page pendant tout le TTL.
- * 60 s est le plancher de KV.
- */
-const REPLI_TTL_SECONDS = 60;
-
 /** Enveloppe sérialisable, pour pouvoir mettre en cache l'absence de résultat. */
-type CachedMeta = { found: true; meta: PageMeta; repli?: true } | { found: false };
+type CachedMeta = { found: true; meta: PageMeta } | { found: false };
 
 /**
  * L'image de partage d'une page qui n'en a pas.
@@ -183,19 +176,12 @@ export async function resolvePageMeta(
 
     if (!built) return { found: false };
 
-    let repli = false;
     if (lang === 'en' && !built.noIndex) {
-      const traduction = await translateMetaToEnDetaille(
+      built = await translateMetaToEn(
         getFirestore(env),
-        {
-          baseUrl: env.GEMINI_BASE_URL,
-          apiKey: env.GOOGLE_AI_API_KEY,
-          anthropicApiKey: env.ANTHROPIC_API_KEY,
-        },
+        { baseUrl: env.GEMINI_BASE_URL, apiKey: env.GOOGLE_AI_API_KEY },
         built,
       );
-      built = traduction.meta;
-      repli = !traduction.complete;
     }
     // L'anglais écrit l'emporte sur l'anglais traduit (voir `PageMeta.en`), et ne sort jamais.
     if (built.en) {
@@ -223,16 +209,10 @@ export async function resolvePageMeta(
     */
     built = withShareImage(built, canonicalPath);
 
-    return repli ? { found: true, meta: built, repli: true } : { found: true, meta: built };
+    return { found: true, meta: built };
   };
 
-  const entry = await cached<CachedMeta>(
-    env,
-    ctx,
-    cacheKey,
-    (valeur) => (valeur.found && valeur.repli ? REPLI_TTL_SECONDS : CONTENT_TTL_SECONDS),
-    produce,
-  );
+  const entry = await cached<CachedMeta>(env, ctx, cacheKey, CONTENT_TTL_SECONDS, produce);
 
   let meta: PageMeta | null = null;
   if (entry.found) {
