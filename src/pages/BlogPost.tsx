@@ -342,7 +342,7 @@ export default function BlogPost() {
           planches : un seul formulaire, l'ordre change par `order`. */}
       <div className="flex flex-col">
         <KitSection className="order-2 pt-11 stack:order-1 stack:pt-[72px]">
-          <div className="mx-auto flex max-w-[860px] flex-col gap-3 rounded-xl bg-[color:var(--paper-2)] p-5 stack:flex-row stack:flex-wrap stack:items-center stack:gap-5 stack:p-[34px]">
+          <div className="mx-auto flex max-w-[860px] flex-col gap-3 rounded-xl bg-[color:var(--surface-band)] p-5 stack:flex-row stack:flex-wrap stack:items-center stack:gap-5 stack:p-[34px]">
             <div className="stack:min-w-[280px] stack:flex-1">
               <span className="hidden stack:block"><Eyebrow>{t('article.newsletterEyebrow')}</Eyebrow></span>
               <b className="block font-display text-[24px] font-black leading-[1.05] stack:mt-2 stack:text-[30px]">{t('article.newsletterTitle')}</b>

@@ -48,7 +48,7 @@ export default function CohortePage() {
       <EduCard title={t('edu.cohorte.membersTitle')} style={{ padding: 20 }}>
         <CardEmpty icon="users" title={t('edu.cohorte.membersEmpty')} body={t('edu.cohorte.membersBody')} />
       </EduCard>
-      <EduCard style={{ background: 'var(--paper-2)' }}>
+      <EduCard style={{ background: 'var(--surface-band)' }}>
         <h3 style={{ fontSize: 16 }}>{t('edu.cohorte.rulesTitle')}</h3>
         <ul className="m-0 mt-[10px] flex flex-col gap-[6px] pl-[18px] text-[13.5px] text-ink-2">
           <li>{t('edu.cohorte.rule1')}</li>

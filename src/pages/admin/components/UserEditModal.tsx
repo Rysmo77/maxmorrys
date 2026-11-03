@@ -333,11 +333,11 @@ export function UserEditModal({
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-xl bg-[color-mix(in_srgb,var(--paper)_60%,transparent)] p-3">
+                      <div className="rounded-xl bg-[color-mix(in_srgb,var(--surface-sheet)_60%,transparent)] p-3">
                         <p className="text-xs text-ink-2">{t('userEdit.rysmo.usedToday')}</p>
                         <p className="text-xl font-black text-ink">{rysmoQuota?.dayCount ?? 0}</p>
                       </div>
-                      <div className="rounded-xl bg-[color-mix(in_srgb,var(--paper)_60%,transparent)] p-3">
+                      <div className="rounded-xl bg-[color-mix(in_srgb,var(--surface-sheet)_60%,transparent)] p-3">
                         <p className="text-xs text-ink-2">{t('userEdit.rysmo.prepaid')}</p>
                         <p className="text-xl font-black text-digitalise-txt">{rysmoQuota?.packBalance ?? 0}</p>
                       </div>

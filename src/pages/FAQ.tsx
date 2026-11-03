@@ -62,7 +62,7 @@ function Preview({ item }: { item: FAQItem }) {
   const paragraphs = answer.split(/\n{2,}/).filter(Boolean);
 
   return (
-    <article className="rounded-xl bg-[color:var(--paper-2)] p-5 wide:rounded-none wide:bg-transparent wide:p-0">
+    <article className="rounded-xl bg-[color:var(--surface-band)] p-5 wide:rounded-none wide:bg-transparent wide:p-0">
       <Eyebrow>
         <span className="wide:hidden">{t('index.previewEyebrow')}</span>
         <span className="hidden wide:inline">{t('index.articleEyebrow', { category: item.category })}</span>

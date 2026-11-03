@@ -115,7 +115,7 @@ export default function RysmoPage() {
       <form
         onSubmit={onSubmit}
         className="flex h-[58px] items-center gap-[10px] rounded-pill pl-5 pr-2"
-        style={{ border: '1px solid var(--line)', background: 'var(--paper-2)' }}
+        style={{ border: '1px solid var(--line)', background: 'var(--surface-band)' }}
       >
         <label className="sr-only" htmlFor="rysmo-ask">{t('rysmoPage.askLabel', { tutor })}</label>
         <input
@@ -178,7 +178,7 @@ export default function RysmoPage() {
           type="button"
           onClick={() => openSub('packs')}
           className="mt-4 flex w-full items-center justify-between rounded-m border-0 p-[14px] text-left text-ink"
-          style={{ background: 'var(--paper-2)', cursor: 'pointer' }}
+          style={{ background: 'var(--surface-band)', cursor: 'pointer' }}
         >
           <span>
             <b className="block text-[14px]">{t('rysmoPage.packsTitle')}</b>
@@ -194,7 +194,7 @@ export default function RysmoPage() {
           <button className="mm-btn is-sm is-quiet" type="button" onClick={() => openSub('memoire')}>{t('rysmoPage.memoryManage')}</button>
         </div>
       </EduCard>
-      <EduCard style={{ background: 'var(--paper-2)' }}>
+      <EduCard style={{ background: 'var(--surface-band)' }}>
         <h3 style={{ fontSize: 16 }}>{t('rysmoPage.limitsTitle', { tutor })}</h3>
         <ul className="m-0 mt-[10px] flex flex-col gap-[6px] pl-[18px] text-[13.5px] text-ink-2">
           <li>{t('rysmoPage.limit1')}</li>

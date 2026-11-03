@@ -266,7 +266,7 @@ export default function DashboardTab({
               <LocalizedLink
                 to="/mon-espace/cours"
                 className="ml-auto inline-flex items-center rounded-pill no-underline"
-                style={{ height: '34px', padding: '0 14px', background: 'var(--paper-2)', font: '600 13px/1 var(--f-body)', color: 'var(--ink-2)' }}
+                style={{ height: '34px', padding: '0 14px', background: 'var(--surface-band)', font: '600 13px/1 var(--f-body)', color: 'var(--ink-2)' }}
               >
                 {t('dashboardV3.seeAll')}
               </LocalizedLink>

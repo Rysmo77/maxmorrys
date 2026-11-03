@@ -125,3 +125,6 @@ ou de conformité magasin. Elles sont listées ici pour être VUES, plutôt qu'e
 - source_spec: `_bmad-output/implementation-artifacts/spec-audit-w1-reservation-rdv.md`
   summary: Le recours de l'erreur de réservation (WhatsApp, e-mail) est en texte dans un toast éphémère, pas en liens cliquables.
   evidence: Revue Blind Hunter ; afficher l'erreur dans le formulaire avec liens wa.me/mailto.
+- source_spec: `_bmad-output/implementation-artifacts/spec-audit-contraste-mode-sombre.md`
+  summary: CoursePlayer.tsx garde un fond `--paper` (l. 570, page entière) et `--paper-2` (l. 533) illisibles en mode sombre ; exclu de la garde `dark-paper-guard`.
+  evidence: Fichier exclu car il porte des modifs utilisateur non commitées ; migrer vers `--surface-sheet`/`--surface-band` puis retirer CoursePlayer et RysmoWidget de `EXCLUDED`.

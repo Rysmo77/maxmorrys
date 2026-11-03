@@ -61,7 +61,7 @@ export default function OfflineCard({ labels }: { labels: OfflineCardLabels }) {
           </div>
           <div className="mt-[14px] flex flex-col gap-[6px]">
             {kept.slice(0, 4).map((k) => (
-              <div key={k.url} className="flex items-center justify-between gap-3 rounded-m" style={{ padding: '10px 12px', background: 'var(--paper-2)', fontSize: '13.5px' }}>
+              <div key={k.url} className="flex items-center justify-between gap-3 rounded-m" style={{ padding: '10px 12px', background: 'var(--surface-band)', fontSize: '13.5px' }}>
                 <span className="min-w-0 truncate">{keptName(k.url)}</span>
                 <span className="text-ink-2" style={{ fontSize: '12px' }}><Num value={formatBytes(k.bytes)} source="db" asOf={asOf} /></span>
               </div>

@@ -194,7 +194,7 @@ export default function AdminModeration() {
             <HonestEmpty icon="flag" title={k('sheetNone')} body={k('sheetNoneBody')} />
           ) : (
             <>
-              <div className="flex items-center gap-3 rounded-m p-3" style={{ background: 'var(--paper-2)' }}>
+              <div className="flex items-center gap-3 rounded-m p-3" style={{ background: 'var(--surface-band)' }}>
                 {avatar(nameOf(selected), 42)}
                 <div className="min-w-0 flex-1">
                   <b className="block truncate">{nameOf(selected)}</b>

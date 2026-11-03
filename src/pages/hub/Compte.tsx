@@ -95,7 +95,7 @@ export default function ComptePage() {
   return (
     <DsNavHost>
       <SEOHead title={t('hub.compte.title')} noIndex />
-      <div className="min-h-screen bg-[color:var(--paper-2)] pb-24" style={{ marginTop: 'calc(-1 * var(--header-h))' }}>
+      <div className="min-h-screen bg-[color:var(--surface-band)] pb-24" style={{ marginTop: 'calc(-1 * var(--header-h))' }}>
         <section className="dk relative isolate overflow-hidden rounded-b-xl bg-night text-ink" style={{ paddingTop: 'var(--header-h)' }}>
           <div aria-hidden="true" className="mm-mesh m-hub is-wide" style={{ opacity: 0.7 }}>
             <b />

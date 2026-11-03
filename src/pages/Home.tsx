@@ -210,7 +210,7 @@ export default function Home() {
 
       {/* ── 4 · POUR QUI JE TRAVAILLE ────────────────────────────────────────── */}
       <KitSection className="pt-14 wide:pt-24">
-        <div className="grid items-center gap-4 rounded-xl wide:grid-cols-2 wide:gap-8 wide:bg-[color:var(--paper-2)] wide:p-10">
+        <div className="grid items-center gap-4 rounded-xl wide:grid-cols-2 wide:gap-8 wide:bg-[color:var(--surface-band)] wide:p-10">
           <div>
             <Eyebrow>{t('audiences.eyebrow')}</Eyebrow>
             <KitH2 className="mb-4 mt-3 wide:mb-[18px] wide:mt-[14px]" size="clamp(38px, 5vw, 64px)">{t('audiences.title')}</KitH2>

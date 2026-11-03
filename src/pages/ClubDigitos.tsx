@@ -233,7 +233,7 @@ export default function ClubDigitos() {
       </SiteBand>
 
       {/* ── 3 · Trois étapes pour commencer ─────────────────────────────────── */}
-      <SiteBand tint="var(--paper)" style={{ paddingTop: 72, paddingBottom: 72 }}>
+      <SiteBand tint="var(--surface-page)" style={{ paddingTop: 72, paddingBottom: 72 }}>
         <div className="mm-sec__head">
           <span className="mm-kick">{t('v3.steps.kick')}</span>
           <h2 className="!text-[34px] stack:!text-[52px]">{t('v3.steps.title')}</h2>
@@ -306,7 +306,7 @@ export default function ClubDigitos() {
       </SiteBand>
 
       {/* ── 5 · Le tarif et les questions ───────────────────────────────────── */}
-      <SiteBand tint="var(--paper)" style={{ paddingTop: 72, paddingBottom: 72 }}>
+      <SiteBand tint="var(--surface-page)" style={{ paddingTop: 72, paddingBottom: 72 }}>
         <div id="tarif" className="grid items-start gap-12 wide:grid-cols-[440px_minmax(0,1fr)] wide:gap-16">
           <PriceCard copy={priceCopy} asOf={asOf}>
             <a className="mm-btn-club w-full" href={joinHref}>{t('v3.price.cta')}</a>
@@ -327,7 +327,7 @@ export default function ClubDigitos() {
       </SiteBand>
 
       {/* ── 6 · La citation de Max-Morrys — pas un témoignage (doc 04 du kit) ──── */}
-      <SiteBand tint="var(--paper)" style={{ paddingTop: 0, paddingBottom: 96 }}>
+      <SiteBand tint="var(--surface-page)" style={{ paddingTop: 0, paddingBottom: 96 }}>
         <div
           className="grid items-center gap-8 rounded-xl p-7 stack:p-14 wide:grid-cols-[minmax(0,1fr)_auto] wide:gap-10"
           style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--mm-violet) 12%, var(--bento)), color-mix(in srgb, var(--mm-orange) 16%, var(--bento)))' }}

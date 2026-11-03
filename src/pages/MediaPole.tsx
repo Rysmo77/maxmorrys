@@ -199,7 +199,7 @@ export default function MediaPole() {
                     </b>
                   </a>
                 ))}
-                <div className="flex flex-col justify-center gap-[10px] rounded-card bg-[color:var(--paper-2)] p-[14px] stack:p-5">
+                <div className="flex flex-col justify-center gap-[10px] rounded-card bg-[color:var(--surface-band)] p-[14px] stack:p-5">
                   <b className="font-display text-[18px] font-black leading-[1.1] stack:text-[22px]">{t('pole.dataTitle')}</b>
                   <span className="text-[14px] text-ink-2">{t('pole.dataBody')}</span>
                 </div>

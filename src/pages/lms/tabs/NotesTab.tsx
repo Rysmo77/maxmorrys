@@ -117,7 +117,7 @@ export default function NotesTab({
                   onClick={() => { setSelectedId(note.id); setShowNoteForm(false); }}
                   aria-current={on ? 'true' : undefined}
                   className="block w-full rounded-m border-0 p-[14px] text-left text-ink"
-                  style={{ background: on ? 'var(--mm-bleu-c)' : 'transparent', cursor: 'pointer' }}
+                  style={{ background: on ? 'var(--tint-bleu)' : 'transparent', cursor: 'pointer' }}
                 >
                   <b className="block text-[14.5px]">{note.title}</b>
                   <span className="text-[12.5px] text-ink-2">{formatDate(note.updatedAt)}</span>
@@ -203,7 +203,7 @@ export default function NotesTab({
           </div>
         </EduCard>
       )}
-      <EduCard style={{ background: 'var(--paper-2)' }}>
+      <EduCard style={{ background: 'var(--surface-band)' }}>
         <h3 style={{ fontSize: 16 }}>{t('notes.truthTitle')}</h3>
         <p className="m-0 mt-2 text-[13.5px] text-ink-2">{t('notes.truthBody')}</p>
       </EduCard>

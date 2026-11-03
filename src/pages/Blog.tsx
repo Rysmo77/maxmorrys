@@ -311,7 +311,7 @@ export default function Blog() {
 
       {/* ── LA LETTRE ────────────────────────────────────────────────────────── */}
       <KitSection className="pt-11 stack:pt-24">
-        <div className="flex flex-col gap-3 rounded-xl bg-[color:var(--paper-2)] p-5 stack:flex-row stack:flex-wrap stack:items-center stack:justify-between stack:gap-6 stack:p-10">
+        <div className="flex flex-col gap-3 rounded-xl bg-[color:var(--surface-band)] p-5 stack:flex-row stack:flex-wrap stack:items-center stack:justify-between stack:gap-6 stack:p-10">
           <div>
             <span className="hidden stack:block"><Eyebrow>{t('index.newsletterEyebrow')}</Eyebrow></span>
             <KitH2 className="m-0 stack:mt-[10px]" size="clamp(26px, 3vw, 40px)">{t('index.newsletterTitle')}</KitH2>

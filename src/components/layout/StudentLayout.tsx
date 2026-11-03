@@ -239,8 +239,8 @@ export default function StudentLayout() {
       space={espace}
       rail={inClub}
       mesh={false}
-      /* Maquettes Edu v3 : la zone principale se pose sur `--paper-2`, comme le Club. */
-      shellClassName="bg-[color:var(--paper-2)]"
+      /* Maquettes Edu v3 : la zone principale se pose sur `--surface-band` (`--paper-2` en clair, AD-22), comme le Club. */
+      shellClassName="bg-[color:var(--surface-band)]"
       /*
         « Ta cohorte » (maquettes `Edu-*`, colonne latérale) : aucune donnée de cohorte n'est
         servie à ce jour, donc l'état vide — jamais les quatre camarades d'exemple de la maquette.

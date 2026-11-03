@@ -229,7 +229,7 @@ export default function PaymentReturn() {
   }
 
   return (
-    <div className="min-h-screen pb-[60px]" style={{ background: 'var(--paper-2)' }}>
+    <div className="min-h-screen pb-[60px]" style={{ background: 'var(--surface-band)' }}>
       <DsNavHost>
         <div ref={reveal}>
           {/* ── LA BANDE DE NUIT ─────────────────────────────────────────────── */}

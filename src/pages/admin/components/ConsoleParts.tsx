@@ -196,7 +196,7 @@ export function HonestEmpty({
       <span
         aria-hidden="true"
         className="grid h-9 w-9 flex-none place-items-center rounded-m"
-        style={{ background: 'var(--paper-2)', color: 'var(--ink-3)' }}
+        style={{ background: 'var(--surface-band)', color: 'var(--ink-3)' }}
       >
         <Icon name={icon} size={17} />
       </span>

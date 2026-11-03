@@ -289,7 +289,7 @@ export default function Conception() {
 
       {/* ── 5 · DÉCRIVEZ VOTRE PROJET ────────────────────────────────────────── */}
       <KitSection id="qualif" className="scroll-mt-[var(--header-h)] pt-12 wide:pt-24">
-        <div className="grid gap-8 rounded-xl bg-[color:var(--paper-2)] p-5 stack:p-10 wide:grid-cols-2">
+        <div className="grid gap-8 rounded-xl bg-[color:var(--surface-band)] p-5 stack:p-10 wide:grid-cols-2">
           <div>
             <Eyebrow className="hidden stack:inline-flex">{t('qualif.eyebrow')}</Eyebrow>
             <KitH2 className="mb-[14px] stack:mt-[14px]" size="clamp(32px, 5vw, 56px)">{t('qualif.title')}</KitH2>

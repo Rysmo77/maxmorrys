@@ -162,7 +162,7 @@ export default function About() {
           {skills.map((s) => (
             <li key={s} className="mm-chip cursor-default">{s}</li>
           ))}
-          <li className="mm-chip cursor-default" aria-current="true" data-pressed="true" style={{ background: 'var(--ink)', color: 'var(--paper)' }}>
+          <li className="mm-chip cursor-default" aria-current="true" data-pressed="true" style={{ background: 'var(--ink)', color: 'var(--surface-page)' }}>
             {t('skills.highlight')}
           </li>
         </ul>
@@ -172,7 +172,7 @@ export default function About() {
       {/* Audit 29/10/2026 : le texte secondaire était en `--ink-3` à 11–12,5 px sur le pastel
           `--paper-2` — l'encre tertiaire ne porte pas de texte (AD-18). Passé en `--ink-2`, 13–14,5 px. */}
       <KitSection className="pt-14 wide:pt-24">
-        <div className="rounded-xl stack:bg-[color:var(--paper-2)] stack:p-10">
+        <div className="rounded-xl stack:bg-[color:var(--surface-band)] stack:p-10">
           <Eyebrow className="stack:hidden">{t('ventures.eyebrowShort')}</Eyebrow>
           <Eyebrow className="hidden stack:inline-flex">{t('ventures.eyebrow')}</Eyebrow>
           <KitH2 className="mb-[26px] mt-[14px] hidden stack:block" size="clamp(40px, 5vw, 60px)">{t('ventures.title')}</KitH2>

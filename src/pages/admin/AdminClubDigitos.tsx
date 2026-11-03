@@ -82,7 +82,7 @@ export default function AdminClubDigitos() {
   ];
 
   const tile = (label: string, value: number | null) => (
-    <div className="rounded-m p-3" style={{ background: 'var(--paper-2)' }}>
+    <div className="rounded-m p-3" style={{ background: 'var(--surface-band)' }}>
       <span className="text-[11.5px] text-ink-3">{label}</span>
       <b className="mt-1 block text-[22px]"><Num value={value} source="db" asOf={asOf} /></b>
     </div>

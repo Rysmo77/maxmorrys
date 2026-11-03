@@ -123,7 +123,7 @@ export default function MissionsPage() {
                       <span
                         aria-hidden="true"
                         className="grid flex-none place-items-center rounded-pill"
-                        style={{ width: '24px', height: '24px', background: m.done ? 'var(--mm-teal-f)' : 'var(--paper-2)', color: m.done ? 'var(--paper-fixed)' : 'var(--ink-3)' }}
+                        style={{ width: '24px', height: '24px', background: m.done ? 'var(--mm-teal-f)' : 'var(--surface-band)', color: m.done ? 'var(--paper-fixed)' : 'var(--ink-3)' }}
                       >
                         <Icon name={m.done ? 'check' : 'target'} size={12} />
                       </span>
@@ -141,7 +141,7 @@ export default function MissionsPage() {
         {/* ── Les relectures entre pairs : pas encore de producteur ── */}
         <div className="flex flex-col gap-[14px]">
           <h3 className="m-0" style={{ font: '600 21px/1.1 var(--f-body)' }}>{t('edu.missions.reviewsTitle')}</h3>
-          <article className="mm-card flex items-start gap-3" style={{ background: 'var(--paper-2)' }}>
+          <article className="mm-card flex items-start gap-3" style={{ background: 'var(--surface-band)' }}>
             <span className="grid flex-none place-items-center rounded-m" style={{ width: '36px', height: '36px', background: 'var(--bento)' }}>
               <Icon name="users" size={17} />
             </span>

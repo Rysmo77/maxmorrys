@@ -123,7 +123,7 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
                   transitionName={`course-${formation.slug}`}
                 />
                 <div className="min-w-0">
-                  <span className="mm-tag" style={{ background: 'var(--paper-2)' }}>{tag}</span>
+                  <span className="mm-tag" style={{ background: 'var(--surface-band)' }}>{tag}</span>
                   <b className="mt-[10px] block" style={{ font: '700 22px/1.15 var(--f-body)' }}>{formation.title}</b>
                   {state === 'soon' ? (
                     <p className="m-0 mt-2 text-ink-2" style={{ fontSize: '13.5px' }}>{t('courses.comingSoonNote')}</p>

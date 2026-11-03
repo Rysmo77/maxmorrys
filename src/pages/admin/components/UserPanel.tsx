@@ -70,11 +70,11 @@ export default function UserPanel({ user, loading, asOf, club, hasClub, onOpenFu
       </div>
 
       <div className="mb-3.5 grid grid-cols-2 gap-2">
-        <div className="rounded-m p-3" style={{ background: 'var(--paper-2)' }}>
+        <div className="rounded-m p-3" style={{ background: 'var(--surface-band)' }}>
           <span className="text-[11.5px] text-ink-3">{t('users.docCity')}</span>
           <b className="mt-1 block text-[15px]">{user.city || <Num value={null} source="db" asOf={asOf} />}</b>
         </div>
-        <div className="rounded-m p-3" style={{ background: 'var(--paper-2)' }}>
+        <div className="rounded-m p-3" style={{ background: 'var(--surface-band)' }}>
           <span className="text-[11.5px] text-ink-3">{t('users.docTutor')}</span>
           <b className="mt-1 block truncate text-[15px]">{tutorName(user)}</b>
         </div>

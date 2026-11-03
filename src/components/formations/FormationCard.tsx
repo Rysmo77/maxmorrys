@@ -67,7 +67,7 @@ export default function FormationCard({ formation, variant = 'default', enrollme
             loading="lazy"
           />
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
-            <span className="w-11 h-11 rounded-full bg-[color-mix(in_srgb,var(--paper)_90%,transparent)] flex items-center justify-center">
+            <span className="w-11 h-11 rounded-full bg-[color-mix(in_srgb,var(--surface-sheet)_90%,transparent)] flex items-center justify-center">
               <Icon name="play" size={16} className="text-ink ml-0.5" />
             </span>
           </div>

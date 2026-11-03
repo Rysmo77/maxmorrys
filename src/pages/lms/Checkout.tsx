@@ -580,7 +580,7 @@ function Frame({
 }) {
   const { t } = useTranslation('lms');
   return (
-    <div className="min-h-screen" style={{ background: 'var(--paper-2)' }}>
+    <div className="min-h-screen" style={{ background: 'var(--surface-band)' }}>
       <DsNavHost className="mx-auto w-full max-w-[1180px] px-4 stack:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4 py-[26px]">
           <a href={back?.href ?? '/'} aria-label={back?.label} className="flex items-center gap-2.5 text-ink no-underline">

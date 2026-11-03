@@ -1,0 +1,110 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AD-29 · LE PAPIER DU KIT, LA NUIT (audit du 03/11/2026, constats 1, E2, C1)
+
+   AD-22 a posé la règle : un fond lit un jeton qui BASCULE avec le thème, jamais `--paper`
+   brut. `--paper`, `--paper-2` et `--paper-3` ne sont pas redéclarés sous `.dk` — c'est
+   voulu, et ça ne change pas ici.
+
+   Le kit généré (`kit-v3/components.css`, jamais édité) ne connaît pas cette règle : il pose
+   `--paper-2` en fond de coquille, de pastille, de survol. En clair, juste ; en nuit, l'encre
+   passe à #ECF0F5 sur un fond resté quasi blanc — 1,07:1 sur le conteneur du Club, 1,1:1 sur
+   la carte de réservation de /contact (cette dernière corrigée dans le composant).
+
+   La correction ne vit QUE sous `.dk` : en clair, chaque règle du kit garde sa valeur au
+   pixel près. Trois familles, trois jetons :
+
+       coquille, bande, vignette      →  --surface-band   (#0A0D11, recule sous la page)
+       surface opaque, pastille pleine →  --surface-sheet  (#0F151B, avance sur la page)
+       survol, touche, état neutre     →  --fill-2         (voile de blanc à 10 %)
+
+   `--fill-2` n'est PAS `--paper-2` en clair (c'est un voile d'encre à 9 %) : c'est pour cela
+   que tout ce fichier est sous `.dk`, et qu'aucune règle n'en sort.
+
+   `tests/unit/dark-paper-guard.test.ts` échoue si une règle du kit pose un `--paper*` en fond
+   sans que son sélecteur figure ici.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Coquilles et bandes : le papier de rythme recule ───────────────────── */
+.dk .mm-app,
+.dk .mm-dash,
+.dk .mm-con,
+.dk .mm-cm,
+.dk .mm-tabs,
+.dk .mm-lfoot,
+.dk .mm-bm,
+.dk .mm-step__vis,
+.dk .mm-vid,
+.dk .mm-browser__url {
+  background: var(--surface-band);
+}
+
+/* ── Surfaces opaques : la feuille ──────────────────────────────────────── */
+.dk .mm-surface,
+.dk .mm-btn__arrow {
+  background: var(--surface-sheet);
+}
+
+/* `.mm[data-theme]` est la racine de thème des maquettes : en nuit, c'est le fond de page. */
+.dk .mm[data-theme],
+.dk.mm[data-theme] {
+  background: var(--surface-page);
+}
+
+/* ── Survols, touches, états neutres : un voile, pas un papier ──────────── */
+/* `:not([aria-current])` : dans le kit, l'entrée active est déclarée APRÈS le survol et
+   l'emporte. Sans cette exclusion, survoler l'entrée active effacerait sa teinte en nuit. */
+.dk .mm-sidenav a:hover:not([aria-current]),
+.dk .mm-con__side a:hover:not([aria-current]),
+.dk .mm-search kbd,
+.dk .mm-cmdk kbd,
+.dk .mm-theme button[aria-pressed="true"],
+.dk .mm-more,
+.dk .mm-st.mute,
+.dk .mm-cbtn[disabled],
+.dk .mm-ctabs a b,
+.dk .mm-chk.n {
+  background: var(--fill-2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LES PASTELS `--mm-*-c` — même panne que le papier : ils ne basculent pas, et l'encre
+   claire posée dessus disparaît. Les teintes d'aplat lisent un jeton qui bascule :
+
+       clair  →  le pastel du kit (inchangé au pixel près)
+       nuit   →  un voile à 22 % de la teinte d'espace, qui reste sombre sous #ECF0F5
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --tint-bleu: var(--mm-bleu-c);
+  --tint-violet: var(--mm-violet-c);
+  --tint-orange: var(--mm-orange-c);
+}
+
+.dk {
+  --tint-bleu: color-mix(in srgb, var(--mm-bleu) 22%, transparent);
+  --tint-violet: color-mix(in srgb, var(--mm-violet) 22%, transparent);
+  --tint-orange: color-mix(in srgb, var(--mm-orange) 22%, transparent);
+}
+
+.dk .mm-numgrid { background: var(--tint-bleu); }
+.dk .mm-numgrid.is-club { background: var(--tint-violet); }
+.dk .mm-numgrid.is-informe { background: var(--tint-orange); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LES PAIRES INVERSÉES `background:var(--ink); color:var(--paper)`. En nuit l'encre devient
+   #ECF0F5 et le papier reste blanc : du blanc sur du presque blanc. Le texte prend l'encre
+   FIXE (sombre) ; le fond, lui, reste l'encre du thème — c'est elle qui fait l'inversion.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.dk .mm-chip[aria-pressed="true"],
+.dk .mm-tooltip,
+.dk .mm-ticker__badge,
+.dk .mm-btn.is-quiet .mm-btn__arrow,
+.dk .mm-btn.is-ghost .mm-btn__arrow,
+.dk .mm-numcell:hover {
+  color: var(--ink-fixed);
+}
+
+/* Le bouton par défaut porte la paire par jetons (`--bg:var(--ink);--fg:var(--paper)`). Les
+   variantes déclarent leur propre `--fg` : on ne touche qu'au bouton sans variante. */
+.dk .mm-btn:not(.is-edu, .is-club, .is-studio, .is-highlight, .is-ghost, .is-quiet, [disabled]) {
+  --fg: var(--ink-fixed);
+}

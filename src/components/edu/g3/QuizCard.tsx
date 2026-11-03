@@ -140,7 +140,7 @@ export default function QuizCard({ questions, labels, readAt, onPass, passAction
                 color: 'var(--ink)', fontFamily: 'var(--f-body)',
               }}
             >
-              <b aria-hidden="true" className="grid flex-none place-items-center rounded-xs" style={{ width: '30px', height: '30px', background: 'var(--paper-2)', fontSize: '13px' }}>
+              <b aria-hidden="true" className="grid flex-none place-items-center rounded-xs" style={{ width: '30px', height: '30px', background: 'var(--surface-band)', fontSize: '13px' }}>
                 {String.fromCharCode(65 + oi)}
               </b>
               <span style={{ flex: 1, fontSize: '16px', fontWeight: 600 }}>{opt.text}</span>

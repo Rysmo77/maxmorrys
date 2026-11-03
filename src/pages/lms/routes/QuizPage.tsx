@@ -127,7 +127,7 @@ export default function QuizPage() {
                     className="grid place-items-center rounded-m"
                     style={{
                       width: '34px', height: '34px', font: '600 13px/1 var(--f-body)',
-                      background: r === true ? 'var(--mm-teal-f)' : r === false ? 'var(--stop)' : i === current ? 'var(--ink-fixed)' : 'var(--paper-2)',
+                      background: r === true ? 'var(--mm-teal-f)' : r === false ? 'var(--stop)' : i === current ? 'var(--ink-fixed)' : 'var(--surface-band)',
                       color: r !== null || i === current ? 'var(--paper-fixed)' : 'var(--ink-3)',
                     }}
                   >
@@ -138,7 +138,7 @@ export default function QuizPage() {
             )}
             <p className="m-0 text-ink-2" style={{ fontSize: '13.5px', lineHeight: 1.5, marginTop: questions.length ? 0 : '8px' }}>{t('edu.quiz.rule')}</p>
           </section>
-          <section className="mm-card" style={{ background: 'var(--paper-2)' }}>
+          <section className="mm-card" style={{ background: 'var(--surface-band)' }}>
             <h3 style={{ fontSize: '16px' }}>{t('edu.quiz.rysmoTitle')}</h3>
             <p className="m-0 mt-2 text-ink-2" style={{ fontSize: '13.5px', lineHeight: 1.5 }}>{t('edu.quiz.rysmoBody')}</p>
             <LocalizedLink to="/mon-espace/assistant" className="mt-3 inline-block" style={{ font: '600 13.5px/1 var(--f-body)' }}>

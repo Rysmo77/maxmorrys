@@ -229,7 +229,7 @@ export default function Contact() {
 
       {/* ── RÉSERVER ─────────────────────────────────────────────────────────── */}
       <KitSection className="scroll-mt-[calc(var(--header-h)+16px)] pt-11 wide:pt-10" id="rdv">
-        <section ref={rdvRef} aria-labelledby="rdv-title" className="grid gap-6 rounded-xl bg-[color:var(--paper-2)] p-5 wide:grid-cols-[1.1fr_1fr] wide:p-[34px]">
+        <section ref={rdvRef} aria-labelledby="rdv-title" className="grid gap-6 rounded-xl bg-[color:var(--surface-band)] p-5 wide:grid-cols-[1.1fr_1fr] wide:p-[34px]">
           {booking.success ? (
             <div className="wide:col-span-2">
               <Eyebrow tone="club">{t('site.booking.eyebrow')}</Eyebrow>
