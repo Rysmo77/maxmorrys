@@ -46,7 +46,9 @@ export default function ConsoleKpi({ label, value, source, asOf, unit, foot, ico
       <span className="mm-ckpi__l">{icon && <Icon name={icon} size={15} />}{label}</span>
       <b className="mm-ckpi__v">
         <Num value={value} source={source} asOf={asOf} />
-        {unit && <small>{unit}</small>}
+        {/* Sans valeur, pas d'unité : « non relevéFCFA » (audit 03/11/2026, X18). Avec une
+            valeur, une espace insécable RÉELLE la sépare du chiffre, comme dans `Num`. */}
+        {unit && value !== null && value !== '' && <small>{'\u00a0'}{unit}</small>}
       </b>
       {foot && <span className="text-help text-ink-2">{foot}</span>}
       <span className="mm-ckpi__s">{sourceLine ?? t('console.kpiSourceLine', { date, origin })}</span>

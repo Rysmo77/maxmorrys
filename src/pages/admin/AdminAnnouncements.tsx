@@ -8,10 +8,11 @@ import { Pagination } from '@/components/dialogs';
 import { ConfirmDialog } from '@/components/dialogs';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
-import { getAllAnnouncements, saveAnnouncement, deleteAnnouncement } from '../../lib/firestore';
+import { getAllAnnouncements, saveAnnouncement } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
 import type { Announcement } from '../../types';
 import { captureError } from '../../lib/sentry';
+import { auditedDelete } from '../../lib/admin/auditLog';
 
 const EMPTY: Omit<Announcement, 'id'> = {
   title: '', content: '', type: 'info', active: true,
@@ -112,7 +113,7 @@ export default function AdminAnnouncements() {
     setModalOpen(false);
     confirm.requestConfirm(t('announcements.confirmDeleteMessage'), async () => {
       try {
-        await deleteAnnouncement(id);
+        await auditedDelete('announcements', id, { space: 'hub' });
         setAnnouncements((prev) => prev.filter((a) => a.id !== id));
         addToast('success', t('announcements.toastDeleted'));
       } catch (error: unknown) {

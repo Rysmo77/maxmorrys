@@ -1,5 +1,5 @@
 {
-  "seoTitle": "Contact",
+  "seoTitle": "Get in touch",
   "seoDescription": "Write to Max-Morrys: a course and the community, or a website and platform project. Marketing-direction engagements are contracted by MY ONOMA. Dakar, Senegal.",
   "site": {
     "hero": {
@@ -87,6 +87,7 @@
     "messageTooShort": "Message must be at least 10 characters",
     "dateRequired": "Date is required",
     "timeRequired": "Time is required",
+    "phoneRequired": "A phone number is required for a phone or WhatsApp call",
     "nameTooShort": "Name must be at least 2 characters"
   },
   "toast": {

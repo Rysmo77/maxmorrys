@@ -8,6 +8,7 @@ import { Eyebrow, KitH2, KitSection, NightAccent, NightHero, Photo, type PhotoTo
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useTranslatedList } from '../hooks/useTranslatedContent';
 import { useFormat } from '../hooks/useFormat';
+import UntranslatedBadge from '../components/shared/UntranslatedBadge';
 import { getPublishedPodcasts, getPublishedVideos } from '../lib/firestore/content';
 import { queryKeys } from '../lib/queryClient';
 import { podcastPlatform } from '../lib/brand';
@@ -26,7 +27,8 @@ import { podcastPlatform } from '../lib/brand';
  *   aveu `weightNote` (note interne vue du public, audit 29/10/2026) est retiré : on se tait sur
  *   le poids plutôt que de le promettre (la règle 10 de `proof:check` garde la promesse) ;
  * - pas de Spotify ni d'Apple Podcasts inventés : la puce de plateforme ne paraît que si
- *   `podcastPlatform` existe ; « Télécharger » pointe le vrai fichier audio ;
+ *   `podcastPlatform` existe ; « Télécharger » pointe le vrai fichier audio, et une page de
+ *   plateforme devient « Écouter sur Spotify » (`audioSource`) ;
  * - le lecteur est l'élément `<audio>` natif, sans préchargement (`preload="none"`) ;
  * - l'encart data ne dit que ce que `VideoDetail` fait réellement : aucune lecture
  *   automatique, l'intégration ne se charge qu'au clic. Le 360p de la planche n'existe pas ;
@@ -35,6 +37,46 @@ import { podcastPlatform } from '../lib/brand';
  */
 
 const VIDEO_TONES: PhotoTone[] = ['informe', 'club', 'studio', 'edu'];
+
+/**
+ * L'adresse audio d'un épisode est-elle un FICHIER, ou la page d'une plateforme ?
+ *
+ * La base porte souvent le lien Spotify de l'épisode. Donné à `<audio>`, il échouait en
+ * erreur de média ; avec `download`, il ouvrait Spotify, l'attribut étant ignoré sur un autre
+ * domaine (audit 03/11/2026, X1). Une page de plateforme s'ouvre donc comme un lien, nommé.
+ */
+function audioSource(url: string): { kind: 'file' } | { kind: 'page'; platform: string | null } {
+  let host = '';
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    return { kind: 'file' };
+  }
+  if (/(^|\.)spotify\.com$|(^|\.)anchor\.fm$/.test(host)) return { kind: 'page', platform: 'Spotify' };
+  if (/(^|\.)podcasts\.apple\.com$/.test(host)) return { kind: 'page', platform: 'Apple Podcasts' };
+  if (/(^|\.)deezer\.com$/.test(host)) return { kind: 'page', platform: 'Deezer' };
+  if (/\.(mp3|m4a|aac|ogg|oga|opus|wav|flac)(\?|#|$)/i.test(url)) return { kind: 'file' };
+  return { kind: 'page', platform: null };
+}
+
+interface AudioLinkProps {
+  url: string;
+  className: string;
+}
+
+/** « Télécharger » sur un fichier ; « Écouter sur Spotify » (nouvel onglet) sur une page. */
+export function AudioLink({ url, className }: AudioLinkProps) {
+  const { t } = useTranslation('media');
+  const source = audioSource(url);
+  if (source.kind === 'file') {
+    return <a className={className} href={url} download>{t('pole.download')}</a>;
+  }
+  return (
+    <a className={className} href={url} target="_blank" rel="noopener noreferrer">
+      {source.platform ? t('pole.listenOn', { platform: source.platform }) : t('pole.listenOnPlatform')}
+    </a>
+  );
+}
 
 export default function MediaPole() {
   const { t } = useTranslation('media');
@@ -53,8 +95,9 @@ export default function MediaPole() {
 
   const titresPodcasts = useTranslatedList(podcasts.map((p) => p.title));
   const titresVideos = useTranslatedList(videos.map((v) => v.title));
-  const episodes = useMemo(() => podcasts.map((p, i) => ({ ...p, title: titresPodcasts[i] || p.title })), [podcasts, titresPodcasts]);
-  const clips = useMemo(() => videos.map((v, i) => ({ ...v, title: titresVideos[i] || v.title })), [videos, titresVideos]);
+  // `source` garde le titre stocké : resté identique en anglais, la carte porte le badge « FR ».
+  const episodes = useMemo(() => podcasts.map((p, i) => ({ ...p, source: p.title, title: titresPodcasts[i] || p.title })), [podcasts, titresPodcasts]);
+  const clips = useMemo(() => videos.map((v, i) => ({ ...v, source: v.title, title: titresVideos[i] || v.title })), [videos, titresVideos]);
   const dernier = episodes[0] ?? null;
 
   const meta = (at?: string, duration?: string) => [at ? formatDate(at) : null, duration].filter(Boolean).join(' · ');
@@ -114,9 +157,10 @@ export default function MediaPole() {
                 <div className="min-w-0">
                   <Eyebrow className="text-[color:var(--mm-violet-c)]">{t('pole.latestEyebrow')}</Eyebrow>
                   <a href={path(`/podcasts/${dernier.slug}`)} className="mb-4 mt-[10px] block font-display text-[26px] font-black leading-[1.02] text-ink no-underline stack:text-[36px]">
-                    {dernier.title}
+                    {dernier.title} <UntranslatedBadge source={dernier.source} shown={dernier.title} />
                   </a>
-                  {dernier.audioUrl && (
+                  {/* Un lecteur seulement sur un vrai fichier : une page de plateforme ne se lit pas. */}
+                  {dernier.audioUrl && audioSource(dernier.audioUrl).kind === 'file' && (
                     <audio controls preload="none" src={dernier.audioUrl} className="w-full">
                       {t('pole.audioUnsupported')}
                     </audio>
@@ -127,11 +171,7 @@ export default function MediaPole() {
                         {podcastPlatform.name}
                       </a>
                     )}
-                    {dernier.audioUrl && (
-                      <a className={chipNuit} href={dernier.audioUrl} download>
-                        {t('pole.download')}
-                      </a>
-                    )}
+                    {dernier.audioUrl && <AudioLink url={dernier.audioUrl} className={chipNuit} />}
                     {dernier.duration && <span className={chipNuit}><span className="mm-n">{dernier.duration}</span></span>}
                   </div>
                 </div>
@@ -160,14 +200,10 @@ export default function MediaPole() {
                         <Icon name="play" size={16} />
                       </a>
                       <div className="min-w-0 flex-1">
-                        <b className="block text-[15.5px]">{e.title}</b>
+                        <b className="block text-[15.5px]">{e.title} <UntranslatedBadge source={e.source} shown={e.title} /></b>
                         <span className="mm-n text-[12.5px] text-ink-2">{meta(e.publishedAt, e.duration)}</span>
                       </div>
-                      {e.audioUrl && (
-                        <a className="mm-chip flex-none no-underline" href={e.audioUrl} download>
-                          {t('pole.download')}
-                        </a>
-                      )}
+                      {e.audioUrl && <AudioLink url={e.audioUrl} className="mm-chip flex-none no-underline" />}
                     </li>
                   ))}
                 </ul>
@@ -195,7 +231,7 @@ export default function MediaPole() {
                       )}
                     </Photo>
                     <b className="font-display text-[21px] font-black leading-[1.1]">
-                      {v.title}
+                      {v.title} <UntranslatedBadge source={v.source} shown={v.title} />
                     </b>
                   </a>
                 ))}

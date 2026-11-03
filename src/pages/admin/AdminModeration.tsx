@@ -5,13 +5,14 @@ import SEOHead from '../../components/seo/SEOHead';
 import { ConfirmDialog } from '@/components/dialogs';
 import { ConsoleCard, ConsoleStatus } from '../../components/console';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
-import { deleteDmMessage, getDmReports, getUserById, updateDmReportStatus } from '../../lib/firestore';
+import { getDmReports, getUserById, updateDmReportStatus } from '../../lib/firestore';
 import { captureError } from '../../lib/sentry';
 import type { DmReport } from '../../types';
 import {
   CBtn, ConsoleGrid, ConsoleScreen, ConsoleTabs, ConsoleToolbar, HonestEmpty,
 } from './components/ConsoleParts';
 import { ageOf, initialsOf, spaceLabels, type SpaceFilterValue } from './components/consoleUtils';
+import { auditedDelete } from '../../lib/admin/auditLog';
 
 /**
  * CLUB · MODÉRATION — maquette `Console-Moderation` (+ `-mobile`), passe 2, lot D.
@@ -79,7 +80,7 @@ export default function AdminModeration() {
   const hideMessage = (r: DmReport) => {
     confirm.requestConfirm(k('deleteMessageConfirm'), async () => {
       try {
-        await deleteDmMessage(r.convId, r.messageId);
+        await auditedDelete(`conversations/${r.convId}/messages`, r.messageId, { name: 'dm_messages', space: 'club', summary: `conversation ${r.convId}`, skipIfMissing: true });
         await updateDmReportStatus(r.id, 'resolved').catch(() => null);
         setReports((prev) => prev.map((x) => (x.id === r.id ? { ...x, status: 'resolved' } : x)));
         addToast('success', k('messageDeleted'));

@@ -35,7 +35,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [method, setMethod] = useState<'phone' | 'email'>('email');
   const { signIn, signInWithGoogle } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
@@ -113,74 +112,76 @@ export default function Login() {
       </div>
 
       {/*
-        ── TÉLÉPHONE · E-MAIL ────────────────────────────────────────────────────────
+        ── E-MAIL · TÉLÉPHONE ────────────────────────────────────────────────────────
         La maquette ouvre sur « Téléphone » (code par WhatsApp ou SMS). Aucune connexion par
-        téléphone n'existe côté serveur : l'onglet reste, à sa place, et dit qu'elle n'est
-        pas encore ouverte — l'e-mail est donc l'onglet ouvert par défaut.
+        téléphone n'existe côté serveur : l'audit UI/UX du 03/11/2026 (n°3) a relevé qu'un
+        onglet placé en premier pour répondre « pas encore ouverte » était une impasse. L'e-mail
+        passe donc devant, seul onglet actif ; « Téléphone » reste visible, après, désactivé et
+        marqué « bientôt ».
       */}
       <div className="mm-tabs flex" role="tablist" aria-label={t('v3.methodLabel')}>
-        <button type="button" role="tab" aria-selected={method === 'phone'} aria-pressed={method === 'phone'} className="flex-1" onClick={() => setMethod('phone')}>
-          {t('v3.phoneTab')}
-        </button>
-        <button type="button" role="tab" aria-selected={method === 'email'} aria-pressed={method === 'email'} className="flex-1" onClick={() => setMethod('email')}>
+        <button type="button" role="tab" aria-selected aria-pressed className="flex-1">
           {t('v3.emailTab')}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={false}
+          aria-disabled
+          disabled
+          title={t('v3.phoneSoonTitle')}
+          className="flex-1 cursor-not-allowed opacity-60"
+        >
+          {`${t('v3.phoneTab')} · ${t('v3.soon')}`}
         </button>
       </div>
 
-      {method === 'phone' ? (
-        <div className="mm-card" style={{ padding: '18px' }}>
-          <p className="m-0 text-[14px] font-semibold text-ink">{t('v3.phoneSoonTitle')}</p>
-          <p className="m-0 mt-1.5 text-[13px] text-ink-2">{t('v3.phoneSoonBody')}</p>
-          <button type="button" className="mm-pill is-plain is-sm mt-3" onClick={() => setMethod('email')}>{t('v3.useEmail')}</button>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} noValidate>
-          <Field
-            label={t('login.emailLabel')}
-            type="email"
-            value={email}
-            onChange={setEmail}
-            error={errors.email}
-            placeholder={t('login.emailPlaceholder')}
-            inputMode="email"
-            autoComplete="email"
-            required
-            style={{ marginTop: 0 }}
-          />
-          <Field
-            label={t('login.passwordLabel')}
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={setPassword}
-            error={errors.password}
-            placeholder={t('login.passwordPlaceholder')}
-            autoComplete="current-password"
-            required
-            trailing={
-              <IconButton
-                label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
-                onClick={() => setShowPassword((v) => !v)}
-                style={{ width: '32px', height: '32px', background: 'transparent', border: 0, boxShadow: 'none' }}
-              >
-                {showPassword ? <Icon name="eye-off" size={18} /> : <Icon name="eye" size={18} />}
-              </IconButton>
-            }
-          />
-          <p className="m-0 mt-2 text-right text-[12.5px]">
-            <a href={path('/mot-de-passe-oublie')} className="mm-touch-extend text-ink-2">{t('login.forgotPassword')}</a>
-          </p>
-          <button
-            type="submit"
-            className="mm-pill mt-3"
-            disabled={loading || googleLoading}
-            aria-busy={loading || undefined}
-            style={{ justifyContent: 'space-between', width: '100%' }}
-          >
-            {loading ? t('login.submitting') : t('login.submit')}
-            <i aria-hidden="true"><Icon name="arrow-up-right" size={15} /></i>
-          </button>
-        </form>
-      )}
+      <form onSubmit={handleSubmit} noValidate>
+        <Field
+          label={t('login.emailLabel')}
+          type="email"
+          value={email}
+          onChange={setEmail}
+          error={errors.email}
+          placeholder={t('login.emailPlaceholder')}
+          inputMode="email"
+          autoComplete="email"
+          required
+          style={{ marginTop: 0 }}
+        />
+        <Field
+          label={t('login.passwordLabel')}
+          type={showPassword ? 'text' : 'password'}
+          value={password}
+          onChange={setPassword}
+          error={errors.password}
+          placeholder={t('login.passwordPlaceholder')}
+          autoComplete="current-password"
+          required
+          trailing={
+            <IconButton
+              label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
+              onClick={() => setShowPassword((v) => !v)}
+              style={{ width: '32px', height: '32px', background: 'transparent', border: 0, boxShadow: 'none' }}
+            >
+              {showPassword ? <Icon name="eye-off" size={18} /> : <Icon name="eye" size={18} />}
+            </IconButton>
+          }
+        />
+        <p className="m-0 mt-2 text-right text-[12.5px]">
+          <a href={path('/mot-de-passe-oublie')} className="mm-touch-extend text-ink-2">{t('login.forgotPassword')}</a>
+        </p>
+        <button
+          type="submit"
+          className="mm-pill mt-3"
+          disabled={loading || googleLoading}
+          aria-busy={loading || undefined}
+          style={{ justifyContent: 'space-between', width: '100%' }}
+        >
+          {loading ? t('login.submitting') : t('login.submit')}
+          <i aria-hidden="true"><Icon name="arrow-up-right" size={15} /></i>
+        </button>
+      </form>
     </AuthSplit>
   );
 }

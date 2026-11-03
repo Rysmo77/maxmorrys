@@ -17,4 +17,10 @@ export interface Env {
   /** Clé de l'API Gemini (secret). Absente = pas de traduction, repli sur le FR. */
   GOOGLE_AI_API_KEY?: string;
 
+  /**
+   * Clé de l'API Claude (secret) : secours de la traduction quand Gemini échoue. Absente =
+   * Gemini seul, comme avant. `npx wrangler secret put ANTHROPIC_API_KEY`.
+   */
+  ANTHROPIC_API_KEY?: string;
+
 }

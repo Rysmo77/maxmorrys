@@ -5,8 +5,9 @@ import SpaceSplit from '../components/SpaceSplit';
 import type { TagTone } from '@ds';
 import { useEspaceNavigate } from '../../../contexts/LanguageContext';
 import { useFormat } from '../../../hooks/useFormat';
-import { getUserTransactions } from '../../../lib/firestore';
-import type { Transaction } from '../../../types';
+import { getClubSubscription, getUserTransactions } from '../../../lib/firestore';
+import { estMembreActif } from '../../../lib/club/membership';
+import type { ClubDigitosSubscription, Transaction } from '../../../types';
 
 import Bento from '../../../components/formations/Bento';
 /**
@@ -119,6 +120,18 @@ export default function PaymentsTab({ userId }: PaymentsTabProps) {
 
   useEffect(() => { load(); }, [load]);
 
+  /* Audit M3 : un accès Club actif sans transaction (offert, activé par l'équipe) faisait lire
+     « Aucun paiement » à côté d'un Club « Membre actif ». L'origine n'est pas enregistrée sur
+     l'adhésion : on montre l'accès et sa date de fin, et on dit pourquoi il peut manquer ici. */
+  const [club, setClub] = useState<ClubDigitosSubscription | null>(null);
+  useEffect(() => {
+    let alive = true;
+    getClubSubscription(userId)
+      .then((sub) => { if (alive) setClub(sub); })
+      .catch(() => { /* lecture d'appoint : son échec ne doit pas masquer les paiements */ });
+    return () => { alive = false; };
+  }, [userId]);
+
   const statusLabel: Record<Transaction['status'], string> = {
     completed: t('payments.statusCompleted'),
     pending: t('payments.statusPending'),
@@ -178,6 +191,19 @@ export default function PaymentsTab({ userId }: PaymentsTabProps) {
         )}
         <Tag>{t('payments.receiptTag')}</Tag>
       </div>
+
+      {club && estMembreActif(club) && (
+        <Bento padding="6px 18px" className="mt-[14px]">
+          <LessonRow
+            state="plain"
+            icon={<Icon name="users" size={14} style={{ color: 'var(--mm-violet)' }} />}
+            iconBackground="color-mix(in srgb, var(--mm-violet) 16%, transparent)"
+            title={t('payments.clubAccessTitle')}
+            meta={t('payments.clubAccessBody', { date: formatDate(club.expiresAt) })}
+            last
+          />
+        </Bento>
+      )}
 
       {loading ? (
         /* Le squelette a la FORME EXACTE de la liste — trois lignes de 62 px dans le même

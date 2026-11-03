@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Field, GlassPanel, Icon, IconButton, useToast } from '@ds';
@@ -13,6 +13,8 @@ import AuthSplit from '../../components/edu/g2/AuthSplit';
 import { useEspaceNavigate, useLocalizedPath } from '../../contexts/LanguageContext';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** Longueur minimale du mot de passe, côté formulaire (Firebase Auth n'en exige que 6 par défaut). */
+const PASSWORD_MIN = 8;
 
 
 export default function Register() {
@@ -26,7 +28,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { signUp, signInWithGoogle } = useAuth();
+  const { user, loading: sessionLoading, signUp, signInWithGoogle } = useAuth();
   const { addToast } = useToast();
   /* L'accueil connecté de l'ESPACE courant : le Club après une inscription sur club., l'école
      ailleurs (`lib/hosts.ts`). */
@@ -34,6 +36,16 @@ export default function Register() {
   const path = useLocalizedPath();
   const [searchParams] = useSearchParams();
   const refCode = searchParams.get('ref')?.trim().toUpperCase() || '';
+
+  /*
+   * Déjà connecté·e : la page d'inscription n'a rien à offrir (audit 03/11/2026, X7). On part
+   * vers l'accueil connecté — sauf pendant une inscription en cours, que son propre
+   * gestionnaire termine (parrainage, toast) avant de naviguer.
+   */
+  useEffect(() => {
+    if (!sessionLoading && user && !loading && !googleLoading) go(accueilConnecte(), { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionLoading, user]);
 
   const captureReferral = async () => {
     if (!refCode) return;
@@ -51,7 +63,7 @@ export default function Register() {
     if (!name.trim()) errs.name = t('validation.nameRequired');
     if (!email.trim()) errs.email = t('validation.emailRequired');
     else if (!EMAIL_RE.test(email.trim())) errs.email = t('validation.emailInvalid');
-    if (password.length < 6) errs.password = t('validation.passwordMinLength');
+    if (password.length < PASSWORD_MIN) errs.password = t('validation.passwordMinLength');
     if (password !== confirm) errs.confirm = t('validation.passwordMismatch');
     setErrors(errs);
     return Object.keys(errs).length === 0;

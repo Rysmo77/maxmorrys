@@ -57,3 +57,20 @@ export function ageOf(iso: string | undefined | null, now: Date, lang: string): 
 export function initialsOf(name: string): string {
   return name.split(/\s+/).filter(Boolean).map((n) => n[0]).join('').slice(0, 2).toUpperCase() || '?';
 }
+
+/**
+ * Une date lue en base, quelle que soit sa forme : chaîne ISO, millisecondes, `Timestamp`
+ * Firestore (`toDate()`) ou objet `{ seconds }`. `null` si elle manque ou ne se lit pas —
+ * jamais `new Date(x)` passé tel quel à l'affichage, qui rendait « Invalid Date » sur une
+ * fiche de compte (audit UI/UX du 03/11/2026, X18).
+ */
+export function dateOf(v: unknown): Date | null {
+  if (v === null || v === undefined || v === '') return null;
+  let d: Date;
+  if (v instanceof Date) d = v;
+  else if (typeof v === 'string' || typeof v === 'number') d = new Date(v);
+  else if (typeof (v as { toDate?: unknown }).toDate === 'function') d = (v as { toDate: () => Date }).toDate();
+  else if (typeof (v as { seconds?: unknown }).seconds === 'number') d = new Date((v as { seconds: number }).seconds * 1000);
+  else return null;
+  return Number.isFinite(d.getTime()) ? d : null;
+}

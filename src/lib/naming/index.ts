@@ -74,3 +74,31 @@ export function validateTutorName(raw: string): { ok: true; value: string } | { 
   if (v.length > TUTOR_NAME_MAX) return { ok: false, reason: `${TUTOR_NAME_MAX} caractères au maximum — au-delà, le nom ne tient plus dans la barre d'onglets.` };
   return { ok: true, value: v };
 }
+
+/** Ce que `greetingName` lit d'un profil Firestore ou d'un utilisateur Firebase Auth. */
+interface HasPersonName {
+  firstName?: string | null;
+  displayName?: string | null;
+  email?: string | null;
+}
+
+/**
+ * LE SEUL ACCESSEUR AU PRÉNOM D'ACCUEIL (audit du 03/11/2026, M2).
+ *
+ * Le compte saluait « Rysmo » (prénom du profil), Edu « Rys » et le Club « Rys » (premier mot
+ * du `displayName`) : trois noms pour une personne. L'ordre est maintenant unique —
+ * 1. le prénom saisi au profil, 2. le premier mot du `displayName` (profil, puis Auth),
+ * 3. le début de l'e-mail. Chaîne vide si rien n'est connu : l'appelant choisit sa formule
+ * anonyme plutôt que d'afficher un nom inventé.
+ */
+export function greetingName(
+  profile: HasPersonName | null | undefined,
+  authUser?: HasPersonName | null,
+): string {
+  const first = profile?.firstName?.trim();
+  if (first) return first;
+  const display = (profile?.displayName || authUser?.displayName || '').trim().split(/\s+/)[0];
+  if (display) return display;
+  const email = profile?.email || authUser?.email || '';
+  return email.split('@')[0]?.trim() ?? '';
+}

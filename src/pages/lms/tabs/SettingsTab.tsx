@@ -258,6 +258,16 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
               label={t('settings.rysmoMemory', { tutor })}
             />
           }
+        />
+        {/* Audit M1 : la mémoire est ACTIVE par défaut, donc l'effacement doit se voir ici,
+            pas seulement sous « Gérer » dans l'écran de l'assistant. */}
+        <LessonRow
+          state="plain"
+          icon={<Icon name="trash" size={14} />}
+          title={t('settings.rysmoMemoryErase', { tutor })}
+          meta={t('settings.rysmoMemoryEraseNote')}
+          onClick={() => navigate('/mon-espace/assistant?tab=memoire')}
+          trailing={<Icon name="forward" size={16} color="var(--text-muted)" strokeWidth={2.4} />}
           last
         />
       </Bento>
@@ -325,7 +335,25 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
           title={exporting ? t('settings.exporting') : t('settings.exportData')}
           meta={t('settings.exportNote')}
           onClick={exporting ? undefined : () => void handleExport()}
+          last
         />
+      </Bento>
+
+      {/* ── Compte ─────────────────────────────────────────────────────────── */}
+      <SiteEyebrow style={{ marginTop: '22px' }}>{t('settings.account')}</SiteEyebrow>
+      <Button tone="quiet" fullWidth onClick={onSignOut}>{t('settings.signOut')}</Button>
+      <p className="text-small text-ink-2 text-center mt-2">{t('settings.signOutNote')}</p>
+
+      {/* ── Zone sensible (audit M6) ───────────────────────────────────────────
+          La suppression quittait la liste « Mes données », au milieu de l'export : elle vit
+          désormais seule, en dernier, sous un filet rouge. Le dialogue reste l'étape 2, et
+          la saisie du mot (SUPPRIMER / DELETE, casse indifférente) l'étape 3. */}
+      <section
+        aria-labelledby="settings-danger"
+        className="mt-[28px] rounded-m border border-solid border-[color:color-mix(in_srgb,var(--stop)_40%,transparent)] p-4"
+      >
+        <p id="settings-danger" className="mm-eyebrow m-0" style={{ color: 'var(--stop)' }}>{t('settings.dangerZone')}</p>
+        <p className="m-0 mt-1 mb-2 text-small text-ink-2">{t('settings.dangerZoneNote')}</p>
         <LessonRow
           state="plain"
           icon={<Icon name="trash" size={14} color="var(--stop)" />}
@@ -335,12 +363,7 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
           onClick={() => setShowDeleteConfirm(true)}
           last
         />
-      </Bento>
-
-      {/* ── Compte ─────────────────────────────────────────────────────────── */}
-      <SiteEyebrow style={{ marginTop: '22px' }}>{t('settings.account')}</SiteEyebrow>
-      <Button tone="quiet" fullWidth onClick={onSignOut}>{t('settings.signOut')}</Button>
-      <p className="text-small text-ink-2 text-center mt-2">{t('settings.signOutNote')}</p>
+      </section>
       </div>
 
       <ConfirmDialog

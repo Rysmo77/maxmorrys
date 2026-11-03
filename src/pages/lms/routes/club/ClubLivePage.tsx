@@ -8,9 +8,7 @@ import { getClubSessions } from '../../../../lib/firestore/club';
 import type { ClubDigitosSession } from '../../../../types';
 import { ClubScreen } from '../../tabs/club/ClubScreen';
 import { useClubAccess } from './useClubAccess';
-
-/** Une session est « en cours » de son heure de début à trois heures après. */
-const LIVE_WINDOW_MS = 3 * 60 * 60 * 1000;
+import { clubDateOptions, clubSessionStart, isClubSessionLive, isClubSessionUpcoming } from '../../tabs/club/schedule';
 
 /**
  * /mon-espace/club/live — maquette `Club-Live.dc.html` (+ `-mobile`), lot C.
@@ -42,11 +40,13 @@ export default function ClubLivePage() {
 
   const { session, live } = useMemo(() => {
     const now = Date.now();
+    // La même règle que l'agenda, le fil et le bandeau (`schedule.ts`, audit C2) : une session
+    // close par son statut (passée, tenue, annulée) n'est ni « en cours » ni « prochaine ».
     const timed = (sessions ?? [])
-      .map((s) => ({ s, at: Date.parse(s.scheduledAt) }))
-      .filter((x) => Number.isFinite(x.at))
+      .filter((s) => isClubSessionUpcoming(s, now))
+      .map((s) => ({ s, at: clubSessionStart(s.scheduledAt) }))
       .sort((a, b) => a.at - b.at);
-    const current = timed.find((x) => x.at <= now && now - x.at < LIVE_WINDOW_MS);
+    const current = timed.find((x) => isClubSessionLive(x.s, now));
     const upcoming = timed.find((x) => x.at > now);
     const pick = current ?? upcoming;
     return { session: pick?.s ?? null, live: Boolean(current) };
@@ -54,8 +54,10 @@ export default function ClubLivePage() {
 
   if (access !== 'member') return access;
 
+  // Sans session, la scène dit déjà « Aucune session n'est programmée » : le sous-titre se
+  // tait plutôt que de répéter la phrase (audit C2).
   const when = session
-    ? new Date(session.scheduledAt).toLocaleString(locale, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+    ? new Date(session.scheduledAt).toLocaleString(locale, clubDateOptions(clubSessionStart(session.scheduledAt), { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }, Date.now(), 'UTC'))
     : '';
 
   return (
@@ -63,7 +65,7 @@ export default function ClubLivePage() {
       <SEOHead title={session?.title || t(k('title'))} description={t(k('body'))} noIndex />
       <ClubScreen
         title={session?.title || t(k('title'))}
-        subtitle={session ? `${t(k('kick'))} · ${when} GMT${session.duration ? ` · ${session.duration}` : ''}` : t(k('empty'))}
+        subtitle={session ? `${t(k('kick'))} · ${when} GMT${session.duration ? ` · ${session.duration}` : ''}` : undefined}
         circlesLabel={t('club.circles.label')}
         circlesEmpty={t('club.circles.empty')}
       >

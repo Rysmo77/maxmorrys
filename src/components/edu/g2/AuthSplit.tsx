@@ -40,6 +40,16 @@ export default function AuthSplit({ title, subtitle, seoTitle, noIndex, children
   const localize = useLocalizedPath();
   const espace = espaceCourant();
   const accueil = localize(accueilPublic(espace));
+  /* L'HABIT SUIT LE DOMAINE (audit UI/UX du 03/11/2026, E9) : sur club.maxmorrys.me, la même
+     page portait l'étiquette EDU absente et les couvertures des formations Edu en vitrine. Le
+     Club reçoit son étiquette, son maillage et ses propres faits — pas de couvertures, le
+     Club n'en a pas. */
+  const club = espace === 'club';
+  const badge = espace === 'edu' ? 'EDU' : club ? 'CLUB' : undefined;
+  const mesh = club ? 'mm-mesh m-club' : 'mm-mesh m-edu';
+  const faits = club
+    ? (['clubAside1', 'clubAside2', 'clubAside3'] as const)
+    : (['aside1', 'aside2', 'aside3'] as const);
 
   /* React Router numérote ses entrées d'historique (`state.idx`) : 0 veut dire qu'on est
      arrivé ici directement — un lien, un onglet neuf. Il n'y a alors rien « avant » à qui
@@ -58,7 +68,7 @@ export default function AuthSplit({ title, subtitle, seoTitle, noIndex, children
       <main className="flex flex-col px-4 pb-8 stack:px-16">
         <div className="flex items-center justify-between gap-3 pt-5">
           <a href={accueil} aria-label={t('v3.home')} className="mm-touch-extend no-underline">
-            <Wordmark brand="kit" size={19} badge={espace === 'edu' ? 'EDU' : undefined} />
+            <Wordmark brand="kit" size={19} badge={badge} />
           </a>
           <button
             type="button"
@@ -70,8 +80,8 @@ export default function AuthSplit({ title, subtitle, seoTitle, noIndex, children
           </button>
         </div>
         <div className="dk relative isolate mt-4 overflow-hidden rounded-xl px-5 py-6 wide:hidden" style={{ background: 'var(--night)' }}>
-          <div className="mm-mesh m-edu" style={{ opacity: 0.6 }}><b /><b /><b /></div>
-          <span className="mm-script relative text-[24px]">{t('v3.mobileKicker')}</span>
+          <div className={mesh} style={{ opacity: 0.6 }}><b /><b /><b /></div>
+          <span className="mm-script relative text-[24px]">{club ? t('v3.clubMobileKicker') : t('v3.mobileKicker')}</span>
         </div>
         <div className="mx-auto my-auto w-full max-w-[420px] py-10">
           <h1 className="mm-d m-0 mb-2.5 text-[40px] wide:text-[52px]">{title}</h1>
@@ -92,13 +102,19 @@ export default function AuthSplit({ title, subtitle, seoTitle, noIndex, children
       </main>
 
       <div className="dk relative isolate m-3.5 hidden flex-col justify-between overflow-hidden rounded-[34px] p-12 wide:flex" style={{ background: 'var(--night)' }}>
-        <div className="mm-mesh m-edu" style={{ opacity: 0.6 }}><b /><b /><b /></div>
-        <span className="mm-script relative text-[30px]">{t('login.asideKicker')}</span>
-        <div className="relative flex justify-center">
-          <FloatingCovers />
-        </div>
+        <div className={mesh} style={{ opacity: 0.6 }}><b /><b /><b /></div>
+        <span className="mm-script relative text-[30px]">{club ? t('v3.clubAsideKicker') : t('login.asideKicker')}</span>
+        {club ? (
+          <p className="mm-d relative m-0 max-w-[14ch] text-[56px] leading-[0.95] text-[color:var(--paper-fixed)]">
+            {t('v3.clubAsideTitle')}
+          </p>
+        ) : (
+          <div className="relative flex justify-center">
+            <FloatingCovers />
+          </div>
+        )}
         <ul className="relative m-0 flex list-none flex-col gap-3 p-0 text-[15px] text-[color:color-mix(in_srgb,var(--paper-fixed)_80%,transparent)]">
-          {(['aside1', 'aside2', 'aside3'] as const).map((k) => (
+          {faits.map((k) => (
             <li key={k} className="flex items-start gap-2">
               <Icon name="check" size={16} style={{ marginTop: '3px', flex: 'none' }} />
               {t(`v3.${k}`)}

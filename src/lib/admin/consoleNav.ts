@@ -43,6 +43,13 @@ export interface AdminNavItem {
    * `mm-cspaces`). Absent = transversal (pilotage, comptes, argent, système).
    */
   space?: AdminSpace;
+  /**
+   * L'écran n'a pas encore de producteur de données : sa route répond (et il compte parmi
+   * les écrans de la console), mais le menu ne l'annonce pas — une entrée qui n'ouvre
+   * qu'un état vide fait perdre un clic à chaque passage (audit 03/11/2026, X17).
+   * Retirer le drapeau le jour où l'écran est relevé.
+   */
+  pending?: boolean;
 }
 
 /** Les espaces du filtre de console, dans l'ordre du kit. `all` n'est pas un espace. */
@@ -82,7 +89,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { to: '/admin/journal',          labelKey: 'nav.audit',          titleKey: 'nav.audit',          icon: 'shield' },
   { to: '/admin/roles',            labelKey: 'nav.roles',          titleKey: 'nav.roles',          icon: 'lock' },
   { to: '/admin/moderation',       labelKey: 'nav.moderation',     titleKey: 'nav.moderation',     icon: 'flag', tone: 'club', space: 'club' },
-  { to: '/admin/quotas',           labelKey: 'nav.quotas',         titleKey: 'nav.quotas',         icon: 'sparkles', space: 'rysmo' },
+  { to: '/admin/quotas',           labelKey: 'nav.quotas',         titleKey: 'nav.quotas',         icon: 'sparkles', space: 'rysmo', pending: true },
   { to: '/admin/infrastructure',   labelKey: 'nav.infra',          titleKey: 'nav.infra',          icon: 'monitor' },
 ];
 

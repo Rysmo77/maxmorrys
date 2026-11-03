@@ -25,6 +25,8 @@
     "greetEvening": "Bonsoir, {{name}} !",
     "tickerLabel": "Ce qui vient au Club",
     "tickerBadge": "À venir",
+    "tickerPause": "Mettre le bandeau en pause",
+    "tickerPlay": "Relancer le bandeau",
     "tickerUpcoming": "{{title}} · {{when}}",
     "tickerInfo": "Nouveau dans les infos : {{title}}"
   },
@@ -51,7 +53,7 @@
   },
   "referral": {
     "heroTitle": "Parraine la communauté",
-    "heroText": "Ton filleul profite de <0>-15%</0> sur son adhésion. Quand il devient membre, tu gagnes <1>100 XP</1> et le badge <2>Ambassadeur</2>.",
+    "heroText": "Ton filleul profite de <0>−15 %</0> sur son adhésion. Quand il devient membre, tu gagnes <1>100 XP</1> et le badge <2>Ambassadeur</2>.",
     "yourLink": "Ton lien de parrainage",
     "copied": "Copié",
     "copy": "Copier",
@@ -149,7 +151,7 @@
     "reported": "signalé",
     "report": "signaler",
     "messagePlaceholder": "Écris un message…",
-    "title": "Discussions",
+    "title": "Messages",
     "emptyTitle": "Aucune conversation",
     "emptySubtitle": "Démarre un échange privé avec un autre membre depuis l'annuaire.",
     "goToDirectory": "Aller à l'annuaire",

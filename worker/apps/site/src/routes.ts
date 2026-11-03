@@ -188,3 +188,66 @@ export function resolveRoute(pathname: string): Route {
 
   return 'origin';
 }
+
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * LE VRAI 404 (audit du 03/11/2026, n°13).
+ *
+ * L'origine est une SPA : elle répond 200 avec le shell sur N'IMPORTE QUEL chemin, et la
+ * page « introuvable » n'existe qu'après hydratation (avec un `noindex` que personne ne
+ * lit). Un robot voyait donc chaque faute de frappe comme une page réelle.
+ *
+ * Ce bord ne connaît pas l'arbre complet des routes React — il n'a pas à le connaître
+ * pour fermer l'essentiel du trou : une adresse dont le PREMIER segment (chemin logique
+ * FR, après `/en` et après la traduction des segments) n'ouvre aucune branche de
+ * `appChildren()` n'a aucune chance d'être une page. Le corps reste le shell SPA, qui
+ * affiche la page introuvable ; seul le statut change.
+ *
+ * ⚠️ MIROIR de `src/App.tsx` (premiers segments des routes). `tests/unit/worker-404-miroir.test.ts`
+ * relit `App.tsx` et échoue si une branche y apparaît sans être déclarée ici : l'oubli
+ * transformerait une vraie page en 404 pour les moteurs.
+ *
+ * Ce que ça ne couvre PAS : un chemin profond sous une branche connue (`/blog/inexistant`
+ * passe par le pré-rendu, `/mon-espace/xyz` par l'origine) reste en 200.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+export const APP_FIRST_SEGMENTS: ReadonlySet<string> = new Set([
+  '',
+  'a-propos',
+  'blog',
+  'formations',
+  'podcast-et-videos',
+  'club-des-digitos',
+  'apprendre',
+  'compte',
+  'podcasts',
+  'videos',
+  'faq',
+  'contact',
+  'conception',
+  'agence',
+  'presence-digitale',
+  'legal',
+  'mon-espace',
+  'cours',
+  'checkout',
+  'paiement',
+  'connexion',
+  'inscription',
+  'mot-de-passe-oublie',
+  'certificat',
+  'verifier',
+  'r',
+  '403',
+  'admin',
+]);
+
+/**
+ * Ce chemin LOGIQUE FR (sans `/en`, segments déjà ramenés au français) peut-il être une
+ * page de l'application ? Faux ⇒ le Worker sert le shell avec un statut 404.
+ */
+export function isKnownAppPath(logiqueFr: string): boolean {
+  // React Router compare sans tenir compte de la casse : /Contact rend la page, donc pas de 404.
+  const first = (normalizePath(logiqueFr).split('/')[1] ?? '').toLowerCase();
+  return APP_FIRST_SEGMENTS.has(first);
+}

@@ -50,7 +50,9 @@ const EMPTY = {
   email: '',
   phone: '',
   date: '',
-  time: TIME_SLOTS[0] as string,
+  /** Aucun créneau présélectionné (audit 03/11, n°4) : un 18:00 coché d'office passait
+      pour un choix de la personne, alors que l'erreur disait la date manquante. */
+  time: '' as string,
   subjectKey: SUBJECT_KEYS[0] as string,
   message: '',
   /** Format choisi (visio, téléphone, WhatsApp). La règle `appointments` EXIGE ce champ. */
@@ -92,6 +94,10 @@ export function useAppointment() {
     else if (!EMAIL_RE.test(form.email.trim())) errs.email = t('validation.emailInvalid');
     if (!form.date) errs.date = t('validation.dateRequired');
     if (!form.time) errs.time = t('validation.timeRequired');
+    // Téléphone et WhatsApp : sans numéro, le rendez-vous ne peut pas avoir lieu.
+    if ((form.type === 'phone' || form.type === 'whatsapp') && !form.phone.trim()) {
+      errs.phone = t('validation.phoneRequired');
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };

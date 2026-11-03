@@ -7,6 +7,7 @@ import { SiteEyebrow } from '../../components/site';
 import { getPlatformStats, getAgencyStats, getPopupStats } from '../../lib/firestore';
 import type { AgencyStats, PopupStatRow } from '../../lib/firestore';
 import { PIPELINE_STAGES } from '../../lib/presence/offer';
+import { contentStatus } from '../../lib/admin/contentStatus';
 
 /**
  * ── RELEVÉ — l'écran en tension frontale avec le motif, et l'arbitrage rendu ────────
@@ -45,6 +46,7 @@ interface Stats {
   users: number;
   formations: number;
   publishedFormations: number;
+  comingSoonFormations: number;
   articles: number;
   publishedPosts: number;
   messages: number;
@@ -118,6 +120,9 @@ export default function AdminAnalytics() {
   const stamp = asOf ?? new Date();
 
   const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : 0);
+  /* X14 (audit 03/11/2026) : les statuts RÉELS, par le calcul partagé avec le tableau de bord
+     et le menu — une formation « Bientôt » n'est pas ouverte, un brouillon n'est pas publié. */
+  const content = stats ? contentStatus(stats) : null;
 
   /*
     LA FILE. Quatre choses en retard, et rien d'autre — une ligne n'apparaît que si son
@@ -126,8 +131,8 @@ export default function AdminAnalytics() {
   const queue = stats ? ([
     { key: 'messages', n: stats.newMessages, to: '/admin/messages', nav: 'nav.messages', glyph: 'chat' as const, token: '--stop' },
     { key: 'leads', n: stats.newAgencyLeads, to: '/admin/prospects-agence', nav: 'nav.agencyLeads', glyph: 'case' as const, token: '--mm-teal' },
-    { key: 'formations', n: stats.formations - stats.publishedFormations, to: '/admin/formations', nav: 'nav.formations', glyph: 'book' as const, token: '--mm-orange' },
-    { key: 'drafts', n: stats.articles - stats.publishedPosts, to: '/admin/articles', nav: 'nav.articles', glyph: 'doc' as const, token: '--mm-bleu' },
+    { key: 'formations', n: content ? content.formations.draft : 0, to: '/admin/formations', nav: 'nav.formations', glyph: 'book' as const, token: '--mm-orange' },
+    { key: 'drafts', n: content ? content.articles.notPublished : 0, to: '/admin/articles', nav: 'nav.articles', glyph: 'doc' as const, token: '--mm-bleu' },
   ]).filter((row) => row.n > 0) : [];
 
   return (
@@ -186,14 +191,16 @@ export default function AdminAnalytics() {
                 value={stats.formations}
                 source="db"
                 asOf={stamp}
-                foot={t('analytics.footPublished', { count: stats.publishedFormations })}
+                foot={content && t('analytics.footFormations', {
+                  open: content.formations.open, soon: content.formations.comingSoon, draft: content.formations.draft,
+                })}
               />
               <ConsoleKpi
                 label={t('analytics.statArticles')}
                 value={stats.articles}
                 source="db"
                 asOf={stamp}
-                foot={t('analytics.footPublished', { count: stats.publishedPosts })}
+                foot={content && t('analytics.footPublished', { count: content.articles.published })}
               />
               <ConsoleKpi
                 label={t('analytics.statMessages')}
@@ -212,10 +219,10 @@ export default function AdminAnalytics() {
               <SiteEyebrow style={{ marginBottom: '14px' }}>{t('analytics.keyIndicators')}</SiteEyebrow>
               <div className="space-y-4">
                 {([
-                  { key: 'enrollmentRate', value: pct(stats.enrollments, stats.users) },
-                  { key: 'articlePublishRate', value: pct(stats.publishedPosts, stats.articles) },
-                  { key: 'formationPublishRate', value: pct(stats.publishedFormations, stats.formations) },
-                ]).map((ratio) => (
+                  { key: 'enrollmentRate', value: stats.users > 0 ? pct(stats.enrollments, stats.users) : null },
+                  { key: 'articlePublishRate', value: content?.articles.publishedRate ?? null },
+                  { key: 'formationPublishRate', value: content?.formations.openRate ?? null },
+                ]).filter((r): r is { key: string; value: number } => r.value !== null).map((ratio) => (
                   <div key={ratio.key}>
                     {/* Le libellé de `ProgressBar` n'est qu'un nom accessible : il se voit ici. */}
                     <p className="m-0 mb-1.5 text-meta-2 text-ink-2">{t(`analytics.${ratio.key}`)}</p>

@@ -235,6 +235,26 @@ function enumerate(items: readonly string[]): string {
  * Une adresse de fiche inventée ne doit pas produire une page indexable sous le titre du
  * site — c'est ce que faisait l'origine avant ce module.
  */
+/**
+ * Le secteur en anglais, pour le titre de la fiche anglaise (audit 03/11/2026, X6).
+ *
+ * La traduction automatique rendait « Fintech », « E-commerce » ou « Consumer Product » à
+ * l'identique : quatre fiches portaient le MÊME titre en français et en anglais, ce que les
+ * moteurs lisent comme deux pages dupliquées. Un secteur absent ici retombe sur la source.
+ */
+const CATEGORY_EN: Readonly<Record<string, string>> = {
+  'Communauté': 'community',
+  Conseil: 'consulting',
+  'Consumer Product': 'consumer product',
+  'E-commerce': 'e-commerce',
+  Fintech: 'fintech',
+  'Ingénierie': 'engineering',
+  'Média': 'media',
+  'Santé': 'health',
+  'Éducation': 'education',
+  'Événementiel': 'events',
+};
+
 export function getRealisationMeta(slug: string, lang: 'fr' | 'en'): PageMeta | null {
   const project = BY_SLUG.get(slug);
   if (!project) return null;
@@ -258,6 +278,8 @@ export function getRealisationMeta(slug: string, lang: 'fr' | 'en'): PageMeta | 
 
   return {
     title: `${project.name} — ${project.category} | ${SITE_NAME}`,
+    // Écrit, donc jamais retraduit : « <nom> — <secteur> project » diffère toujours du français.
+    en: { title: `${project.name} — ${CATEGORY_EN[project.category] ?? project.category} project | ${SITE_NAME}` },
     description:
       `${project.name} — ${project.category}.` +
       (shortRoles ? ` Rôle tenu : ${shortRoles}.` : '') +

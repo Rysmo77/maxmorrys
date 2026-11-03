@@ -1,16 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useOutletContext } from 'react-router-dom';
 import { Icon, IconButton, Num } from '@ds';
 import SEOHead from '../../../components/seo/SEOHead';
 import LocalizedLink from '../../../components/shared/LocalizedLink';
 import { CardEmpty, EduCard, EduGrid, EduHead, EduPage } from '../../../components/edu/g4/EduParts';
-import { getClubEvents, getClubSessions } from '../../../lib/firestore';
+import { getClubEvents, getClubSessions, isRegisteredForEvent, isRegisteredForSession } from '../../../lib/firestore';
 import { captureError } from '../../../lib/sentry';
+import { clubEventStart, clubSessionStart, isClubEventUpcoming, isClubSessionUpcoming } from '../tabs/club/schedule';
 /* Sous-ensemble du contexte de `StudentLayout` lu ici, déclaré localement : l'importer ferait
    compter à cette route les namespaces de la coquille (`tests/unit/route-namespaces.test.ts`). */
 interface AgendaOutlet {
   isClubActive?: boolean;
+  userId?: string;
 }
 
 /**
@@ -22,6 +24,10 @@ interface AgendaOutlet {
  * lives de cohorte, quiz et missions de la maquette n'ont pas encore de producteur daté
  * côté serveur : ils n'apparaissent pas, et la carte le dit (D-09).
  *
+ * « À venir » suit LA règle du Club (`tabs/club/schedule` : date réelle ET statut), pour que
+ * l'agenda Edu et celui du Club n'annoncent jamais deux choses différentes ; les échéances
+ * auxquelles la personne est inscrite y passent en tête, marquées (audit 03/11/2026, X9).
+ *
  * Les heures sont celles de l'appareil — à Dakar, c'est GMT.
  */
 interface AgendaItem {
@@ -30,6 +36,9 @@ interface AgendaItem {
   at: Date;
   kind: 'session' | 'event';
   minutes: number;
+  /** À venir selon la règle unique du Club (statut + date). */
+  upcoming: boolean;
+  registered: boolean;
 }
 
 const HOUR_FIRST = 8;
@@ -43,10 +52,6 @@ function startOfWeek(d: Date): Date {
   return x;
 }
 
-function parseEventDate(date: string, time?: string): Date {
-  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T${time && /^\d{1,2}:\d{2}/.test(time) ? time.padStart(5, '0') : '00:00'}`) : new Date(date);
-}
-
 function minutesOf(duration?: string): number {
   const n = duration ? parseInt(duration, 10) : NaN;
   return Number.isFinite(n) && n > 0 ? n : 60;
@@ -56,6 +61,7 @@ export default function AgendaPage() {
   const { t, i18n } = useTranslation('ecrans');
   const ctx = useOutletContext<AgendaOutlet | undefined>();
   const isClubActive = ctx?.isClubActive ?? false;
+  const userId = ctx?.userId;
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [items, setItems] = useState<AgendaItem[]>([]);
   const [asOf, setAsOf] = useState<Date | null>(null);
@@ -63,19 +69,52 @@ export default function AgendaPage() {
   useEffect(() => {
     if (!isClubActive) return;
     let alive = true;
-    Promise.all([getClubSessions(), getClubEvents()])
-      .then(([sessions, events]) => {
-        if (!alive) return;
-        const list: AgendaItem[] = [
-          ...sessions.map((s) => ({ id: `s-${s.id}`, title: s.title, at: new Date(s.scheduledAt), kind: 'session' as const, minutes: minutesOf(s.duration) })),
-          ...events.map((e) => ({ id: `e-${e.id}`, title: e.title, at: parseEventDate(e.date, e.time), kind: 'event' as const, minutes: 60 })),
-        ].filter((x) => !Number.isNaN(x.at.getTime()));
-        setItems(list.sort((a, b) => a.at.getTime() - b.at.getTime()));
-        setAsOf(new Date());
-      })
-      .catch((error: unknown) => captureError(error, { context: 'AgendaPage club agenda' }));
+    (async () => {
+      const [sessions, events] = await Promise.all([getClubSessions(), getClubEvents()]);
+      const now = Date.now();
+      const upS = new Set(sessions.filter((s) => isClubSessionUpcoming(s, now)).map((s) => s.id));
+      const upE = new Set(events.filter((e) => isClubEventUpcoming(e, now)).map((e) => e.id));
+      /* Les inscriptions : même lecture que le Club (`registrations/{uid}`), bornée aux
+         échéances à venir — une passée n'a plus rien à rappeler. */
+      const reg = async (ids: string[], check: (id: string, uid: string) => Promise<boolean>) => {
+        if (!userId) return new Set<string>();
+        const flags = await Promise.all(ids.map((id) => check(id, userId).catch(() => false)));
+        return new Set(ids.filter((_, i) => flags[i]));
+      };
+      const [regS, regE] = await Promise.all([
+        reg([...upS], isRegisteredForSession),
+        reg([...upE], isRegisteredForEvent),
+      ]);
+      if (!alive) return;
+      const list: AgendaItem[] = [
+        ...sessions.map((s) => ({
+          id: `s-${s.id}`, title: s.title, at: new Date(clubSessionStart(s.scheduledAt)), kind: 'session' as const,
+          minutes: minutesOf(s.duration), upcoming: upS.has(s.id), registered: regS.has(s.id),
+        })),
+        ...events.map((e) => ({
+          id: `e-${e.id}`, title: e.title, at: new Date(clubEventStart(e.date, e.time)), kind: 'event' as const,
+          minutes: 60, upcoming: upE.has(e.id), registered: regE.has(e.id),
+        })),
+      ].filter((x) => !Number.isNaN(x.at.getTime()));
+      setItems(list.sort((a, b) => a.at.getTime() - b.at.getTime()));
+      setAsOf(new Date());
+    })().catch((error: unknown) => captureError(error, { context: 'AgendaPage club agenda' }));
     return () => { alive = false; };
-  }, [isClubActive]);
+  }, [isClubActive, userId]);
+
+  /* La semaine défile dans sa carte sous ~700 px : un indice le dit, au lieu de cacher
+     vendredi → dimanche sans signe (X9). Mesuré, pas deviné par un point de rupture. */
+  const weekRef = useRef<HTMLElement>(null);
+  const [overflowing, setOverflowing] = useState(false);
+  useEffect(() => {
+    const el = weekRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const measure = () => setOverflowing(el.scrollWidth > el.clientWidth + 1);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const lang = i18n.language === 'en' ? 'en-GB' : 'fr-FR';
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => {
@@ -94,7 +133,11 @@ export default function AgendaPage() {
   const rangeLabel = `${fmtRange.format(days[0])} – ${fmtRange.format(days[6])} ${days[6].getFullYear()}`;
 
   const inWeek = items.filter((x) => x.at >= weekStart && x.at < weekEnd);
-  const upcoming = items.filter((x) => x.at >= today).slice(0, 4);
+  /* Inscrites d'abord, puis le reste, chacune dans l'ordre des dates. */
+  const upcoming = [
+    ...items.filter((x) => x.upcoming && x.registered),
+    ...items.filter((x) => x.upcoming && !x.registered),
+  ].slice(0, 4);
   const shift = (n: number) => setWeekStart((w) => { const x = new Date(w); x.setDate(x.getDate() + 7 * n); return x; });
 
   const hours = Array.from({ length: HOUR_LAST - HOUR_FIRST + 1 }, (_, i) => HOUR_FIRST + i);
@@ -118,6 +161,7 @@ export default function AgendaPage() {
                 <b>{x.title}</b>
                 <span>
                   <Num value={fmtWhen.format(x.at)} source="db" asOf={asOf} />
+                  {x.registered && <> · {t('edu.agenda.registered')}</>}
                 </span>
               </span>
             </div>
@@ -148,8 +192,13 @@ export default function AgendaPage() {
           </div>
         }
       />
-      <EduGrid aside={aside} asideWidth={340}>
-        <section className="mm-card overflow-x-auto" style={{ padding: '16px 18px' }}>
+      <EduGrid aside={aside} asideWidth={340} splitAt={1280}>
+        {overflowing && (
+          <p className="m-0 -mb-2 flex items-center gap-1.5 text-[12px] text-ink-2" aria-hidden="true">
+            {t('edu.agenda.scrollHint')} <Icon name="chevron-right" size={14} />
+          </p>
+        )}
+        <section ref={weekRef} className="mm-card overflow-x-auto" style={{ padding: '16px 18px' }} tabIndex={overflowing ? 0 : undefined} aria-label={t('edu.agenda.weekLabel')}>
           <div className="min-w-[640px]">
             <div className="grid" style={{ gridTemplateColumns: '56px repeat(7,1fr)' }}>
               <div />

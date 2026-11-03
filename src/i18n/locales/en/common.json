@@ -10,6 +10,9 @@
   "close": "Close",
   "back": "Back",
   "loadingSession": "Loading your session…",
+  "loadingSessionSlow": "This is taking longer than expected. Your connection may be slow.",
+  "loadingSessionRetry": "Reload the page",
+  "sessionUnavailable": "Your profile could not be loaded.",
   "noAccess": "You don't have permission to access this page.",
   "langSuggest": {
     "message": "This site is also available in English.",

@@ -57,7 +57,7 @@ export function analyser(url: URL): Demande {
  * gestionnaire d'authentification Firebase et `.well-known` ne changent jamais d'hôte : la
  * même origine les sert partout.
  */
-function estPage(pathname: string): boolean {
+export function estPage(pathname: string): boolean {
   if (/^\/(__|\.well-known|assets|og)(\/|$)/.test(pathname)) return false;
   const dernier = pathname.split('/').pop() ?? '';
   return !dernier.includes('.');

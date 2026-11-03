@@ -11,7 +11,7 @@ import {
   type User as FirebaseUser,
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
-import { attendreTransfert } from '../lib/sessionHandoff';
+import { attendreTransfert, oublierSessionsNotees } from '../lib/sessionHandoff';
 
 /**
  * Firestore, chargé À LA DEMANDE.
@@ -193,6 +193,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    /* Une déconnexion VOULUE : aucun autre espace ne doit plus reconnecter celui-ci par relais
+       (`lib/sessionRelais.ts`). Les sessions des autres hôtes restent, elles, locales. */
+    oublierSessionsNotees();
     await firebaseSignOut(auth);
     setUserData(null);
   }, []);

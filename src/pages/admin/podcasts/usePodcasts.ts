@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../config/firebase';
 import { useToast } from '@ds';
-import { getAllPodcasts, savePodcast, deletePodcast } from '../../../lib/firestore';
+import { getAllPodcasts, savePodcast } from '../../../lib/firestore';
 import { slugify, extractSpotifyEpisodeId, parseMsDuration } from '../../../lib/utils';
 import { generateSlugEn } from '../../../lib/slugEn';
 import { captureError } from '../../../lib/sentry';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { usePagination } from '../../../hooks/usePagination';
 import type { Podcast } from '../../../types';
+import { auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * L'ÉTAT DE L'ÉCRAN PODCASTS, SORTI DU RENDU — les appels restent à l'identique.
@@ -190,7 +191,7 @@ export function usePodcasts() {
 
   const doDelete = useCallback(async (id: string) => {
     try {
-      await deletePodcast(id);
+      await auditedDelete('podcasts', id, { space: 'hub' });
       setPodcasts((prev) => prev.filter((p) => p.id !== id));
       addToast('success', t('podcasts.toastDeleted'));
     } catch {

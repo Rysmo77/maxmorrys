@@ -5,6 +5,7 @@ import { Icon, useToast, type IconName } from '@ds';
 import { db } from '../../../config/db';
 import { trackSubscribeNewsletter } from '../../../lib/tracking';
 import LocalizedLink from '../../shared/LocalizedLink';
+import { useOuvertureEdu } from '../../../hooks/useOuvertureEdu';
 import FloatingCovers from './FloatingCovers';
 
 /**
@@ -39,6 +40,9 @@ export default function EduPreFooter({ source }: EduPreFooterProps) {
   const [loading, setLoading] = useState(false);
   const emailId = useId();
   const consentId = useId();
+  /* « Prêt·e à commencer ? Commence par les leçons libres » est faux tant que rien n'est
+     ouvert : la bande renvoie alors vers la liste d'attente (audit UI/UX du 03/11/2026, n°8). */
+  const edu = useOuvertureEdu();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,11 +149,13 @@ export default function EduPreFooter({ source }: EduPreFooterProps) {
 
         <div className="mt-16 flex flex-wrap items-center justify-between gap-5 rounded-xl px-6 py-7 text-[color:var(--ink-fixed)] wide:px-10 wide:py-[34px]" style={{ background: 'var(--mm-orange-f)' }}>
           <div>
-            <b className="block font-display text-[30px] font-black leading-none wide:text-[40px]">{t('v3.pre.ctaTitle')}</b>
-            <span className="text-[15px]">{t('v3.pre.ctaBody')}</span>
+            <b className="block font-display text-[30px] font-black leading-none wide:text-[40px]">
+              {edu.fermee ? t('comingSoon.soonBandTitle') : t('v3.pre.ctaTitle')}
+            </b>
+            <span className="text-[15px]">{edu.fermee ? t('comingSoon.soonBandBody') : t('v3.pre.ctaBody')}</span>
           </div>
-          <LocalizedLink className="mm-pill is-ink" to="/formations">
-            {t('v3.pre.ctaButton')}
+          <LocalizedLink className="mm-pill is-ink" to={edu.fermee ? edu.cible : '/formations'}>
+            {edu.fermee ? t('comingSoon.cardCta') : t('v3.pre.ctaButton')}
             <i aria-hidden="true"><Icon name="arrow-up-right" size={15} /></i>
           </LocalizedLink>
         </div>

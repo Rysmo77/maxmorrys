@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '@ds';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import {
-  getAllRedirects, saveRedirect, setRedirectActive, deleteRedirect,
+  getAllRedirects, saveRedirect, setRedirectActive,
 } from '../../../lib/firestore';
 import {
   isValidSlug, isInternalTarget, normalizeSource, normalizeTarget, VIA_FALLBACK, VIA_PREFIX,
@@ -11,6 +11,7 @@ import {
 import { findConflicts } from './redirectConflicts';
 import type { Redirect, RedirectKind } from '../../../types';
 import { captureError } from '../../../lib/sentry';
+import { auditedDelete } from '../../../lib/admin/auditLog';
 
 export interface RedirectFormState {
   kind: RedirectKind;
@@ -150,7 +151,7 @@ export function useAdminRedirects() {
     setModalOpen(false);
     confirm.requestConfirm(t('redirects.confirmDelete.message', { source: r.source }), async () => {
       try {
-        await deleteRedirect(r.id);
+        await auditedDelete('redirects', r.id, { summary: r.source });
         setRedirects((prev) => prev.filter((x) => x.id !== r.id));
         addToast('success', t('redirects.toasts.deleted'));
       } catch (error: unknown) {

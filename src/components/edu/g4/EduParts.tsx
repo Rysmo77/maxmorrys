@@ -106,11 +106,27 @@ export function CardEmpty({ icon, title, body, action, onDark }: CardEmptyProps)
   );
 }
 
-/** Grille « colonne de travail + panneau » des maquettes ; empilée sous 1080 px. */
-export function EduGrid({ aside, children, asideWidth = 360 }: { aside: ReactNode; children: ReactNode; asideWidth?: number }) {
+interface EduGridProps {
+  aside: ReactNode;
+  children: ReactNode;
+  asideWidth?: number;
+  /**
+   * Largeur à partir de laquelle le panneau passe à droite. `1080` par défaut ; `1280` pour un
+   * écran dont la colonne de travail a un plancher (la semaine de l'Agenda : à 1148 px, barre
+   * latérale + panneau ne lui laissaient que lundi → jeudi — audit 03/11/2026, X9).
+   */
+  splitAt?: 1080 | 1280;
+}
+
+/** Grille « colonne de travail + panneau » des maquettes ; empilée sous `splitAt`. */
+export function EduGrid({ aside, children, asideWidth = 360, splitAt = 1080 }: EduGridProps) {
+  /* Classes écrites en entier pour le purge de Tailwind. */
+  const split = splitAt === 1280
+    ? '[@media(min-width:1280px)]:gap-[22px] [@media(min-width:1280px)]:[grid-template-columns:minmax(0,1fr)_var(--aside-w)]'
+    : 'wide:gap-[22px] wide:[grid-template-columns:minmax(0,1fr)_var(--aside-w)]';
   return (
     <div
-      className="grid grid-cols-1 items-start gap-5 wide:gap-[22px] wide:[grid-template-columns:minmax(0,1fr)_var(--aside-w)]"
+      className={`grid grid-cols-1 items-start gap-5 ${split}`}
       style={{ ['--aside-w' as string]: `${asideWidth}px` }}
     >
       <div className="flex min-w-0 flex-col gap-5">{children}</div>

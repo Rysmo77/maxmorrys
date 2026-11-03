@@ -225,7 +225,7 @@ export default function Apprendre() {
                     {soon ? (
                       /* État « indisponible » : contour neutre, pas l'orange plein de l'achat. */
                       <LocalizedLink
-                        to={`/formations/${f.slug}`}
+                        to={`/formations/${f.slug}#liste-attente`}
                         className="mm-pill is-sm is-plain border border-[color:var(--quiet-brd)] !bg-transparent !text-ink-2 shadow-none"
                       >
                         {k('courses.notify')}

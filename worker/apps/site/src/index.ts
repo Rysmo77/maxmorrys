@@ -42,13 +42,13 @@ import {
   shouldConsultRedirects,
   type RedirectHit,
 } from './redirects';
-import { normalizePath, resolveRoute, shouldNoIndex, type Route } from './routes';
+import { isKnownAppPath, normalizePath, resolveRoute, shouldNoIndex, type Route } from './routes';
 import { resolveStaticRedirect } from './static-redirects';
 import { buildCatalog } from './seo/catalog';
 import { buildRss } from './seo/rss';
 import { buildPodcastRss } from './seo/podcast-rss';
 import { buildSitemap } from './seo/sitemap';
-import { analyser, redirectionEspace, robotsTxt, type Espace } from './espaces';
+import { analyser, estPage, redirectionEspace, robotsTxt, type Espace } from './espaces';
 
 /** Les flux SEO sont recalculés au plus une fois par heure — comme leur `max-age` actuel. */
 const FEED_TTL_SECONDS = 3600;
@@ -214,6 +214,24 @@ export default {
        * On ne réécrit pas le corps : un en-tête suffit, et il vaut aussi pour les
        * robots sociaux, qui ne lisent que ce que l'origine a servi.
        */
+      /*
+       * VRAI 404 (audit 03/11, n°13) : un chemin de PAGE qu'aucune branche du routeur ne
+       * peut servir garde le shell en corps — la SPA y affiche « introuvable » — mais part
+       * en 404, avec `noindex`. Seul un shell HTML en 200 est requalifié : un asset ou une
+       * erreur de l'origine passent tels quels.
+       */
+      if (
+        isRead &&
+        response.status === 200 &&
+        estPage(url.pathname) &&
+        (response.headers.get('Content-Type') ?? '').includes('text/html') &&
+        !isKnownAppPath(demande.logiqueFr)
+      ) {
+        const headers = new Headers(response.headers);
+        headers.set('X-Robots-Tag', 'noindex, nofollow');
+        headers.set('Cache-Control', 'no-store');
+        return new Response(response.body, { status: 404, statusText: 'Not Found', headers });
+      }
       if (isRead && shouldNoIndex(demande.logique)) {
         const headers = new Headers(response.headers);
         headers.set('X-Robots-Tag', 'noindex, nofollow');

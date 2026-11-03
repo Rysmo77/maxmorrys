@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../config/firebase';
 import { useToast } from '@ds';
-import { getAllPosts, savePost, deletePost } from '../../../lib/firestore';
+import { getAllPosts, savePost } from '../../../lib/firestore';
 import { slugify, calculateReadTime } from '../../../lib/utils';
 import { generateSlugEn } from '../../../lib/slugEn';
 import { BLOG_POLES, categoryToPole } from '../../../lib/blogCategories';
@@ -11,6 +11,7 @@ import { captureError } from '../../../lib/sentry';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { usePagination } from '../../../hooks/usePagination';
 import type { BlogPost } from '../../../types';
+import { auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * L'ÉTAT DE L'ÉCRAN ÉDITORIAL, SORTI DU RENDU.
@@ -225,7 +226,7 @@ export function useArticles() {
 
   const doDelete = useCallback(async (id: string) => {
     try {
-      await deletePost(id);
+      await auditedDelete('blog', id, { space: 'hub' });
       setPosts((prev) => prev.filter((p) => p.id !== id));
       addToast('success', t('articles.toastDeleted'));
     } catch {

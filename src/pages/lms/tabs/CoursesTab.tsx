@@ -7,9 +7,9 @@ import CourseCover from '../../../components/formations/CourseCover';
 import OfflineCard from '../../../components/edu/g3/OfflineCard';
 import { flattenLessons } from '../../../components/edu/g3/quiz';
 import { CLUB_MEMBER_FORMATION_DISCOUNT } from '../../../lib/club/pricing';
-import type { EnrolledFormation } from '../hooks/useStudentData';
+import { etatFormation, type EnrolledFormation } from '../hooks/useStudentData';
 import type { Certificate } from '../../../types';
-import { estAVenir } from '../../../types/formationRelease';
+import SEOHead from '../../../components/seo/SEOHead';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -17,7 +17,10 @@ import { estAVenir } from '../../../types/formationRelease';
  *
  * Colonne principale : filtre par état (`mm-tabs`, comptes DÉDUITS des inscriptions), puis une
  * carte horizontale par formation — couverture, état, progression, prochaine leçon, actions.
- * Colonne de droite (≥ 1080 px) : hors connexion (poids mesurés), le catalogue, l'offre Club.
+ * Colonne de droite (≥ 1280 px) : hors connexion (poids mesurés), le catalogue, l'offre Club.
+ * ⚠️ 1280 et non 1080 (audit 03/11/2026, X8) : entre les deux, la colonne de 340 px et la
+ * barre latérale ne laissaient que ~490 px à la carte — titre d'un mot par ligne, boutons
+ * rognés. Sous 1280 px tout s'empile, et la carte garde sa couverture à gauche.
  *
  * Écarts assumés à la maquette :
  *   · « Liste d'attente » devient « À venir » : la liste d'attente n'est LISTABLE que par
@@ -42,11 +45,11 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
   const certByFormation = new Map(certificates.map((c) => [c.formationId, c]));
   const [filter, setFilter] = useState<CourseFilter>('all');
   /* Le cache hors connexion ne s'ouvre qu'en grand écran : monté par crochet, pas masqué. */
-  const isWide = useMediaQuery('(min-width: 1080px)');
+  const isWide = useMediaQuery('(min-width: 1280px)');
   const asOf = new Date();
 
-  const stateOf = (ef: EnrolledFormation): Exclude<CourseFilter, 'all'> =>
-    estAVenir(ef.formation) ? 'soon' : ef.enrollment.progress >= 100 ? 'done' : 'ongoing';
+  /* La définition partagée de l'espace Edu (`etatFormation`) : mêmes comptes qu'au tableau de bord et sur Succès. */
+  const stateOf = (ef: EnrolledFormation): Exclude<CourseFilter, 'all'> => etatFormation(ef);
 
   const counts = useMemo(() => {
     const c = { all: enrolledFormations.length, ongoing: 0, done: 0, soon: 0 };
@@ -59,12 +62,13 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
 
   return (
     <div className="mx-auto max-w-4xl px-[18px] py-6 wide:max-w-none wide:px-pane">
+      <SEOHead title={t('coursesV3.title')} noIndex />
       <div className="mb-5 mt-1">
         <span className="mm-eyebrow">{t('coursesV3.eyebrow')}</span>
         <h1 className="mm-d m-0 mt-[10px]" style={{ fontSize: 'clamp(32px, 4vw, 44px)' }}>{t('coursesV3.title')}</h1>
       </div>
 
-      <div className="grid items-start gap-[22px] wide:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid items-start gap-[22px] [@media(min-width:1280px)]:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex min-w-0 flex-col gap-[14px]">
           <div className="mm-tabs max-w-full self-start overflow-x-auto" role="group" aria-label={t('courses.filterLabel')}>
             {TABS.map((k) => (
@@ -108,7 +112,7 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
             return (
               <article
                 key={enrollment.id}
-                className="mm-card grid items-center gap-6 stack:grid-cols-[200px_1fr] wide:grid-cols-[230px_1fr_auto]"
+                className="mm-card grid items-center gap-6 stack:grid-cols-[200px_minmax(0,1fr)] [@media(min-width:1280px)]:grid-cols-[230px_minmax(0,1fr)_auto]"
                 style={{ padding: '14px 22px 14px 14px' }}
               >
                 <CourseCover
@@ -121,6 +125,8 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
                   size="sm"
                   style={{ height: '170px', minHeight: '170px' }}
                   transitionName={`course-${formation.slug}`}
+                  /* Le titre est écrit juste à côté : sur la vignette, il se doublait (X8). */
+                  showTitle={false}
                 />
                 <div className="min-w-0">
                   <span className="mm-tag" style={{ background: 'var(--surface-band)' }}>{tag}</span>
@@ -145,7 +151,7 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
                     </>
                   )}
                 </div>
-                <div className="flex flex-col gap-2 stack:col-span-2 wide:col-span-1" style={{ minWidth: '190px' }}>
+                <div className="flex flex-col gap-2 stack:col-span-2 stack:flex-row stack:flex-wrap [@media(min-width:1280px)]:col-span-1 [@media(min-width:1280px)]:flex-col" style={{ minWidth: '190px' }}>
                   {state === 'soon' ? (
                     <LocalizedLink to={`/formations/${formation.slug}`} className="mm-pill is-sm" style={{ justifyContent: 'space-between' }}>
                       {t('coursesV3.seeSheet')}
@@ -162,13 +168,17 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
                       <i><Icon name="arrow-up-right" size={14} /></i>
                     </LocalizedLink>
                   )}
-                  <LocalizedLink
-                    to={state === 'soon' || cert ? `/cours/${formation.slug}` : `/formations/${formation.slug}`}
-                    className="flex items-center justify-center rounded-pill no-underline"
-                    style={{ height: '40px', border: '1px solid var(--line)', font: '600 13px/1 var(--f-body)', color: 'var(--ink)' }}
-                  >
-                    {state === 'soon' || cert ? t('coursesV3.review') : t('coursesV3.program')}
-                  </LocalizedLink>
+                  {/* « Revoir les leçons » n'a pas de cible sur une formation « Bientôt » : aucune leçon
+                      n'est ouverte (audit E6/X8). Le bouton n'existe donc que pour une formation ouverte. */}
+                  {state !== 'soon' && (
+                    <LocalizedLink
+                      to={cert ? `/cours/${formation.slug}` : `/formations/${formation.slug}`}
+                      className="flex items-center justify-center rounded-pill px-4 no-underline"
+                      style={{ height: '44px', border: '1px solid var(--line)', font: '600 13px/1 var(--f-body)', color: 'var(--ink)' }}
+                    >
+                      {cert ? t('coursesV3.review') : t('coursesV3.program')}
+                    </LocalizedLink>
+                  )}
                 </div>
               </article>
             );

@@ -10,6 +10,8 @@ import DsNavHost from '../components/layout/DsNavHost';
 import { Eyebrow, KitButton, KitH2, KitSection, NightAccent, NightHero, Photo, type PhotoTone } from '../components/site/v3/kit';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useFormat } from '../hooks/useFormat';
+import { useTranslatedList } from '../hooks/useTranslatedContent';
+import UntranslatedBadge from '../components/shared/UntranslatedBadge';
 import { getPublishedPosts } from '../lib/firestore';
 import { queryKeys } from '../lib/queryClient';
 import LogoLoader from '../components/states/LogoLoader';
@@ -111,7 +113,9 @@ export default function Blog() {
     const suivant = new URLSearchParams(params);
     if (valeur) suivant.set(cle, valeur);
     else suivant.delete(cle);
-    setParams(suivant, { replace: true });
+    // `preventScrollReset` : sans lui, `<ScrollRestoration>` traite le changement de
+    // paramètre comme une navigation et remonte la page tout en haut (audit 03/11, X4).
+    setParams(suivant, { replace: true, preventScrollReset: true });
   };
 
   const { data: posts = [], isLoading, isError, refetch } = useQuery({
@@ -131,6 +135,12 @@ export default function Blog() {
 
   /* La une ne bouge pas avec le filtre : c'est l'article le plus récent. */
   const [featured, ...others] = posts;
+
+  /* En anglais, les titres passent par la traduction automatique, comme sur le pôle média ;
+     ce qui reste en français porte le badge « FR » (audit 03/11/2026, n°6 / M4). */
+  const titresTraduits = useTranslatedList([...posts.map((p) => p.title), featured?.excerpt]);
+  const titre = (post: { id: string; title: string }) => titresTraduits[posts.findIndex((p) => p.id === post.id)] || post.title;
+  const extraitUne = featured?.excerpt ? titresTraduits[posts.length] || featured.excerpt : '';
   const rest = useMemo(() => {
     const tagBas = tag.trim().toLowerCase();
     return others.filter((post) => {
@@ -216,6 +226,9 @@ export default function Blog() {
               onFocus={prefetchArticle}
               className="mm-bento flex flex-col gap-[10px] !rounded-xl p-3 text-inherit no-underline stack:grid stack:grid-cols-[1.2fr_1fr] stack:items-center stack:gap-7 stack:!rounded-none stack:!border-0 stack:!bg-transparent stack:p-0 stack:!shadow-none"
             >
+              {/* `alt=""` ASSUMÉ (audit 03/11/2026, n°9) : l'image est dans le lien, à côté du
+                  titre. Un alt = titre ferait lire le titre deux fois par carte au lecteur
+                  d'écran ; décorative, l'image n'a rien à annoncer. Idem pour les cartes. */}
               <Photo
                 tone="informe"
                 className="relative h-[230px] !min-h-0 !rounded-card stack:h-[400px] stack:!rounded-media"
@@ -230,8 +243,10 @@ export default function Blog() {
                   <span className="stack:hidden">{[t('index.featured'), featured.readTime ? t('post.readTime', { count: featured.readTime }) : ''].filter(Boolean).join(' · ')}</span>
                   <span className="hidden stack:inline">{[t('index.featured'), categoryToPole(featured.category), formatDate(featured.publishedAt)].join(' · ')}</span>
                 </Eyebrow>
-                <h2 className="mm-d mb-2 mt-[10px] text-[22px] leading-[1.08] stack:mb-[14px] stack:mt-3 stack:text-[52px] stack:leading-[.95]">{featured.title}</h2>
-                {featured.excerpt && <p className="m-0 mb-[18px] hidden max-w-[46ch] text-ink-2 stack:block">{featured.excerpt}</p>}
+                <h2 className="mm-d mb-2 mt-[10px] text-[22px] leading-[1.08] stack:mb-[14px] stack:mt-3 stack:text-[52px] stack:leading-[.95]">
+                  {titre(featured)} <UntranslatedBadge source={featured.title} shown={titre(featured)} />
+                </h2>
+                {extraitUne && <p className="m-0 mb-[18px] hidden max-w-[46ch] text-ink-2 stack:block">{extraitUne}</p>}
                 <span className="mm-btn is-ghost has-arrow hidden stack:inline-flex">
                   {t('index.readArticle')}
                   <span className="mm-btn__arrow" aria-hidden="true"><Icon name="arrow-up-right" size={16} /></span>
@@ -275,7 +290,7 @@ export default function Blog() {
               {rest.length === 0 ? (
                 <p className="m-0 mt-[18px] text-ink-2">
                   {t('index.emptyFiltered')}{' '}
-                  <button type="button" className="mm-ulink" onClick={() => setParams(new URLSearchParams(), { replace: true })}>
+                  <button type="button" className="mm-ulink" onClick={() => setParams(new URLSearchParams(), { replace: true, preventScrollReset: true })}>
                     {t('index.emptyAction')}
                   </button>
                 </p>
@@ -299,7 +314,9 @@ export default function Blog() {
                         </span>
                       </Photo>
                       <Eyebrow className="px-[6px]">{meta(post.category, post.readTime)}</Eyebrow>
-                      <b className="px-[6px] pb-2 font-display text-[22px] font-black leading-[1.08]">{post.title}</b>
+                      <b className="px-[6px] pb-2 font-display text-[22px] font-black leading-[1.08]">
+                        {titre(post)} <UntranslatedBadge source={post.title} shown={titre(post)} />
+                      </b>
                     </a>
                   ))}
                 </div>

@@ -87,6 +87,8 @@ export type AgencyLeadErrors = Partial<Record<keyof AgencyLeadForm, string>>;
 /** Ce que l'écran de confirmation a besoin de savoir, et rien de plus. */
 export interface AgencyLeadReceipt {
   projectType: EngagementProjectType;
+  /** La forme d'engagement CHOISIE — la confirmation l'affiche telle quelle (audit 03/11, X3). */
+  budget: (typeof agencyLeadConfig.budgets)[number];
   /** La demande a été taguée pour Cléa. Le lead est enregistré quand même — jamais rejeté. */
   growth: boolean;
 }
@@ -248,7 +250,7 @@ export function useAgencyEngagement() {
         ...(via ? { via } : {}),
       });
 
-      setReceipt({ projectType, growth: routedTo !== null });
+      setReceipt({ projectType, budget, growth: routedTo !== null });
       setForm(EMPTY);
       setErrors({});
     } catch (error: unknown) {

@@ -8,7 +8,7 @@
   },
   "mentions": {
     "seoTitle": "Legal notice",
-    "seoDescription": "Max-Morrys legal notice: publisher, host and legal information about the website.",
+    "seoDescription": "Max-Morrys legal notice: the publisher MY ONOMA SARL and its registrations, the website host, how personal data is handled, cookies and the limitation of liability.",
     "title": "Legal notice",
     "editor": {
       "heading": "Website publisher",
@@ -45,7 +45,7 @@
   },
   "privacy": {
     "seoTitle": "Privacy policy",
-    "seoDescription": "Max-Morrys privacy policy and protection of personal data (GDPR).",
+    "seoDescription": "Max-Morrys privacy policy: what data is collected, why, how long it is kept, which processors handle it and how to exercise your rights.",
     "title": "Privacy policy",
     "intro": {
       "heading": "Introduction",
@@ -115,7 +115,7 @@
   },
   "cgv": {
     "seoTitle": "Terms and Conditions of Sale",
-    "seoDescription": "Terms and Conditions of Sale for Max-Morrys courses and services.",
+    "seoDescription": "Max-Morrys Terms and Conditions of Sale, operated by MY ONOMA SARL: services offered, ordering and account creation, prices excluding tax in CFA francs, payment and intellectual property.",
     "eyebrow": "Max-Morrys Platform",
     "title": "Terms and Conditions of Sale",
     "art1": {
@@ -245,7 +245,7 @@
   },
   "cookies": {
     "seoTitle": "Cookie policy",
-    "seoDescription": "Policy for managing cookies and trackers on the Max-Morrys website.",
+    "seoDescription": "Max-Morrys cookie policy: what a cookie is, the categories set on the website, how long they are kept, and how to accept, refuse or change your mind at any time.",
     "title": "Cookie policy",
     "what": {
       "heading": "What is a cookie?",

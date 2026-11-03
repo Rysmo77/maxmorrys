@@ -146,6 +146,8 @@
     "latestEyebrow": "Podcast · latest episode",
     "audioUnsupported": "Your browser can't play this audio file.",
     "download": "Download",
+    "listenOn": "Listen on {{platform}}",
+    "listenOnPlatform": "Listen on the platform",
     "listen": "Listen: {{title}}",
     "episodesTitle": "All episodes",
     "episodesTitleShort": "Episodes",
@@ -170,6 +172,7 @@
     "gateOpenYoutube": "Open on YouTube",
     "gateOpenSource": "Open at the host",
     "transcriptMissing": "The transcript isn't produced for this episode yet. When it is, it'll read without loading the audio — which is often all you're after.",
+    "chaptersMissing": "This video has not been split into chapters yet. When it is, they will read here without starting the video — often that is all you are after.",
     "nextTitle": [
       "Listen next"
     ],

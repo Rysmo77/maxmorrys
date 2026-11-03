@@ -10,6 +10,9 @@
   "close": "Fermer",
   "back": "Retour",
   "loadingSession": "Chargement de ta session…",
+  "loadingSessionSlow": "C'est plus long que prévu. Ta connexion est peut-être lente.",
+  "loadingSessionRetry": "Recharger la page",
+  "sessionUnavailable": "Ton profil n'a pas pu être chargé.",
   "noAccess": "Tu n'as pas les droits pour accéder à cette page.",
   "langSuggest": {
     "message": "Ce site est aussi disponible en français.",

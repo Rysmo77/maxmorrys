@@ -4,9 +4,10 @@ import { useToast } from '@ds';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import {
   getEngagementLeads, updateEngagementLeadStatus, updateEngagementLeadNotes,
-  deleteEngagementLead, getMissionStats,
+  getMissionStats,
 } from '../../../lib/firestore';
 import type { EngagementLead, EngagementLeadStatus } from '../../../types';
+import { auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * LES TROIS ÉTAPES DU KIT SUR SIX STATUTS RÉELS.
@@ -97,7 +98,7 @@ export function useAdminMissions() {
     setOpenId(null);
     confirm.requestConfirm(t('missions.confirmDelete'), async () => {
       try {
-        await deleteEngagementLead(id);
+        await auditedDelete('engagement_leads', id, { space: 'conception' });
         setLeads((prev) => prev.filter((l) => l.id !== id));
         addToast('success', t('missions.toastDeleted'));
       } catch {

@@ -263,6 +263,17 @@ export default function StudentLayout() {
         '/mon-espace/messages':        t('titles.messages'),
         '/mon-espace/temoignages':     t('titles.testimonials'),
         '/mon-espace/club':            t('titles.club'),
+        /* Les écrans du Club : sans entrée, le titre retombait sur le segment d'URL
+           (« Opportunites », sans accent — audit W5). */
+        '/mon-espace/club/fil':          t('nav.clubFeed'),
+        '/mon-espace/club/discussions':  t('nav.clubDiscussions'),
+        '/mon-espace/club/agenda':       t('nav.agenda'),
+        '/mon-espace/club/membres':      t('nav.clubMembers'),
+        '/mon-espace/club/classement':   t('nav.clubLeaderboard'),
+        '/mon-espace/club/opportunites': t('nav.clubOpportunities'),
+        '/mon-espace/club/defis':        t('nav.clubChallenges'),
+        '/mon-espace/club/infos':        t('nav.clubInfo'),
+        '/mon-espace/club/parrainage':   t('nav.clubReferral'),
         '/mon-espace/profil':          t('titles.profile'),
         '/mon-espace/parametres':      t('titles.settings'),
         '/mon-espace/agenda':          t('nav.agenda'),

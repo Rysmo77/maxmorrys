@@ -6,6 +6,7 @@ import { ConsoleCard, ConsoleStatus } from '../../components/console';
 import { getAllRedirects } from '../../lib/firestore';
 import { captureError } from '../../lib/sentry';
 import type { Redirect } from '../../types';
+import { DOMAINE, origineEspace } from '../../lib/espaces';
 import {
   CBtn, ConsoleScreen, ConsoleStack, EmptyTable, HonestEmpty,
 } from './components/ConsoleParts';
@@ -16,20 +17,24 @@ import {
  * Deux colonnes égales : Domaines · Redirections · Sauvegarde, puis Workers (version
  * servie contre `main`) · Tâches planifiées réellement déclarées.
  *
- *  · DOMAINES : la plateforme vit sur UN domaine (aucun sous-domaine — décision tenue
- *    par la passe 2). Les usages sont des faits de configuration ; l'état (HTTPS, accès)
- *    n'est pas sondé, la colonne le dit au lieu d'allumer un voyant.
- *  · REDIRECTIONS : lues en base (`redirects`), les cinq plus récentes actives ; l'écran
- *    complet reste `/admin/redirections`.
+ *  · DOMAINES : le hub, l'Edu et le Club sont TROIS HÔTES (`edu.maxmorrys.me`,
+ *    `club.maxmorrys.me`), la console un chemin du hub. Les hôtes sont DÉRIVÉS de
+ *    `lib/espaces` — ils étaient écrits en chemins (`maxmorrys.me/apprendre`), ce que l'audit
+ *    du 03/11/2026 (X16) a relevé. L'état (HTTPS, accès) n'est pas sondé, la colonne le dit.
+ *  · REDIRECTIONS : lues en base (`redirects`), TOUTES les actives, avec leur nombre — la
+ *    coupe à cinq en affichait cinq sur huit sans le dire (X16).
  *  · SAUVEGARDE, WORKERS, TÂCHES : aucun relevé côté console. `wrangler.jsonc` ne dit pas
  *    ce qui est en service (seul `wrangler versions view` le dit) : afficher sa liste serait
  *    affirmer ce que la maquette reproche à l'ancienne console. États vides honnêtes.
  */
+const hostOf = (espace: 'hub' | 'edu' | 'club') =>
+  origineEspace(espace, `https://${DOMAINE}`).replace(/^https?:\/\//, '');
+
 const DOMAINS = [
-  { host: 'maxmorrys.me', use: 'useSite' },
-  { host: 'maxmorrys.me/apprendre', use: 'useEdu' },
-  { host: 'maxmorrys.me/club-des-digitos', use: 'useClub' },
-  { host: 'maxmorrys.me/admin', use: 'useConsole' },
+  { host: hostOf('hub'), use: 'useSite' },
+  { host: hostOf('edu'), use: 'useEdu' },
+  { host: hostOf('club'), use: 'useClub' },
+  { host: `${hostOf('hub')}/admin`, use: 'useConsole' },
 ] as const;
 
 export default function AdminInfra() {
@@ -73,10 +78,14 @@ export default function AdminInfra() {
             </div>
           </ConsoleCard>
 
-          <ConsoleCard as="section" title={k('redirectsTitle')} aside={<CBtn href="/admin/redirections" icon="plus">{k('add')}</CBtn>}>
+          <ConsoleCard
+            as="section"
+            title={<>{k('redirectsTitle')}{redirects && redirects.length > 0 && <> · <Num value={redirects.length} source="db" asOf={readAt} /></>}</>}
+            aside={<CBtn href="/admin/redirections" icon="plus">{k('add')}</CBtn>}
+          >
             {redirects === null ? <Skeleton height={60} /> : redirects.length === 0 ? (
               <HonestEmpty icon="route" title={k('redirectsEmpty')} />
-            ) : redirects.slice(0, 5).map((r) => (
+            ) : redirects.map((r) => (
               <div key={r.id} className="mm-mrow">
                 <code className="min-w-0 flex-1 truncate text-[12.5px]">{r.source}</code>
                 <span className="text-ink-3" aria-hidden="true">→</span>

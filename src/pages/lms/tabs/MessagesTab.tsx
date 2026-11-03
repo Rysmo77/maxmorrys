@@ -132,7 +132,7 @@ export default function MessagesTab({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="m-0 text-meta-2" style={{ color: 'var(--text-muted)' }}>
-            <Num value={sentMessages.length} source="db" asOf={asOf} /> {t('messages.countLabel')}
+            <Num value={sentMessages.length} source="db" asOf={asOf} /> {t('messages.countLabel', { count: sentMessages.length })}
           </p>
         </div>
         {!showMsgForm && (
@@ -164,12 +164,19 @@ export default function MessagesTab({
             rows={8}
             maxLength={2000}
           />
+          {/* Le bouton grisé disait seulement « non » : l'aide dit pourquoi (audit 03/11, W7). */}
+          {(!msgForm.subject.trim() || !msgForm.message.trim()) && (
+            <p id="msg-send-hint" className="m-0 mt-[12px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
+              {t('messages.sendHint')}
+            </p>
+          )}
           <div className="mt-[17px] flex gap-[8px]">
             <Button tone="quiet" onClick={() => setShowMsgForm(false)}>{t('messages.cancel')}</Button>
             <Button
               tone="forme"
               onClick={() => void handleSendMessage()}
               disabled={sendingMsg || !msgForm.subject.trim() || !msgForm.message.trim()}
+              aria-describedby={!msgForm.subject.trim() || !msgForm.message.trim() ? 'msg-send-hint' : undefined}
               loading={sendingMsg}
             >
               {sendingMsg ? t('messages.sending') : t('messages.send')}

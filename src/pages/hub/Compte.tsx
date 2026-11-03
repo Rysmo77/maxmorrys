@@ -9,7 +9,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage, useLocalizedPath } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useFormat } from '../../hooks/useFormat';
-import { getUserTransactions, markAllNotificationsRead, subscribeNotifications } from '../../lib/firestore';
+import { greetingName } from '../../lib/naming';
+import { getClubSubscription, getUserTransactions, markAllNotificationsRead, subscribeNotifications } from '../../lib/firestore';
+import { estMembreActif } from '../../lib/club/membership';
 import type { AppNotification, NotificationType } from '../../types';
 
 /**
@@ -80,7 +82,17 @@ export default function ComptePage() {
     enabled: Boolean(uid),
   });
 
-  const firstName = userData?.firstName || (userData?.displayName || user?.displayName || '').split(' ')[0] || '';
+  /* Audit M3 : le Club pouvait se dire « Membre actif » ici même où la liste affirmait
+     « Aucun paiement ». Le document d'adhésion ne porte pas l'ORIGINE de l'accès (payé,
+     offert, essai) : on dit donc ce qui est lu — l'accès et sa date de fin — sans l'inventer. */
+  const { data: club = null } = useQuery({
+    queryKey: ['club', 'subscription', uid],
+    queryFn: () => getClubSubscription(uid as string),
+    enabled: Boolean(uid),
+  });
+  const clubActive = estMembreActif(club);
+
+  const firstName = greetingName(userData, user);
   const hour = new Date().getHours();
   const greeting = hour >= 18 || hour < 5 ? t('hub.compte.evening') : t('hub.compte.morning');
   const recent = (payments ?? []).slice(0, 3);
@@ -143,6 +155,15 @@ export default function ComptePage() {
                 <span id="compte-paiements" className="mm-eyebrow is-plain">{t('hub.compte.payments')}</span>
                 <a href={path('/mon-espace/paiements')} className="ml-auto text-[13px] font-semibold">{t('hub.compte.paymentsAll')}</a>
               </div>
+              {clubActive && club && (
+                <div className="mx-[14px] my-2 flex items-start gap-3 rounded-m bg-[color:var(--surface-band)] p-3">
+                  <span className="mm-activity__ico is-club"><Icon name="users" size={16} /></span>
+                  <span>
+                    <b className="block text-[14px]">{t('hub.compte.clubAccess')}</b>
+                    <span className="text-[13px] text-ink-2">{t('hub.compte.clubAccessUntil', { date: formatDate(club.expiresAt) })}</span>
+                  </span>
+                </div>
+              )}
               {payments === null ? null : recent.length === 0 ? (
                 <p className="m-0 px-[14px] py-3 text-[14px] text-ink-2">{t('hub.compte.paymentsEmpty')}</p>
               ) : (

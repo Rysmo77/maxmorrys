@@ -159,7 +159,9 @@ export default function FAQPage() {
                 placeholder=" "
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="!border-transparent !bg-[color:rgb(255_255_255/.95)] !text-[color:var(--ink-fixed)]"
+                /* Au focus, le navigateur cale le champ en haut de la fenêtre — sous la barre
+                   fixe (audit 03/11/2026, n°9) : la marge d'ancrage le garde visible. */
+                className="scroll-mt-[calc(var(--header-h)+1rem)] !border-transparent !bg-[color:rgb(255_255_255/.95)] !text-[color:var(--ink-fixed)]"
               />
               <label htmlFor="faq-search" className="!text-[color:var(--ink-fixed)] opacity-70">{t('index.searchLabel')}</label>
             </div>

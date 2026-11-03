@@ -9,10 +9,11 @@ import { Pagination } from '@/components/dialogs';
 import { ConfirmDialog } from '@/components/dialogs';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
-import { getAllCoupons, saveCoupon, deleteCoupon } from '../../lib/firestore';
+import { getAllCoupons, saveCoupon } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
 import type { Coupon } from '../../types';
 import { captureError } from '../../lib/sentry';
+import { auditedDelete } from '../../lib/admin/auditLog';
 
 const EMPTY: Omit<Coupon, 'id'> = {
   code: '', type: 'percentage', value: 10, maxUses: 100,
@@ -97,7 +98,7 @@ export default function AdminCoupons() {
     setModalOpen(false);
     confirm.requestConfirm(t('coupons.confirmDelete'), async () => {
       try {
-        await deleteCoupon(id);
+        await auditedDelete('coupons', id);
         setCoupons((prev) => prev.filter((c) => c.id !== id));
         addToast('success', t('coupons.toasts.deleted'));
       } catch {

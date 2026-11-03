@@ -5,11 +5,12 @@ import { ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleStatus } 
 import ConsoleSheet from './ConsoleSheet';
 import { ConfirmDialog } from '@/components/dialogs';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
-import { getDmReports, updateDmReportStatus, deleteDmReport, deleteDmMessage } from '../../../lib/firestore';
+import { getDmReports, updateDmReportStatus } from '../../../lib/firestore';
 import { useFormat } from '../../../hooks/useFormat';
 import { captureError } from '../../../lib/sentry';
 import type { DmReport } from '../../../types';
 import ConsoleListSkeleton from './ConsoleListSkeleton';
+import { auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * ── SIGNALEMENTS — le constat bloquant du lot, et sa correction ─────────────────────
@@ -76,7 +77,7 @@ export default function ClubReportsAdminTab() {
   const removeReport = (r: DmReport) => {
     confirm.requestConfirm(t('reports.deleteReportConfirm'), async () => {
       try {
-        await deleteDmReport(r.id);
+        await auditedDelete('dm_reports', r.id, { space: 'club' });
         setReports((prev) => prev.filter((x) => x.id !== r.id));
         setOpenId(null);
         addToast('success', t('reports.reportDeleted'));
@@ -88,7 +89,7 @@ export default function ClubReportsAdminTab() {
   const removeMessage = (r: DmReport) => {
     confirm.requestConfirm(t('reports.deleteMessageConfirm'), async () => {
       try {
-        await deleteDmMessage(r.convId, r.messageId);
+        await auditedDelete(`conversations/${r.convId}/messages`, r.messageId, { name: 'dm_messages', space: 'club', summary: `conversation ${r.convId}`, skipIfMissing: true });
         await updateDmReportStatus(r.id, 'resolved').catch(() => null);
         setReports((prev) => prev.map((x) => x.id === r.id ? { ...x, status: 'resolved' } : x));
         setOpenId(null);

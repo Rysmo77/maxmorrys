@@ -255,7 +255,7 @@
       "flexible": "Pas de date arrêtée"
     },
     "errors": {
-      "projectType": "Choisissez un type de projet. C'est ce qui décide si la demande relève de la conception ou de la practice croissance.",
+      "projectType": "Choisissez un type de projet. C'est ce qui décide si la demande relève de la conception ou du pôle croissance.",
       "engagement": "Choisissez une forme d'engagement. Sans elle, nous ne pouvons pas vous dire tout de suite si nous pouvons travailler ensemble.",
       "timeline": "Donnez-nous une échéance, même approximative. C'est ce qui dit si nous pouvons prendre le projet.",
       "description": "Le projet en quelques lignes, c'est ce qui nous permet de répondre autre chose qu'une proposition type. Écrivez-les ici.",
@@ -282,7 +282,7 @@
     "growTitle": "Ce besoin relève de Cléa",
     "growStart": "La croissance, l'acquisition et les revenus sont portés par ",
     "growStrong": "Cléa Growth Office",
-    "growEnd": ", la practice sœur au sein de MY ONOMA. Nous transmettons votre demande telle quelle — vous n'avez rien à refaire, et personne ne vous renvoie vers un autre formulaire.",
+    "growEnd": ", le pôle frère au sein de MY ONOMA. Nous transmettons votre demande telle quelle — vous n'avez rien à refaire, et personne ne vous renvoie vers un autre formulaire.",
     "growCta": "Voir Cléa Growth Office",
     "back": "Revenir au formulaire",
     "footer": "Aucune demande n'est rejetée. Elle est réorientée."

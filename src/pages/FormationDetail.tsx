@@ -1,4 +1,4 @@
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Icon, LogoMark, Num, Skeleton, useToast } from '@ds';
@@ -97,6 +97,20 @@ export default function FormationDetail() {
     else if (r === 'deja') addToast('info', t('comingSoon.toastAlready'));
     else addToast('error', t('comingSoon.toastError'));
   };
+  const quitterListe = async () => {
+    const r = await attente.quitter();
+    if (r === 'ok') addToast('success', t('comingSoon.toastLeft'));
+    else addToast('error', t('comingSoon.toastLeaveError'));
+  };
+
+  /* Les CTA « Être prévenu·e à l'ouverture » (catalogue, accueil Edu, barre haute) visent
+     `#liste-attente`. La fiche se charge APRÈS la navigation : le navigateur n'a pas trouvé
+     l'ancre à temps, on y descend une fois la formation connue. */
+  const { hash, key: navKey } = useLocation();
+  useEffect(() => {
+    if (!aVenir || hash !== '#liste-attente') return;
+    document.getElementById('liste-attente')?.scrollIntoView({ block: 'center' });
+  }, [aVenir, hash, navKey]);
 
   if (formation === undefined) {
     return (
@@ -214,7 +228,7 @@ export default function FormationDetail() {
                 </div>
               ))}
             </dl>
-            <div className="flex flex-wrap items-center gap-4">
+            <div id="liste-attente" className="flex flex-wrap items-center gap-4">
               {!aVenir && (
                 <Link className="mm-pill" to={path(`/checkout/${formation.slug}`)} onClick={onBuy}>
                   {t('sheet.buy')} · <Num value={price} source="db" asOf={asOf} unit="F" showAsOf={false} />
@@ -228,14 +242,32 @@ export default function FormationDetail() {
                 </Link>
               )}
               {aVenir && (user ? (
-                <button
-                  type="button"
-                  className={precommande ? 'mm-pill is-plain' : 'mm-pill'}
-                  onClick={() => void rejoindreListe()}
-                  disabled={attente.envoi || attente.inscrit === true}
-                >
-                  {attente.inscrit === true ? t('comingSoon.alreadyIn') : t('comingSoon.notifyMe')}
-                </button>
+                attente.inscrit === true ? (
+                  /* Inscrit·e : on le dit, et on peut en sortir (audit UI/UX du 03/11/2026, X12). */
+                  <>
+                    <p className="m-0 inline-flex items-center gap-2 text-[14px] font-semibold text-[color:var(--paper-fixed)]" role="status">
+                      <Icon name="check" size={16} />
+                      {t('comingSoon.alreadyIn')}
+                    </p>
+                    <button
+                      type="button"
+                      className="mm-pill is-plain is-sm"
+                      onClick={() => void quitterListe()}
+                      disabled={attente.envoi}
+                    >
+                      {t('comingSoon.leave')}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className={precommande ? 'mm-pill is-plain' : 'mm-pill'}
+                    onClick={() => void rejoindreListe()}
+                    disabled={attente.envoi}
+                  >
+                    {t('comingSoon.notifyMe')}
+                  </button>
+                )
               ) : attente.inscrit === true ? (
                 <p className="m-0 text-[14px] font-semibold text-[color:var(--paper-fixed)]" role="status">
                   {t('comingSoon.alreadyIn')}

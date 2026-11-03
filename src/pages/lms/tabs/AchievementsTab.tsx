@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Icon, Num, Skeleton, type IconName } from '@ds';
 import LocalizedLink from '../../../components/shared/LocalizedLink';
 import { useFormat } from '../../../hooks/useFormat';
 import { useLocalizedPath } from '../../../contexts/LanguageContext';
 import { issueCertificate, getUserCertificates } from '../../../lib/firestore';
-import { getGamificationProfile } from '../../../lib/gamification';
 import { shareLink, toAbsoluteUrl } from '../../../lib/share/links';
 import { BADGES, XP_REWARDS, getLevelFromXP, getXPForNextLevel } from '../../../types/gamification';
-import type { GamificationProfile } from '../../../types/gamification';
 import type { Certificate } from '../../../types';
-import type { EnrolledFormation } from '../hooks/useStudentData';
+import { etatFormation, type EnrolledFormation } from '../hooks/useStudentData';
+import { useGamification } from '../hooks/useGamification';
+import SEOHead from '../../../components/seo/SEOHead';
 import { captureError } from '../../../lib/sentry';
 import { CardEmpty, EduCard, EduGrid, EduHead, EduPage } from '../../../components/edu/g4/EduParts';
 
@@ -71,13 +71,10 @@ export default function AchievementsTab({
   const { t } = useTranslation('lmsTabs');
   const { formatDate } = useFormat();
   const path = useLocalizedPath();
-  const [gamification, setGamification] = useState<GamificationProfile | null>(null);
   const [issuing, setIssuing] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!userId) return;
-    getGamificationProfile(userId).then(setGamification).catch(() => null);
-  }, [userId]);
+  /* Même lecture, même cache que le tableau de bord (`useGamification`, audit E4). */
+  const { profile } = useGamification(userId || undefined);
+  const gamification = profile ?? null;
 
   const asOf = new Date();
 
@@ -106,8 +103,10 @@ export default function AchievementsTab({
   const unlockedCount = gamification ? gamification.badges.length : null;
 
   const claimable = enrolledFormations.filter(
-    (ef) => ef.enrollment.progress === 100 && !certificates.some((c) => c.formationId === ef.enrollment.formationId),
+    (ef) => etatFormation(ef) === 'done' && !certificates.some((c) => c.formationId === ef.enrollment.formationId),
   );
+  /* « En cours » selon la définition partagée : une précommande « Bientôt » n'en est pas une. */
+  const ongoingCount = enrolledFormations.filter((ef) => etatFormation(ef) === 'ongoing').length;
 
   const aside = (
     <>
@@ -144,6 +143,7 @@ export default function AchievementsTab({
 
   return (
     <EduPage>
+      <SEOHead title={t('achievements.screenTitle')} noIndex />
       <EduHead eyebrow={t('achievements.eyebrow')} title={t('achievements.screenTitle')} />
       <EduGrid aside={aside}>
         {/* ── Niveau et série ──────────────────────────────────────────────── */}
@@ -267,8 +267,8 @@ export default function AchievementsTab({
               <CardEmpty
                 icon="trophy"
                 title={t('achievements.emptyTitle')}
-                body={enrolledFormations.length > 0
-                  ? t('achievements.inProgressHint', { count: enrolledFormations.length })
+                body={ongoingCount > 0
+                  ? t('achievements.inProgressHint', { count: ongoingCount })
                   : t('achievements.emptyText')}
                 action={enrolledFormations.length === 0 ? (
                   <LocalizedLink to="/formations" className="mm-pill is-sm">

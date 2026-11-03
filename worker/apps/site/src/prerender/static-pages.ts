@@ -668,7 +668,9 @@ export const staticPages: Record<string, PageMeta> = {
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/contact`,
     h1: 'Parlons de ton projet.',
-    en: { h1: "Let's talk about your project." },
+    // « Contact » était identique dans les deux langues (audit 03/11/2026, X6) — miroir de
+    // `contact.seoTitle` (en).
+    en: { title: `Get in touch | ${SITE_NAME}`, h1: "Let's talk about your project." },
     /*
      * LE FORMULAIRE S'OUVRE SUR UNE QUESTION D'AIGUILLAGE (CDC §4.5), ET LA TROISIÈME
      * BRANCHE NE COLLECTE RIEN. Quelqu'un qui arrive ici depuis un moteur avec une demande de
@@ -691,7 +693,7 @@ export const staticPages: Record<string, PageMeta> = {
   '/legal/mentions-legales': {
     title: `Mentions légales | ${SITE_NAME}`,
     description:
-      'Mentions légales de Max-Morrys : éditeur, hébergeur et informations légales du site.',
+      "Mentions légales de Max-Morrys : l'éditeur MY ONOMA SARL et ses immatriculations, l'hébergeur du site, le traitement des données personnelles, les cookies et la limitation de responsabilité.",
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/legal/mentions-legales`,
@@ -704,7 +706,7 @@ export const staticPages: Record<string, PageMeta> = {
   '/legal/confidentialite': {
     title: `Politique de confidentialité | ${SITE_NAME}`,
     description:
-      'Politique de confidentialité et protection des données personnelles de Max-Morrys (RGPD).',
+      "Politique de confidentialité de Max-Morrys : les données collectées, leurs finalités, leur durée de conservation, les sous-traitants qui les traitent et la manière d'exercer tes droits.",
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/legal/confidentialite`,
@@ -716,7 +718,8 @@ export const staticPages: Record<string, PageMeta> = {
   },
   '/legal/cgv': {
     title: `Conditions Générales de Vente | ${SITE_NAME}`,
-    description: 'Conditions Générales de Vente des formations et services Max-Morrys.',
+    description:
+      "Conditions Générales de Vente de Max-Morrys, opérée par MY ONOMA SARL : services proposés, commande et création de compte, prix hors taxes en francs CFA, paiement et propriété intellectuelle.",
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/legal/cgv`,
@@ -757,7 +760,8 @@ export const staticPages: Record<string, PageMeta> = {
   },
   '/legal/cookies': {
     title: `Politique de cookies | ${SITE_NAME}`,
-    description: 'Politique de gestion des cookies et traceurs sur le site Max-Morrys.',
+    description:
+      "Politique de cookies de Max-Morrys : ce qu'est un cookie, les catégories déposées sur le site, leur durée de conservation, et comment les accepter, les refuser ou changer d'avis à tout moment.",
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/legal/cookies`,

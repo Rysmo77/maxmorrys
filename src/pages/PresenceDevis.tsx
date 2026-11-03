@@ -275,12 +275,22 @@ export default function PresenceDevis() {
             )}
 
             <div className="flex flex-wrap items-end justify-between gap-3">
-              <PriceBlock
-                size={29}
-                amount={{ value: totals.setupDueTax.ttc, source: grid.source, asOf: grid.asOf }}
-                approx={<PriceApprox xof={totals.setupDueTax.ttc} />}
-                note={t('quote.upfrontTotal')}
-              />
+              {/* Pack « Je ne sais pas encore » : rien n'est dû tant que le pack n'est pas choisi.
+                  Écrire « 0 FCFA dû à la signature » affirmait un montant qui n'existe pas
+                  (audit 03/11/2026, W4). */}
+              {totals.setupDue > 0 ? (
+                <PriceBlock
+                  size={29}
+                  amount={{ value: totals.setupDueTax.ttc, source: grid.source, asOf: grid.asOf }}
+                  approx={<PriceApprox xof={totals.setupDueTax.ttc} />}
+                  note={t('quote.upfrontTotal')}
+                />
+              ) : (
+                <div>
+                  <b className="block text-[22px] leading-[1.15] tracking-[-.02em] text-ink">{t('quote.amountTbd')}</b>
+                  <p className="mb-0 mt-1 text-[12.5px] text-ink-2">{t('quote.amountTbdNote')}</p>
+                </div>
+              )}
               <Tag tone={expired ? 'warn' : 'ok'}>
                 {expired ? t('quote.expiredTag') : (
                   <>

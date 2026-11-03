@@ -4,11 +4,11 @@ import { useToast } from '@ds';
 import { useAuth } from '../../../contexts/AuthContext';
 import {
   getAllClubSubscriptions, updateClubSubscriptionStatus,
-  getClubPosts, deleteClubPost, createClubPost, updateClubPost,
+  getClubPosts, createClubPost, updateClubPost,
   getClubComments, deleteClubComment,
-  getClubEvents, saveClubEvent, deleteClubEvent,
-  getClubSessions, saveClubSession, deleteClubSession,
-  getClubExclusiveInfos, saveClubInfo, deleteClubInfo,
+  getClubEvents, saveClubEvent,
+  getClubSessions, saveClubSession,
+  getClubExclusiveInfos, saveClubInfo,
   getEventRegistrations, getSessionRegistrations,
 } from '../../../lib/firestore';
 import { uploadMedia } from '../../../lib/storage';
@@ -18,6 +18,7 @@ import type {
   ClubDigitosSession, ClubDigitosInfo, ClubEventRegistration, ClubSessionRegistration,
   ClubDigitosComment,
 } from '../../../types';
+import { auditedDelete } from '../../../lib/admin/auditLog';
 
 export type AdminClubTab = 'subscriptions' | 'posts' | 'events' | 'sessions' | 'infos' | 'challenges' | 'members' | 'opportunities' | 'reports';
 
@@ -155,7 +156,7 @@ export function useAdminClub() {
 
   const handleDeletePost = async (id: string) => {
     try {
-      await deleteClubPost(id);
+      await auditedDelete('club_posts', id, { space: 'club' });
       setPosts((prev) => prev.filter((p) => p.id !== id));
       addToast('success', t('clubHook.postDeleted'));
     } catch (error: unknown) {
@@ -306,7 +307,7 @@ export function useAdminClub() {
 
   const handleDeleteEvent = async (id: string) => {
     try {
-      await deleteClubEvent(id);
+      await auditedDelete('club_events', id, { space: 'club' });
       setEvents((prev) => prev.filter((e) => e.id !== id));
       addToast('success', t('clubHook.eventDeleted'));
     } catch (error: unknown) {
@@ -368,7 +369,7 @@ export function useAdminClub() {
 
   const handleDeleteSession = async (id: string) => {
     try {
-      await deleteClubSession(id);
+      await auditedDelete('club_sessions', id, { space: 'club' });
       setSessions((prev) => prev.filter((s) => s.id !== id));
       addToast('success', t('clubHook.sessionDeleted'));
     } catch (error: unknown) {
@@ -408,7 +409,7 @@ export function useAdminClub() {
 
   const handleDeleteInfo = async (id: string) => {
     try {
-      await deleteClubInfo(id);
+      await auditedDelete('club_infos', id, { space: 'club' });
       setInfos((prev) => prev.filter((i) => i.id !== id));
       addToast('success', t('clubHook.infoDeleted'));
     } catch (error: unknown) {

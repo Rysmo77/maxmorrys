@@ -61,6 +61,9 @@ export default function UserMenu({ compact = false }: UserMenuProps) {
         )}
         aria-haspopup="menu"
         aria-expanded={open}
+        /* Compact, le bouton n'est qu'un avatar (photo à `alt=""`) : sans ce nom, un lecteur
+           d'écran annonçait « bouton » tout court (audit 03/11/2026, E8). */
+        aria-label={t('userMenu.open', { name: displayName })}
       >
         <div className="w-8 h-8 rounded-full bg-[color-mix(in_srgb,var(--mm-bleu)_5%,transparent)] flex items-center justify-center overflow-hidden flex-shrink-0">
           {photoURL ? (

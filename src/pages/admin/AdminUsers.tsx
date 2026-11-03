@@ -15,7 +15,7 @@ import type { ClubDigitosSubscription, User } from '../../types';
 import {
   CBtn, ConsoleChips, ConsoleGrid, ConsoleScreen, ConsoleToolbar, HonestEmpty,
 } from './components/ConsoleParts';
-import { initialsOf } from './components/consoleUtils';
+import { dateOf, initialsOf } from './components/consoleUtils';
 
 /**
  * COMPTES — maquette `Console-Comptes` (+ `-mobile`), passe 2, lot D.
@@ -119,7 +119,8 @@ export default function AdminUsers() {
     if (!subs) return <Num value={null} source="db" asOf={asOf} />;
     if (!s) return <span className="text-ink-3">—</span>;
     const tone = s.status === 'active' ? 'ok' : s.status === 'pending' ? 'warn' : 'mute';
-    const until = s.status === 'active' && s.expiresAt ? ` · ${new Date(s.expiresAt).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: '2-digit' })}` : '';
+    const expires = s.status === 'active' ? dateOf(s.expiresAt) : null;
+    const until = expires ? ` · ${expires.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: '2-digit' })}` : '';
     return <ConsoleStatus tone={tone}>{k(`club.${s.status}`)}{until}</ConsoleStatus>;
   };
   const avatar = (name: string, size: number) => (
@@ -191,7 +192,7 @@ export default function AdminUsers() {
                           <td>{roleTag(u)}</td>
                           <td>{clubTag(u)}</td>
                           <td className="text-ink-3">
-                            <Num value={u.createdAt ? new Date(u.createdAt).toLocaleDateString(locale) : null} source="db" asOf={asOf} />
+                            <Num value={dateOf(u.createdAt)?.toLocaleDateString(locale) ?? null} source="db" asOf={asOf} />
                           </td>
                         </tr>
                       ))}

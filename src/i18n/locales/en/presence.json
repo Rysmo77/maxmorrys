@@ -111,6 +111,7 @@
     "change": "change"
   },
   "packs": {
+    "undecided": { "name": "I'm not sure yet" },
     "title": "Three packs. The prices are shown.",
     "subtitle": "A one-off payment to install everything. Excluding advertising, domain name and third-party subscriptions.",
     "priceLabel": "Setup",
@@ -171,6 +172,8 @@
     ]
   },
   "plans": {
+    "aucun": { "name": "None for now" },
+    "undecided": { "name": "I'm not sure yet" },
     "title": "Monthly support",
     "subtitle": "This is what makes the difference over time. A site left untouched for six months disappears from search results.",
     "setupLabel": "Setup",
@@ -380,6 +383,8 @@
     "planSection": "Monthly support — a separate decision",
     "monthly": "per month",
     "upfrontTotal": "Due at signing · setup, all taxes included",
+    "amountTbd": "Amount to be set after we talk",
+    "amountTbdNote": "We'll pick your pack together: the amount due at signing will then show here.",
     "htLine": "Total excluding tax",
     "vatLine": "VAT {{rate}}%",
     "deposit": "60% on order",

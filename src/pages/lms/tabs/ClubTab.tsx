@@ -1,11 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Icon, IconButton, Skeleton, Tag, Ticker } from '@ds';
 import LocalizedLink from '../../../components/shared/LocalizedLink';
+import SEOHead from '../../../components/seo/SEOHead';
 import ClubAgendaPanel from './club/ClubAgendaPanel';
 import { clubUpcoming } from './club/upcoming';
 import { useFormat } from '../../../hooks/useFormat';
+import { useAuth } from '../../../contexts/AuthContext';
+import { greetingName } from '../../../lib/naming';
 import { slideUp } from '../../../lib/animations';
 import { useClubData } from '../hooks/useClubData';
 import type { EnrolledFormation } from '../hooks/useStudentData';
@@ -71,8 +74,12 @@ function greetingKey(hour: number): string {
  */
 export default function ClubTab({ enrolledFormations }: ClubTabProps) {
   const { t } = useTranslation('club');
+  const { t: tLms } = useTranslation('lms');
   const { locale } = useFormat();
   const data = useClubData();
+  const { user, userData } = useAuth();
+  // Bande défilante : un mouvement de plus de 5 s doit pouvoir s'arrêter (WCAG 2.2.2, audit C9).
+  const [tickerPaused, setTickerPaused] = useState(false);
   const { loadingClub, isClubActive, clubSubscription, clubTab, handleRefresh, displayName, clubInfos } = data;
 
   const ticker = useMemo(() => {
@@ -101,7 +108,7 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
   }
 
   const expiresAt = new Date(clubSubscription!.expiresAt);
-  const firstName = displayName.split(' ')[0] || displayName;
+  const firstName = greetingName(userData, user) || displayName.split(' ')[0] || displayName;
 
   const next = clubUpcoming(data, t, locale)[0];
   const memberLine = (
@@ -117,9 +124,13 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
     ? t(greetingKey(new Date().getHours()), { name: firstName })
     : t(`tab.nav.${CLUB_NAV.some((n) => n.id === clubTab) ? clubTab : 'feed'}`);
   const screenSub = clubTab === 'feed' ? '' : t(`v3.screens.${clubTab}`, { defaultValue: '' });
+  // Un titre d'onglet par écran (audit C3) : « Membres · Club des Digitos | Max-Morrys ».
+  const navKey = CLUB_NAV.some((n) => n.id === clubTab) ? clubTab : 'feed';
+  const docTitle = `${t(`tab.nav.${navKey}`)} · ${tLms('nav.clubBrand')}`;
 
   return (
     <motion.div variants={slideUp} initial="hidden" animate="visible">
+      <SEOHead title={docTitle} description={screenSub || t('tab.memberActive')} noIndex />
       <ClubScreen
         title={title}
         subtitle={screenSub || memberLine}
@@ -135,7 +146,19 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
         )}
       >
         {/* ── La bande « en direct » : uniquement des données chargées ─────── */}
-        <Ticker items={ticker} label={t('tab.tickerLabel')} badge={t('tab.tickerBadge')} />
+        {/* La copie de bouclage est déjà `aria-hidden` (Ticker) ; le bouton met la bande en
+            pause — la règle cible la rangée animée sans toucher au composant du kit. */}
+        {ticker.length > 0 && (
+          <div className={`flex items-center gap-2 ${tickerPaused ? '[&_[role=region]_div_div]:[animation-play-state:paused]' : ''}`}>
+            <Ticker items={ticker} label={t('tab.tickerLabel')} badge={t('tab.tickerBadge')} className="min-w-0 flex-1" />
+            <IconButton
+              label={tickerPaused ? t('tab.tickerPlay') : t('tab.tickerPause')}
+              onClick={() => setTickerPaused((p) => !p)}
+            >
+              <Icon name={tickerPaused ? 'play' : 'square'} size={15} />
+            </IconButton>
+          </div>
+        )}
 
         {clubTab === 'feed' && (
           <>

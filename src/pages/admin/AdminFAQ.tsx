@@ -8,10 +8,11 @@ import { Pagination } from '@/components/dialogs';
 import { ConfirmDialog } from '@/components/dialogs';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
-import { getAllFAQ, saveFAQItem, deleteFAQItem } from '../../lib/firestore';
+import { getAllFAQ, saveFAQItem } from '../../lib/firestore';
 import { faqSlug, hasAuthoredSlug } from '../../lib/faq/slug';
 import type { FAQ } from '../../types';
 import { captureError } from '../../lib/sentry';
+import { auditedDelete } from '../../lib/admin/auditLog';
 
 const EMPTY: Omit<FAQ, 'id'> = { question: '', answer: '', category: '', order: 0, slug: '' };
 
@@ -102,7 +103,7 @@ export default function AdminFAQ() {
     setModalOpen(false);
     confirm.requestConfirm(t('faq.confirmDelete.message'), async () => {
       try {
-        await deleteFAQItem(id);
+        await auditedDelete('faq', id, { space: 'hub' });
         setFaq((prev) => prev.filter((f) => f.id !== id));
         addToast('success', t('faq.toasts.deleted'));
       } catch (error: unknown) {

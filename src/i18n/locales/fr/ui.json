@@ -56,7 +56,14 @@
     "title": "Notifications",
     "markAllRead": "Tout marquer comme lu",
     "empty": "Aucune notification",
-    "emptyHint": "Tes notifications apparaîtront ici."
+    "emptyHint": "Tes notifications apparaîtront ici.",
+    "tpl": {
+      "streakTitle_one": "Ta série de {{count}} jour tient encore",
+      "streakTitle_other": "Ta série de {{count}} jours tient encore",
+      "streakBody": "Il te reste la journée pour la garder : une leçon suffit.",
+      "resumeTitle": "Continue {{title}}",
+      "resumeBody": "Tu n'as pas ouvert « {{title}} » depuis quelques jours. Reprends là où tu t'es arrêté."
+    }
   },
   "phoneInput": {
     "countryLabel": "Indicatif du pays"

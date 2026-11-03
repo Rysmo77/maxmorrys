@@ -56,7 +56,14 @@
     "title": "Notifications",
     "markAllRead": "Mark all as read",
     "empty": "No notifications",
-    "emptyHint": "Your notifications will appear here."
+    "emptyHint": "Your notifications will appear here.",
+    "tpl": {
+      "streakTitle_one": "Your {{count}}-day streak is still alive",
+      "streakTitle_other": "Your {{count}}-day streak is still alive",
+      "streakBody": "You have the whole day to keep it: one lesson is enough.",
+      "resumeTitle": "Keep going with {{title}}",
+      "resumeBody": "You haven't opened “{{title}}” in a few days. Pick up where you left off."
+    }
   },
   "phoneInput": {
     "countryLabel": "Country code"

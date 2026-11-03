@@ -253,12 +253,12 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
           <Field label={t('profile.birthDate')} type="date" value={profileForm.birthDate} onChange={set('birthDate')} autoComplete="bday" />
           <div className="mt-[var(--sp-14)]">
             <label htmlFor="profile-phone" className="block text-meta-2 font-semibold text-ink-2 mb-1.5">{t('profile.phone')}</label>
-            <PhoneInput id="profile-phone" value={profileForm.phone} onChange={set('phone')} placeholder="77 123 45 67" />
+            <PhoneInput id="profile-phone" label={t('profile.phone')} value={profileForm.phone} onChange={set('phone')} placeholder="77 123 45 67" />
           </div>
 
           <div className="mt-[var(--sp-14)]">
             <label htmlFor="profile-whatsapp" className="block text-meta-2 font-semibold text-ink-2 mb-1.5">{t('profile.whatsapp')}</label>
-            <PhoneInput id="profile-whatsapp" value={profileForm.whatsapp} onChange={set('whatsapp')} placeholder="77 123 45 67" />
+            <PhoneInput id="profile-whatsapp" label={t('profile.whatsapp')} value={profileForm.whatsapp} onChange={set('whatsapp')} placeholder="77 123 45 67" />
           </div>
           <Field label={t('profile.linkedin')} type="url" inputMode="url" value={profileForm.linkedin} onChange={set('linkedin')} placeholder={t('profile.linkedinPlaceholder')} autoComplete="url" />
 

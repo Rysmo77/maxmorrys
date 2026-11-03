@@ -5,6 +5,8 @@ import { ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console
 import { adminSpaceOf, type AdminSpace } from '../../lib/admin/consoleNav';
 import { readConsoleCounts, type ConsoleCounts } from '../../lib/admin/consoleCounts';
 import { agregerRevenu } from '../../lib/admin/revenue';
+import { getAuditLog, type AuditEntry } from '../../lib/admin/auditLog';
+import { contentStatus } from '../../lib/admin/contentStatus';
 import {
   getAllAgencyLeads, getAllClubSubscriptions, getClubEvents, getClubSessions, getDmReports,
   getTransactionsSince, subscribeMessages,
@@ -75,6 +77,16 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState<ClubDigitosEvent[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [space, setSpace] = useState<SpaceFilterValue>('all');
+  const [audit, setAudit] = useState<AuditEntry[] | null>(null);
+
+  /* Les cinq dernières entrées du journal d'audit (A1) — lecture seule, échec silencieux. */
+  useEffect(() => {
+    let alive = true;
+    getAuditLog(5)
+      .then((rows) => { if (alive) setAudit(rows); })
+      .catch((e: unknown) => { captureError(e); if (alive) setAudit([]); });
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -111,7 +123,8 @@ export default function AdminDashboard() {
   const now = asOf;
 
   /* ── Les relevés ── */
-  const openFormations = counts ? counts.publishedFormations - counts.comingSoonFormations : null;
+  const status = useMemo(() => (counts ? contentStatus(counts) : null), [counts]);
+  const openFormations = status ? status.formations.open : null;
   const heldThisMonth = useMemo(() => {
     if (!sessions) return null;
     const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
@@ -151,12 +164,12 @@ export default function AdminDashboard() {
       owner: k('ownerSupport'), action: k('aReply'), href: '/admin/messages',
     });
     if (counts) {
-      const unpublished = counts.formations - (openFormations ?? 0);
+      const unpublished = status ? status.formations.notOpen : 0;
       if (unpublished > 0) rows.push({
         key: 'formations', count: unpublished, title: k('qUnpublished', { count: unpublished }), meta: k('qUnpublishedMeta'),
         space: 'edu', oldest: null, owner: k('ownerEdu'), action: k('aPublish'), href: '/admin/formations',
       });
-      const drafts = counts.articles - counts.publishedPosts;
+      const drafts = status ? status.articles.notPublished : 0;
       if (drafts > 0) rows.push({
         key: 'drafts', count: drafts, title: k('qDrafts', { count: drafts }), meta: k('qDraftsMeta'),
         space: 'hub', oldest: null, owner: k('ownerConception'), action: k('aOpen'), href: '/admin/articles',
@@ -164,7 +177,7 @@ export default function AdminDashboard() {
     }
     return rows.sort((a, b) => (a.oldest ?? '9').localeCompare(b.oldest ?? '9'));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leads, reports, subs, messages, counts, openFormations, lang]);
+  }, [leads, reports, subs, messages, counts, status, lang]);
 
   const shownQueue = queue.filter((r) => space === 'all' || r.space === space);
 
@@ -306,7 +319,20 @@ export default function AdminDashboard() {
           </ConsoleCard>
 
           <ConsoleCard as="section" title={k('auditTitle')} className="hidden stack:block">
-            <HonestEmpty icon="shield" title={k('auditEmpty')} body={k('auditEmptyBody')} />
+            {audit === null ? <Skeleton height={60} /> : audit.length === 0 ? (
+              <HonestEmpty icon="shield" title={k('auditEmpty')} body={k('auditEmptyBody')} />
+            ) : audit.map((e) => (
+              <div key={e.id} className="mm-mrow">
+                <div className="min-w-0 flex-1">
+                  <code className="block text-[12.5px]">{e.action}</code>
+                  <span className="block truncate text-[12px] text-ink-2">{e.summary ?? `${e.targetCollection}/${e.targetId}`}</span>
+                </div>
+                <Num
+                  value={e.at ? e.at.toLocaleString(lang.startsWith('en') ? 'en-GB' : 'fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : null}
+                  source="server" asOf={asOf} className="flex-none text-[11.5px]"
+                />
+              </div>
+            ))}
             <CardLink to="/admin/journal">{k('auditAll')}</CardLink>
           </ConsoleCard>
 

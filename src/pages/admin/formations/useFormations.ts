@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@ds';
-import { getAllFormations, saveFormation, deleteFormation, listWaitlist } from '../../../lib/firestore';
+import { getAllFormations, saveFormation, listWaitlist } from '../../../lib/firestore';
 import { slugify } from '../../../lib/utils';
 import { generateSlugEn } from '../../../lib/slugEn';
 import { captureError } from '../../../lib/sentry';
@@ -11,6 +11,7 @@ import { buildPublishChecklist, type PublishStage } from './publishChecklist';
 import type { Formation, Module, Lesson, WaitlistEntry } from '../../../types';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../config/firebase';
+import { auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * L'ÉTAT DE L'ÉCRAN FORMATIONS, SORTI DU RENDU.
@@ -353,7 +354,7 @@ export function useFormations() {
 
   const doDelete = useCallback(async (id: string) => {
     try {
-      await deleteFormation(id);
+      await auditedDelete('formations', id, { space: 'edu' });
       setList((prev) => prev.filter((f) => f.id !== id));
       addToast('success', t('formations.toastDeleted'));
       confirm.closeConfirm();

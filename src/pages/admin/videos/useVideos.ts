@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../config/firebase';
 import { useToast } from '@ds';
-import { getAllVideos, saveVideo, deleteVideo } from '../../../lib/firestore';
+import { getAllVideos, saveVideo } from '../../../lib/firestore';
 import { slugify, extractYoutubeVideoId, parseISODuration } from '../../../lib/utils';
 import { generateSlugEn } from '../../../lib/slugEn';
 import { captureError } from '../../../lib/sentry';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { usePagination } from '../../../hooks/usePagination';
 import type { Video } from '../../../types';
+import { auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * L'ÉTAT DE L'ÉCRAN VIDÉOS, SORTI DU RENDU — les appels restent à l'identique.
@@ -165,7 +166,7 @@ export function useVideos() {
 
   const doDelete = useCallback(async (id: string) => {
     try {
-      await deleteVideo(id);
+      await auditedDelete('videos', id, { space: 'hub' });
       setVideos((prev) => prev.filter((v) => v.id !== id));
       addToast('success', t('videos.toastDeleted'));
     } catch {

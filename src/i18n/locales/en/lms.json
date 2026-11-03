@@ -33,7 +33,7 @@
     "account": "My account",
     "clubBrand": "Digitos Club",
     "clubFeed": "Feed",
-    "clubDiscussions": "Discussions",
+    "clubDiscussions": "Messages",
     "clubMembers": "Members",
     "clubLeaderboard": "Leaderboard",
     "clubOpportunities": "Opportunities",
@@ -79,6 +79,7 @@
     }
   },
   "userMenu": {
+    "open": "{{name}}'s account menu",
     "profile": "My profile",
     "settings": "Settings",
     "lightMode": "Light mode",
@@ -381,7 +382,7 @@
     "packsTitle": "Question packs",
     "packsBody": "To go beyond today's quota",
     "memoryTitle": "{{tutor}}'s memory",
-    "memoryBody": "If you turn it on, {{tutor}} remembers your trade and your missions from one lesson to the next. You can wipe it all at any time.",
+    "memoryBody": "On by default: {{tutor}} remembers your trade and your missions from one lesson to the next. You can turn it off or wipe it all at any time.",
     "memoryOn": "on",
     "memoryOff": "off",
     "memoryManage": "Manage",

@@ -16,7 +16,7 @@ import {
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import {
-  doc, getDoc, setDoc, updateDoc,
+  doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, increment,
   collection, getDocs, query, where, documentId,
 } from 'firebase/firestore';
 import { beforeAll, afterAll, afterEach, describe, it } from 'vitest';
@@ -864,6 +864,73 @@ describe('waitlist — le client lit son entree, il n en ecrit aucune', () => {
 });
 
 /*
+ * Se retirer de la liste d'attente (audit UI/UX du 03/11/2026, X12). Le client supprime SA
+ * propre entree et decremente `formations/{id}.waitlistCount` d'un cran, dans le MEME lot :
+ * l'un sans l'autre est refuse, sinon le compteur public mentirait.
+ */
+describe('waitlist — on se retire soi-meme, et le compteur suit', () => {
+  const ENTREE = (uid: string) => ({
+    userId: uid,
+    formationId: 'f1',
+    email: `${uid}@exemple.test`,
+    language: 'fr',
+    createdAt: '2026-09-03T10:00:00.000Z',
+  });
+  const FORMATION = { status: 'published', comingSoon: true, title: 'F1', waitlistCount: 12 };
+
+  async function seedListe() {
+    await seed('formations/f1', FORMATION);
+    await seed(`waitlist/${ALICE}_f1`, ENTREE(ALICE));
+  }
+
+  it('accepte le retrait de sa propre entree avec le decrement dans le meme lot', async () => {
+    await seedListe();
+    const db = asUser(ALICE);
+    const lot = writeBatch(db);
+    lot.delete(doc(db, 'waitlist', `${ALICE}_f1`));
+    lot.update(doc(db, 'formations', 'f1'), { waitlistCount: increment(-1) });
+    await assertSucceeds(lot.commit());
+  });
+
+  it('refuse la suppression seule — le compteur resterait gonfle', async () => {
+    await seedListe();
+    await assertFails(deleteDoc(doc(asUser(ALICE), 'waitlist', `${ALICE}_f1`)));
+  });
+
+  it('refuse le decrement seul, sans entree retiree', async () => {
+    await seedListe();
+    await assertFails(updateDoc(doc(asUser(ALICE), 'formations', 'f1'), { waitlistCount: increment(-1) }));
+  });
+
+  it('refuse un decrement de plus d un cran', async () => {
+    await seedListe();
+    const db = asUser(ALICE);
+    const lot = writeBatch(db);
+    lot.delete(doc(db, 'waitlist', `${ALICE}_f1`));
+    lot.update(doc(db, 'formations', 'f1'), { waitlistCount: increment(-2) });
+    await assertFails(lot.commit());
+  });
+
+  it('refuse de toucher un autre champ de la formation au passage', async () => {
+    await seedListe();
+    const db = asUser(ALICE);
+    const lot = writeBatch(db);
+    lot.delete(doc(db, 'waitlist', `${ALICE}_f1`));
+    lot.update(doc(db, 'formations', 'f1'), { waitlistCount: increment(-1), comingSoon: false });
+    await assertFails(lot.commit());
+  });
+
+  it("refuse de retirer l entree de quelqu un d autre", async () => {
+    await seedListe();
+    const db = asUser(BOB);
+    const lot = writeBatch(db);
+    lot.delete(doc(db, 'waitlist', `${ALICE}_f1`));
+    lot.update(doc(db, 'formations', 'f1'), { waitlistCount: increment(-1) });
+    await assertFails(lot.commit());
+  });
+});
+
+/*
  * ═══════════════════════════════════════════════════════════════════════════════════════
  * AUDIT DE SECURITE DU 03/09/2026 — les cas qui suivent couvrent les regles durcies ce
  * jour-la. Chaque bloc dit d'abord ce qui etait ouvert, puis verifie que le parcours
@@ -981,7 +1048,10 @@ describe('users — le proprietaire n ecrit que les champs de son profil', () =>
   it("NON-REGRESSION : l administration garde la main sur le document entier", async () => {
     await seed(`users/${CAROL}`, { uid: CAROL, role: 'admin' });
     await seed(`users/${ALICE}`, PROFIL());
-    await assertSucceeds(updateDoc(doc(asUser(CAROL), 'users', ALICE), { role: 'support' }));
+    await assertSucceeds(updateDoc(doc(asUser(CAROL), 'users', ALICE), { referralRewarded: true, bio: 'x' }));
+    // Un changement de RÔLE exige désormais son entrée de journal dans le même lot (audit
+    // 03/11/2026, A1) : couvert par `audit-log.test.ts`, refusé ici sans elle.
+    await assertFails(updateDoc(doc(asUser(CAROL), 'users', ALICE), { role: 'support' }));
   });
 });
 

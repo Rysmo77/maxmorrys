@@ -25,6 +25,8 @@
     "greetEvening": "Good evening, {{name}}!",
     "tickerLabel": "Coming up at the Club",
     "tickerBadge": "Coming up",
+    "tickerPause": "Pause the ticker",
+    "tickerPlay": "Resume the ticker",
     "tickerUpcoming": "{{title}} · {{when}}",
     "tickerInfo": "New in the info tab: {{title}}"
   },
@@ -51,7 +53,7 @@
   },
   "referral": {
     "heroTitle": "Refer the community",
-    "heroText": "Your referral gets <0>-15%</0> off their membership. When they join, you earn <1>100 XP</1> and the <2>Ambassador</2> badge.",
+    "heroText": "Your referral gets <0>−15%</0> off their membership. When they join, you earn <1>100 XP</1> and the <2>Ambassador</2> badge.",
     "yourLink": "Your referral link",
     "copied": "Copied",
     "copy": "Copy",
@@ -149,7 +151,7 @@
     "reported": "reported",
     "report": "report",
     "messagePlaceholder": "Write a message…",
-    "title": "Discussions",
+    "title": "Messages",
     "emptyTitle": "No conversation",
     "emptySubtitle": "Start a private chat with another member from the directory.",
     "goToDirectory": "Go to the directory",

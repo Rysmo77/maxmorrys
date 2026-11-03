@@ -292,7 +292,10 @@ export default function AppShell({
             // La barre d'onglets recouvre 80 px : le dernier bloc de la page doit pouvoir
             // remonter au-dessus d'elle, zone sûre comprise.
             // Kit v3 : la barre FLOTTE à 14 px du bas, 70 px de haut — le kit réserve 110 px.
-            hasBottomNav && 'pb-[calc(110px+env(safe-area-inset-bottom))] stack:pb-8',
+            // ⚠️ 168 et non 110 (audit 03/11/2026, E8) : le bouton flottant de l'assistant
+            // (`RysmoWidget`, `bottom-24` + 56 px) monte à 152 px du bas, au-dessus de la barre.
+            // Avec 110 px, le dernier bloc de la page restait coincé SOUS lui ; 152 + 16 d'air.
+            hasBottomNav && 'pb-[calc(168px+env(safe-area-inset-bottom))] stack:pb-8',
           )}
           style={{ overscrollBehavior: 'contain' }}
         >

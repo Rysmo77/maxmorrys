@@ -7,12 +7,13 @@ import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, Co
 import { SiteEyebrow } from '../../components/site';
 import { ConfirmDialog, Modal } from '@/components/dialogs';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
-import { subscribeMessages, updateMessageStatus, deleteMessage } from '../../lib/firestore';
+import { subscribeMessages, updateMessageStatus } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
 import type { ContactMessage } from '../../types';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../config/firebase';
 import { captureError } from '../../lib/sentry';
+import { auditedDelete } from '../../lib/admin/auditLog';
 
 /**
  * RÉPONDRE ÉCRIT TROIS CHOSES, ET C'EST LE SERVEUR QUI LES ÉCRIT.
@@ -152,7 +153,7 @@ export default function AdminMessages() {
   const handleDelete = (id: string) => {
     confirm.requestConfirm(t('messages.confirm.deleteMessage'), async () => {
       try {
-        await deleteMessage(id);
+        await auditedDelete('messages', id, { space: 'hub' });
         addToast('success', t('messages.toast.deleted'));
         setSelected(null);
       } catch {

@@ -88,3 +88,13 @@
 .mm-megafooter .mm-footer__mega {
   font-size: clamp(48px, 15vw, 236px);
 }
+
+/* ── 4 · L'espace entre les mots des titres en capitales ──────────────────────
+   `.mm-up` du kit serre l'interlettrage à −0,045em : en Fraunces 900 capitale, l'espace
+   entre mots fond avec lui, et « TOUTES LES FORMATIONS. » se lisait « TOUTESLES » (audit
+   UI/UX du 03/11/2026, n°10). Le héros d'`edu-g1.css` l'avait réglé pour lui seul le
+   29/10 ; la règle remonte ici pour tous les titres `.mm-up`. L'interlettrage du kit ne
+   bouge pas — seuls les blancs entre mots s'élargissent. */
+.mm-up {
+  word-spacing: .14em;
+}

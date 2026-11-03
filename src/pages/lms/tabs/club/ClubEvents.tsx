@@ -5,6 +5,7 @@ import { useFormat } from '../../../../hooks/useFormat';
 import type { useClubData } from '../../hooks/useClubData';
 import { staggerContainer, staggerItem } from '../../../../lib/animations';
 import { ClubCard, ClubEmptyState } from './_shared';
+import { isClubEventUpcoming } from './schedule';
 
 type ClubData = ReturnType<typeof useClubData>;
 
@@ -42,7 +43,8 @@ export default function ClubEvents({ data }: ClubEventsProps) {
     >
       {clubEvents.map((event) => {
         const isReg = registeredEvents.has(event.id);
-        const upcoming = event.status === 'upcoming';
+        // Date réelle ET statut (audit C2) ; passé → ni inscription ni désinscription (X10).
+        const upcoming = isClubEventUpcoming(event);
         const online = event.type === 'online';
         return (
           <motion.div key={event.id} variants={staggerItem}>

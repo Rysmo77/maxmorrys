@@ -34,6 +34,8 @@
       "paymentsAll": "Full history",
       "paymentsEmpty": "No payments on this account yet.",
       "paymentFallback": "Payment",
+      "clubAccess": "Club access active",
+      "clubAccessUntil": "Until {{date}}. Access granted or activated by the team doesn't show up as a payment.",
       "colDate": "Date",
       "colItem": "Item",
       "colMethod": "Method",
@@ -223,7 +225,10 @@
       "prevWeek": "Previous week",
       "nextWeek": "Next week",
       "clubHint": "Club sessions show up here once you are a member.",
-      "clubLink": "Discover the Club"
+      "clubLink": "Discover the Club",
+      "registered": "You are registered",
+      "scrollHint": "Scroll to see the whole week",
+      "weekLabel": "This week, Monday to Sunday"
     },
     "cohorte": {
       "eyebrow": "My school",
@@ -436,8 +441,8 @@
       "afterTitle": "Post what you take away in the feed.",
       "afterCta": "Go to the feed",
       "chatTitle": "Discussion",
-      "chatEmpty": "Session chat doesn't exist on the web yet. Ask your questions in the Club discussions.",
-      "chatCta": "Open discussions",
+      "chatEmpty": "Session chat doesn't exist on the web yet. Ask your questions in Club messages.",
+      "chatCta": "Open messages",
       "notRecorded": "Session not recorded for now: replays are under construction."
     },
     "profil": {
@@ -510,8 +515,8 @@
     "journal": {
       "eyebrow": "Overview",
       "title": "Audit log",
-      "empty": "The log is not recorded yet.",
-      "body": "Every sensitive console action (role granted, quota reset, suspension) will leave a dated trace here with its reason. Nothing is shown until the log exists on the server."
+      "empty": "No action logged yet.",
+      "body": "Every deletion and every role change made from the console leaves a server-dated trace here, with its author. Firestore rules refuse the action if its trace is missing."
     },
     "roles": {
       "eyebrow": "People",
@@ -541,12 +546,14 @@
       "allTitle": "All actions",
       "todayTitle": "Today",
       "notWired": "not connected",
+      "live": "recorded",
+      "loadError": "The log could not be read.",
       "export": "Export",
-      "exportOff": "Nothing to export until the log exists.",
+      "exportOff": "Nothing to export: the log is empty.",
       "fActor": "Actor: all",
       "fAction": "Action: all",
       "fSpace": "Space: all",
-      "fPeriod": "Period: 7 days",
+      "fPeriod": "Period: last 200 actions",
       "colWhen": "When",
       "colActor": "Actor",
       "colAction": "Action",

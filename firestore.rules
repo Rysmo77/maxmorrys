@@ -161,11 +161,12 @@ service cloud.firestore {
         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['referredByCode'])
          || !('referredByCode' in resource.data));
 
-      // Only admins can delete users
-      allow delete: if isAdmin();
+      // Only admins can delete users — et la suppression laisse sa trace (audit_log, A1)
+      allow delete: if isAdmin() && auditedDelete('users', userId);
 
-      // Admins can update any user including role changes
-      allow update: if isAdmin();
+      // Admins can update any user including role changes — un changement de role exige
+      // son entree de journal dans le meme lot (`auditRef`, audit UI/UX 03/11/2026, A1)
+      allow update: if isAdmin() && auditedRoleChange(userId);
     }
 
     // Blog posts collection
@@ -173,8 +174,9 @@ service cloud.firestore {
       // Everyone can read published posts
       allow read: if resource.data.status == 'published' || isAdmin();
 
-      // Only admins can create, update, or delete posts
-      allow create, update, delete: if isAdmin();
+      // Only admins can create, update, or delete posts (suppression journalisee, A1)
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin() && auditedDelete('blog', postId);
 
       // Allow incrementing read counter by exactly +1 (public, from BlogPost page)
       allow update: if resource.data.status == 'published' &&
@@ -188,7 +190,24 @@ service cloud.firestore {
       allow read: if resource.data.status == 'published' || isAdmin();
 
       // Only admins can create, update, or delete formations
-      allow create, update, delete: if isAdmin();
+      allow create: if isAdmin();
+      allow delete: if isAdmin() && auditedDelete('formations', formationId);
+      // Seule exception : se retirer de la liste d'attente decremente `waitlistCount` d'UN cran,
+      // dans le meme lot que la suppression de sa propre entree (audit UI/UX du 03/11/2026, X12).
+      allow update: if isAdmin() || quitteListeAttente(formationId);
+    }
+
+    // Le decrement de `waitlistCount` qui accompagne le retrait de SA PROPRE entree, et rien
+    // d'autre : un seul champ touche, exactement -1, et l'entree `{uid}_{formationId}` existait
+    // avant le lot et n'existe plus apres. Sans cette jumelle, le compteur public mentirait.
+    function quitteListeAttente(formationId) {
+      let entree = /databases/$(database)/documents/waitlist/$(request.auth.uid + '_' + formationId);
+      return isSignedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['waitlistCount'])
+        && request.resource.data.waitlistCount == resource.data.waitlistCount - 1
+        && request.resource.data.waitlistCount >= 0
+        && exists(entree)
+        && !existsAfter(entree);
     }
 
     // Enrollments collection
@@ -257,8 +276,9 @@ service cloud.firestore {
       // Published podcasts are readable by all; drafts only by admins
       allow read: if resource.data.status == 'published' || isAdmin();
 
-      // Only admins can create, update, or delete
-      allow create, update, delete: if isAdmin();
+      // Only admins can create, update, or delete (suppression journalisee, A1)
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin() && auditedDelete('podcasts', podcastId);
     }
 
     // Videos collection
@@ -266,8 +286,9 @@ service cloud.firestore {
       // Published videos are readable by all; drafts only by admins
       allow read: if resource.data.status == 'published' || isAdmin();
 
-      // Only admins can create, update, or delete
-      allow create, update, delete: if isAdmin();
+      // Only admins can create, update, or delete (suppression journalisee, A1)
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin() && auditedDelete('videos', videoId);
 
       // Allow incrementing view count — sur une video PUBLIEE uniquement.
       // `blog` posait deja cette condition ; ici elle manquait, et un brouillon invisible
@@ -699,6 +720,71 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ═════════════════════════════════════════════════════════════════════════════
+    // JOURNAL D'AUDIT DE LA CONSOLE (audit UI/UX du 03/11/2026, A1 — P1).
+    //
+    // Pas de serveur pour l'ecrire : c'est le client de la console qui l'ecrit, et ces
+    // regles le rendent NON FALSIFIABLE. Ajout seul (ni update ni delete, pour personne),
+    // acteur = l'appelant, role = celui lu en base, horodatage = l'heure du serveur, champs
+    // bornes. Miroir client : `src/lib/admin/auditLog.ts` (helper unique `consoleWrite`).
+    // ═════════════════════════════════════════════════════════════════════════════
+    function auditPath(entryId) {
+      return /databases/$(database)/documents/audit_log/$(entryId);
+    }
+
+    // Une entree ecrite DANS CETTE REQUETE (son `at` vaut `request.time`, donc ni une entree
+    // ancienne ni une entree d'un autre lot) par l'appelant, et qui decrit bien l'ecriture.
+    function auditedInThisRequest(entryId, action, col, id) {
+      return existsAfter(auditPath(entryId)) &&
+        getAfter(auditPath(entryId)).data.at == request.time &&
+        getAfter(auditPath(entryId)).data.actorUid == request.auth.uid &&
+        getAfter(auditPath(entryId)).data.action == action &&
+        getAfter(auditPath(entryId)).data.targetCollection == col &&
+        getAfter(auditPath(entryId)).data.targetId == id;
+    }
+
+    // Une suppression n'a pas de `request.resource` : l'entree a un identifiant DETERMINISTE.
+    function auditedDelete(col, id) {
+      return auditedInThisRequest('delete__' + col + '__' + id, col + '.delete', col, id);
+    }
+
+    // Un changement de role porte `auditRef`, l'identifiant de son entree.
+    function auditedRoleChange(userId) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) ||
+        (request.resource.data.get('auditRef', null) is string &&
+         auditedInThisRequest(request.resource.data.auditRef, 'users.role', 'users', userId));
+    }
+
+    match /audit_log/{entryId} {
+      // L'administrateur lit tout ; le support ne lit que ses propres traces.
+      allow read: if isAdmin() ||
+        (isAdminOrSupport() && resource.data.actorUid == request.auth.uid);
+
+      allow create: if isAdminOrSupport() &&
+        request.resource.data.keys().hasAll(['actorUid', 'actorRole', 'action', 'targetCollection', 'targetId', 'at']) &&
+        request.resource.data.keys().hasOnly(['actorUid', 'actorRole', 'action', 'targetCollection', 'targetId', 'at', 'space', 'summary', 'reason']) &&
+        request.resource.data.actorUid == request.auth.uid &&
+        request.resource.data.actorRole == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role &&
+        request.resource.data.at == request.time &&
+        request.resource.data.action is string &&
+        request.resource.data.action.matches('^[a-z][a-z_]{0,40}[.][a-z][a-z_]{0,30}$') &&
+        request.resource.data.targetCollection is string &&
+        request.resource.data.targetCollection.size() > 0 &&
+        request.resource.data.targetCollection.size() <= 64 &&
+        request.resource.data.targetId is string &&
+        request.resource.data.targetId.size() > 0 &&
+        request.resource.data.targetId.size() <= 200 &&
+        (!('space' in request.resource.data) ||
+          request.resource.data.space in ['hub', 'edu', 'club', 'conception', 'rysmo']) &&
+        (!('summary' in request.resource.data) ||
+          (request.resource.data.summary is string && request.resource.data.summary.size() <= 300)) &&
+        (!('reason' in request.resource.data) ||
+          (request.resource.data.reason is string && request.resource.data.reason.size() <= 500));
+
+      // Le journal ne s'efface pas et ne se reecrit pas.
+      allow update, delete: if false;
+    }
+
     // User activity logs (for admin dashboard)
     match /activity_logs/{logId} {
       // Only admins can read logs
@@ -839,7 +925,8 @@ service cloud.firestore {
     match /redirects/{redirectId} {
       // Aucune lecture publique : le Worker `maxmorrys-site` lit par compte de
       // service, donc hors de ces regles. Personne d'autre n'a besoin de la table.
-      allow read, create, update, delete: if isAdmin();
+      allow read, create, update: if isAdmin();
+      allow delete: if isAdmin() && auditedDelete('redirects', redirectId);
     }
 
     // Site settings (single document)
@@ -1140,7 +1227,23 @@ service cloud.firestore {
       allow get: if isAdminOrSupport() ||
         (isSignedIn() && resource.data.userId == request.auth.uid);
       allow list: if isAdminOrSupport();
-      allow write: if false;
+      allow create, update: if false;
+      // SE RETIRER (audit UI/UX du 03/11/2026, X12) : seulement sa propre entree, a son
+      // identifiant determinist, et seulement si le compteur de la formation descend d'un cran
+      // dans le meme lot — l'inscription garde son unique chemin, le Worker.
+      allow delete: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && entryId == request.auth.uid + '_' + resource.data.formationId
+        && (sansCompteurAttente(resource.data.formationId)
+          || getAfter(/databases/$(database)/documents/formations/$(resource.data.formationId)).data.waitlistCount
+            == get(/databases/$(database)/documents/formations/$(resource.data.formationId)).data.waitlistCount - 1);
+    }
+
+    // Rien a decrementer : formation supprimee, ou compteur absent / deja a zero. L'entree se
+    // retire alors SEULE — sans cette branche, personne ne pouvait plus quitter la liste.
+    function sansCompteurAttente(formationId) {
+      let f = /databases/$(database)/documents/formations/$(formationId);
+      return !exists(f) || get(f).data.get('waitlistCount', 0) <= 0;
     }
 
     // Default deny all other collections

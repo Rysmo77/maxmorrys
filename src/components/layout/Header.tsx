@@ -10,6 +10,7 @@ import LocalizedLink from '../shared/LocalizedLink';
 import AnnouncementBanner from '../shared/AnnouncementBanner';
 import DsNavHost from './DsNavHost';
 import { Icon } from '@ds';
+import { useOuvertureEdu } from '../../hooks/useOuvertureEdu';
 import {
   Button, SideNav, TopBar, Wordmark,
   type SideNavItem, type TopBarItem,
@@ -116,7 +117,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { user, userData, signOut } = useAuth();
+  const { user, userData, signOut, loading: sessionLoading } = useAuth();
   const { language, toggleLanguage } = useLanguage();
   const { t } = useTranslation('nav');
   const { t: tc } = useTranslation('common');
@@ -272,9 +273,14 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   const navItems: TopBarItem[] = nav.map((entry) => ({ label: t(entry.key), href: localize(entry.path) }));
   const drawerItems: SideNavItem[] = nav.map((entry) => ({ label: t(entry.key), href: localize(entry.path) }));
 
-  /* L'action de l'espace, et sa forme courte sous 1080 px. */
+  /* L'action de l'espace, et sa forme courte sous 1080 px. Sur Edu, tant que rien n'est
+     ouvert, « Commencer » mènerait à un catalogue où rien ne s'achète : l'action devient la
+     liste d'attente (audit UI/UX du 03/11/2026, n°8) — déduit du catalogue, pas en dur. */
+  const edu = useOuvertureEdu(space === 'edu');
   const cta = space === 'edu'
-    ? { label: t('v3.eduStart'), short: t('v3.eduStart'), href: localize('/formations') }
+    ? edu.fermee
+      ? { label: t('v3.eduNotify'), short: t('v3.eduNotifyShort'), href: localize(edu.cible) }
+      : { label: t('v3.eduStart'), short: t('v3.eduStart'), href: localize('/formations') }
     : space === 'club'
       ? { label: t('v3.clubJoin'), short: t('v3.clubJoinShort'), href: localize('/club-des-digitos/adhesion') }
       : { label: t('v3.bookCall'), short: t('v3.bookCallShort'), href: localize('/contact?rdv=1') };
@@ -455,7 +461,12 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   {searchButton}
                   {themeButton('')}
                 </span>
-                {user ? (
+                {/* Session inconnue : rien. Sans ça, « Réserver un appel » s'affichait une
+                    seconde avant le compte (audit 03/11/2026, X7). La place est tenue pour
+                    que la barre ne saute pas. */}
+                {sessionLoading ? (
+                  <span aria-hidden="true" className="mm-only-wide inline-block h-9 w-[132px]" />
+                ) : user ? (
                   accountControl
                 ) : (
                   <>
@@ -532,7 +543,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                       {searchButton}
                       <span className="ml-auto">{themeButton('')}</span>
                     </div>
-                    {!user && (
+                    {!user && !sessionLoading && (
                       <>
                         <Button tone="primary" href={cta.href}>
                           {cta.label}

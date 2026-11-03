@@ -34,6 +34,8 @@
       "paymentsAll": "Tout l'historique",
       "paymentsEmpty": "Aucun paiement sur ce compte pour l'instant.",
       "paymentFallback": "Paiement",
+      "clubAccess": "Accès Club actif",
+      "clubAccessUntil": "Jusqu'au {{date}}. Un accès offert ou activé par l'équipe n'apparaît pas dans les paiements.",
       "colDate": "Date",
       "colItem": "Objet",
       "colMethod": "Moyen",
@@ -223,7 +225,10 @@
       "prevWeek": "Semaine précédente",
       "nextWeek": "Semaine suivante",
       "clubHint": "Les sessions du Club apparaissent ici quand tu en es membre.",
-      "clubLink": "Découvrir le Club"
+      "clubLink": "Découvrir le Club",
+      "registered": "Tu es inscrit·e",
+      "scrollHint": "Fais défiler pour voir toute la semaine",
+      "weekLabel": "Semaine en cours, du lundi au dimanche"
     },
     "cohorte": {
       "eyebrow": "Mon école",
@@ -436,8 +441,8 @@
       "afterTitle": "Publie ce que tu en retiens au fil.",
       "afterCta": "Aller au fil",
       "chatTitle": "Discussion",
-      "chatEmpty": "Le chat de session n'existe pas encore sur le web. Pose tes questions dans les discussions du Club.",
-      "chatCta": "Ouvrir les discussions",
+      "chatEmpty": "Le chat de session n'existe pas encore sur le web. Pose tes questions dans les messages du Club.",
+      "chatCta": "Ouvrir les messages",
       "notRecorded": "Session non enregistrée pour l’instant : les replays sont en construction."
     },
     "profil": {
@@ -510,8 +515,8 @@
     "journal": {
       "eyebrow": "Pilotage",
       "title": "Journal d'audit",
-      "empty": "Le journal n'est pas encore relevé.",
-      "body": "Chaque action sensible de la console (rôle accordé, quota réinitialisé, suspension) laissera ici une trace datée avec son motif. Rien n'est affiché tant que le journal n'existe pas côté serveur."
+      "empty": "Aucune action journalisée pour l'instant.",
+      "body": "Chaque suppression et chaque changement de rôle fait depuis la console laisse ici une trace datée par le serveur, avec son auteur. Les règles Firestore refusent l'action si sa trace manque."
     },
     "roles": {
       "eyebrow": "Personnes",
@@ -541,12 +546,14 @@
       "allTitle": "Toutes les actions",
       "todayTitle": "Aujourd'hui",
       "notWired": "non branché",
+      "live": "relevé",
+      "loadError": "Le journal n'a pas pu être lu.",
       "export": "Exporter",
-      "exportOff": "Rien à exporter tant que le journal n'existe pas.",
+      "exportOff": "Rien à exporter : le journal est vide.",
       "fActor": "Acteur : tous",
       "fAction": "Action : toutes",
       "fSpace": "Espace : tous",
-      "fPeriod": "Période : 7 jours",
+      "fPeriod": "Période : 200 dernières actions",
       "colWhen": "Quand",
       "colActor": "Acteur",
       "colAction": "Action",

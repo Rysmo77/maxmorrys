@@ -1,4 +1,5 @@
-import { orderBy, where } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, increment, orderBy, where, writeBatch } from 'firebase/firestore';
+import { db } from '../../config/db';
 import { getCollection, getDocById } from './helpers';
 import type { WaitlistEntry } from '../../types';
 
@@ -14,6 +15,10 @@ import type { WaitlistEntry } from '../../types';
  *
  * L'inscription passe donc par le callable `joinWaitlist` (`worker/apps/api`), qui écrit les deux
  * documents dans UNE transaction et envoie l'accusé de réception.
+ *
+ * SEULE EXCEPTION — SE RETIRER (audit UI/UX du 03/11/2026, X12) : `leaveWaitlist` supprime sa
+ * propre entrée ET décrémente le compteur d'un cran, dans un même lot. Les règles n'acceptent
+ * ni l'un sans l'autre, ni un autre champ touché (`quitteListeAttente`, `firestore.rules`).
  * ═══════════════════════════════════════════════════════════════════════════════════════
  */
 
@@ -45,4 +50,33 @@ export async function listWaitlist(formationId: string): Promise<WaitlistEntry[]
     where('formationId', '==', formationId),
     orderBy('createdAt', 'desc'),
   );
+}
+
+/**
+ * Se retirer de la liste d'attente d'une formation. Un seul lot : l'entrée disparaît et
+ * `waitlistCount` descend d'un cran — les règles refusent l'un sans l'autre. Réservé aux
+ * entrées liées à un compte (`{uid}_{formationId}`) ; une inscription anonyme, par adresse
+ * seule, n'a pas d'identité qui puisse la retirer depuis l'app.
+ */
+export async function leaveWaitlist(userId: string, formationId: string): Promise<void> {
+  const entree = doc(db, 'waitlist', waitlistEntryId(userId, formationId));
+  /* La forme d'écriture suit l'état du compteur : formation supprimée, ou compteur absent /
+     à zéro → l'entrée part SEULE (rien à décrémenter, et un décrément serait refusé).
+     Formation illisible (brouillon) → on suppose un compteur, comme avant. */
+  let compteur: number | null = 1;
+  try {
+    const f = await getDoc(doc(db, 'formations', formationId));
+    const n = f.exists() ? f.data().waitlistCount : undefined;
+    compteur = typeof n === 'number' && n > 0 ? n : null;
+  } catch {
+    /* lecture refusée : forme avec décrément */
+  }
+  if (compteur === null) {
+    await deleteDoc(entree);
+    return;
+  }
+  const lot = writeBatch(db);
+  lot.delete(entree);
+  lot.update(doc(db, 'formations', formationId), { waitlistCount: increment(-1) });
+  await lot.commit();
 }

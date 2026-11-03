@@ -33,7 +33,7 @@
     "account": "Mon compte",
     "clubBrand": "Club des Digitos",
     "clubFeed": "Fil",
-    "clubDiscussions": "Discussions",
+    "clubDiscussions": "Messages",
     "clubMembers": "Membres",
     "clubLeaderboard": "Classement",
     "clubOpportunities": "Opportunités",
@@ -79,6 +79,7 @@
     }
   },
   "userMenu": {
+    "open": "Menu du compte de {{name}}",
     "profile": "Mon profil",
     "settings": "Paramètres",
     "lightMode": "Mode clair",
@@ -381,7 +382,7 @@
     "packsTitle": "Packs de questions",
     "packsBody": "Pour aller au-delà du quota du jour",
     "memoryTitle": "Mémoire de {{tutor}}",
-    "memoryBody": "Si tu l'actives, {{tutor}} se souvient de ton métier et de tes missions d'une leçon à l'autre. Tu peux tout effacer à tout moment.",
+    "memoryBody": "Activée par défaut : {{tutor}} se souvient de ton métier et de tes missions d'une leçon à l'autre. Tu peux la désactiver ou tout effacer à tout moment.",
     "memoryOn": "activée",
     "memoryOff": "désactivée",
     "memoryManage": "Gérer",

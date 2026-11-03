@@ -87,6 +87,7 @@
     "messageTooShort": "Le message doit faire au moins 10 caractères",
     "dateRequired": "La date est requise",
     "timeRequired": "L'heure est requise",
+    "phoneRequired": "Le numéro est requis pour un appel par téléphone ou WhatsApp",
     "nameTooShort": "Le nom doit faire au moins 2 caractères"
   },
   "toast": {

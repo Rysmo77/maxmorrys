@@ -207,6 +207,18 @@ const SORTED_BY_DIAL_LENGTH = [...COUNTRY_CODES].sort((a, b) => b.dial.length - 
 
 const DEFAULT_DIAL = '221'; // Senegal
 
+/**
+ * EN TÊTE DE LISTE : le public d'abord (audit du 03/11/2026, M5).
+ *
+ * L'ordre alphabétique ouvrait la liste sur l'Afghanistan (+93) pour un public d'Afrique
+ * francophone. Sénégal, Côte d'Ivoire, Cameroun passent devant, puis un séparateur, puis
+ * le reste — d'où ils sont RETIRÉS : deux `<option>` de même valeur rendent la sélection
+ * ambiguë.
+ */
+const PRIORITY_CODES = ['SN', 'CI', 'CM'] as const;
+const PRIORITY = PRIORITY_CODES.map((code) => COUNTRY_CODES.find((c) => c.code === code)!).filter(Boolean);
+const OTHERS = COUNTRY_CODES.filter((c) => !(PRIORITY_CODES as readonly string[]).includes(c.code));
+
 function parsePhone(value: string): { dial: string; number: string } {
   if (!value) return { dial: DEFAULT_DIAL, number: '' };
 
@@ -249,9 +261,14 @@ interface PhoneInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  /**
+   * Libellé du champ entier (« Téléphone », « WhatsApp »). Il complète le nom de l'indicatif :
+   * deux listes nommées seulement « Indicatif du pays » sur la même page ne se distinguent pas.
+   */
+  label?: string;
 }
 
-export default function PhoneInput({ id, value, onChange, placeholder = '77 123 45 67', className = '' }: PhoneInputProps) {
+export default function PhoneInput({ id, value, onChange, placeholder = '77 123 45 67', className = '', label }: PhoneInputProps) {
   const { t } = useTranslation('ui');
   const parsed = useMemo(() => parsePhone(value), [value]);
   const [dial, setDial] = useState(parsed.dial);
@@ -281,13 +298,19 @@ export default function PhoneInput({ id, value, onChange, placeholder = '77 123 
       {/* L'indicatif porte son propre nom : un `<select>` de 120 px rempli de drapeaux est
           annoncé « liste » et rien d'autre sans lui. */}
       <select
-        aria-label={t('phoneInput.countryLabel')}
+        aria-label={label ? `${t('phoneInput.countryLabel')} · ${label}` : t('phoneInput.countryLabel')}
         value={dial}
         onChange={(e) => handleDialChange(e.target.value)}
         className="flex-shrink-0 w-[120px] px-2 py-2.5 rounded-l-xl border border-r-0 border-[color:var(--line)] bg-[color:var(--fill-2)] text-ink text-sm focus:outline-none focus:border-forme transition-colors appearance-none cursor-pointer"
         style={{ backgroundImage: 'none' }}
       >
-        {COUNTRY_CODES.map((c) => (
+        {PRIORITY.map((c) => (
+          <option key={`${c.code}-${c.dial}`} value={c.dial}>
+            {c.flag} +{c.dial}
+          </option>
+        ))}
+        <option disabled value="">──────</option>
+        {OTHERS.map((c) => (
           <option key={`${c.code}-${c.dial}`} value={c.dial}>
             {c.flag} +{c.dial}
           </option>

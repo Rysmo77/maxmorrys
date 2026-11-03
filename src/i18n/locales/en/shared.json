@@ -1,4 +1,8 @@
 {
+  "untranslated": {
+    "badge": "FR",
+    "aria": "In French — not translated yet"
+  },
   "newsletter": {
     "emailLabel": "Email address",
     "emailPlaceholder": "your@email.com",

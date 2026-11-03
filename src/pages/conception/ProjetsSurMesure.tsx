@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from 'react';
+import { useMemo, useRef, type CSSProperties, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, CheckLine, DocLine, Field, GlassPanel, Icon } from '@ds';
 import SEOHead from '../../components/seo/SEOHead';
@@ -65,6 +65,23 @@ export default function ProjetsSurMesure() {
   const { t } = useTranslation('conception');
   const path = useLocalizedPath();
   const lead = useAgencyEngagement();
+
+  /*
+   * Après un envoi incomplet, les erreurs sont souvent hors champ : le focus va au PREMIER
+   * champ en erreur (audit 03/11/2026, X3). `validate` pose les erreurs de façon synchrone ;
+   * l'image suivante les a déjà rendues en `aria-invalid`.
+   */
+  const formRef = useRef<HTMLFormElement>(null);
+  const submit = (e: FormEvent) => {
+    void lead.handleSubmit(e);
+    requestAnimationFrame(() => {
+      const first = formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]');
+      if (first) {
+        first.focus({ preventScroll: true });
+        first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  };
 
   const build = practices.build;
   const grow = practices.grow;
@@ -189,7 +206,7 @@ export default function ProjetsSurMesure() {
             <Bento padding={18} className="rv mt-5" style={rv(5)}>
               <SiteEyebrow style={{ marginBottom: '9px' }}>{t('sent.recapEyebrow')}</SiteEyebrow>
               <DocLine label={t('sent.recapType')} value={t(`form.projectTypes.${receipt.projectType}`)} />
-              <DocLine label={t('sent.recapEngagement')} value={t('sent.recapEngagementValue')} />
+              <DocLine label={t('sent.recapEngagement')} value={t(`form.engagements.${receipt.budget}`)} />
               <DocLine label={t('sent.recapStatus')} value={t('sent.recapStatusValue')} last />
             </Bento>
 
@@ -298,7 +315,7 @@ export default function ProjetsSurMesure() {
             <SiteEyebrow style={{ margin: 0 }}>{t('form.eyebrow')}</SiteEyebrow>
             <p className="mt-2 mb-4 text-[14.5px] leading-[1.6] text-ink-2">{t('form.lede')}</p>
 
-            <form onSubmit={lead.handleSubmit} noValidate>
+            <form ref={formRef} onSubmit={submit} noValidate>
               {/* Piège à robots — invisible à l'œil, retiré de l'arbre d'accessibilité, et
                   exclu de la charge envoyée. Ce n'est pas un `Field` : un champ que personne
                   ne doit remplir n'a pas d'étiquette à annoncer. */}

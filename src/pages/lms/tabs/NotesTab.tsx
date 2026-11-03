@@ -5,6 +5,7 @@ import { useFormat } from '../../../hooks/useFormat';
 import { openRysmo } from '../../../lib/rysmo/conversation';
 import type { Note } from '../../../lib/firestore';
 import { CardEmpty, EduCard, EduHead, EduPage } from '../../../components/edu/g4/EduParts';
+import SEOHead from '../../../components/seo/SEOHead';
 
 interface NotesTabProps {
   notes: Note[];
@@ -29,8 +30,9 @@ interface NotesTabProps {
  * MES NOTES — maquette `Edu-Notes` (+ `-mobile`), passe 2 lot B.
  *
  * Trois colonnes au bureau : la liste (recherche + compte), la note ouverte (ou le
- * formulaire, à la même place), et le panneau « Cette note ». Sous 1080 px, les colonnes
- * s'empilent : liste, note, panneau.
+ * formulaire, à la même place), et le panneau « Cette note ». Sous 1280 px, les colonnes
+ * s'empilent : liste, note, panneau. ⚠️ 1280 et non 1080 (audit 03/11/2026, W2) : à 1148 px,
+ * barre latérale et deux colonnes de 300 px écrasaient le formulaire dans ~144 px.
  *
  * Écarts assumés à la maquette, faute de producteur : pas d'onglets par thème (une note
  * ne porte pas de thème en base), pas d'horodatage vidéo, ni « Partager au Club », ni
@@ -164,7 +166,7 @@ export default function NotesTab({
       </div>
     </section>
   ) : selected ? (
-    <article className="mm-card wide:min-h-[620px]" style={{ padding: 30 }}>
+    <article className="mm-card [@media(min-width:1280px)]:min-h-[620px]" style={{ padding: 30 }}>
       <div className="mb-[18px] flex flex-wrap items-center gap-2">
         <Tag>{t('notes.privateTag')}</Tag>
         <span className="ml-auto text-[12px] text-ink-3">
@@ -175,7 +177,7 @@ export default function NotesTab({
       <div className="whitespace-pre-wrap text-[16px] leading-[1.7]" style={{ maxWidth: '62ch' }}>{selected.content}</div>
     </article>
   ) : (
-    <section className="mm-card wide:min-h-[620px]" style={{ padding: 30 }}>
+    <section className="mm-card [@media(min-width:1280px)]:min-h-[620px]" style={{ padding: 30 }}>
       <CardEmpty
         icon="comment"
         title={t('notes.emptyTitle')}
@@ -212,6 +214,7 @@ export default function NotesTab({
 
   return (
     <EduPage>
+      <SEOHead title={t('notes.screenTitle')} noIndex />
       <EduHead
         eyebrow={t('notes.eyebrow')}
         title={t('notes.screenTitle')}
@@ -222,7 +225,7 @@ export default function NotesTab({
           </button>
         }
       />
-      <div className="grid grid-cols-1 items-start gap-5 wide:[grid-template-columns:300px_minmax(0,1fr)_300px]">
+      <div className="grid grid-cols-1 items-start gap-5 [@media(min-width:1280px)]:[grid-template-columns:300px_minmax(0,1fr)_300px]">
         {list}
         {center}
         <div className="flex flex-col gap-5">{aside}</div>

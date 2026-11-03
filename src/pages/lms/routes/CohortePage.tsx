@@ -73,11 +73,10 @@ export default function CohortePage() {
             {t('edu.cohorte.liveNone')}
           </b>
           <span className="text-[14px]" style={{ opacity: 0.85 }}>{t('edu.cohorte.liveNoneBody')}</span>
+          {/* « Salle du live » n'a pas de cible tant qu'aucun live n'est programmé — et aucun
+              producteur de live de cohorte n'existe encore. Le bouton reviendra avec la date
+              (audit 03/11/2026, E6) ; seul l'agenda, qui a un contenu, reste proposé. */}
           <div className="mt-[22px] flex flex-wrap gap-[10px]">
-            <LocalizedLink to="/mon-espace/cohorte/live" className="mm-pill is-sm" style={{ background: 'var(--paper-fixed)' }}>
-              {t('edu.cohorte.liveRoom')}
-              <i><Icon name="arrow-up-right" size={15} /></i>
-            </LocalizedLink>
             <LocalizedLink
               to="/mon-espace/agenda"
               className="inline-flex h-10 items-center gap-2 rounded-pill px-4 text-[13px] font-semibold no-underline"

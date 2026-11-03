@@ -8,13 +8,14 @@ import { getPublishedPosts, getPublishedFormations, getPublishedPodcasts, getPub
 import type { BlogPost, Formation, Podcast, Video as VideoType, FAQ } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useEspaceNavigate, useLanguage } from '../../contexts/LanguageContext';
 import { localizedPath } from '../../i18n/routing';
 import { contentPath, type ContentKind } from '../../lib/contentPath';
 import { buildCommands, filterCommands, type AppCommand } from '../../lib/commands';
 import { faqSlug } from '../../lib/faq/slug';
 import { Icon, type IconName } from '@ds';
 import { estAVenir } from '../../types/formationRelease';
+import { espaceCourant, toLogicalPath } from '../../lib/hosts';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -52,6 +53,14 @@ const typeConfig: Record<ResultType, { icon: IconName; labelKey: string; path: s
   faq:       { icon: 'help',         labelKey: 'search.types.faq',       path: '/faq',        color: 'text-ink-2' },
 };
 
+/** Résultats par type : aucun type ne peut en affamer un autre. */
+const PER_TYPE = 4;
+
+/** Minuscules, sans accents : « Vidéo » et « video » sont la même recherche. */
+function norm(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
 let cachedPosts: BlogPost[] | null = null;
 let cachedFormations: Formation[] | null = null;
 let cachedPodcasts: Podcast[] | null = null;
@@ -87,16 +96,20 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   const { theme, setTheme } = useTheme();
   const { language } = useLanguage();
 
-  // Navigation localisée (préfixe /en + segments traduits selon la langue active).
-  const localizedNavigate = useCallback(
-    (to: string) => navigate(localizedPath(to, language)),
-    [navigate, language],
-  );
+  // Navigation localisée ET consciente de l'hôte (edu./club./hub) : un chemin logique comme
+  // `/mon-espace/club/classement` part vers le bon espace (audit C4).
+  const espaceNavigate = useEspaceNavigate();
+  const localizedNavigate = useCallback((to: string) => espaceNavigate(to), [espaceNavigate]);
 
   // Build command palette (memoised; cheap)
   const allCommands = useMemo<AppCommand[]>(
-    () => buildCommands({ user, userData, navigate: localizedNavigate, theme, setTheme, signOut }),
-    [user, userData, localizedNavigate, theme, setTheme, signOut],
+    () => buildCommands({
+      user, userData, navigate: localizedNavigate, theme, setTheme, signOut,
+      // Sur le Club, ses écrans d'abord (audit C4). Relu à l'ouverture : `open` est une dépendance.
+      inClub: espaceCourant() === 'club' || toLogicalPath(window.location.pathname).startsWith('/mon-espace/club'),
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, userData, localizedNavigate, theme, setTheme, signOut, open],
   );
 
   const commandsMode = query.trim().startsWith('>');
@@ -114,7 +127,10 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
       return;
     }
     setRecentSearches(getRecentSearches());
-    setTimeout(() => inputRef.current?.focus(), 100);
+    /* Le focus est donné AU MONTAGE (`autoFocus` + ici, sans délai) : l'ancien
+       `setTimeout(…, 100)` attendait l'animation, et les premières lettres tapées juste
+       après l'ouverture partaient dans le vide (audit 03/11/2026, n°5). */
+    inputRef.current?.focus();
     const allCached = cachedPosts && cachedFormations && cachedPodcasts && cachedVideos && cachedFAQ;
     if (allCached) return;
     setLoading(true);
@@ -144,53 +160,57 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
     debounce((q: string) => {
       const cleaned = q.trim();
       if (!cleaned || cleaned.startsWith('>')) { setResults([]); return; }
-      const lower = cleaned.toLowerCase();
+      /*
+        LA REQUÊTE « formation » NE RENVOYAIT QUE DES FAQ (audit 03/11/2026, n°5).
+        Trois causes, trois corrections :
+          · la casse ET les accents comptent pour une personne, pas pour la recherche :
+            `norm` les retire des deux côtés (« video » trouve « Vidéo ») ;
+          · le titre et l'extrait ne suffisent pas : catégorie et étiquettes comptent ;
+          · taper le NOM d'un type (« formation », « podcast », « article ») liste ce type ;
+        et `slice(0, 10)` sur la liste concaténée laissait un type affamer les suivants :
+        chaque type a désormais son quota.
+      */
+      const lower = norm(cleaned);
+      const hit = (...fields: Array<string | undefined | null | string[]>) =>
+        fields.some((f) => (Array.isArray(f) ? f.some((x) => norm(x).includes(lower)) : !!f && norm(f).includes(lower)));
+      const typeAsked = (type: ResultType) => lower.length >= 3 && norm(t(typeConfig[type].labelKey)).startsWith(lower);
       const r: SearchResult[] = [];
+      const push = (items: SearchResult[]) => r.push(...items.slice(0, PER_TYPE));
 
-      (cachedPosts ?? []).forEach((p) => {
-        if (p.title.toLowerCase().includes(lower) || p.excerpt?.toLowerCase().includes(lower)) {
-          r.push({ type: 'blog', title: p.title, slug: p.slug, slug_en: p.slug_en, excerpt: p.excerpt });
-        }
-      });
-      (cachedFormations ?? []).forEach((f) => {
-        if (f.title.toLowerCase().includes(lower) || f.description?.toLowerCase().includes(lower)) {
-          /* Le résultat dit ce qu'il est. Sans cette mention, une annonce se présente comme
-             une formation disponible, et le clic conduit à une fiche sans bouton d'achat. */
-          r.push({
-            type: 'formation',
-            title: estAVenir(f) ? `${f.title} · ${t('search.comingSoon')}` : f.title,
-            slug: f.slug,
-            slug_en: f.slug_en,
-            excerpt: f.description,
-          });
-        }
-      });
-      (cachedPodcasts ?? []).forEach((p) => {
-        if (p.title.toLowerCase().includes(lower) || p.description?.toLowerCase().includes(lower)) {
-          r.push({ type: 'podcast', title: p.title, slug: p.slug, slug_en: p.slug_en, excerpt: p.description });
-        }
-      });
-      (cachedVideos ?? []).forEach((v) => {
-        if (v.title.toLowerCase().includes(lower) || v.description?.toLowerCase().includes(lower)) {
-          r.push({ type: 'video', title: v.title, slug: v.slug, slug_en: v.slug_en, excerpt: v.description });
-        }
-      });
-      (cachedFAQ ?? []).forEach((f) => {
-        if (f.question.toLowerCase().includes(lower) || f.answer?.toLowerCase().includes(lower)) {
-          /* Le `slug` MANQUAIT, et c'est lui qui décidait de tout : sans lui,
-             `goToResult` retombe sur le chemin d'index de la table ci-dessus.
-             `faqSlug()` dérive le segment des questions qui n'en portent pas —
-             c'est déjà ce que fait `FAQ.tsx` pour ses propres liens. */
-          r.push({ type: 'faq', title: f.question, excerpt: f.answer, slug: faqSlug(f) });
-        }
-      });
+      push((cachedPosts ?? [])
+        .filter((p) => typeAsked('blog') || hit(p.title, p.excerpt, p.category, p.tags))
+        .map((p) => ({ type: 'blog', title: p.title, slug: p.slug, slug_en: p.slug_en, excerpt: p.excerpt })));
+      push((cachedFormations ?? [])
+        .filter((f) => typeAsked('formation') || hit(f.title, f.description, f.category, f.tags))
+        /* Le résultat dit ce qu'il est. Sans cette mention, une annonce se présente comme
+           une formation disponible, et le clic conduit à une fiche sans bouton d'achat. */
+        .map((f) => ({
+          type: 'formation',
+          title: estAVenir(f) ? `${f.title} · ${t('search.comingSoon')}` : f.title,
+          slug: f.slug,
+          slug_en: f.slug_en,
+          excerpt: f.description,
+        })));
+      push((cachedPodcasts ?? [])
+        .filter((p) => typeAsked('podcast') || hit(p.title, p.description, p.category))
+        .map((p) => ({ type: 'podcast', title: p.title, slug: p.slug, slug_en: p.slug_en, excerpt: p.description })));
+      push((cachedVideos ?? [])
+        .filter((v) => typeAsked('video') || hit(v.title, v.description, v.category))
+        .map((v) => ({ type: 'video', title: v.title, slug: v.slug, slug_en: v.slug_en, excerpt: v.description })));
+      /* Le `slug` MANQUAIT, et c'est lui qui décidait de tout : sans lui, `goToResult`
+         retombe sur le chemin d'index de la table ci-dessus. `faqSlug()` dérive le segment
+         des questions qui n'en portent pas — c'est déjà ce que fait `FAQ.tsx`. */
+      push((cachedFAQ ?? [])
+        .filter((f) => typeAsked('faq') || hit(f.question, f.answer))
+        .map((f) => ({ type: 'faq', title: f.question, excerpt: f.answer, slug: faqSlug(f) })));
 
-      setResults(r.slice(0, 10));
+      setResults(r);
     }, 200),
-    [],
+    [t],
   );
 
-  useEffect(() => { search(query); }, [query, search]);
+  // `loading` : une requête tapée AVANT l'arrivée des données est rejouée quand elles arrivent.
+  useEffect(() => { search(query); }, [query, search, loading]);
 
   const goToResult = (result: SearchResult) => {
     if (query.trim()) addRecentSearch(query.trim());
@@ -279,12 +299,13 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
           <Icon name="search" size={20} className="text-ink-2 flex-shrink-0" />
           <input
             ref={inputRef}
+            autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('search.placeholder')}
             className="flex-1 py-4 bg-transparent text-ink text-base focus:outline-none"
           />
-          <button onClick={onClose} className="p-1 text-ink-2 hover:text-ink-2 dark:hover:text-ink-2 flex-shrink-0">
+          <button type="button" onClick={onClose} aria-label={t('search.close')} className="mm-touch-extend p-1 text-ink-2 hover:text-ink flex-shrink-0">
             <Icon name="close" size={20} />
           </button>
         </div>

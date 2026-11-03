@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../config/firebase';
-import { getWaitlistEntry } from '../lib/firestore';
+import { getWaitlistEntry, leaveWaitlist } from '../lib/firestore';
 import { captureError } from '../lib/sentry';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -45,6 +45,11 @@ export interface WaitlistState {
    * être prévenu·e (le serveur déduplique par adresse et plafonne par IP).
    */
   rejoindre: (email?: string) => Promise<'ok' | 'deja' | 'erreur'>;
+  /**
+   * Se retirer de la liste (audit UI/UX du 03/11/2026, X12). Compte connecté seulement : une
+   * inscription anonyme n'a pas d'identité qui puisse la retirer.
+   */
+  quitter: () => Promise<'ok' | 'erreur'>;
 }
 
 export function useWaitlist(
@@ -96,5 +101,21 @@ export function useWaitlist(
     }
   }, [formationId, language, user]);
 
-  return { inscrit, envoi, compte, rejoindre };
+  const quitter = useCallback(async (): Promise<'ok' | 'erreur'> => {
+    if (!formationId || !user) return 'erreur';
+    setEnvoi(true);
+    try {
+      await leaveWaitlist(user.uid, formationId);
+      setInscrit(false);
+      setCompte((n) => Math.max(0, n - 1));
+      return 'ok';
+    } catch (error: unknown) {
+      captureError(error, { context: `leaveWaitlist(${formationId})` });
+      return 'erreur';
+    } finally {
+      setEnvoi(false);
+    }
+  }, [formationId, user]);
+
+  return { inscrit, envoi, compte, rejoindre, quitter };
 }

@@ -1,14 +1,12 @@
-import { useState, useEffect, type CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon, Num, Skeleton } from '@ds';
 import LocalizedLink from '../../../components/shared/LocalizedLink';
 import { useAuth } from '../../../contexts/AuthContext';
-import { tutorName } from '../../../lib/naming';
-import { getGamificationProfile, updateStreak, addXP, syncBadges } from '../../../lib/gamification';
+import { greetingName, tutorName } from '../../../lib/naming';
 import { getLevelFromXP, getXPForNextLevel, XP_REWARDS } from '../../../types/gamification';
-import type { GamificationProfile } from '../../../types/gamification';
-import type { EnrolledFormation } from '../hooks/useStudentData';
-import { estAVenir } from '../../../types/formationRelease';
+import { etatFormation, type EnrolledFormation } from '../hooks/useStudentData';
+import { useGamification } from '../hooks/useGamification';
 import CourseCover from '../../../components/formations/CourseCover';
 import { flattenLessons } from '../../../components/edu/g3/quiz';
 
@@ -56,40 +54,26 @@ export default function DashboardTab({
   displayName, userId, enrolledFormations, loadingEnrollments, avgProgress, completedCount,
 }: DashboardTabProps) {
   const { t, i18n } = useTranslation('lmsTabs');
-  const [gamification, setGamification] = useState<GamificationProfile | null>(null);
   const { userData } = useAuth();
   const tutor = tutorName(userData);
 
-  // La série est mise à jour à l'ouverture de l'écran, et les badges s'y décrochent : c'est le
-  // seul écran qui connaît les quatre compteurs à la fois. Cette logique ne bouge pas.
-  useEffect(() => {
-    if (!userId) return;
-    (async () => {
-      const { currentStreak, isNew } = await updateStreak(userId);
-      if (isNew && currentStreak > 0) {
-        await addXP(userId, XP_REWARDS.dailyStreak);
-      }
-      const stats = enrolledFormations.reduce(
-        (acc, { enrollment }) => ({
-          lessons: acc.lessons + (enrollment.completedLessons?.length ?? 0),
-          certificates: acc.certificates + (enrollment.certificateIssued ? 1 : 0),
-          formations: acc.formations + 1,
-          streak: acc.streak,
-        }),
-        { lessons: 0, certificates: 0, formations: 0, streak: currentStreak },
-      );
-      await syncBadges(userId, stats);
-      setGamification(await getGamificationProfile(userId));
-    })().catch(() => null);
-  }, [userId, enrolledFormations]);
+  /* Le profil de jeu : LU d'abord (même cache que Succès), puis la série et les badges se
+     mettent à jour à l'ouverture de l'écran, une fois les inscriptions connues (E4). */
+  const { profile, loading: loadingGamification } = useGamification(userId, {
+    enrolledFormations,
+    ready: !loadingEnrollments,
+  });
+  const gamification = profile ?? null;
+  /* Tant qu'une lecture est en vol, aucun relevé n'est écrit : pas de « 0/0 », pas de « — XP »
+     provisoire qui se corrige deux secondes plus tard (audit E5). */
+  const loadingStats = loadingEnrollments || loadingGamification;
 
   /* Un relevé porte sa date : l'instant du rendu, donc de la lecture Firestore. */
   const asOf = new Date();
-  const firstName = displayName.split(' ')[0];
+  const firstName = greetingName(userData) || displayName.split(' ')[0];
 
-  /* Une précommande n'est pas « en cours » : aucune leçon à ouvrir. */
-  const ouvrables = enrolledFormations.filter((ef) => !estAVenir(ef.formation) && ef.formation);
-  const enCours = ouvrables.filter((ef) => ef.enrollment.progress < 100);
+  /* « En cours » : la définition partagée (`etatFormation`), celle de Mes formations et de Succès. */
+  const enCours = enrolledFormations.filter((ef) => ef.formation && etatFormation(ef) === 'ongoing');
   const inProgress = enCours.find((ef) => ef.enrollment.progress > 0) ?? enCours[0] ?? null;
 
   /* La prochaine leçon : la première non cochée, dans l'ordre du programme. */
@@ -215,6 +199,15 @@ export default function DashboardTab({
           )}
 
           {/* ── Relevés ── */}
+          {loadingStats ? (
+            <div className="grid grid-cols-2 gap-4 wide:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className={i === 2 ? 'hidden wide:block' : undefined}>
+                  <Skeleton height={i === 2 ? 172 : 104} radius="var(--r-xl)" label={t('dashboard.loadingLabel')} />
+                </div>
+              ))}
+            </div>
+          ) : (
           <div className="grid grid-cols-2 gap-4 wide:grid-cols-3">
             <div className="mm-statcard" style={tint('color-mix(in srgb, var(--mm-teal-f) 14%, transparent)')}>
               <span className="ico" style={{ background: 'var(--mm-teal-f)' }}><Icon name="book" size={20} /></span>
@@ -258,6 +251,7 @@ export default function DashboardTab({
             </div>
             </div>
           </div>
+          )}
 
           {/* ── Reprendre ── */}
           <section className="mm-card">
@@ -265,13 +259,15 @@ export default function DashboardTab({
               <h3 style={{ fontSize: '23px' }}>{t('dashboardV3.resumeTitle')}</h3>
               <LocalizedLink
                 to="/mon-espace/cours"
-                className="ml-auto inline-flex items-center rounded-pill no-underline"
+                className="mm-touch-extend ml-auto inline-flex items-center rounded-pill no-underline"
                 style={{ height: '34px', padding: '0 14px', background: 'var(--surface-band)', font: '600 13px/1 var(--f-body)', color: 'var(--ink-2)' }}
               >
                 {t('dashboardV3.seeAll')}
               </LocalizedLink>
             </div>
-            {enCours.length === 0 ? (
+            {loadingEnrollments ? (
+              <Skeleton height={120} radius="var(--r-l)" label={t('dashboard.loadingLabel')} />
+            ) : enCours.length === 0 ? (
               <p className="m-0 text-ink-2" style={{ fontSize: '14.5px' }}>
                 {enrolledFormations.length === 0 ? t('dashboardV3.resumeEmpty') : t('courses.resumeNone')}
               </p>
@@ -343,7 +339,7 @@ export default function DashboardTab({
           <section className="mm-card">
             <div className="mb-4 flex items-center">
               <h3>{t('dashboardV3.agendaTitle')}</h3>
-              <LocalizedLink to="/mon-espace/agenda" className="mm-more" aria-label={t('dashboardV3.agendaOpen')}>
+              <LocalizedLink to="/mon-espace/agenda" className="mm-more mm-touch-extend" aria-label={t('dashboardV3.agendaOpen')}>
                 <Icon name="calendar" size={15} />
               </LocalizedLink>
             </div>
@@ -361,11 +357,13 @@ export default function DashboardTab({
           <section className="mm-card">
             <div className="flex items-center">
               <h3>{t('dashboardV3.questsTitle')}</h3>
-              <LocalizedLink to="/mon-espace/succes" className="mm-more" aria-label={t('dashboardV3.questsOpen')}>
+              <LocalizedLink to="/mon-espace/succes" className="mm-more mm-touch-extend" aria-label={t('dashboardV3.questsOpen')}>
                 <Icon name="trophy" size={15} />
               </LocalizedLink>
             </div>
-            {quests.length === 0 ? (
+            {loadingStats ? (
+              <div className="mt-4"><Skeleton height={140} radius="var(--r-l)" label={t('dashboard.loadingLabel')} /></div>
+            ) : quests.length === 0 ? (
               <p className="m-0 mt-4 text-ink-2" style={{ fontSize: '14px', lineHeight: 1.5 }}>{t('dashboardV3.questsEmpty')}</p>
             ) : quests.map((q) => {
               const pct = q.goal > 0 ? Math.min(1, Math.max(0, q.value / q.goal)) : 0;

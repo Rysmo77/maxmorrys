@@ -8,7 +8,7 @@
   },
   "mentions": {
     "seoTitle": "Mentions légales",
-    "seoDescription": "Mentions légales de Max-Morrys : éditeur, hébergeur et informations légales du site.",
+    "seoDescription": "Mentions légales de Max-Morrys : l'éditeur MY ONOMA SARL et ses immatriculations, l'hébergeur du site, le traitement des données personnelles, les cookies et la limitation de responsabilité.",
     "title": "Mentions légales",
     "editor": {
       "heading": "Éditeur du site",
@@ -45,7 +45,7 @@
   },
   "privacy": {
     "seoTitle": "Politique de confidentialité",
-    "seoDescription": "Politique de confidentialité et protection des données personnelles de Max-Morrys (RGPD).",
+    "seoDescription": "Politique de confidentialité de Max-Morrys : les données collectées, leurs finalités, leur durée de conservation, les sous-traitants qui les traitent et la manière d'exercer tes droits.",
     "title": "Politique de confidentialité",
     "intro": {
       "heading": "Introduction",
@@ -116,7 +116,7 @@
   },
   "cgv": {
     "seoTitle": "Conditions Générales de Vente",
-    "seoDescription": "Conditions Générales de Vente des formations et services Max-Morrys.",
+    "seoDescription": "Conditions Générales de Vente de Max-Morrys, opérée par MY ONOMA SARL : services proposés, commande et création de compte, prix hors taxes en francs CFA, paiement et propriété intellectuelle.",
     "eyebrow": "Plateforme Max-Morrys",
     "title": "Conditions Générales de Vente",
     "art1": {
@@ -247,7 +247,7 @@
   },
   "cookies": {
     "seoTitle": "Politique de cookies",
-    "seoDescription": "Politique de gestion des cookies et traceurs sur le site Max-Morrys.",
+    "seoDescription": "Politique de cookies de Max-Morrys : ce qu'est un cookie, les catégories déposées sur le site, leur durée de conservation, et comment les accepter, les refuser ou changer d'avis à tout moment.",
     "title": "Politique de cookies",
     "what": {
       "heading": "Qu'est-ce qu'un cookie ?",

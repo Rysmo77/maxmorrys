@@ -7,7 +7,7 @@ import { tutorName } from '../../../lib/naming';
 import type { User } from '../../../types';
 import type { EditTab } from '../hooks/useAdminUsers';
 import { CBtn, HonestEmpty } from './ConsoleParts';
-import { initialsOf } from './consoleUtils';
+import { dateOf, initialsOf } from './consoleUtils';
 
 /**
  * LA FICHE DU COMPTE SÉLECTIONNÉ — colonne de droite de `Console-Comptes`.
@@ -34,6 +34,7 @@ export default function UserPanel({ user, loading, asOf, club, hasClub, onOpenFu
   const { t: te } = useTranslation('admin');
   const k = (s: string, o?: Record<string, unknown>) => te(`p2.accounts.${s}`, o);
   const { formatDate } = useFormat();
+  const created = dateOf(user?.createdAt);
 
   if (loading) {
     return <ConsoleCard as="section"><p className="m-0 text-meta-2 text-ink-2">{t('users.panelLoading')}</p></ConsoleCard>;
@@ -59,7 +60,7 @@ export default function UserPanel({ user, loading, asOf, club, hasClub, onOpenFu
           <b className="block truncate text-[17px]">{name}</b>
           <span className="text-[12.5px] text-ink-3">
             {user.email}
-            {user.createdAt && <> · {k('createdOn')} <Num value={formatDate(user.createdAt)} source="db" asOf={asOf} /></>}
+            {created && <> · {k('createdOn')} <Num value={formatDate(created.toISOString())} source="db" asOf={asOf} /></>}
           </span>
         </div>
       </div>

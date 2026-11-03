@@ -43,6 +43,8 @@ interface NewsletterFormProps {
 export default function NewsletterForm({ variant = 'inline', source = 'footer' }: NewsletterFormProps) {
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
+  /** Le refus s'affiche SOUS la case, pas seulement en notification (audit 03/11/2026, W6). */
+  const [consentError, setConsentError] = useState(false);
   const [loading, setLoading] = useState(false);
   const { addToast } = useToast();
   const { t, i18n } = useTranslation('shared');
@@ -52,7 +54,8 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
     e.preventDefault();
     if (!email.trim()) return;
     if (!consent) {
-      addToast('error', t('newsletter.consentRequired'));
+      setConsentError(true);
+      document.getElementById(consentId)?.focus();
       return;
     }
     setLoading(true);
@@ -104,7 +107,9 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
           id={consentId}
           type="checkbox"
           checked={consent}
-          onChange={(e) => setConsent(e.target.checked)}
+          onChange={(e) => { setConsent(e.target.checked); if (e.target.checked) setConsentError(false); }}
+          aria-invalid={consentError ? true : undefined}
+          aria-describedby={consentError ? `${consentId}-err` : undefined}
           className={`h-4 w-4 shrink-0 rounded border ${
             tone === 'dark'
               ? 'border-white/40 bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] text-forme'
@@ -127,6 +132,15 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
         >
           {t('newsletter.consentPolicyLink')}
         </LocalizedLink>
+        {consentError && (
+          <span
+            id={`${consentId}-err`}
+            role="alert"
+            className={`mt-1 block font-semibold ${tone === 'dark' ? 'text-white' : 'text-[color:var(--stop)]'}`}
+          >
+            {t('newsletter.consentRequired')}
+          </span>
+        )}
       </label>
     </div>
   );

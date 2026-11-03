@@ -2,13 +2,14 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
-  getAllUsers, adminUpdateUser, getUserEnrollments, getAllFormations,
+  getAllUsers, getUserEnrollments, getAllFormations,
   getClubSubscription, updateClubSubscriptionStatus, activateClubSubscription,
 } from '../../../lib/firestore';
 import { queryKeys } from '../../../lib/queryClient';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../config/firebase';
 import type { User, Enrollment, ClubDigitosSubscription } from '../../../types';
+import { auditedMerge } from '../../../lib/admin/auditLog';
 
 const adminManageEnrollment = httpsCallable<
   { action: 'create' | 'delete'; userId: string; formationId: string },
@@ -245,7 +246,13 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
     if (!editUser) return;
     setSaving(true);
     try {
-      await adminUpdateUser(editUser.uid, {
+      /*
+        JOURNALISÉ (audit 03/11/2026, A1) : la fiche et son entrée de journal partent dans le
+        même lot. Un changement de rôle est `users.role` — `firestore.rules` REFUSE un rôle
+        modifié sans cette entrée (`auditRef`) ; le reste est `users.update`.
+      */
+      const roleChanged = editForm.role !== editUser.role;
+      const patch = Object.fromEntries(Object.entries({
         displayName: editForm.displayName.trim() || editUser.displayName,
         firstName: editForm.firstName.trim() || undefined,
         lastName: editForm.lastName.trim() || undefined,
@@ -255,6 +262,14 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
         bio: editForm.bio.trim() || undefined,
         birthDate: editForm.birthDate || undefined,
         role: editForm.role,
+      }).filter(([, v]) => v !== undefined));
+      await auditedMerge('users', editUser.uid, patch, {
+        action: roleChanged ? 'users.role' : 'users.update',
+        targetCollection: 'users',
+        targetId: editUser.uid,
+        summary: roleChanged
+          ? `${editUser.email || editUser.uid} : ${editUser.role} → ${editForm.role}`
+          : editUser.email || editUser.uid,
       });
       queryClient.setQueryData<User[]>(queryKeys.allUsers, (prev) =>
         (prev ?? []).map((u) => u.uid === editUser.uid ? { ...u, ...editForm } : u));

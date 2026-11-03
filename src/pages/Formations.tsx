@@ -178,7 +178,8 @@ export default function Formations() {
                   const lessons = modules.reduce((n, m) => n + (m.lessons?.length ?? 0), 0);
                   const free = modules.reduce((n, m) => n + (m.lessons ?? []).filter((l) => l.isFree).length, 0);
                   const price = formation.promoPrice ?? formation.price;
-                  const href = path(`/formations/${formation.slug}`);
+                  /* Une annonce mène droit à la liste d'attente de sa fiche (audit 03/11/2026, n°8). */
+                  const href = path(`/formations/${formation.slug}${aVenir ? '#liste-attente' : ''}`);
                   return (
                     <article key={formation.id} className="mm-prod">
                       {/* Le titre ne s'écrit qu'UNE fois par carte (audit 29/10/2026, #3) : la

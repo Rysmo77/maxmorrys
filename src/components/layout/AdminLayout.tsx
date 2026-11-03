@@ -6,6 +6,7 @@ import type { BottomNavItem } from './AppBottomNav';
 import { isSupportAllowedPath } from '../../lib/adminAccess';
 import { useConsoleCounts } from '../../lib/admin/consoleCounts';
 import { ADMIN_BOTTOM_NAV, ADMIN_NAV, ADMIN_SECTIONS } from '../../lib/admin/consoleNav';
+import { contentStatus } from '../../lib/admin/contentStatus';
 import { EnvBadge } from '@ds';
 
 /*
@@ -51,8 +52,10 @@ export default function AdminLayout() {
     une information, et c'est le seul relevé qui vaut sans condition.
   */
   const { counts } = useConsoleCounts();
-  const drafts = counts ? counts.articles - counts.publishedPosts : 0;
-  const unpublished = counts ? counts.formations - counts.publishedFormations : 0;
+  // Statuts réels, calcul partagé avec Analytics et le tableau de bord (audit 03/11/2026, X14).
+  const status = counts ? contentStatus(counts) : null;
+  const drafts = status ? status.articles.notPublished : 0;
+  const unpublished = status ? status.formations.draft : 0;
 
   const badges: Record<string, string | null> = counts
     ? {
@@ -94,6 +97,9 @@ export default function AdminLayout() {
     : {};
 
   const items: AppSidebarItem[] = ADMIN_NAV
+    // Un écran sans producteur (`pending`) reste atteignable par son adresse, mais ne
+    // s'annonce pas dans le menu (audit 03/11/2026, X17 — Quotas Rysmo vide).
+    .filter((item) => !item.pending)
     .filter((item) => isAdmin || isSupportAllowedPath(item.to))
     .map(({ to, labelKey, icon, end, tone }) => ({
       to, label: t(labelKey), icon, end, tone, badge: badges[to] ?? null,

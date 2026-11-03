@@ -40,8 +40,12 @@ function resolveVideoEmbed(url: string): { type: 'iframe' | 'native'; src: strin
   // `autoplay=1` N'EST PAS un démarrage automatique : l'iframe n'existe pas tant que « Lancer
   // ici » n'a pas été pressé. Sans lui, la porte coûterait deux clics — un pour la franchir,
   // un pour lancer — et la deuxième pression serait payée en octets déjà chargés.
-  if (ytMatch) return { type: 'iframe', src: `https://www.youtube.com/embed/${ytMatch[1]}?rel=0&autoplay=1`, source: 'youtube' };
-  if (url.includes('youtube.com/embed')) return { type: 'iframe', src: url, source: 'youtube' };
+  // Mode confidentialité renforcée (audit 03/11/2026, X2) : `youtube-nocookie.com` ne pose
+  // aucun cookie avant la lecture. Le domaine est déclaré dans `frame-src` (`firebase.json`).
+  if (ytMatch) return { type: 'iframe', src: `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?rel=0&autoplay=1`, source: 'youtube' };
+  if (url.includes('youtube.com/embed')) {
+    return { type: 'iframe', src: url.replace(/^https?:\/\/(www\.)?youtube\.com\/embed/, 'https://www.youtube-nocookie.com/embed'), source: 'youtube' };
+  }
   if (url.includes('player.vimeo.com') || url.includes('vimeo.com/video')) return { type: 'iframe', src: url, source: 'vimeo' };
   return { type: 'native', src: url, source: 'file' };
 }
@@ -416,7 +420,8 @@ export default function VideoDetail() {
                 lancer la vidéo — c'est souvent tout ce qu'on cherche ». Le type `Video` n'en
                 porte pas. On le dit plutôt que d'en fabriquer.
               */}
-              <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('detail.transcriptMissing')}</p>
+              {/* Le panneau « Chapitres » parlait de transcription (audit 03/11/2026, X2). */}
+              <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('detail.chaptersMissing')}</p>
             </GlassPanel>
           </aside>
         </div>

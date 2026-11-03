@@ -5,10 +5,11 @@ import { ConsoleFilter, ConsoleList, ConsoleScope, ConsoleCard, ConsoleStatus } 
 import ConsoleSheet from './ConsoleSheet';
 import { SiteEyebrow } from '../../../components/site';
 import { useFormat } from '../../../hooks/useFormat';
-import { getClubChallenges, saveClubChallenge, deleteClubChallenge } from '../../../lib/firestore';
+import { getClubChallenges, saveClubChallenge } from '../../../lib/firestore';
 import { captureError } from '../../../lib/sentry';
 import type { ClubDigitosChallenge } from '../../../types';
 import ConsoleListSkeleton from './ConsoleListSkeleton';
+import { auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * ── DÉFIS — le seul des neuf onglets dont le kit dicte la file ──────────────────────
@@ -82,7 +83,7 @@ export default function ClubChallengesTab() {
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteClubChallenge(id);
+      await auditedDelete('club_challenges', id, { space: 'club' });
       setChallenges((prev) => prev.filter((c) => c.id !== id));
       setShowForm(false);
       addToast('success', t('challenges.deleted'));

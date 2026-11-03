@@ -260,11 +260,12 @@ export default function Contact() {
                     </button>
                   ))}
                 </div>
+                {booking.errors.time && <p className="m-0 mt-1 text-[12.5px] text-[color:var(--stop)]">{booking.errors.time}</p>}
                 <p className="m-0 mt-3 text-[13px] text-ink-2">{t('site.booking.tz')}</p>
               </div>
               <form className="flex flex-col gap-[10px]" onSubmit={booking.handleSubmit} noValidate>
                 <KitInput id="rdv-name" label={t('site.booking.name')} value={booking.form.name} onChange={(v) => booking.update('name', v)} error={booking.errors.name} autoComplete="name" required />
-                <KitInput id="rdv-phone" label={t('site.booking.phone')} type="tel" inputMode="tel" value={booking.form.phone} onChange={(v) => booking.update('phone', v)} autoComplete="tel" />
+                <KitInput id="rdv-phone" label={t('site.booking.phone')} type="tel" inputMode="tel" value={booking.form.phone} onChange={(v) => booking.update('phone', v)} error={booking.errors.phone} autoComplete="tel" required={format === 'phone' || format === 'whatsapp'} />
                 <KitInput id="rdv-email" label={t('site.booking.email')} type="email" inputMode="email" value={booking.form.email} onChange={(v) => booking.update('email', v)} error={booking.errors.email} autoComplete="email" required />
                 <KitInput id="rdv-topic" label={t('site.booking.topic')} value={topic} onChange={setTopic} />
                 <div className="mm-seg self-start" role="group" aria-label={t('site.booking.formatLabel')}>

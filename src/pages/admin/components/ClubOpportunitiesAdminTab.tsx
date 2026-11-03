@@ -5,10 +5,11 @@ import { ConsoleList, ConsoleScope, ConsoleCard, ConsoleStatus } from '../../../
 import ConsoleSheet from './ConsoleSheet';
 import { ConfirmDialog } from '@/components/dialogs';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
-import { getClubOpportunities, deleteClubOpportunity } from '../../../lib/firestore';
+import { getClubOpportunities } from '../../../lib/firestore';
 import { useFormat } from '../../../hooks/useFormat';
 import type { ClubOpportunity } from '../../../types';
 import ConsoleListSkeleton from './ConsoleListSkeleton';
+import { auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * ── OPPORTUNITÉS — motif de console ─────────────────────────────────────────────────
@@ -56,7 +57,7 @@ export default function ClubOpportunitiesAdminTab() {
   const handleDelete = (item: ClubOpportunity) => {
     confirm.requestConfirm(t('opportunities.deleteConfirm', { title: item.title }), async () => {
       try {
-        await deleteClubOpportunity(item.id);
+        await auditedDelete('club_opportunities', item.id, { space: 'club' });
         setItems((prev) => prev.filter((x) => x.id !== item.id));
         setOpenId(null);
         addToast('success', t('opportunities.deleted'));

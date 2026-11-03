@@ -146,6 +146,8 @@
     "latestEyebrow": "Podcast · dernier épisode",
     "audioUnsupported": "Ton navigateur ne lit pas ce fichier audio.",
     "download": "Télécharger",
+    "listenOn": "Écouter sur {{platform}}",
+    "listenOnPlatform": "Écouter sur la plateforme",
     "listen": "Écouter : {{title}}",
     "episodesTitle": "Tous les épisodes",
     "episodesTitleShort": "Épisodes",
@@ -170,6 +172,7 @@
     "gateOpenYoutube": "Ouvrir sur YouTube",
     "gateOpenSource": "Ouvrir chez l'hébergeur",
     "transcriptMissing": "La transcription n'est pas encore produite pour cet épisode. Quand elle le sera, elle se lira sans charger l'audio — c'est souvent tout ce qu'on cherche.",
+    "chaptersMissing": "Les chapitres de cette vidéo ne sont pas encore découpés. Quand ils le seront, ils se liront ici sans lancer la vidéo — c'est souvent tout ce qu'on cherche.",
     "nextTitle": [
       "À écouter ensuite"
     ],

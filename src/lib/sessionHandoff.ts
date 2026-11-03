@@ -20,10 +20,28 @@
  * connecté. Un clic de transfert ne fait que transmettre la session COURANTE ; une personne
  * déconnectée ici suit un lien simple.
  */
-import { signInWithCustomToken } from 'firebase/auth';
+import { onAuthStateChanged, signInWithCustomToken, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { captureError } from './sentry';
-import { estAutreEspace } from './hosts';
+import { espaceCourant, estAutreEspace } from './hosts';
+import { effacerPartage, ecrirePartage, lirePartage } from './sharedStore';
+import {
+  CLE_DEBUT_SESSION,
+  CLE_DECONNEXION,
+  CLE_DERNIERE_CONNEXION,
+  CLE_ESPACES_CONNECTES,
+  CLE_MARQUE_RELAIS,
+  DUREE_INDICATION_S,
+  analyserEspaces,
+  espaceRelais,
+  lireDemandeRelais,
+  lireHorodatage,
+  noterEspace,
+  relaisApresDeconnexion,
+  relaisPermis,
+  sessionPerimee,
+  urlDemandeRelais,
+} from './sessionRelais';
 
 const API = (import.meta.env.VITE_FUNCTIONS_ORIGIN || 'https://api.maxmorrys.me').replace(/\/$/, '');
 
@@ -41,7 +59,12 @@ export function demarrerReceptionTransfert(): void {
   if (typeof window === 'undefined') return;
   const fragment = window.location.hash.slice(1);
   const m = PARAM.exec(fragment);
-  if (!m) return;
+  if (!m) {
+    // Pas de code : seulement fermer une session antérieure à une déconnexion volontaire,
+    // avant que l'état ne soit publié (sinon elle s'afficherait un instant).
+    reception = fermerSiPerimee();
+    return;
+  }
   const code = m[2];
   const reste = fragment.replace(PARAM, '').replace(/^&/, '');
   const { pathname, search } = window.location;
@@ -56,10 +79,15 @@ export function demarrerReceptionTransfert(): void {
       });
       if (!reponse.ok) return; // code expiré ou déjà servi : on arrive anonyme, sans plus
       const { token } = (await reponse.json()) as { token?: unknown };
-      if (typeof token === 'string') await signInWithCustomToken(auth, token);
+      if (typeof token === 'string') {
+        // Noté AVANT : l'écouteur d'état est appelé pendant la connexion elle-même.
+        noterConnexionFraiche();
+        await signInWithCustomToken(auth, token);
+      }
     } catch (error: unknown) {
       captureError(error, { context: 'Session transfer redeem failed' });
     }
+    await fermerSiPerimee();
   })();
 }
 
@@ -121,4 +149,160 @@ export function installerTransfertAuClic(): () => void {
   };
   document.addEventListener('click', onClick, true);
   return () => document.removeEventListener('click', onClick, true);
+}
+
+/* ── LE RELAIS : arriver connecté·e SANS avoir cliqué (adresse tapée, favori, nouvel onglet).
+   La mécanique et sa sécurité sont décrites dans `lib/sessionRelais.ts`. ─────────────────── */
+
+function ecrireIndication(valeur: string | null): void {
+  if (valeur) ecrirePartage(CLE_ESPACES_CONNECTES, valeur, 'durable', DUREE_INDICATION_S);
+  else effacerPartage(CLE_ESPACES_CONNECTES);
+}
+
+function noterIci(connecte: boolean): void {
+  ecrireIndication(noterEspace(lirePartage(CLE_ESPACES_CONNECTES), espaceCourant(), connecte));
+}
+
+function lireLocal(cle: string): string | null {
+  try {
+    return localStorage.getItem(cle);
+  } catch {
+    return null;
+  }
+}
+
+/** Une connexion vient de s'ouvrir ICI : début de session local, dernière connexion commune. */
+function noterConnexionFraiche(): void {
+  const maintenant = String(Date.now());
+  try {
+    localStorage.setItem(CLE_DEBUT_SESSION, maintenant);
+  } catch {
+    // Sans début noté, la session sera réputée ancienne après une prochaine déconnexion.
+  }
+  ecrirePartage(CLE_DERNIERE_CONNEXION, maintenant, 'durable', DUREE_INDICATION_S);
+}
+
+/** La session locale date-t-elle d'avant la dernière déconnexion volontaire ? */
+function sessionLocalePerimee(): boolean {
+  return sessionPerimee(
+    lireHorodatage(lireLocal(CLE_DEBUT_SESSION)),
+    lireHorodatage(lirePartage(CLE_DECONNEXION)),
+  );
+}
+
+/** Ferme la session locale si elle est antérieure à une déconnexion volontaire. */
+async function fermerSiPerimee(): Promise<void> {
+  try {
+    await auth.authStateReady();
+    if (auth.currentUser && sessionLocalePerimee()) {
+      noterIci(false);
+      await firebaseSignOut(auth);
+    }
+  } catch (error: unknown) {
+    captureError(error, { context: 'Stale session sign-out failed' });
+  }
+}
+
+/**
+ * Note, dans le cookie commun, si l'espace courant a une session — le nom de l'espace, rien
+ * d'autre. Le premier appel décrit la session RESTAURÉE ; un passage ensuite d'anonyme à
+ * connecté·e est une connexion fraîche (formulaire, Google, transfert).
+ */
+export function suivreSessionLocale(): () => void {
+  let premier = true;
+  let precedent = false;
+  return onAuthStateChanged(auth, (user) => {
+    if (user && !premier && !precedent) noterConnexionFraiche();
+    premier = false;
+    precedent = !!user;
+    noterIci(!!user && !sessionLocalePerimee());
+  });
+}
+
+/**
+ * Déconnexion volontaire : la marque horodatée ferme, à leur prochain chargement, les sessions
+ * des autres espaces ouvertes avant elle, et bloque le relais jusqu'à une connexion fraîche.
+ */
+export function oublierSessionsNotees(): void {
+  ecrireIndication(null);
+  ecrirePartage(CLE_DECONNEXION, String(Date.now()), 'durable', DUREE_INDICATION_S);
+}
+
+let relaisLance = false;
+
+/**
+ * Appelée par une garde qui ne trouve personne. Si un autre espace est noté connecté et
+ * qu'aucun relais n'a été tenté récemment dans cet onglet, part le solliciter et rend `true`
+ * (la garde affiche alors son attente au lieu de `/connexion`). Idempotente pendant la vie de
+ * la page : le double rendu de `StrictMode` ne doit pas renvoyer vers `/connexion` pendant
+ * que la navigation part.
+ */
+export function tenterRelais(): boolean {
+  if (relaisLance) return true;
+  if (typeof window === 'undefined') return false;
+  const cible = espaceRelais(espaceCourant(), analyserEspaces(lirePartage(CLE_ESPACES_CONNECTES)));
+  if (!cible) return false;
+  if (!relaisApresDeconnexion(
+    lireHorodatage(lirePartage(CLE_DERNIERE_CONNEXION)),
+    lireHorodatage(lirePartage(CLE_DECONNEXION)),
+  )) return false;
+  try {
+    const maintenant = Date.now();
+    if (!relaisPermis(sessionStorage.getItem(CLE_MARQUE_RELAIS), maintenant)) return false;
+    sessionStorage.setItem(CLE_MARQUE_RELAIS, String(maintenant));
+    // Sans marque relue, rien n'empêcherait une boucle : pas de relais.
+    if (sessionStorage.getItem(CLE_MARQUE_RELAIS) !== String(maintenant)) return false;
+  } catch {
+    return false;
+  }
+  relaisLance = true;
+  window.location.replace(urlDemandeRelais(cible, window.location.origin, window.location.href));
+  return true;
+}
+
+/**
+ * Côté espace sollicité, AVANT le premier rendu. Rend `true` s'il s'agit d'une demande de
+ * relais valide : l'application ne se rend pas, la page renvoie vers l'adresse demandée —
+ * avec un code de session si quelqu'un est connecté ici, sans sinon.
+ */
+export function traiterDemandeRelais(): boolean {
+  if (typeof window === 'undefined') return false;
+  const demande = lireDemandeRelais(window.location.hash.slice(1), window.location.origin);
+  if (!demande) return false;
+  const { pathname, search } = window.location;
+  window.history.replaceState(window.history.state, '', `${pathname}${search}${demande.reste ? `#${demande.reste}` : ''}`);
+  const retour = demande.retour;
+  if (!retour) return false;
+
+  void (async () => {
+    let connu = false;
+    try {
+      connu = await Promise.race([
+        auth.authStateReady().then(() => true),
+        new Promise<boolean>((r) => setTimeout(() => r(false), 8000)),
+      ]);
+    } catch (error: unknown) {
+      captureError(error, { context: 'Session relay auth wait failed' });
+    }
+    // État inconnu (délai dépassé) : on rend la main SANS s'effacer — on est peut-être connecté.
+    if (!connu) {
+      window.location.replace(retour);
+      return;
+    }
+    if (auth.currentUser && !sessionLocalePerimee()) {
+      await allerVers(retour, true);
+      return;
+    }
+    // Personne, ou une session antérieure à une déconnexion volontaire : elle ne répond pas.
+    noterIci(false);
+    if (auth.currentUser) {
+      try {
+        await firebaseSignOut(auth);
+      } catch (error: unknown) {
+        captureError(error, { context: 'Stale session sign-out failed' });
+      }
+    }
+    window.location.replace(retour);
+  })();
+  return true;
 }

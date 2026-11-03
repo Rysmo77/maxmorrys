@@ -157,7 +157,7 @@ export default function AdminRevenue() {
             {bilan.lignes.length === 0 ? (
               <ConsoleCard padding="18px">
                 <EmptyState
-                  glyph="card"
+                  glyph={<Icon name="card" size={26} />}
                   title={t('revenue.emptyTitle')}
                   body={t('revenue.emptyBody')}
                 />
@@ -200,7 +200,7 @@ export default function AdminRevenue() {
       {!loading && !bilan && (
         <ConsoleCard padding="18px" className="rv mt-4" style={{ ['--i' as string]: 2 }}>
           <EmptyState
-            glyph="warning"
+            glyph={<Icon name="alert" size={26} />}
             title={t('revenue.failedTitle')}
             body={t('revenue.failedBody')}
             action={

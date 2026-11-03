@@ -30,15 +30,41 @@ interface CommandContext {
   setTheme: (t: 'light' | 'dark') => void;
   signOut: () => Promise<void>;
   lastEnrollment?: Enrollment | null;
+  /** La palette est ouverte sur le Club (hôte `club.` ou `/mon-espace/club/…`). */
+  inClub?: boolean;
+}
+
+/**
+ * LES ÉCRANS DU CLUB (audit UI/UX du 03/11/2026, C4) : sur le Club, « classement » répondait
+ * « Aucun résultat » pendant que la palette proposait les notes et les succès d'Edu. Chemins
+ * canoniques FR (`lib/club/tabs.ts`) ; le préfixe de langue est posé par l'appelant.
+ */
+function clubCommands(navigate: CommandNavigate): AppCommand[] {
+  const base = '/mon-espace/club';
+  return [
+    { id: 'club-feed',          label: 'Club · Fil',            icon: 'list',     kind: 'navigation', keywords: 'club fil feed publications accueil', run: () => navigate(`${base}/fil`) },
+    { id: 'club-messages',      label: 'Club · Messages',       icon: 'chat',     kind: 'navigation', keywords: 'club messages discussions conversations prives', run: () => navigate(`${base}/discussions`) },
+    { id: 'club-agenda',        label: 'Club · Agenda',         icon: 'calendar', kind: 'navigation', keywords: 'club agenda sessions evenements ateliers live', run: () => navigate(`${base}/agenda`) },
+    { id: 'club-live',          label: 'Club · Session en direct', icon: 'video', kind: 'navigation', keywords: 'club live direct session', run: () => navigate(`${base}/live`) },
+    { id: 'club-members',       label: 'Club · Membres',        icon: 'users',    kind: 'navigation', keywords: 'club membres annuaire members', run: () => navigate(`${base}/membres`) },
+    { id: 'club-leaderboard',   label: 'Club · Classement',     icon: 'trophy',   kind: 'navigation', keywords: 'club classement leaderboard xp', run: () => navigate(`${base}/classement`) },
+    { id: 'club-opportunities', label: 'Club · Opportunités',   icon: 'case',     kind: 'navigation', keywords: 'club opportunites missions emplois stages', run: () => navigate(`${base}/opportunites`) },
+    { id: 'club-challenges',    label: 'Club · Défis',          icon: 'target',   kind: 'navigation', keywords: 'club defis challenges', run: () => navigate(`${base}/defis`) },
+    { id: 'club-infos',         label: 'Club · Infos',          icon: 'bell',     kind: 'navigation', keywords: 'club infos actualites exclusives', run: () => navigate(`${base}/infos`) },
+    { id: 'club-referral',      label: 'Club · Parrainage',     icon: 'gift',     kind: 'navigation', keywords: 'club parrainage parrainer referral filleul', run: () => navigate(`${base}/parrainage`) },
+  ];
 }
 
 export function buildCommands(ctx: CommandContext): AppCommand[] {
-  const { user, userData, navigate, theme, setTheme, signOut, lastEnrollment } = ctx;
+  const { user, userData, navigate, theme, setTheme, signOut, lastEnrollment, inClub = false } = ctx;
   const isLogged = !!user;
   const role = userData?.role;
   const isStaff = role === 'admin' || role === 'support';
 
   const cmds: AppCommand[] = [];
+
+  // Sur le Club, ses écrans passent devant ceux d'Edu (les 5 suggestions par défaut).
+  if (isLogged && inClub) cmds.push(...clubCommands(navigate));
 
   if (isLogged) {
     cmds.push(
@@ -51,6 +77,7 @@ export function buildCommands(ctx: CommandContext): AppCommand[] {
       { id: 'go-profile',      label: 'Mon profil',                icon: 'user',           kind: 'navigation', keywords: 'profil avatar bio', run: () => navigate('/mon-espace/profil') },
       { id: 'go-settings',     label: 'Paramètres',                icon: 'settings',       kind: 'navigation', keywords: 'reglages parametres preferences', run: () => navigate('/mon-espace/parametres') },
     );
+    if (!inClub) cmds.push(...clubCommands(navigate));
 
     if (lastEnrollment) {
       cmds.push({

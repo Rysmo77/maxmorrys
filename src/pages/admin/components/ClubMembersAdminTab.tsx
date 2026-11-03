@@ -5,10 +5,11 @@ import { ConsoleFilter, ConsoleList, ConsoleScope, ConsoleStatus } from '../../.
 import ConsoleSheet from './ConsoleSheet';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { ConfirmDialog } from '@/components/dialogs';
-import { getAllClubProfiles, adminUpdateClubProfile, deleteClubProfile } from '../../../lib/firestore';
+import { getAllClubProfiles, adminUpdateClubProfile } from '../../../lib/firestore';
 import { captureError } from '../../../lib/sentry';
 import type { ClubMemberProfile } from '../../../types';
 import ConsoleListSkeleton from './ConsoleListSkeleton';
+import { auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * ── PROFILS MEMBRES — motif de console ──────────────────────────────────────────────
@@ -79,7 +80,7 @@ export default function ClubMembersAdminTab() {
   const handleDelete = (p: ClubMemberProfile) => {
     confirm.requestConfirm(t('members.deleteConfirm', { name: p.displayName }), async () => {
       try {
-        await deleteClubProfile(p.userId);
+        await auditedDelete('club_profiles', p.userId, { space: 'club' });
         setProfiles((prev) => prev.filter((x) => x.id !== p.id));
         setOpenId(null);
         addToast('success', t('members.deleted'));

@@ -111,6 +111,7 @@
     "change": "modifier"
   },
   "packs": {
+    "undecided": { "name": "Je ne sais pas encore" },
     "title": "Trois packs. Les prix sont affichés.",
     "subtitle": "Un paiement unique pour tout installer. Hors publicité, nom de domaine et abonnements tiers.",
     "priceLabel": "Mise en place",
@@ -171,6 +172,8 @@
     ]
   },
   "plans": {
+    "aucun": { "name": "Aucun pour l'instant" },
+    "undecided": { "name": "Je ne sais pas encore" },
     "title": "L'accompagnement mensuel",
     "subtitle": "C'est ce qui fait la différence sur la durée. Un site laissé à l'abandon six mois disparaît des résultats.",
     "setupLabel": "Mise en place",
@@ -380,6 +383,8 @@
     "planSection": "Accompagnement mensuel — décision séparée",
     "monthly": "par mois",
     "upfrontTotal": "Dû à la signature · mise en place, TTC",
+    "amountTbd": "Montant à définir après échange",
+    "amountTbdNote": "On choisit ton pack ensemble : le montant dû à la signature s'affiche ensuite ici.",
     "htLine": "Total hors taxes",
     "vatLine": "TVA {{rate}} %",
     "deposit": "60% à la commande",

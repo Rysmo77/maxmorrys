@@ -97,7 +97,9 @@ export default function PresenceDigitale() {
   const packOptions = useMemo(
     () => [
       { value: 'undecided', label: t('form.undecided') },
-      ...PACK_KEYS.map((k) => ({ value: k, label: t(`packs.${k}.name`) })),
+      // `PACK_KEYS` porte aussi `undecided`, déjà posé en tête : le remapper affichait
+      // l'option deux fois, dont une sous sa clé brute (audit 03/11/2026, n°2).
+      ...PACK_KEYS.filter((k) => k !== 'undecided').map((k) => ({ value: k, label: t(`packs.${k}.name`) })),
     ],
     [t],
   );
@@ -105,7 +107,7 @@ export default function PresenceDigitale() {
     () => [
       { value: 'undecided', label: t('form.undecided') },
       { value: 'aucun', label: t('form.noPlan') },
-      ...PLAN_KEYS.map((k) => ({ value: k, label: t(`plans.${k}.name`) })),
+      ...PLAN_KEYS.filter((k) => k !== 'undecided' && k !== 'aucun').map((k) => ({ value: k, label: t(`plans.${k}.name`) })),
     ],
     [t],
   );
@@ -184,7 +186,9 @@ export default function PresenceDigitale() {
                 {promo && (
                   <span className="mm-n text-[13px] line-through opacity-60">
                     <span className="sr-only">{t('v3.packs.strike')} : </span>
-                    <Num value={pack.price} source="db" asOf={CATALOGUE_REVISED_AT} unit="FCFA" />
+                    {/* « HT » sur l'ancien prix aussi : 295 000 tout court se lisait comme le TTC
+                        de la promo à 250 000 HT (audit 03/11/2026, n°12 ; CGV art. 5.1 en HT). */}
+                    <Num value={pack.price} source="db" asOf={CATALOGUE_REVISED_AT} unit={t('v3.packs.ht')} />
                   </span>
                 )}
                 {/* LE PRIX TIENT SUR UNE LIGNE (audit 29/10/2026 : « HT » orphelin à 40 px fixes

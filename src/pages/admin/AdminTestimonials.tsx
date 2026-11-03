@@ -9,9 +9,10 @@ import { ConfirmDialog } from '@/components/dialogs';
 import ImageInput from '@/components/forms/ImageInput';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
-import { getAllTestimonials, saveTestimonial, deleteTestimonial } from '../../lib/firestore';
+import { getAllTestimonials, saveTestimonial } from '../../lib/firestore';
 import type { Testimonial } from '../../types';
 import { captureError } from '../../lib/sentry';
+import { auditedDelete } from '../../lib/admin/auditLog';
 
 /**
  * ── TÉMOIGNAGES — motif de console ──────────────────────────────────────────────────
@@ -142,7 +143,7 @@ export default function AdminTestimonials() {
   const handleDelete = (id: string) => {
     confirm.requestConfirm(tr('testimonials.confirmDeleteMessage'), async () => {
       try {
-        await deleteTestimonial(id).catch(() => addToast('error', tr('testimonials.toastDeleteError')));
+        await auditedDelete('testimonials', id, { space: 'edu' }).catch(() => addToast('error', tr('testimonials.toastDeleteError')));
         setTestimonials((prev) => prev.filter((t) => t.id !== id));
         setModalOpen(false);
         addToast('success', tr('testimonials.toastDeleted'));

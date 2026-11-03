@@ -4,11 +4,12 @@ import type { TagTone } from '@ds';
 import { Button, DocLine, EmptyState, Field, Icon, LessonRow, Num, Skeleton, useToast } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
-import { getAllAgencyLeads, updateAgencyLeadStatus, updateAgencyLeadNotes, deleteAgencyLead } from '../../lib/firestore';
+import { getAllAgencyLeads, updateAgencyLeadStatus, updateAgencyLeadNotes } from '../../lib/firestore';
 import { computeTotals, PIPELINE_STAGES } from '../../lib/presence/offer';
 import { exportToCsv } from '../../lib/utils';
 import { useFormat } from '../../hooks/useFormat';
 import type { AgencyLead, AgencyLeadStatus } from '../../types';
+import { auditedDelete } from '../../lib/admin/auditLog';
 
 /**
  * L'ÉCRAN `ProspectsOps` DU KIT — le cycle de vente Présence Digitale.
@@ -111,7 +112,7 @@ export default function AdminAgencyLeads() {
     if (!window.confirm(t('agencyLeads.confirmDelete'))) return;
     setUpdating(id);
     try {
-      await deleteAgencyLead(id);
+      await auditedDelete('agency_leads', id, { space: 'conception' });
       setLeads((prev) => prev.filter((l) => l.id !== id));
       setOpenLead((prev) => (prev === id ? null : prev));
       addToast('success', t('agencyLeads.toastDeleted'));
