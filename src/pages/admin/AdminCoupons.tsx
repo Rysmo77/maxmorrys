@@ -13,7 +13,7 @@ import { getAllCoupons, saveCoupon } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
 import type { Coupon } from '../../types';
 import { captureError } from '../../lib/sentry';
-import { auditedDelete } from '../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../lib/admin/auditLog';
 
 const EMPTY: Omit<Coupon, 'id'> = {
   code: '', type: 'percentage', value: 10, maxUses: 100,
@@ -81,7 +81,11 @@ export default function AdminCoupons() {
     if (!form.code.trim()) return;
     setSaving(true);
     try {
-      await saveCoupon({ ...form, code: form.code.toUpperCase().trim(), id: editing?.id });
+      const code = form.code.toUpperCase().trim();
+      await audited(
+        (id) => ({ action: editing ? 'coupons.update' : 'coupons.create', targetCollection: 'coupons', targetId: id, summary: code }),
+        () => saveCoupon({ ...form, code, id: editing?.id }),
+      );
       addToast('success', editing ? t('coupons.toasts.updated') : t('coupons.toasts.created'));
       setModalOpen(false);
       load();

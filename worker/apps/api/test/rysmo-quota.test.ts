@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { Firestore } from '@mm/firestore-rest';
 
-import { QUOTAS_HERITES, SUBSCRIPTION_QUOTAS, resolveQuotaLimits } from '../src/lib/rysmo-quota';
+import { BASE_DAILY_QUOTA, QUOTAS_HERITES, SUBSCRIPTION_QUOTAS, reserveRequest, resolveQuotaLimits, todayKey } from '../src/lib/rysmo-quota';
 
 /**
  * Le quota d'un abonné est un CONTRAT. Ce fichier tient la seule chose qui compte à son
@@ -113,5 +113,62 @@ describe('la table gelée', () => {
 
   it('n’est pas le même objet que le tarif du jour', () => {
     expect(QUOTAS_HERITES).not.toBe(SUBSCRIPTION_QUOTAS);
+  });
+});
+
+/**
+ * W3 (audit 03/11/2026) : le quota du jour se perd à minuit, le pack non. On consomme donc
+ * d'abord ce qui se perd — un acheteur de pack ne paie plus une question qui lui était offerte.
+ */
+describe('reserveRequest — le quota du jour avant le pack', () => {
+  function fauxCompteur(compteur: Record<string, unknown> | null, abonnements: Array<Record<string, unknown>> = []) {
+    const ecrit: Array<Record<string, unknown>> = [];
+    const db = {
+      query: vi.fn(async () => abonnements.map((data, i) => ({ path: `rysmoSubscriptions/s${i}`, id: `s${i}`, data }))),
+      get: vi.fn(async (chemin: string) =>
+        chemin.startsWith('_ratelimits/') && compteur ? { path: chemin, id: 'r', data: compteur } : null),
+      runTransaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn({
+        get: db.get,
+        set: (_c: string, data: Record<string, unknown>) => { ecrit.push(data); },
+      })),
+    };
+    return { db: db as unknown as Firestore, ecrit };
+  }
+
+  it('consomme une gratuite du jour même quand un pack est disponible', async () => {
+    const { db, ecrit } = fauxCompteur({ dayKey: todayKey(), dayCount: 0, packBalance: 10 });
+    const r = await reserveRequest(db, 'u');
+    expect(r.source).toBe('free');
+    expect(r.dayCount).toBe(1);
+    expect(r.packBalance).toBe(10);
+    expect(ecrit[0]).toMatchObject({ dayCount: 1, packBalance: 10 });
+  });
+
+  it('ne touche au pack qu’une fois le quota du jour épuisé', async () => {
+    const { db } = fauxCompteur({ dayKey: todayKey(), dayCount: BASE_DAILY_QUOTA, packBalance: 10 });
+    const r = await reserveRequest(db, 'u');
+    expect(r.source).toBe('pack');
+    expect(r.dayCount).toBe(BASE_DAILY_QUOTA);
+    expect(r.packBalance).toBe(9);
+  });
+
+  it('un abonné consomme son abonnement avant son pack', async () => {
+    const { db } = fauxCompteur({ dayKey: todayKey(), dayCount: 5, packBalance: 3 }, [{ ...ACTIF, dailyQuota: 100 }]);
+    const r = await reserveRequest(db, 'u');
+    expect(r.source).toBe('subscription');
+    expect(r.packBalance).toBe(3);
+  });
+
+  it('un nouveau jour remet le quota à zéro sans toucher au pack', async () => {
+    const { db } = fauxCompteur({ dayKey: '2020-01-01', dayCount: BASE_DAILY_QUOTA, packBalance: 4 });
+    const r = await reserveRequest(db, 'u');
+    expect(r.source).toBe('free');
+    expect(r.dayCount).toBe(1);
+    expect(r.packBalance).toBe(4);
+  });
+
+  it('refuse quand le jour et le pack sont tous deux épuisés', async () => {
+    const { db } = fauxCompteur({ dayKey: todayKey(), dayCount: BASE_DAILY_QUOTA, packBalance: 0 });
+    await expect(reserveRequest(db, 'u')).rejects.toMatchObject({ code: 'resource-exhausted' });
   });
 });

@@ -12,7 +12,7 @@ import { getAllFAQ, saveFAQItem } from '../../lib/firestore';
 import { faqSlug, hasAuthoredSlug } from '../../lib/faq/slug';
 import type { FAQ } from '../../types';
 import { captureError } from '../../lib/sentry';
-import { auditedDelete } from '../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../lib/admin/auditLog';
 
 const EMPTY: Omit<FAQ, 'id'> = { question: '', answer: '', category: '', order: 0, slug: '' };
 
@@ -85,7 +85,10 @@ export default function AdminFAQ() {
     if (!form.question.trim() || !form.answer.trim()) return;
     setSaving(true);
     try {
-      await saveFAQItem({ ...form, id: editing?.id });
+      await audited(
+        (id) => ({ action: editing ? 'faq.update' : 'faq.create', targetCollection: 'faq', targetId: id, space: 'hub', summary: form.question }),
+        () => saveFAQItem({ ...form, id: editing?.id }),
+      );
       addToast('success', editing ? t('faq.toasts.updated') : t('faq.toasts.created'));
       setModalOpen(false);
       load();

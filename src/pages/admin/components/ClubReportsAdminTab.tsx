@@ -10,7 +10,7 @@ import { useFormat } from '../../../hooks/useFormat';
 import { captureError } from '../../../lib/sentry';
 import type { DmReport } from '../../../types';
 import ConsoleListSkeleton from './ConsoleListSkeleton';
-import { auditedDelete } from '../../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * ── SIGNALEMENTS — le constat bloquant du lot, et sa correction ─────────────────────
@@ -70,7 +70,10 @@ export default function ClubReportsAdminTab() {
   const resolve = async (r: DmReport) => {
     setReports((prev) => prev.map((x) => x.id === r.id ? { ...x, status: 'resolved' } : x));
     setOpenId(null);
-    try { await updateDmReportStatus(r.id, 'resolved'); addToast('success', t('reports.resolved')); }
+    try {
+      await audited({ action: 'dm_reports.resolve', targetCollection: 'dm_reports', targetId: r.id, space: 'club' }, () => updateDmReportStatus(r.id, 'resolved'));
+      addToast('success', t('reports.resolved'));
+    }
     catch { addToast('error', t('common.genericError')); }
   };
 
@@ -90,7 +93,7 @@ export default function ClubReportsAdminTab() {
     confirm.requestConfirm(t('reports.deleteMessageConfirm'), async () => {
       try {
         await auditedDelete(`conversations/${r.convId}/messages`, r.messageId, { name: 'dm_messages', space: 'club', summary: `conversation ${r.convId}`, skipIfMissing: true });
-        await updateDmReportStatus(r.id, 'resolved').catch(() => null);
+        await audited({ action: 'dm_reports.resolve', targetCollection: 'dm_reports', targetId: r.id, space: 'club' }, () => updateDmReportStatus(r.id, 'resolved')).catch(() => null);
         setReports((prev) => prev.map((x) => x.id === r.id ? { ...x, status: 'resolved' } : x));
         setOpenId(null);
         addToast('success', t('reports.messageDeleted'));

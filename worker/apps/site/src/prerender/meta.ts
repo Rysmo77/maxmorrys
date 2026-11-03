@@ -202,11 +202,22 @@ export function buildSeoBody(meta: PageMeta): string {
     .filter(Boolean)
     .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
     .join('\n      ');
+  const links = meta.links?.length
+    ? `<ul>
+        ${meta.links
+          .map(
+            ({ label, href }) =>
+              `<li><a href="${escapeHtml(href)}" rel="noopener noreferrer">${escapeHtml(label)}</a></li>`,
+          )
+          .join('\n        ')}
+      </ul>`
+    : '';
 
   // C'est ce div que voient les robots ; React hydrate #root et le remplace.
   return `<div data-prerendered-seo="true">
       ${h1}
       ${paragraphs}
+      ${links}
       ${buildSeoNav(meta)}
     </div>`;
 }

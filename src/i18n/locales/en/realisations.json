@@ -17,6 +17,7 @@
     "filterAll": "All · {{count}}",
     "gridAria": "Client projects",
     "cardAria": "See the {{name}} project",
+    "siteAria": "Open the {{name}} website, {{domain}} (new tab)",
     "shotAlt": "Screenshot of the {{name}} home page",
     "more_one": "See the other one",
     "more_other": "See the other {{count}}",

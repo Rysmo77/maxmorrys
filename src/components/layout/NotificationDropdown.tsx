@@ -25,12 +25,13 @@ type TFn = (key: string, opts?: Record<string, unknown>) => string;
  *
  * `worker/apps/api/src/lib/reengagement.ts` écrit le titre et le texte EN DUR, dans la langue
  * de `users/{uid}.preferences.language` — pas dans celle de l'interface (la langue suit
- * l'URL). Quelqu'un en français lisait donc « Your 4-day streak is still alive ». Tant que la
- * notification ne porte pas de clé de modèle, l'écran reconnaît ces deux modèles connus (dans
- * leurs deux langues) et les réécrit ; tout autre texte passe tel quel. ⚠️ Miroir : un modèle
- * reformulé côté Worker cesse d'être reconnu ici et retombe sur son texte brut.
+ * l'URL). Quelqu'un en français lisait donc « Your 4-day streak is still alive ».
+ *
+ * Depuis le 03/11/2026 le Worker pose une clé de modèle (`template` + `params`) : c'est elle
+ * qui fait foi. La reconnaissance du TEXTE ne reste qu'en repli, pour les notifications écrites
+ * avant la clé. ⚠️ Miroir : les `id` ci-dessous valent `ModeleRelance` côté Worker.
  */
-const TEMPLATES: { id: string; match: (n: AppNotification) => RegExpMatchArray | null; render: (m: RegExpMatchArray, t: TFn) => { title: string; message: string } }[] = [
+const TEMPLATES: { id: string; match: (n: AppNotification) => RegExpMatchArray | null; render: (m: readonly string[], t: TFn) => { title: string; message: string } }[] = [
   {
     id: 'streak',
     match: (n) => n.title.match(/^Your (\d+)-day streak is still alive$/) ?? n.title.match(/^Ta série de (\d+) jours tient encore$/),
@@ -50,7 +51,21 @@ const TEMPLATES: { id: string; match: (n: AppNotification) => RegExpMatchArray |
   },
 ];
 
+/** Rendu d'après la clé de modèle posée par le Worker ; `null` si clé absente ou incomplète. */
+function parCle(n: AppNotification, t: TFn): { title: string; message: string; template: string } | null {
+  const p = n.params ?? {};
+  if (n.template === 'streak' && typeof p.count === 'number' && Number.isFinite(p.count)) {
+    return { ...TEMPLATES[0].render(['', String(p.count)], t), template: 'streak' };
+  }
+  if (n.template === 'resume' && typeof p.title === 'string' && p.title) {
+    return { ...TEMPLATES[1].render(['', p.title], t), template: 'resume' };
+  }
+  return null;
+}
+
 function localise(n: AppNotification, t: TFn): { title: string; message: string; template: string | null } {
+  const cle = n.type === 'system' ? parCle(n, t) : null;
+  if (cle) return cle;
   if (n.type === 'system' && typeof n.title === 'string' && typeof n.message === 'string') {
     for (const tpl of TEMPLATES) {
       const m = tpl.match(n);

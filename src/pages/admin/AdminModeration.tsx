@@ -12,7 +12,7 @@ import {
   CBtn, ConsoleGrid, ConsoleScreen, ConsoleTabs, ConsoleToolbar, HonestEmpty,
 } from './components/ConsoleParts';
 import { ageOf, initialsOf, spaceLabels, type SpaceFilterValue } from './components/consoleUtils';
-import { auditedDelete } from '../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../lib/admin/auditLog';
 
 /**
  * CLUB · MODÉRATION — maquette `Console-Moderation` (+ `-mobile`), passe 2, lot D.
@@ -74,14 +74,17 @@ export default function AdminModeration() {
 
   const resolve = async (r: DmReport) => {
     setReports((prev) => prev.map((x) => (x.id === r.id ? { ...x, status: 'resolved' } : x)));
-    try { await updateDmReportStatus(r.id, 'resolved'); addToast('success', k('resolved')); }
+    try {
+      await audited({ action: 'dm_reports.resolve', targetCollection: 'dm_reports', targetId: r.id, space: 'club' }, () => updateDmReportStatus(r.id, 'resolved'));
+      addToast('success', k('resolved'));
+    }
     catch { addToast('error', k('genericError')); }
   };
   const hideMessage = (r: DmReport) => {
     confirm.requestConfirm(k('deleteMessageConfirm'), async () => {
       try {
         await auditedDelete(`conversations/${r.convId}/messages`, r.messageId, { name: 'dm_messages', space: 'club', summary: `conversation ${r.convId}`, skipIfMissing: true });
-        await updateDmReportStatus(r.id, 'resolved').catch(() => null);
+        await audited({ action: 'dm_reports.resolve', targetCollection: 'dm_reports', targetId: r.id, space: 'club' }, () => updateDmReportStatus(r.id, 'resolved')).catch(() => null);
         setReports((prev) => prev.map((x) => (x.id === r.id ? { ...x, status: 'resolved' } : x)));
         addToast('success', k('messageDeleted'));
       } catch (error: unknown) {

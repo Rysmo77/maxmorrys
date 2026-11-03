@@ -166,22 +166,39 @@ export default function Realisations() {
                 !tout && i >= MOBILE_VISIBLES ? 'hidden stack:block' : '',
               ].join(' ')}
             >
-              <a
-                href={path(`/conception/realisations/${project.slug}`)}
-                aria-label={t('index.cardAria', { name: project.name })}
-                className="mm-bento flex h-full flex-col gap-[10px] !rounded-xl p-[14px] text-ink no-underline"
-              >
-                <Capture url={project.website} alt={t('index.shotAlt', { name: project.name })} tone={TONES[i % TONES.length]} />
-                <span className="flex items-center justify-between gap-[10px] px-[6px] py-1">
-                  <span>
-                    <b className="block font-display text-[24px] font-black leading-none">{project.name}</b>
-                    <span className="mt-1 block text-[13.5px] text-ink-2">{ts(`realisations.categories.${categoryKey(project.category)}`)}</span>
+              {/*
+                La carte mène à la fiche ; le site livré s'ouvre aussi d'ici (audit 03/11/2026,
+                n°7). Deux liens frères, pas imbriqués : un `<a>` dans un `<a>` est invalide.
+                L'adresse vient de `clients.ts`, que `proof:check --links` vérifie chaque semaine.
+              */}
+              <div className="flex h-full flex-col gap-2">
+                <a
+                  href={path(`/conception/realisations/${project.slug}`)}
+                  aria-label={t('index.cardAria', { name: project.name })}
+                  className="mm-bento flex flex-1 flex-col gap-[10px] !rounded-xl p-[14px] text-ink no-underline"
+                >
+                  <Capture url={project.website} alt={t('index.shotAlt', { name: project.name })} tone={TONES[i % TONES.length]} />
+                  <span className="flex items-center justify-between gap-[10px] px-[6px] py-1">
+                    <span>
+                      <b className="block font-display text-[24px] font-black leading-none">{project.name}</b>
+                      <span className="mt-1 block text-[13.5px] text-ink-2">{ts(`realisations.categories.${categoryKey(project.category)}`)}</span>
+                    </span>
+                    <span className="mm-iconbtn h-10 w-10 flex-none" aria-hidden="true">
+                      <Icon name="arrow-up-right" size={16} />
+                    </span>
                   </span>
-                  <span className="mm-iconbtn h-10 w-10 flex-none" aria-hidden="true">
-                    <Icon name="arrow-up-right" size={16} />
-                  </span>
-                </span>
-              </a>
+                </a>
+                <a
+                  href={project.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={t('index.siteAria', { name: project.name, domain: project.domain })}
+                  className="inline-flex items-center gap-[6px] self-start px-[6px] text-meta font-bold text-corail-txt"
+                >
+                  {project.domain}
+                  <Icon name="arrow-up-right" size={14} />
+                </a>
+              </div>
             </li>
           ))}
         </ul>

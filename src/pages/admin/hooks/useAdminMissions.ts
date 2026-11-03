@@ -7,7 +7,7 @@ import {
   getMissionStats,
 } from '../../../lib/firestore';
 import type { EngagementLead, EngagementLeadStatus } from '../../../types';
-import { auditedDelete } from '../../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * LES TROIS ÉTAPES DU KIT SUR SIX STATUTS RÉELS.
@@ -66,7 +66,10 @@ export function useAdminMissions() {
   const handleStatus = useCallback(async (id: string, status: EngagementLeadStatus) => {
     setUpdating(id);
     try {
-      await updateEngagementLeadStatus(id, status);
+      await audited(
+        { action: 'engagement_leads.status', targetCollection: 'engagement_leads', targetId: id, space: 'conception', summary: `Statut : ${status}` },
+        () => updateEngagementLeadStatus(id, status),
+      );
       setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
       addToast('success', t('missions.toastUpdated'));
     } catch {
@@ -84,7 +87,10 @@ export function useAdminMissions() {
     if (draft === current) return;
     setSavingNote(id);
     try {
-      await updateEngagementLeadNotes(id, draft);
+      await audited(
+        { action: 'engagement_leads.notes', targetCollection: 'engagement_leads', targetId: id, space: 'conception' },
+        () => updateEngagementLeadNotes(id, draft),
+      );
       setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, notes: draft } : l)));
     } catch {
       addToast('error', t('missions.toastUpdateError'));

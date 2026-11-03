@@ -48,6 +48,11 @@ export interface Realisation {
   name: string;
   /** Secteur, stocké en français dans la source. */
   category: string;
+  /**
+   * Adresse du site livré, recopiée de la source (audit 03/11/2026, n°7). Elle n'entre ici
+   * que parce que `proof:check --links` l'interroge chaque semaine dans `clients.ts`.
+   */
+  website: string;
   /** Domaine affiché, sans protocole. */
   domain: string;
   /** Rôle réellement tenu — absent quand le dépôt ne l'établit pas. */
@@ -62,6 +67,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'amour-divin',
     name: 'Amour Divin',
     category: 'Consumer Product',
+    website: 'https://amourdivin.app',
     domain: 'amourdivin.app',
     capabilities: [
       'productStrategy',
@@ -86,6 +92,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'khanouss',
     name: 'Khanouss',
     category: 'E-commerce',
+    website: 'https://khanouss.shop/',
     domain: 'khanouss.shop',
     capabilities: ['engineering'],
     stack: ['React', 'Vite', 'TypeScript', 'Tailwind CSS', 'Supabase', 'Framer Motion', 'Zustand', 'React Router'],
@@ -94,6 +101,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'loma',
     name: 'Loma',
     category: 'E-commerce',
+    website: 'https://loma-plateforme.web.app/',
     domain: 'loma-plateforme.web.app',
     capabilities: ['engineering', 'securityRules'],
     stack: ['React', 'Vite', 'TypeScript', 'Tailwind CSS', 'Firebase', 'Zustand', 'React Router'],
@@ -102,6 +110,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'holycash',
     name: 'HolyCash',
     category: 'Fintech',
+    website: 'https://holycash.net/',
     domain: 'holycash.net',
     capabilities: ['engineering', 'securityRules'],
     stack: ['React', 'Vite', 'TypeScript', 'Tailwind CSS', 'Firebase', 'Framer Motion', 'TanStack Query', 'React Router'],
@@ -110,6 +119,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'english-lab',
     name: 'English Lab',
     category: 'Éducation',
+    website: 'https://yessienglish.com/',
     domain: 'yessienglish.com',
     capabilities: ['engineering'],
     stack: ['React', 'Vite', 'TypeScript', 'Tailwind CSS', 'Firebase', 'React Router'],
@@ -118,6 +128,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'klio-pro',
     name: 'Klio Pro',
     category: 'Éducation',
+    website: 'https://kliopro.com/',
     domain: 'kliopro.com',
     capabilities: ['engineering', 'securityRules', 'platformArchitecture'],
     stack: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Firebase', 'Firebase Admin', 'Resend', 'Recharts'],
@@ -126,6 +137,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'resho-konnexion',
     name: 'ResHo Konnexion',
     category: 'Communauté',
+    website: 'https://resho.vasesdhonneursenegal.com/',
     domain: 'resho.vasesdhonneursenegal.com',
     capabilities: ['engineering', 'securityRules'],
     stack: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Firebase', 'Firebase Admin'],
@@ -134,6 +146,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'lauraverse',
     name: 'LauraVerse',
     category: 'Média',
+    website: 'https://lauraverse.blog/',
     domain: 'lauraverse.blog',
     capabilities: ['engineering', 'securityRules', 'platformArchitecture'],
     stack: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Firebase', 'Firebase Admin'],
@@ -142,6 +155,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'in-senegal',
     name: 'IN Sénégal 2026',
     category: 'Événementiel',
+    website: 'https://insenegal.web.app/',
     domain: 'insenegal.web.app',
     capabilities: ['engineering'],
     stack: ['HTML', 'CSS', 'JavaScript', 'Firebase Hosting'],
@@ -150,6 +164,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'chez-mon-cardio',
     name: 'Chez Mon Cardio',
     category: 'Santé',
+    website: 'https://chezmoncardio.com/',
     domain: 'chezmoncardio.com',
     capabilities: ['engineering', 'platformArchitecture', 'designSystem', 'seo'],
     stack: ['React', 'React Router', 'Vite', 'TypeScript', 'Hono', 'Cloudflare Workers', 'Cloudflare D1', 'Cloudflare R2', 'Expo', 'React Native'],
@@ -158,6 +173,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'vh-senegal',
     name: "Vases d'Honneur Sénégal",
     category: 'Communauté',
+    website: 'https://vasesdhonneursenegal.com/',
     domain: 'vasesdhonneursenegal.com',
     capabilities: ['engineering', 'platformArchitecture', 'seo'],
     stack: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Cloudflare Workers', 'Cloudflare D1', 'Cloudflare R2', 'Drizzle ORM', 'Hono'],
@@ -166,6 +182,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'fkw-consulting',
     name: 'FredKevWil Consulting',
     category: 'Conseil',
+    website: 'https://fkw-site.rysmo.workers.dev/',
     domain: 'fkw-site.rysmo.workers.dev',
     capabilities: ['engineering', 'platformArchitecture', 'seo'],
     stack: ['Astro', 'Preact', 'TypeScript', 'Cloudflare Workers', 'Cloudflare D1', 'Pagefind'],
@@ -174,6 +191,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'concepcoe',
     name: 'Concepcoe',
     category: 'Ingénierie',
+    website: 'https://concepcoe.com/',
     domain: 'concepcoe.com',
     capabilities: ['engineering', 'securityRules', 'platformArchitecture', 'seo'],
     stack: ['React', 'Vite', 'TypeScript', 'Tailwind CSS', 'Firebase', 'TipTap', 'Cloudflare Workers', 'Cloudflare R2'],
@@ -182,6 +200,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'resic',
     name: 'RESIC',
     category: 'Communauté',
+    website: 'https://resic.africa/',
     domain: 'resic.africa',
     capabilities: ['engineering', 'platformArchitecture', 'designSystem', 'aiAutomation'],
     stack: ['React', 'React Router', 'Vite', 'TypeScript', 'Hono', 'Drizzle ORM', 'Cloudflare Workers', 'Cloudflare D1', 'Workers AI', 'Expo', 'React Native'],
@@ -190,6 +209,7 @@ export const REALISATIONS: readonly Realisation[] = [
     slug: 'africa-coop-tech',
     name: 'Africa Coop Tech',
     category: 'Conseil',
+    website: 'https://cooptech.africa/',
     domain: 'cooptech.africa',
     capabilities: ['engineering', 'platformArchitecture', 'seo'],
     stack: ['React', 'React Router', 'Vite', 'TypeScript', 'Cloudflare Workers', 'Cloudflare D1'],
@@ -304,6 +324,9 @@ export function getRealisationMeta(slug: string, lang: 'fr' | 'en'): PageMeta | 
       { name: 'Réalisations', url: `${SITE_URL}/conception/realisations` },
       { name: project.name, url: frUrl },
     ],
+    // Le lien est le geste principal de la fiche, à l'écran comme ici : le domaine était
+    // nommé sans pouvoir s'ouvrir (audit 03/11/2026, n°7).
+    links: [{ label: project.domain, href: project.website }],
     lang,
     altFr: frUrl,
     altEn: enUrl,

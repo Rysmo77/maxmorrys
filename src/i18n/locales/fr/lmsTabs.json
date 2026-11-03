@@ -366,7 +366,7 @@
     "clubBonus": "Bonus Club Digitos",
     "free": "Gratuit",
     "packsTitle": "Packs à la demande",
-    "packsSubtitle": "Achète un pack quand tu en as besoin. Pas d'abonnement, pas d'expiration. Les requêtes du pack sont consommées en priorité.",
+    "packsSubtitle": "Achète un pack quand tu en as besoin. Pas d'abonnement, pas d'expiration. Le pack ne sert qu'une fois ton quota du jour épuisé.",
     "requests": "{{count}} requêtes",
     "buyPack": "Acheter ce pack",
     "subscriptionTitle": "Abonnement Rysmo+",
@@ -416,7 +416,7 @@
     "requestsLabel": "requêtes",
     "perDayLabel": "requêtes par jour",
     "packBalanceLabel": "Réserve de packs",
-    "packBalanceFoot": "Elle ne se périme pas, et elle est consommée en premier.",
+    "packBalanceFoot": "Elle ne se périme pas, et ne sert qu'une fois le quota du jour épuisé.",
     "loadingLabel": "Chargement de ton quota",
     "resetNote": "Le quota du jour se réarme à minuit. Un pack acheté ne se périme pas.",
     "screenTitle": "Quota et packs"

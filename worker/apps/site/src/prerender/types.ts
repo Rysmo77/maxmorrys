@@ -32,6 +32,15 @@ export interface PageMeta {
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
   h1?: string;
   bodyText?: string;
+  /**
+   * Liens sortants à rendre sous le corps, tels quels (audit 03/11/2026, n°7).
+   *
+   * `bodyText` est échappé paragraphe par paragraphe : il ne peut porter aucun lien. Les
+   * réalisations nommaient leur domaine en toutes lettres sans qu'on puisse l'ouvrir. Une
+   * entrée n'a sa place ici que si son adresse est VÉRIFIÉE — pour les sites clients,
+   * `proof:check --links` les interroge chaque semaine.
+   */
+  links?: ReadonlyArray<{ label: string; href: string }>;
   publishedAt?: string;
   modifiedAt?: string;
   noIndex?: boolean;

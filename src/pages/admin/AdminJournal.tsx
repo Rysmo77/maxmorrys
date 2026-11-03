@@ -18,6 +18,9 @@ import { SPACE_TONE, spaceLabels, type SpaceFilterValue } from './components/con
  * rendent append-only (ni modification, ni effacement) et refusent une suppression ou un
  * changement de rôle sans son entrée : ce que la table montre n'a pas pu être retouché
  * depuis la console.
+ * Les AUTRES écritures de la console (créations, enregistrements, statuts, publications,
+ * relances de courrier…) y entrent aussi, par `audited()` : tracées juste après l'écriture
+ * réussie, sans que la règle l'exige — voir l'en-tête de `audited` pour la limite assumée.
  *
  * Les filtres acteur / action / période restent inactifs : la lecture rend les 200 dernières
  * actions, et le filtre d'espace de la barre suffit à ce volume. L'export produit un CSV.

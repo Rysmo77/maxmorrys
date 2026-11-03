@@ -17,6 +17,7 @@
     "filterAll": "Tout · {{count}}",
     "gridAria": "Réalisations clientes",
     "cardAria": "Voir la fiche de {{name}}",
+    "siteAria": "Ouvrir le site de {{name}}, {{domain}} (nouvel onglet)",
     "shotAlt": "Capture de la page d'accueil de {{name}}",
     "more_one": "Voir l'autre",
     "more_other": "Voir les {{count}} autres",

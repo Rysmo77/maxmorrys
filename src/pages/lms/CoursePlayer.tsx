@@ -520,7 +520,7 @@ export default function CoursePlayer() {
                     className="grid flex-none place-items-center rounded-pill"
                     style={{
                       width: '24px', height: '24px',
-                      background: done ? 'var(--mm-teal-f)' : active ? 'var(--mm-bleu-f)' : 'var(--paper-2)',
+                      background: done ? 'var(--mm-teal-f)' : active ? 'var(--mm-bleu-f)' : 'var(--surface-band)',
                       color: done || active ? 'var(--paper-fixed)' : 'var(--ink-3)',
                     }}
                   >
@@ -557,7 +557,7 @@ export default function CoursePlayer() {
  */
 function Frame({ children, back }: { children: ReactNode; back?: { href: string; label: string } }) {
   return (
-    <div className="relative min-h-screen bg-[color:var(--paper)] px-[18px] pb-16 pt-4 wide:px-8">
+    <div className="relative min-h-screen bg-[color:var(--surface-sheet)] px-[18px] pb-16 pt-4 wide:px-8">
       <DsNavHost className="relative mx-auto w-full max-w-[1360px]">
         {back && (
           <div className="mb-1 flex h-12 items-center">

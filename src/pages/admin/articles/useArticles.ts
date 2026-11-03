@@ -11,7 +11,7 @@ import { captureError } from '../../../lib/sentry';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { usePagination } from '../../../hooks/usePagination';
 import type { BlogPost } from '../../../types';
-import { auditedDelete } from '../../../lib/admin/auditLog';
+import { audited, auditedDelete, saveVerb } from '../../../lib/admin/auditLog';
 
 /**
  * L'ÉTAT DE L'ÉCRAN ÉDITORIAL, SORTI DU RENDU.
@@ -193,7 +193,11 @@ export function useArticles() {
         noIndex: form.noIndex,
         canonicalUrl: form.canonicalUrl.trim(),
       } as Omit<BlogPost, 'id'>;
-      const savedId = await savePost(postData, editingId ?? undefined);
+      const before = editingId ? posts.find((p) => p.id === editingId)?.status : undefined;
+      const savedId = await audited(
+        (id) => ({ action: `blog.${saveVerb(!!editingId, before, status)}`, targetCollection: 'blog', targetId: id, space: 'hub', summary: postData.title }),
+        () => savePost(postData, editingId ?? undefined),
+      );
       addToast('success', editingId ? t('articles.toastUpdated') : t('articles.toastCreated'));
 
       /*
@@ -204,7 +208,10 @@ export function useArticles() {
       */
       if (status === 'published' && savedId) {
         try {
-          const { data: envoi } = await notifyOnPublish({ kind: 'article', id: savedId });
+          const { data: envoi } = await audited(
+            (res) => ({ action: 'blog.notify', targetCollection: 'blog', targetId: savedId, space: 'hub', summary: res.data.alreadyNotified ? 'déjà notifié' : `${res.data.notified} abonné(s) notifié(s)` }),
+            () => notifyOnPublish({ kind: 'article', id: savedId }),
+          );
           if (envoi.notified > 0) {
             addToast('success', t('articles.toastNotified', { count: envoi.notified }));
           }
@@ -222,7 +229,7 @@ export function useArticles() {
     } finally {
       setSaving(false);
     }
-  }, [addToast, editingId, form, load, t]);
+  }, [addToast, editingId, form, load, posts, t]);
 
   const doDelete = useCallback(async (id: string) => {
     try {

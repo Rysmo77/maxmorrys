@@ -366,7 +366,7 @@
     "clubBonus": "Club Digitos bonus",
     "free": "Free",
     "packsTitle": "On-demand packs",
-    "packsSubtitle": "Buy a pack whenever you need it. No subscription, no expiration. Pack requests are used first.",
+    "packsSubtitle": "Buy a pack whenever you need it. No subscription, no expiration. Pack requests are only used once your daily quota is spent.",
     "requests": "{{count}} requests",
     "buyPack": "Buy this pack",
     "subscriptionTitle": "Rysmo+ subscription",
@@ -416,7 +416,7 @@
     "requestsLabel": "requests",
     "perDayLabel": "requests per day",
     "packBalanceLabel": "Pack reserve",
-    "packBalanceFoot": "It never expires, and it is spent first.",
+    "packBalanceFoot": "It never expires, and is only spent once the daily quota runs out.",
     "loadingLabel": "Loading your quota",
     "resetNote": "The daily quota resets at midnight. A pack you bought never expires.",
     "screenTitle": "Quota and packs"

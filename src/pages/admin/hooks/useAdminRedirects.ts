@@ -11,7 +11,7 @@ import {
 import { findConflicts } from './redirectConflicts';
 import type { Redirect, RedirectKind } from '../../../types';
 import { captureError } from '../../../lib/sentry';
-import { auditedDelete } from '../../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../../lib/admin/auditLog';
 
 export interface RedirectFormState {
   kind: RedirectKind;
@@ -105,15 +105,19 @@ export function useAdminRedirects() {
 
     setSaving(true);
     try {
-      await saveRedirect({
-        id: editing?.id,
-        source,
-        target: normalizeTarget(form.target),
-        code: form.code,
-        kind: form.kind,
-        active: form.active,
-        label: form.label,
-      });
+      const target = normalizeTarget(form.target);
+      await audited(
+        (id) => ({ action: editing ? 'redirects.update' : 'redirects.create', targetCollection: 'redirects', targetId: id, summary: `${source} → ${target} (${form.code})` }),
+        () => saveRedirect({
+          id: editing?.id,
+          source,
+          target,
+          code: form.code,
+          kind: form.kind,
+          active: form.active,
+          label: form.label,
+        }),
+      );
       addToast('success', editing ? t('redirects.toasts.updated') : t('redirects.toasts.created'));
       setModalOpen(false);
       load();
@@ -137,7 +141,10 @@ export function useAdminRedirects() {
     setRedirects((prev) => prev.map((x) => (x.id === r.id ? { ...x, active } : x)));
     setForm((p) => ({ ...p, active }));
     try {
-      await setRedirectActive(r.id, active);
+      await audited(
+        { action: active ? 'redirects.enable' : 'redirects.disable', targetCollection: 'redirects', targetId: r.id, summary: r.source },
+        () => setRedirectActive(r.id, active),
+      );
     } catch (error: unknown) {
       captureError(error, { context: 'Toggle redirect failed' });
       addToast('error', t('redirects.toasts.saveError'));

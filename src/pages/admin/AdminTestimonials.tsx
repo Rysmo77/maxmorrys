@@ -12,7 +12,7 @@ import { usePagination } from '../../hooks/usePagination';
 import { getAllTestimonials, saveTestimonial } from '../../lib/firestore';
 import type { Testimonial } from '../../types';
 import { captureError } from '../../lib/sentry';
-import { auditedDelete } from '../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../lib/admin/auditLog';
 
 /**
  * ── TÉMOIGNAGES — motif de console ──────────────────────────────────────────────────
@@ -105,7 +105,10 @@ export default function AdminTestimonials() {
     if (!form.name.trim() || !form.content.trim()) return;
     setSaving(true);
     try {
-      await saveTestimonial({ ...form, id: editing?.id });
+      await audited(
+        (id) => ({ action: editing ? 'testimonials.update' : 'testimonials.create', targetCollection: 'testimonials', targetId: id, space: 'edu', summary: form.name }),
+        () => saveTestimonial({ ...form, id: editing?.id }),
+      );
       addToast('success', editing ? tr('testimonials.toastUpdated') : tr('testimonials.toastCreated'));
       setModalOpen(false);
       load();
@@ -119,7 +122,10 @@ export default function AdminTestimonials() {
 
   const handleApprove = async (t: Testimonial) => {
     try {
-      await saveTestimonial({ ...t, status: 'approved', featured: true, id: t.id });
+      await audited(
+        { action: 'testimonials.approve', targetCollection: 'testimonials', targetId: t.id, space: 'edu', summary: t.name },
+        () => saveTestimonial({ ...t, status: 'approved', featured: true, id: t.id }),
+      );
       addToast('success', tr('testimonials.toastApproved'));
       setModalOpen(false);
       load();
@@ -131,7 +137,10 @@ export default function AdminTestimonials() {
 
   const handleReject = async (t: Testimonial) => {
     try {
-      await saveTestimonial({ ...t, status: 'rejected', featured: false, id: t.id });
+      await audited(
+        { action: 'testimonials.reject', targetCollection: 'testimonials', targetId: t.id, space: 'edu', summary: t.name },
+        () => saveTestimonial({ ...t, status: 'rejected', featured: false, id: t.id }),
+      );
       addToast('success', tr('testimonials.toastRejected'));
       setModalOpen(false);
       load();

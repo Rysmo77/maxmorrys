@@ -16,6 +16,7 @@ import { Pagination } from '@/components/dialogs';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
 import { getAllTransactions, resendTransactionMail, updateTransactionStatus } from '../../lib/firestore';
+import { audited } from '../../lib/admin/auditLog';
 import { invalidateConsoleCounts } from '../../lib/admin/consoleCounts';
 import { useFormat } from '../../hooks/useFormat';
 import type { Transaction } from '../../types';
@@ -144,7 +145,10 @@ export default function AdminTransactions() {
   const handleResend = async (id: string) => {
     setResending(id);
     try {
-      const bilan = await resendTransactionMail(id);
+      const bilan = await audited(
+        (b) => ({ action: 'transactions.resend_mail', targetCollection: 'transactions', targetId: id, summary: `confirmation ${b.confirmation} · facture ${b.facture}${b.enAttente ? ' · en attente' : ''}` }),
+        () => resendTransactionMail(id),
+      );
       const maintenant = new Date().toISOString();
       setTransactions((prev) => prev.map((tx) => tx.id !== id ? tx : {
         ...tx,
@@ -173,7 +177,10 @@ export default function AdminTransactions() {
     confirm.requestConfirm(t('transactions.refundConfirmMessage'), async () => {
       setRefunding(id);
       try {
-        await updateTransactionStatus(id, 'refunded');
+        await audited(
+          { action: 'transactions.status', targetCollection: 'transactions', targetId: id, summary: 'Statut : refunded' },
+          () => updateTransactionStatus(id, 'refunded'),
+        );
         setTransactions((prev) => prev.map((tx) => tx.id === id ? { ...tx, status: 'refunded' } : tx));
         addToast('success', t('transactions.refundSuccess'));
       } catch {

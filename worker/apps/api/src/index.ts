@@ -156,7 +156,11 @@ export default {
     const travaux: Record<string, () => Promise<void>> = {
       '0 3 * * *': async () => {
         const bilan = await runSyncMediaStats(getFirestore(env), env);
-        console.log(
+        /* ⚠️ X19 (audit 03/11/2026) : les vues des vidéos sont à 0 en base alors que ce cron
+           est déclaré (et la clé posée) depuis le 03/09. Une clé YouTube refusée ne lève pas — elle part dans
+           `errors` — et ce bilan sortait en `console.log`, noyé dans le bruit. Un bilan en
+           erreur sort désormais en `console.error`, filtrable dans l'observabilité. */
+        (bilan.errors.length ? console.error : console.log)(
           `Statistiques média : ${bilan.videosUpdated}/${bilan.videosProcessed} vidéo(s), ` +
             `${bilan.podcastsUpdated}/${bilan.podcastsProcessed} podcast(s)` +
             (bilan.errors.length ? ` — ${bilan.errors.length} erreur(s) : ${bilan.errors.join(' | ')}` : ''),

@@ -9,7 +9,7 @@ import { queryKeys } from '../../../lib/queryClient';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../config/firebase';
 import type { User, Enrollment, ClubDigitosSubscription } from '../../../types';
-import { auditedMerge } from '../../../lib/admin/auditLog';
+import { audited, auditedMerge } from '../../../lib/admin/auditLog';
 
 const adminManageEnrollment = httpsCallable<
   { action: 'create' | 'delete'; userId: string; formationId: string },
@@ -173,7 +173,10 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
     if (!editUser) return;
     setTogglingRysmo(true);
     try {
-      const res = await adminManageRysmoQuota({ userId: editUser.uid, action: 'reset' });
+      const res = await audited(
+        { action: 'rysmo_quota.reset', targetCollection: 'users', targetId: editUser.uid, space: 'rysmo', summary: editUser.email },
+        () => adminManageRysmoQuota({ userId: editUser.uid, action: 'reset' }),
+      );
       setRysmoQuota(res.data);
       addToast('success', t('usersHook.rysmoReset'));
     } catch (err: unknown) {
@@ -193,7 +196,10 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
     }
     setTogglingRysmo(true);
     try {
-      const res = await adminManageRysmoQuota({ userId: editUser.uid, action: 'add', amount });
+      const res = await audited(
+        { action: 'rysmo_quota.add', targetCollection: 'users', targetId: editUser.uid, space: 'rysmo', summary: `${editUser.email} : +${amount}` },
+        () => adminManageRysmoQuota({ userId: editUser.uid, action: 'add', amount }),
+      );
       setRysmoQuota(res.data);
       addToast('success', t('usersHook.tokensAdded', { amount }));
     } catch (err: unknown) {
@@ -208,14 +214,19 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
     if (!editUser) return;
     setTogglingClub(true);
     try {
-      await activateClubSubscription(
-        editUser.uid,
-        editUser.email,
-        editUser.displayName || editUser.email,
-        true,
+      await audited(
+        { action: 'club_subscriptions.grant', targetCollection: 'club_subscriptions', targetId: editUser.uid, space: 'club', summary: editUser.email },
+        async () => {
+          await activateClubSubscription(
+            editUser.uid,
+            editUser.email,
+            editUser.displayName || editUser.email,
+            true,
+          );
+          // Immediately set to active (admin bypass)
+          await updateClubSubscriptionStatus(editUser.uid, 'active');
+        },
       );
-      // Immediately set to active (admin bypass)
-      await updateClubSubscriptionStatus(editUser.uid, 'active');
       const sub = await getClubSubscription(editUser.uid);
       setClubSub(sub);
       addToast('success', t('usersHook.clubGranted'));
@@ -231,7 +242,10 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
     if (!editUser) return;
     setTogglingClub(true);
     try {
-      await updateClubSubscriptionStatus(editUser.uid, status);
+      await audited(
+        { action: 'club_subscriptions.status', targetCollection: 'club_subscriptions', targetId: editUser.uid, space: 'club', summary: `${editUser.email} : ${status}` },
+        () => updateClubSubscriptionStatus(editUser.uid, status),
+      );
       const sub = await getClubSubscription(editUser.uid);
       setClubSub(sub);
       addToast('success', status === 'cancelled' ? t('usersHook.accessRevoked') : t('usersHook.statusUpdated'));
@@ -286,7 +300,10 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
     if (!editUser || !addFormationId) return;
     setAddingFormation(true);
     try {
-      await adminManageEnrollment({ action: 'create', userId: editUser.uid, formationId: addFormationId });
+      await audited(
+        { action: 'enrollments.create', targetCollection: 'enrollments', targetId: `${editUser.uid}_${addFormationId}`, space: 'edu', summary: `${editUser.email} → ${addFormationId}` },
+        () => adminManageEnrollment({ action: 'create', userId: editUser.uid, formationId: addFormationId }),
+      );
       await loadUserEnrollments(editUser.uid);
       setAddFormationId('');
       addToast('success', t('usersHook.courseActivated'));
@@ -301,7 +318,10 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
   const handleRemoveEnrollment = useCallback(async (enrollment: { id: string; formationId: string }) => {
     setRemovingId(enrollment.id);
     try {
-      await adminManageEnrollment({ action: 'delete', userId: editUser!.uid, formationId: enrollment.formationId });
+      await audited(
+        { action: 'enrollments.delete', targetCollection: 'enrollments', targetId: enrollment.id, space: 'edu', summary: `${editUser!.email} → ${enrollment.formationId}` },
+        () => adminManageEnrollment({ action: 'delete', userId: editUser!.uid, formationId: enrollment.formationId }),
+      );
       setUserEnrollments((prev) => prev.filter((e) => e.id !== enrollment.id));
       addToast('success', t('usersHook.enrollmentDeleted'));
     } catch (err: unknown) {
@@ -319,7 +339,7 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
     }
     setCreatingUser(true);
     try {
-      await adminCreateUser({
+      await audited({ action: 'users.create', targetCollection: 'users', targetId: addForm.email.trim(), summary: `Rôle : ${addForm.role}` }, () => adminCreateUser({
         email: addForm.email.trim(),
         password: addForm.password,
         displayName: addForm.displayName.trim(),
@@ -327,7 +347,7 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
         lastName: addForm.lastName.trim(),
         phone: addForm.phone.trim(),
         role: addForm.role,
-      });
+      }));
       addToast('success', t('usersHook.userCreated'));
       setShowAddUser(false);
       setAddForm(emptyAddForm);

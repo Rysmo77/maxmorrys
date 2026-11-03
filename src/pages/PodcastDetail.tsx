@@ -266,24 +266,26 @@ export default function PodcastDetail() {
             />
           </article>
 
-          <aside className="grid gap-[14px] wide:sticky wide:top-[calc(var(--header-h)+1rem)]">
-            <GlassPanel level="hero" padding={22}>
-              <SiteEyebrow style={{ marginBottom: '8px' }}>{t('detail.transcript')}</SiteEyebrow>
-              {podcast.transcript ? (
-                /*
+          {/*
+            Pas de transcription, pas de panneau (audit 03/11/2026, X2) : un encart qui
+            n'annonce que son absence occupe la colonne sans rien donner. On ne fabrique
+            rien ; la colonne de 300 px reste vide et le texte garde sa mesure.
+          */}
+          {podcast.transcript && (
+            <aside className="grid gap-[14px] wide:sticky wide:top-[calc(var(--header-h)+1rem)]">
+              <GlassPanel level="hero" padding={22}>
+                <SiteEyebrow style={{ marginBottom: '8px' }}>{t('detail.transcript')}</SiteEyebrow>
+                {/*
                   La transcription se lit SANS charger l'audio. Sur un forfait compté, c'est
                   souvent tout ce qu'on cherche — d'où sa place dans la colonne, visible sans
                   qu'on ait à lancer quoi que ce soit.
-                */
+                */}
                 <div className="mm-prose text-meta-2">
                   <div dangerouslySetInnerHTML={{ __html: markdownToHtml(tTranscript || podcast.transcript) }} />
                 </div>
-              ) : (
-                /* On ne fabrique pas ce qui n'existe pas : on dit que ça manque. */
-                <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('detail.transcriptMissing')}</p>
-              )}
-            </GlassPanel>
-          </aside>
+              </GlassPanel>
+            </aside>
+          )}
         </div>
       </PageSite>
 

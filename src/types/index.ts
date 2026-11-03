@@ -884,6 +884,10 @@ export interface AppNotification {
   read: boolean;
   createdAt: string;
   link?: string;
+  /** Clé de modèle stable posée par les relances du Worker (`reengagement.ts`) : `streak` | `resume`. */
+  template?: string;
+  /** Paramètres du modèle (`count` pour `streak`, `title` pour `resume`). */
+  params?: Record<string, unknown>;
 }
 
 // ── Redirections ───────────────────────────────────────────────────────────

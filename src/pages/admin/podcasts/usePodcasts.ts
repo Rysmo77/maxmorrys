@@ -10,7 +10,7 @@ import { captureError } from '../../../lib/sentry';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { usePagination } from '../../../hooks/usePagination';
 import type { Podcast } from '../../../types';
-import { auditedDelete } from '../../../lib/admin/auditLog';
+import { audited, auditedDelete, saveVerb } from '../../../lib/admin/auditLog';
 
 /**
  * L'ÉTAT DE L'ÉCRAN PODCASTS, SORTI DU RENDU — les appels restent à l'identique.
@@ -88,7 +88,10 @@ export function usePodcasts() {
   const handleImport = useCallback(async () => {
     setImporting(true);
     try {
-      const { created, skipped, errors } = (await importEpisodesCallable()).data;
+      const { created, skipped, errors } = (await audited(
+        (res) => ({ action: 'podcasts.import', targetCollection: 'podcasts', targetId: 'spotify', space: 'hub', summary: `${res.data.created} créé(s), ${res.data.skipped} ignoré(s), ${res.data.errors.length} erreur(s)` }),
+        () => importEpisodesCallable(),
+      )).data;
       if (errors.length > 0) {
         addToast('error', t('podcasts.toastImportPartial', { error: errors[0] }));
       } else {
@@ -105,7 +108,10 @@ export function usePodcasts() {
   const handleSync = useCallback(async () => {
     setSyncing(true);
     try {
-      const result = await syncMediaStatsCallable();
+      const result = await audited(
+        { action: 'media_stats.sync', targetCollection: 'podcasts', targetId: 'stats', space: 'hub' },
+        () => syncMediaStatsCallable(),
+      );
       const { podcastsUpdated, errors } = result.data;
       if (errors.length > 0) {
         addToast('error', t('podcasts.toastSyncPartial', { error: errors[0] }));
@@ -177,7 +183,10 @@ export function usePodcasts() {
     setSaving(true);
     try {
       const slug_en = form.slug_en || await generateSlugEn(form.title);
-      await savePodcast({ ...form, id: editing?.id, slug: form.slug || slugify(form.title), slug_en });
+      await audited(
+        (id) => ({ action: `podcasts.${saveVerb(!!editing, editing?.status, form.status)}`, targetCollection: 'podcasts', targetId: id, space: 'hub', summary: form.title }),
+        () => savePodcast({ ...form, id: editing?.id, slug: form.slug || slugify(form.title), slug_en }),
+      );
       addToast('success', editing ? t('podcasts.toastUpdated') : t('podcasts.toastCreated'));
       setModalOpen(false);
       load();

@@ -11,7 +11,7 @@ import { buildPublishChecklist, type PublishStage } from './publishChecklist';
 import type { Formation, Module, Lesson, WaitlistEntry } from '../../../types';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../config/firebase';
-import { auditedDelete } from '../../../lib/admin/auditLog';
+import { audited, auditedDelete, saveVerb } from '../../../lib/admin/auditLog';
 
 /**
  * L'ÉTAT DE L'ÉCRAN FORMATIONS, SORTI DU RENDU.
@@ -281,7 +281,10 @@ export function useFormations() {
         students: existing?.students ?? 0,
         rating: existing?.rating ?? 0,
       } as Omit<Formation, 'id'>;
-      const savedId = await saveFormation(data, editingId ?? undefined);
+      const savedId = await audited(
+        (id) => ({ action: `formations.${saveVerb(!!editingId, existing?.status, status)}`, targetCollection: 'formations', targetId: id, space: 'edu', summary: data.title }),
+        () => saveFormation(data, editingId ?? undefined),
+      );
       addToast('success', editingId ? t('formations.toastUpdated') : t('formations.toastCreated'));
 
       /*
@@ -306,7 +309,10 @@ export function useFormations() {
        */
       if (intent === 'published' && savedId) {
         try {
-          const { data: envoi } = await notifyOnPublish({ kind: 'formation', id: savedId });
+          const { data: envoi } = await audited(
+            (res) => ({ action: 'formations.notify', targetCollection: 'formations', targetId: savedId, space: 'edu', summary: res.data.alreadyNotified ? 'déjà notifié' : `${res.data.notified} abonné(s) notifié(s)` }),
+            () => notifyOnPublish({ kind: 'formation', id: savedId }),
+          );
           if (envoi.notified > 0) {
             addToast('success', t('formations.toastNotified', { count: envoi.notified }));
           }
@@ -337,7 +343,10 @@ export function useFormations() {
   const handleNotifyWaitlist = useCallback(async (id: string) => {
     setNotifying(true);
     try {
-      const { data: envoi } = await notifyWaitlist({ formationId: id });
+      const { data: envoi } = await audited(
+        (res) => ({ action: 'formations.notify_waitlist', targetCollection: 'formations', targetId: id, space: 'edu', summary: res.data.alreadyNotified ? 'déjà notifié' : `${res.data.notified} inscrit(s) prévenu(s)` }),
+        () => notifyWaitlist({ formationId: id }),
+      );
       if (envoi.alreadyNotified) {
         addToast('info', t('formations.toastWaitlistAlready'));
       } else {

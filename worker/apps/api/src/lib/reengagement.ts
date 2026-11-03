@@ -1,4 +1,4 @@
-import type { Firestore } from '@mm/firestore-rest';
+import { FirestoreError, type Firestore } from '@mm/firestore-rest';
 import { asText, toNumber } from './values';
 
 /**
@@ -20,6 +20,18 @@ import { asText, toNumber } from './values';
  * ⚠️ REQUÊTES BORNÉES. Chaque passe lit au plus `PAGE` documents. Le cron est quotidien : une
  * base qui dépasserait ce plafond verrait ses derniers documents traités le lendemain, ce qui
  * est préférable à une exécution qui dépasse le temps imparti et n'écrit rien du tout.
+ *
+ * ⚠️ UNE RELANCE D'UN TYPE, UNE FOIS PAR JOUR ET PAR PERSONNE (audit 03/11/2026, E3). Le cron
+ * peut être rejoué (retentative Cloudflare, déclenchement manuel) : la relance de série tombait
+ * alors deux fois le même matin. La garde n'est pas une lecture préalable — deux passes
+ * concurrentes la franchiraient ensemble — mais l'IDENTIFIANT du document : `relance-<type>-<jour
+ * à Dakar>`, créé avec la précondition « n'existe pas ». La notification EST la marque « dernière
+ * relance <type> » ; l'écriture et la garde sont la même opération, et le second essai échoue.
+ *
+ * ⚠️ CLÉ DE MODÈLE. Chaque relance porte `template` + `params` en plus de `title`/`message` :
+ * l'écran (`src/components/layout/NotificationDropdown.tsx`) réécrit le modèle dans la langue
+ * de l'INTERFACE au lieu de reconnaître le texte. Le texte reste écrit, en repli pour tout
+ * lecteur qui ne connaît pas la clé (et pour les notifications antérieures).
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -59,18 +71,50 @@ async function langueDe(db: Firestore, uid: string): Promise<Langue> {
   return prefs?.language === 'en' ? 'en' : 'fr';
 }
 
+/** Modèles de relance, en miroir des `TEMPLATES` de `NotificationDropdown.tsx`. */
+export type ModeleRelance = 'streak' | 'resume';
+
+/** Jour calendaire à Dakar (UTC+0 sans heure d'été — mais on ne le suppose pas). */
+export function jourDakar(date: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Dakar', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(date);
+}
+
+function dejaExistant(error: unknown): boolean {
+  return error instanceof FirestoreError
+    && (error.status === 'ALREADY_EXISTS' || error.status === 'FAILED_PRECONDITION' || error.httpStatus === 409);
+}
+
+/**
+ * Écrit la relance si — et seulement si — aucune relance de ce type n'a été écrite pour
+ * cette personne aujourd'hui (Dakar). Renvoie `false` quand elle existait déjà.
+ */
 async function notifier(
   db: Firestore,
   uid: string,
+  modele: ModeleRelance,
+  params: Record<string, string | number>,
   notif: { title: string; message: string; link?: string },
-): Promise<void> {
-  await db.add(`notifications/${uid}/items`, {
+): Promise<boolean> {
+  const jour = jourDakar();
+  const chemin = `notifications/${uid}/items/relance-${modele}-${jour}`;
+  const donnees = {
     userId: uid,
     type: 'system',
     read: false,
     createdAt: new Date().toISOString(),
+    template: modele,
+    params,
     ...notif,
-  });
+  };
+  try {
+    await db.commit([{ ...db.buildWrite(chemin, donnees, { mask: false }), currentDocument: { exists: false } }]);
+    return true;
+  } catch (error: unknown) {
+    if (dejaExistant(error)) return false;
+    throw error;
+  }
 }
 
 export interface BilanRelances {
@@ -86,7 +130,7 @@ export interface BilanRelances {
  * la collection pour n'en retenir qu'une poignée, et la facture de lecture suivrait.
  */
 async function rappelerSeries(db: Firestore): Promise<number> {
-  const aujourdhui = new Date().toISOString().slice(0, 10);
+  const aujourdhui = jourDakar();
   const joueurs = await db.query({
     collection: 'gamification',
     where: [{ field: 'currentStreak', op: '>', value: 0 }],
@@ -100,12 +144,12 @@ async function rappelerSeries(db: Firestore): Promise<number> {
     const serie = toNumber(doc.data.currentStreak);
     if (serie <= 0) continue;
     const langue = await langueDe(db, doc.id);
-    await notifier(db, doc.id, {
+    const ecrite = await notifier(db, doc.id, 'streak', { count: serie }, {
       title: T.serieTitre[langue](serie),
       message: T.serieTexte[langue],
       link: '/mon-espace/tableau-de-bord',
     });
-    envoyes += 1;
+    if (ecrite) envoyes += 1;
   }
   return envoyes;
 }
@@ -156,13 +200,13 @@ async function rappelerCours(db: Firestore): Promise<{ envoyes: number; examines
     const titre = asText(formation?.data.title) ?? T.coursParDefaut[langue];
     const slug = asText(formation?.data.slug) ?? '';
 
-    await notifier(db, uid, {
+    const ecrite = await notifier(db, uid, 'resume', { title: titre }, {
       title: T.repriseTitre[langue](titre),
       message: T.repriseTexte[langue](titre),
       link: slug ? `/cours/${slug}` : '/mon-espace/cours',
     });
     dejaRelances.add(uid);
-    envoyes += 1;
+    if (ecrite) envoyes += 1;
   }
 
   return { envoyes, examines: inscriptions.length };

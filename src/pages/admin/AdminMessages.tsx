@@ -13,7 +13,7 @@ import type { ContactMessage } from '../../types';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../config/firebase';
 import { captureError } from '../../lib/sentry';
-import { auditedDelete } from '../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../lib/admin/auditLog';
 
 /**
  * RÉPONDRE ÉCRIT TROIS CHOSES, ET C'EST LE SERVEUR QUI LES ÉCRIT.
@@ -132,7 +132,10 @@ export default function AdminMessages() {
     if (!selected || reply.trim().length < 2) return;
     setSending(true);
     try {
-      const { data } = await replyToMessage({ messageId: selected.id, reply: reply.trim() });
+      const { data } = await audited(
+        { action: 'messages.reply', targetCollection: 'messages', targetId: selected.id, space: 'hub' },
+        () => replyToMessage({ messageId: selected.id, reply: reply.trim() }),
+      );
       const envoyee = { ...selected, reply: reply.trim(), repliedAt: new Date().toISOString(), status: 'replied' as const };
       setSelected(envoyee);
       setReply('');

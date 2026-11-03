@@ -9,7 +9,7 @@ import { computeTotals, PIPELINE_STAGES } from '../../lib/presence/offer';
 import { exportToCsv } from '../../lib/utils';
 import { useFormat } from '../../hooks/useFormat';
 import type { AgencyLead, AgencyLeadStatus } from '../../types';
-import { auditedDelete } from '../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../lib/admin/auditLog';
 
 /**
  * L'ÉCRAN `ProspectsOps` DU KIT — le cycle de vente Présence Digitale.
@@ -81,7 +81,10 @@ export default function AdminAgencyLeads() {
   const handleStatus = async (id: string, status: AgencyLeadStatus) => {
     setUpdating(id);
     try {
-      await updateAgencyLeadStatus(id, status);
+      await audited(
+        { action: 'agency_leads.status', targetCollection: 'agency_leads', targetId: id, space: 'conception', summary: `Statut : ${status}` },
+        () => updateAgencyLeadStatus(id, status),
+      );
       setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
       addToast('success', t('agencyLeads.toastUpdated'));
     } catch {
@@ -98,7 +101,10 @@ export default function AdminAgencyLeads() {
     if (draft === undefined || draft === current) return;
     setSavingNote(id);
     try {
-      await updateAgencyLeadNotes(id, draft);
+      await audited(
+        { action: 'agency_leads.notes', targetCollection: 'agency_leads', targetId: id, space: 'conception' },
+        () => updateAgencyLeadNotes(id, draft),
+      );
       setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, notes: draft } : l)));
       addToast('success', t('agencyLeads.toastNoteSaved'));
     } catch {

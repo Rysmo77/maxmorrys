@@ -9,7 +9,7 @@ import { getClubChallenges, saveClubChallenge } from '../../../lib/firestore';
 import { captureError } from '../../../lib/sentry';
 import type { ClubDigitosChallenge } from '../../../types';
 import ConsoleListSkeleton from './ConsoleListSkeleton';
-import { auditedDelete } from '../../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * ── DÉFIS — le seul des neuf onglets dont le kit dicte la file ──────────────────────
@@ -69,7 +69,10 @@ export default function ClubChallengesTab() {
     if (!form.title.trim() || !form.description.trim()) return;
     setSaving(true);
     try {
-      await saveClubChallenge({ ...form, id: editing?.id, createdAt: editing?.createdAt ?? new Date().toISOString() });
+      await audited(
+        (id) => ({ action: editing ? 'club_challenges.update' : 'club_challenges.create', targetCollection: 'club_challenges', targetId: id, space: 'club', summary: form.title }),
+        () => saveClubChallenge({ ...form, id: editing?.id, createdAt: editing?.createdAt ?? new Date().toISOString() }),
+      );
       addToast('success', editing ? t('challenges.updated') : t('challenges.created'));
       setShowForm(false);
       load();

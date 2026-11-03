@@ -130,6 +130,15 @@ describe('la CSP autorise ce que le code appelle', () => {
     }
   });
 
+  it('les sondes de l’écran Infrastructure peuvent joindre leurs hôtes (X16)', () => {
+    // Bloquée par la CSP, une sonde lirait « injoignable » un hôte en parfaite santé.
+    const source = readFileSync(join(root, 'src/pages/admin/AdminInfra.tsx'), 'utf8');
+    expect(source, 'l’écran ne sonde plus — ce test est à revoir').toContain('probeHost(');
+    for (const host of ['https://edu.maxmorrys.me', 'https://club.maxmorrys.me', 'https://media.maxmorrys.me']) {
+      expect(autorise('connect-src', host), `connect-src n'autorise pas ${host}`).toBe(true);
+    }
+  });
+
   it('le repli géo-IP de la détection de langue passe', () => {
     // Le défaut fondateur, nommé pour qu'un futur resserrement de la CSP le voie.
     const source = readFileSync(join(root, 'src/lib/detectLanguage.ts'), 'utf8');

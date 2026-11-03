@@ -10,7 +10,7 @@ import { captureError } from '../../../lib/sentry';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { usePagination } from '../../../hooks/usePagination';
 import type { Video } from '../../../types';
-import { auditedDelete } from '../../../lib/admin/auditLog';
+import { audited, auditedDelete, saveVerb } from '../../../lib/admin/auditLog';
 
 /**
  * L'ÉTAT DE L'ÉCRAN VIDÉOS, SORTI DU RENDU — les appels restent à l'identique.
@@ -78,7 +78,10 @@ export function useVideos() {
   const handleSync = useCallback(async () => {
     setSyncing(true);
     try {
-      const result = await syncMediaStatsCallable();
+      const result = await audited(
+        { action: 'media_stats.sync', targetCollection: 'videos', targetId: 'stats', space: 'hub' },
+        () => syncMediaStatsCallable(),
+      );
       const { videosUpdated, errors } = result.data;
       if (errors.length > 0) {
         addToast('error', t('videos.toastSyncPartial', { error: errors[0] }));
@@ -152,7 +155,10 @@ export function useVideos() {
     setSaving(true);
     try {
       const slug_en = form.slug_en || await generateSlugEn(form.title);
-      await saveVideo({ ...form, id: editing?.id, slug: form.slug || slugify(form.title), slug_en });
+      await audited(
+        (id) => ({ action: `videos.${saveVerb(!!editing, editing?.status, form.status)}`, targetCollection: 'videos', targetId: id, space: 'hub', summary: form.title }),
+        () => saveVideo({ ...form, id: editing?.id, slug: form.slug || slugify(form.title), slug_en }),
+      );
       addToast('success', editing ? t('videos.toastUpdated') : t('videos.toastCreated'));
       setModalOpen(false);
       load();

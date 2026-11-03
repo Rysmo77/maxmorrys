@@ -26,13 +26,14 @@ describe('miroir de src/lib/brand/clients.ts', () => {
   });
 
   it.each(clientProjects.map((p) => [p.slug, p] as const))(
-    '%s : nom, secteur, domaine, rôle et pile sont ceux de la source',
+    '%s : nom, secteur, site, domaine, rôle et pile sont ceux de la source',
     (slug, source) => {
       const copie = REALISATIONS.find((r) => r.slug === slug);
       expect(copie, `${slug} absent de la copie du Worker`).toBeDefined();
       expect(copie!.name).toBe(source.name);
       expect(copie!.category).toBe(source.category);
       expect(copie!.domain).toBe(source.domain);
+      expect(copie!.website).toBe(source.website);
       expect(copie!.capabilities ?? []).toEqual(source.capabilities ?? []);
       expect(copie!.stack ?? []).toEqual(source.stack ?? []);
     },

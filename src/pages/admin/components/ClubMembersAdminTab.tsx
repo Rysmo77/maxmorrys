@@ -9,7 +9,7 @@ import { getAllClubProfiles, adminUpdateClubProfile } from '../../../lib/firesto
 import { captureError } from '../../../lib/sentry';
 import type { ClubMemberProfile } from '../../../types';
 import ConsoleListSkeleton from './ConsoleListSkeleton';
-import { auditedDelete } from '../../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../../lib/admin/auditLog';
 
 /**
  * ── PROFILS MEMBRES — motif de console ──────────────────────────────────────────────
@@ -59,7 +59,12 @@ export default function ClubMembersAdminTab() {
 
   const toggleVisible = async (p: ClubMemberProfile) => {
     setProfiles((prev) => prev.map((x) => x.id === p.id ? { ...x, visible: !x.visible } : x));
-    try { await adminUpdateClubProfile(p.userId, { visible: !p.visible }); }
+    try {
+      await audited(
+        { action: p.visible ? 'club_profiles.hide' : 'club_profiles.show', targetCollection: 'club_profiles', targetId: p.userId, space: 'club' },
+        () => adminUpdateClubProfile(p.userId, { visible: !p.visible }),
+      );
+    }
     catch { addToast('error', t('common.genericError')); load(); }
   };
 
@@ -67,7 +72,10 @@ export default function ClubMembersAdminTab() {
     setSaving(true);
     try {
       const skills = form.skills.split(',').map((s) => s.trim()).filter(Boolean);
-      await adminUpdateClubProfile(p.userId, { headline: form.headline.trim(), skills, city: form.city.trim() });
+      await audited(
+        { action: 'club_profiles.update', targetCollection: 'club_profiles', targetId: p.userId, space: 'club' },
+        () => adminUpdateClubProfile(p.userId, { headline: form.headline.trim(), skills, city: form.city.trim() }),
+      );
       setProfiles((prev) => prev.map((x) => x.id === p.id ? { ...x, headline: form.headline.trim(), skills, city: form.city.trim() } : x));
       setOpenId(null);
       addToast('success', t('members.updated'));

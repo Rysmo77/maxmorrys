@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Button, DocLine, Field, Icon, Segmented, Skeleton, Switch, useToast } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleScope, ConsoleSplit, ConsoleCard } from '../../components/console';
 import RolesPanel from './components/RolesPanel';
+import { CBtn } from './components/ConsoleParts';
 import { SiteEyebrow } from '../../components/site';
 import { getSiteSettings, saveSiteSettings } from '../../lib/firestore';
+import { audited } from '../../lib/admin/auditLog';
 import { captureError } from '../../lib/sentry';
 
 /**
@@ -41,8 +43,12 @@ interface Settings {
   notifNewMessage: boolean;
   notifNewUser: boolean;
   notifCourseCompletion: boolean;
-  announcementActive: boolean;
-  announcementText: string;
+  /*
+    ⚠️ PAS DE BANNIÈRE ICI (audit UI/UX du 03/11/2026, X19). `announcementActive` /
+    `announcementText` étaient un second réglage du bandeau que RIEN ne lisait : le site
+    affiche la collection `announcements` (écran Annonces). La carte renvoie désormais là-bas ;
+    les deux champs restés dans `settings/site` sont inertes.
+  */
   /*
     Interrupteurs des pop-ups contextuelles du site public. Lus par `lib/popups/settings.ts`, dont
     `settingsFieldFor()` fait foi pour le nom des champs. Absents du document = ACTIFS : un site
@@ -83,8 +89,6 @@ const DEFAULT: Settings = {
   notifNewMessage: true,
   notifNewUser: false,
   notifCourseCompletion: false,
-  announcementActive: false,
-  announcementText: '',
   popup_agencyExit: true,
   popup_formationsEntry: true,
   popup_formationExit: true,
@@ -127,7 +131,10 @@ export default function AdminSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveSiteSettings(settings as unknown as Record<string, unknown>);
+      await audited(
+        { action: 'settings.update', targetCollection: 'settings', targetId: 'site', space: 'hub' },
+        () => saveSiteSettings(settings as unknown as Record<string, unknown>),
+      );
       addToast('success', t('settings.toastSaveSuccess'));
     } catch (error: unknown) {
       captureError(error, { context: 'Save settings failed' });
@@ -249,24 +256,10 @@ export default function AdminSettings() {
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <SiteEyebrow>{t('settings.announcementTitle')}</SiteEyebrow>
-                <p className="m-0 mt-1 text-meta-2 leading-[1.5] text-ink-2">{t('settings.announcementSubtitle')}</p>
+                <p className="m-0 mt-1 text-meta-2 leading-[1.5] text-ink-2">{t('settings.announcementMoved')}</p>
               </div>
-              <Switch
-                on={settings.announcementActive}
-                label={t('settings.announcementTitle')}
-                onChange={(on) => set('announcementActive', on)}
-              />
+              <CBtn href="/admin/annonces" icon="megaphone">{t('settings.announcementGoTo')}</CBtn>
             </div>
-            {settings.announcementActive && (
-              <div className="mt-4">
-                <Field
-                  label={t('settings.announcementTextLabel')}
-                  value={settings.announcementText}
-                  onChange={(v) => set('announcementText', v)}
-                  placeholder={t('settings.announcementTextPlaceholder')}
-                />
-              </div>
-            )}
           </ConsoleCard>
 
           <ConsoleCard padding={18}>

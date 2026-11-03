@@ -23,8 +23,8 @@ const ROOT = resolve(__dirname, '../..');
 const SRC = join(ROOT, 'src');
 const CSS_DIR = join(SRC, 'design-system/css');
 
-/** Fichiers portant des modifications utilisateur non commitées : signalés à part (spec). */
-const EXCLUDED = new Set(['src/pages/lms/CoursePlayer.tsx', 'src/components/ai/RysmoWidget.tsx']);
+/** Exceptions explicites (aucune à ce jour : CoursePlayer et RysmoWidget sont passés aux surfaces). */
+const EXCLUDED = new Set<string>([]);
 
 /** Retire les commentaires : l'en-tête qui explique l'interdit ne doit pas le déclencher. */
 function stripTsComments(code: string): string {

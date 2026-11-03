@@ -12,7 +12,7 @@ import { getAllAnnouncements, saveAnnouncement } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
 import type { Announcement } from '../../types';
 import { captureError } from '../../lib/sentry';
-import { auditedDelete } from '../../lib/admin/auditLog';
+import { audited, auditedDelete } from '../../lib/admin/auditLog';
 
 const EMPTY: Omit<Announcement, 'id'> = {
   title: '', content: '', type: 'info', active: true,
@@ -96,7 +96,10 @@ export default function AdminAnnouncements() {
     if (!form.title.trim()) return;
     setSaving(true);
     try {
-      await saveAnnouncement({ ...form, id: editing?.id });
+      await audited(
+        (id) => ({ action: editing ? 'announcements.update' : 'announcements.create', targetCollection: 'announcements', targetId: id, space: 'hub', summary: form.title }),
+        () => saveAnnouncement({ ...form, id: editing?.id }),
+      );
       addToast('success', editing ? t('announcements.toastUpdated') : t('announcements.toastCreated'));
       setModalOpen(false);
       load();

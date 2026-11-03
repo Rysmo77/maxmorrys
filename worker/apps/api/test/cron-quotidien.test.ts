@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { Firestore } from '@mm/firestore-rest';
+import { FirestoreError, type Firestore } from '@mm/firestore-rest';
 
 import type { Env } from '../src/env';
 import { rebuildLeaderboard } from '../src/lib/leaderboard';
 import { buildQuoteExpiryNotice, sendQuoteExpiryNotices, PREAVIS_DEVIS_JOURS } from '../src/lib/quote-expiry';
-import { sendReengagementNotices } from '../src/lib/reengagement';
+import { jourDakar, sendReengagementNotices } from '../src/lib/reengagement';
 
 /**
  * Les cinq travaux du cron de 8 h partagent une contrainte : ils tournent sans témoin, une
@@ -23,6 +23,7 @@ function fauxDb(docs: Record<string, Record<string, unknown>>, reponses: Record<
   const ajouts: Array<{ chemin: string; data: Record<string, unknown> }> = [];
   const maj: Array<{ chemin: string; data: Record<string, unknown> }> = [];
   const sets: Array<{ chemin: string; data: Record<string, unknown> }> = [];
+  const crees = new Set<string>();
   const db = {
     get: vi.fn(async (c: string) => (docs[c] ? { id: c.split('/').pop()!, path: c, data: docs[c] } : null)),
     query: vi.fn(async (q: { collection: string }) =>
@@ -31,6 +32,17 @@ function fauxDb(docs: Record<string, Record<string, unknown>>, reponses: Record<
     update: vi.fn(async (chemin: string, data: Record<string, unknown>) => { maj.push({ chemin, data }); }),
     set: vi.fn(async (chemin: string, data: Record<string, unknown>) => { sets.push({ chemin, data }); }),
     count: vi.fn(async () => 3),
+    /* Écritures conditionnelles (`currentDocument.exists === false`) : refusées si le document
+       existe déjà dans `docs` ou a été créé plus tôt dans le même test — comme Firestore. */
+    buildWrite: (chemin: string, data: Record<string, unknown>) => ({ chemin, data }),
+    commit: vi.fn(async (writes: Array<{ chemin: string; data: Record<string, unknown>; currentDocument?: { exists?: boolean } }>) => {
+      for (const w of writes) {
+        if (w.currentDocument?.exists === false && (docs[w.chemin] || crees.has(w.chemin))) {
+          throw new FirestoreError('Document already exists', 409, 'ALREADY_EXISTS');
+        }
+      }
+      for (const w of writes) { crees.add(w.chemin); ajouts.push({ chemin: w.chemin, data: w.data }); }
+    }),
   } as unknown as Firestore;
   return { db, ajouts, maj, sets };
 }
@@ -123,8 +135,45 @@ describe('relances d’engagement', () => {
       { gamification: [{ id: 'u1', data: { currentStreak: 7, lastActiveDate: '2020-01-01' } }] },
     );
     expect((await sendReengagementNotices(db)).series).toBe(1);
-    expect(ajouts[0].chemin).toBe('notifications/u1/items');
+    expect(ajouts[0].chemin).toBe(`notifications/u1/items/relance-streak-${jourDakar()}`);
     expect(String(ajouts[0].data.title)).toContain('7');
+  });
+
+  /* E3 : la clé de modèle laisse l'écran réécrire la relance dans SA langue ; le texte reste. */
+  it('porte une clé de modèle stable en plus du texte', async () => {
+    const { db, ajouts } = fauxDb(
+      { 'users/u1': { preferences: { language: 'en' } } },
+      { gamification: [{ id: 'u1', data: { currentStreak: 4, lastActiveDate: '2020-01-01' } }] },
+    );
+    await sendReengagementNotices(db);
+    expect(ajouts[0].data.template).toBe('streak');
+    expect(ajouts[0].data.params).toEqual({ count: 4 });
+    expect(ajouts[0].data.title).toBe('Your 4-day streak is still alive');
+  });
+
+  /* E3 : un cron rejoué le même jour ne double pas la relance — la garde est l'écriture même. */
+  it('ne relance pas deux fois la même série le même jour', async () => {
+    const { db, ajouts } = fauxDb(
+      { 'users/u1': {} },
+      { gamification: [{ id: 'u1', data: { currentStreak: 3, lastActiveDate: '2020-01-01' } }] },
+    );
+    expect((await sendReengagementNotices(db)).series).toBe(1);
+    expect((await sendReengagementNotices(db)).series).toBe(0);
+    expect(ajouts).toHaveLength(1);
+  });
+
+  it('ne relance pas si la relance du jour existe déjà en base', async () => {
+    const { db, ajouts } = fauxDb(
+      { 'users/u1': {}, [`notifications/u1/items/relance-streak-${jourDakar()}`]: { template: 'streak' } },
+      { gamification: [{ id: 'u1', data: { currentStreak: 3, lastActiveDate: '2020-01-01' } }] },
+    );
+    expect((await sendReengagementNotices(db)).series).toBe(0);
+    expect(ajouts).toHaveLength(0);
+  });
+
+  it('jourDakar donne le jour calendaire de Dakar', () => {
+    expect(jourDakar(new Date('2026-11-03T23:59:00Z'))).toBe('2026-11-03');
+    expect(jourDakar(new Date('2026-11-04T00:01:00Z'))).toBe('2026-11-04');
   });
 
   /*
@@ -144,6 +193,8 @@ describe('relances d’engagement', () => {
     );
     expect((await sendReengagementNotices(db)).reprises).toBe(1);
     expect(ajouts).toHaveLength(1);
+    expect(ajouts[0].data.template).toBe('resume');
+    expect(ajouts[0].data.params).toEqual({ title: expect.any(String) });
   });
 });
 

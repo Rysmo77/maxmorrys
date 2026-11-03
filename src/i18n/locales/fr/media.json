@@ -163,7 +163,6 @@
     "listen": "Écouter",
     "watch": "Regarder",
     "transcript": "Transcription",
-    "chapters": "Chapitres",
     "about": "L'épisode",
     "gateEyebrow": "Avant de lancer",
     "gateBody": "Rien ne se télécharge tant que tu n'as pas lancé. La qualité, elle, ne se règle pas ici : c'est le lecteur qui l'adapte à ton réseau.",
@@ -171,8 +170,6 @@
     "gatePlay": "Lancer ici",
     "gateOpenYoutube": "Ouvrir sur YouTube",
     "gateOpenSource": "Ouvrir chez l'hébergeur",
-    "transcriptMissing": "La transcription n'est pas encore produite pour cet épisode. Quand elle le sera, elle se lira sans charger l'audio — c'est souvent tout ce qu'on cherche.",
-    "chaptersMissing": "Les chapitres de cette vidéo ne sont pas encore découpés. Quand ils le seront, ils se liront ici sans lancer la vidéo — c'est souvent tout ce qu'on cherche.",
     "nextTitle": [
       "À écouter ensuite"
     ],

@@ -5,6 +5,7 @@ import { Button, DocLine, EmptyState, Field, Icon, LessonRow, Skeleton, useToast
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit, ConsoleCard, ConsoleKpi, ConsoleStatus } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { getAllAppointments, updateAppointmentStatus } from '../../lib/firestore';
+import { audited } from '../../lib/admin/auditLog';
 import { useFormat } from '../../hooks/useFormat';
 import type { Appointment } from '../../types';
 
@@ -73,7 +74,10 @@ export default function AdminAppointments() {
   const handleStatus = async (id: string, status: Appointment['status']) => {
     setUpdating(id);
     try {
-      await updateAppointmentStatus(id, status);
+      await audited(
+        { action: 'appointments.status', targetCollection: 'appointments', targetId: id, space: 'hub', summary: `Statut : ${status}` },
+        () => updateAppointmentStatus(id, status),
+      );
       setAppointments((prev) => prev.map((a) => a.id === id ? { ...a, status } : a));
       addToast('success', status === 'confirmed' ? t('appointments.toastConfirmed') : t('appointments.toastCancelled'));
     } catch {

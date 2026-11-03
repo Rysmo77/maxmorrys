@@ -5,7 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import {
   getAllClubSubscriptions, updateClubSubscriptionStatus,
   getClubPosts, createClubPost, updateClubPost,
-  getClubComments, deleteClubComment,
+  getClubComments,
   getClubEvents, saveClubEvent,
   getClubSessions, saveClubSession,
   getClubExclusiveInfos, saveClubInfo,
@@ -18,7 +18,9 @@ import type {
   ClubDigitosSession, ClubDigitosInfo, ClubEventRegistration, ClubSessionRegistration,
   ClubDigitosComment,
 } from '../../../types';
-import { auditedDelete } from '../../../lib/admin/auditLog';
+import { doc, increment } from 'firebase/firestore';
+import { db } from '../../../config/db';
+import { audited, auditedDelete, consoleWrite } from '../../../lib/admin/auditLog';
 
 export type AdminClubTab = 'subscriptions' | 'posts' | 'events' | 'sessions' | 'infos' | 'challenges' | 'members' | 'opportunities' | 'reports';
 
@@ -145,7 +147,10 @@ export function useAdminClub() {
 
   const handleSubStatus = async (userId: string, status: ClubDigitosSubscription['status']) => {
     try {
-      await updateClubSubscriptionStatus(userId, status);
+      await audited(
+        { action: 'club_subscriptions.status', targetCollection: 'club_subscriptions', targetId: userId, space: 'club', summary: `Statut : ${status}` },
+        () => updateClubSubscriptionStatus(userId, status),
+      );
       setSubscriptions((prev) => prev.map((s) => s.userId === userId ? { ...s, status } : s));
       addToast('success', status === 'active' ? t('clubHook.subActivated') : t('clubHook.subUpdated'));
     } catch (error: unknown) {
@@ -174,7 +179,10 @@ export function useAdminClub() {
     if (!editPostContent.trim()) return;
     setSavingPostEdit(true);
     try {
-      await updateClubPost(id, { content: editPostContent.trim() });
+      await audited(
+        { action: 'club_posts.update', targetCollection: 'club_posts', targetId: id, space: 'club' },
+        () => updateClubPost(id, { content: editPostContent.trim() }),
+      );
       setPosts((prev) => prev.map((p) => p.id === id ? { ...p, content: editPostContent.trim() } : p));
       setEditingPostId(null);
       addToast('success', t('clubHook.postUpdated'));
@@ -199,7 +207,15 @@ export function useAdminClub() {
 
   const handleDeleteComment = async (postId: string, commentId: string) => {
     try {
-      await deleteClubComment(postId, commentId);
+      /* Le commentaire, le compteur du post et l'entrée du journal : UN seul lot (l'ancien
+         `deleteClubComment` faisait deux écritures, et ne laissait aucune trace). */
+      await consoleWrite(
+        { action: 'club_comments.delete', targetCollection: 'club_comments', targetId: commentId, space: 'club', summary: `post ${postId}` },
+        (batch) => {
+          batch.delete(doc(db, `club_posts/${postId}/comments`, commentId));
+          batch.update(doc(db, 'club_posts', postId), { commentsCount: increment(-1) });
+        },
+      );
       setPostComments((prev) => ({ ...prev, [postId]: (prev[postId] ?? []).filter((c) => c.id !== commentId) }));
       setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, commentsCount: Math.max(0, (p.commentsCount ?? 1) - 1) } : p));
       addToast('success', t('clubHook.commentDeleted'));
@@ -233,14 +249,17 @@ export function useAdminClub() {
     if (!adminPostContent.trim()) return;
     setPublishingPost(true);
     try {
-      await createClubPost({
-        userId: user?.uid ?? '',
-        userName: user?.displayName || 'Admin',
-        content: adminPostContent.trim(),
-        type: 'post',
-        category: 'general',
-        isAdmin: true,
-      });
+      await audited(
+        (id) => ({ action: 'club_posts.create', targetCollection: 'club_posts', targetId: id, space: 'club', summary: adminPostContent.trim().slice(0, 120) }),
+        () => createClubPost({
+          userId: user?.uid ?? '',
+          userName: user?.displayName || 'Admin',
+          content: adminPostContent.trim(),
+          type: 'post',
+          category: 'general',
+          isAdmin: true,
+        }),
+      );
       setAdminPostContent('');
       setShowPostForm(false);
       const updated = await getClubPosts(100);
@@ -291,7 +310,10 @@ export function useAdminClub() {
         setEventImageFile(null);
         setEventImagePreview('');
       }
-      await saveClubEvent({ ...eventForm, imageUrl: imageUrl || undefined, createdAt: editEvent?.createdAt ?? new Date().toISOString(), ...(editEvent ? { id: editEvent.id } : {}) });
+      await audited(
+        (id) => ({ action: editEvent ? 'club_events.update' : 'club_events.create', targetCollection: 'club_events', targetId: id, space: 'club', summary: eventForm.title }),
+        () => saveClubEvent({ ...eventForm, imageUrl: imageUrl || undefined, createdAt: editEvent?.createdAt ?? new Date().toISOString(), ...(editEvent ? { id: editEvent.id } : {}) }),
+      );
       setShowEventForm(false);
       const updated = await getClubEvents();
       setEvents(updated);
@@ -353,7 +375,10 @@ export function useAdminClub() {
         setSessionImageFile(null);
         setSessionImagePreview('');
       }
-      await saveClubSession({ ...sessionForm, imageUrl: imageUrl || undefined, createdAt: editSession?.createdAt ?? new Date().toISOString(), ...(editSession ? { id: editSession.id } : {}) });
+      await audited(
+        (id) => ({ action: editSession ? 'club_sessions.update' : 'club_sessions.create', targetCollection: 'club_sessions', targetId: id, space: 'club', summary: sessionForm.title }),
+        () => saveClubSession({ ...sessionForm, imageUrl: imageUrl || undefined, createdAt: editSession?.createdAt ?? new Date().toISOString(), ...(editSession ? { id: editSession.id } : {}) }),
+      );
       setShowSessionForm(false);
       const updated = await getClubSessions();
       setSessions(updated);
@@ -394,7 +419,10 @@ export function useAdminClub() {
     if (!infoForm.title.trim() || !infoForm.content.trim()) return;
     setSavingInfo(true);
     try {
-      await saveClubInfo({ ...infoForm, ...(editInfo ? { id: editInfo.id } : {}) });
+      await audited(
+        (id) => ({ action: editInfo ? 'club_infos.update' : 'club_infos.create', targetCollection: 'club_infos', targetId: id, space: 'club', summary: infoForm.title }),
+        () => saveClubInfo({ ...infoForm, ...(editInfo ? { id: editInfo.id } : {}) }),
+      );
       setShowInfoForm(false);
       const updated = await getClubExclusiveInfos();
       setInfos(updated);

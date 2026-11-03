@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Breadcrumb, Button, GlassPanel, MediaCard, Num, Skeleton, SubNav, TranslationNotice } from '@ds';
+import { Breadcrumb, Button, MediaCard, Num, Skeleton, SubNav, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
 import ShareButtons from '../components/shared/ShareButtons';
@@ -413,16 +413,11 @@ export default function VideoDetail() {
               </dl>
             </Bento>
 
-            <GlassPanel level="hero" padding={22}>
-              <SiteEyebrow style={{ marginBottom: '8px' }}>{t('detail.chapters')}</SiteEyebrow>
-              {/*
-                Le kit liste les chapitres ici, et note que « les chapitres se lisent sans
-                lancer la vidéo — c'est souvent tout ce qu'on cherche ». Le type `Video` n'en
-                porte pas. On le dit plutôt que d'en fabriquer.
-              */}
-              {/* Le panneau « Chapitres » parlait de transcription (audit 03/11/2026, X2). */}
-              <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('detail.chaptersMissing')}</p>
-            </GlassPanel>
+            {/*
+              Le kit liste ici les chapitres ; le type `Video` n'en porte pas. Plutôt qu'un
+              panneau qui n'annonce que son absence (audit 03/11/2026, X2), pas de panneau :
+              il reviendra quand la donnée existera, sans être fabriqué d'ici là.
+            */}
           </aside>
         </div>
       </PageSite>

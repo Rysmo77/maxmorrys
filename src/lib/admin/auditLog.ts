@@ -4,6 +4,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../config/db';
 import { auth } from '../../config/firebase';
+import { captureError } from '../sentry';
 import type { AdminSpace } from './consoleNav';
 
 /**
@@ -161,6 +162,50 @@ export function auditedMerge(path: string, id: string, data: DocumentData, meta:
   return consoleWrite(meta, (batch, entryId) => {
     batch.set(doc(db, path, id), { ...data, auditRef: entryId }, { merge: true });
   });
+}
+
+/** La forme qu'exige la règle pour `action` (`firestore.rules`, `match /audit_log`). */
+export const AUDIT_ACTION_RE = /^[a-z][a-z_]{0,40}[.][a-z][a-z_]{0,30}$/;
+
+/**
+ * TRACE une écriture de console faite par un helper métier (`savePost`, `saveCoupon`,
+ * `updateTransactionStatus`…) — audit du 03/11/2026, A1 complet.
+ *
+ * Ces helpers posent eux-mêmes leur écriture (slug, horodatage, champs dérivés) : les
+ * réécrire en batch dupliquerait leur logique. L'entrée part donc JUSTE APRÈS l'écriture
+ * réussie, et seulement si elle a réussi — une écriture refusée ne laisse pas de fausse trace.
+ *
+ * ⚠️ DIFFÉRENCE ASSUMÉE avec `consoleWrite` : ici l'action et sa trace sont DEUX requêtes.
+ * Une coupure entre les deux laisse une écriture sans trace ; c'est pourquoi les écritures
+ * qui DOIVENT être tracées (suppressions gardées, rôles) restent sur `consoleWrite`, où la
+ * règle refuse l'action sans son entrée. Un échec du journal n'annule pas l'action déjà
+ * faite (l'interface dirait « échec » d'une écriture réussie) : il est remonté à Sentry.
+ *
+ * @param meta l'entrée, ou une fonction du résultat (l'identifiant d'une création).
+ */
+export async function audited<T>(
+  meta: AuditMeta | ((result: T) => AuditMeta),
+  run: () => Promise<T>,
+): Promise<T> {
+  const result = await run();
+  const m = typeof meta === 'function' ? meta(result) : meta;
+  try {
+    if (!AUDIT_ACTION_RE.test(m.action)) throw new Error(`audited: action invalide « ${m.action} »`);
+    await consoleWrite({ ...m, targetId: m.targetId || '—' }, () => {});
+  } catch (error: unknown) {
+    captureError(error, { context: `audited(${m.action})` });
+  }
+  return result;
+}
+
+/**
+ * Le verbe d'un enregistrement de contenu : une publication (ou un retrait) se lit comme
+ * telle dans le journal, et non comme une « mise à jour » parmi d'autres.
+ */
+export function saveVerb(isEdit: boolean, before?: string, after?: string): 'create' | 'update' | 'publish' | 'unpublish' {
+  if (after === 'published' && before !== 'published') return 'publish';
+  if (isEdit && before === 'published' && after !== undefined && after !== 'published') return 'unpublish';
+  return isEdit ? 'update' : 'create';
 }
 
 function toDate(v: unknown): Date | null {

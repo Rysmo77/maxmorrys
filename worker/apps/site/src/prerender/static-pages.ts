@@ -524,6 +524,9 @@ export const staticPages: Record<string, PageMeta> = {
     bodyText:
       "Les projets que nous avons menés, décrits par ce qui se vérifie : le rôle que nous avons réellement tenu, le périmètre technique, la pile logicielle employée, et le site en ligne que vous pouvez ouvrir.\n\n" +
       "Chaque fiche est publiée dans les limites de l'autorisation écrite du client : son nom, notre rôle, la pile et le lien. Les résultats commerciaux et les chiffres de croissance n'y figurent pas — cet accord ne les couvre pas, et nous préférons le dire plutôt que de publier ce que personne ne pourrait vérifier.",
+    // Chaque projet relié à son site livré (audit 03/11/2026, n°7) — des adresses que
+    // `proof:check --links` vérifie chaque semaine, pas des liens écrits à la main.
+    links: REALISATIONS.map((r) => ({ label: `${r.name} — ${r.domain}`, href: r.website })),
     breadcrumbs: [
       { name: 'Accueil', url: `${SITE_URL}/` },
       { name: 'Conception', url: `${SITE_URL}/conception` },

@@ -195,8 +195,16 @@ export interface QuotaSnapshot extends QuotaLimits {
 /**
  * Réserve une requête Rysmo de façon atomique.
  *
- * Ordre de consommation : **le pack prépayé d'abord**, puis le quota quotidien.
- * C'est délibéré — l'utilisateur qui a payé voit son crédit servir en premier.
+ * Ordre de consommation : **le quota du jour d'abord** (gratuit, Club ou abonnement), puis le
+ * pack prépayé.
+ *
+ * ⚠️ L'ORDRE A ÉTÉ INVERSÉ LE 03/11/2026 (audit W3). Il était « pack d'abord », avec pour
+ * justification « l'utilisateur qui a payé voit son crédit servir en premier ». En pratique,
+ * c'était l'inverse d'un service : quiconque avait un pack payait chacune de ses questions
+ * alors que ses gratuites du jour restaient intactes — et perdues à minuit. Le pack n'expire
+ * pas ; le quota du jour, si. On consomme donc d'abord ce qui se perd.
+ *
+ * `source` dit ce qui a été débité : `pack` seulement quand le quota du jour était épuisé.
  *
  * Lève `resource-exhausted` avec des détails structurés quand la limite est
  * atteinte : le client s'en sert pour proposer l'achat d'un pack.
@@ -217,16 +225,16 @@ export async function reserveRequest(db: Firestore, uid: string): Promise<QuotaS
     let newPackBalance = packBalance;
     let source: QuotaSnapshot['source'] = 'free';
 
-    if (packBalance > 0) {
-      newPackBalance = packBalance - 1;
-      source = 'pack';
-    } else if (dayCount < limits.dailyLimit) {
+    if (dayCount < limits.dailyLimit) {
       newDayCount = dayCount + 1;
       source = limits.hasActiveSubscription
         ? 'subscription'
         : limits.hasClubBonus
           ? 'club'
           : 'free';
+    } else if (packBalance > 0) {
+      newPackBalance = packBalance - 1;
+      source = 'pack';
     } else {
       throw new HttpsError(
         'resource-exhausted',
