@@ -1138,6 +1138,29 @@ describe('appointments — formulaire public borne', () => {
     ));
   });
 
+  /*
+   * Audit du 03/11/2026 (W1) — la fixture ci-dessus porte un `type` que le formulaire
+   * n'envoyait pas : les tests passaient, la prod refusait 100 % des réservations.
+   * Ce cas reproduit CE QUE `saveAppointment()` ENVOIE : format en `type`, sans téléphone.
+   */
+  it('NON-REGRESSION : la forme exacte envoyée par le formulaire de /contact passe', async () => {
+    await assertSucceeds(setDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'appointments', 'a4b'),
+      {
+        name: 'Awa Ndiaye', email: 'awa@exemple.test', date: '2026-11-10', time: '18:00',
+        subject: 'Un projet de site', message: 'Visio', type: 'visio',
+        status: 'pending', createdAt: new Date().toISOString(),
+      },
+    ));
+  });
+
+  it('refuse un rendez-vous sans `type` (ce que le formulaire envoyait avant le 03/11)', async () => {
+    await assertFails(setDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'appointments', 'a4c'),
+      { name: 'Awa Ndiaye', email: 'awa@exemple.test', date: '2026-11-10', status: 'pending' },
+    ));
+  });
+
   it("refuse une adresse qui n'en est pas une", async () => {
     // L'ancienne regle ne verifiait que la LONGUEUR : « aaaaa » etait une adresse valide.
     await assertFails(setDoc(

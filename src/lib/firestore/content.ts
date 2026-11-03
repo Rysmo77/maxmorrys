@@ -147,8 +147,11 @@ export async function getAllAppointments(): Promise<Appointment[]> {
 }
 
 export async function saveAppointment(data: Omit<Appointment, 'id' | 'status' | 'createdAt'>): Promise<string> {
+  // Firestore refuse un champ `undefined` (« Unsupported field value ») : les champs
+  // optionnels vides (téléphone, message) sont retirés, pas envoyés à `undefined`.
+  const defined = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
   return createDoc('appointments', {
-    ...data,
+    ...defined,
     status: 'pending',
     createdAt: new Date().toISOString(),
   } as Parameters<typeof createDoc>[1]);

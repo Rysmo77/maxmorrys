@@ -359,6 +359,8 @@ export interface Video {
   noIndex?: boolean;
 }
 
+export type AppointmentFormat = 'visio' | 'phone' | 'whatsapp';
+
 export interface Appointment {
   id: string;
   name: string;
@@ -368,6 +370,8 @@ export interface Appointment {
   time: string;
   subject: string;
   message?: string;
+  /** Format demandé. OBLIGATOIRE : la règle Firestore `appointments` refuse le document sans lui. */
+  type: AppointmentFormat;
   status: 'pending' | 'confirmed' | 'cancelled';
   createdAt: string;
   /** Accusé de réception envoyé. Absent = jamais parti. */

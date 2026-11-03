@@ -7,6 +7,8 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { saveAppointment } from '../../lib/firestore';
 import { captureError } from '../../lib/sentry';
 import { trackGenerateLead } from '../../lib/tracking';
+import { contact } from '../../lib/brand/company';
+import type { AppointmentFormat } from '../../types';
 import { EMAIL_RE, SUBJECT_KEYS } from './useContactMessage';
 
 /**
@@ -51,6 +53,8 @@ const EMPTY = {
   time: TIME_SLOTS[0] as string,
   subjectKey: SUBJECT_KEYS[0] as string,
   message: '',
+  /** Format choisi (visio, téléphone, WhatsApp). La règle `appointments` EXIGE ce champ. */
+  type: 'visio' as AppointmentFormat,
 };
 
 export type AppointmentForm = typeof EMPTY;
@@ -92,7 +96,7 @@ export function useAppointment() {
     return Object.keys(errs).length === 0;
   };
 
-  const update = (field: keyof AppointmentForm, value: string) => {
+  const update = <K extends keyof AppointmentForm>(field: K, value: AppointmentForm[K]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
@@ -110,6 +114,7 @@ export function useAppointment() {
         time: form.time,
         subject: t(`subjects.${form.subjectKey}`),
         message: form.message.trim() || undefined,
+        type: form.type,
       });
       trackGenerateLead('appointment_booking');
       setSuccess(true);
@@ -127,7 +132,9 @@ export function useAppointment() {
       }
     } catch (error: unknown) {
       captureError(error, { context: 'Save appointment failed' });
-      addToast('error', error instanceof Error ? error.message : t('toast.appointmentError'));
+      // Jamais le message technique brut (« Missing or insufficient permissions ») :
+      // une phrase traduite, avec un recours. L'erreur part dans Sentry ci-dessus.
+      addToast('error', t('toast.appointmentError', { email: contact.email, phone: contact.phoneDisplay }));
     } finally {
       setLoading(false);
     }

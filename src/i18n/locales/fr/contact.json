@@ -92,7 +92,7 @@
   "toast": {
     "messageSuccess": "Message envoyé avec succès ! Je te répondrai rapidement.",
     "messageError": "Erreur lors de l'envoi. Essaie à nouveau s'il te plaît.",
-    "appointmentError": "Erreur lors de la prise de rendez-vous. Réessaie."
+    "appointmentError": "Ta demande n'a pas pu être enregistrée. Réessaie, ou écris-moi sur WhatsApp au {{phone}} ou à {{email}}."
   },
   "booking": {
     "successTitle": "Demande envoyée !",

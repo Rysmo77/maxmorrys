@@ -92,7 +92,7 @@
   "toast": {
     "messageSuccess": "Message sent successfully! I'll get back to you soon.",
     "messageError": "Something went wrong while sending. Please try again.",
-    "appointmentError": "Something went wrong while booking. Please try again."
+    "appointmentError": "Your request couldn't be saved. Please try again, or message me on WhatsApp at {{phone}} or at {{email}}."
   },
   "booking": {
     "successTitle": "Request sent!",

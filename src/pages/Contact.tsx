@@ -14,6 +14,7 @@ import {
 import { trackContact } from '../lib/tracking';
 import { MESSAGE_MAX, SUBJECT_KEYS, useContactMessage } from './contact/useContactMessage';
 import { TIME_SLOTS, useAppointment } from './contact/useAppointment';
+import type { AppointmentFormat } from '../types';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -42,7 +43,7 @@ import { TIME_SLOTS, useAppointment } from './contact/useAppointment';
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-type Format = 'visio' | 'phone' | 'whatsapp';
+type Format = AppointmentFormat;
 const FORMATS: Format[] = ['visio', 'phone', 'whatsapp'];
 
 /** Les cinq prochains jours ouvrés, aujourd'hui compris, en date locale `AAAA-MM-JJ`. */
@@ -122,6 +123,7 @@ export default function Contact() {
      l'écriture existante. */
   const { update } = booking;
   useEffect(() => {
+    update('type', format);
     update('message', topic.trim() ? `${t(`site.booking.format.${format}`)} — ${topic.trim()}` : t(`site.booking.format.${format}`));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [format, topic]);

@@ -332,7 +332,7 @@ service cloud.firestore {
       // n'importe quel champ tant qu'on n'en met pas trop ; une liste dit lesquels. C'est la
       // meme correction que sur `users` : la porte se ferme en nommant ce qui entre.
       //
-      // ⚠️ La liste est le miroir de `saveAppointment()` (src/lib/firestore/content.ts:138)
+      // ⚠️ La liste est le miroir de `saveAppointment()` (src/lib/firestore/content.ts)
       // et de `handleSubmit` (src/pages/contact/useAppointment.ts). Les trois bougent ENSEMBLE :
       // un champ ajoute au formulaire sans etre ajoute ici echoue silencieusement.
       // ─────────────────────────────────────────────────────────────────────────────

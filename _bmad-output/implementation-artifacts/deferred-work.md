@@ -97,3 +97,31 @@ ou de conformité magasin. Elles sont listées ici pour être VUES, plutôt qu'e
 - source_spec: —
   summary: ⚠️ Le bouton de connexion Apple du kit est mort par construction sur Android, et sa marque est un emplacement réservé.
   evidence: Le kit le place sous `os === 'ios'`. Et `ds/AppleMark` est un disque plein : les recommandations d'Apple interdisent de redessiner la marque, l'asset officiel est obligatoire avant soumission. À livrer avec la dépendance de connexion tierce — App Store 4.8 exige une option de connexion privée dès qu'une connexion sociale est proposée.
+
+- source_spec: none
+  summary: Audit 03/11/2026 P1 — contraste du mode sombre sur les surfaces claires (constats 1, E2, C1) avec contrôle automatique.
+  evidence: Scindé de l'audit UI/UX & QA du 03/11/2026 (doc « Audit UI/UX et QA — maxmorrys.me, Edu et Club ») ; traité P1 un par un.
+- source_spec: none
+  summary: Audit 03/11/2026 P1 — clés i18n brutes dans le devis Commerces et TPE (constat 2) et test anti-clés brutes.
+  evidence: Scindé de l'audit UI/UX & QA du 03/11/2026 ; traité P1 un par un.
+- source_spec: none
+  summary: Audit 03/11/2026 P1 — session partagée entre maxmorrys.me, edu et club, ou avertissement avant changement de domaine (E1).
+  evidence: Scindé de l'audit UI/UX & QA du 03/11/2026 ; traité P1 un par un.
+- source_spec: none
+  summary: Audit 03/11/2026 P1 — parcours Edu sans issue : CTA « Être prévenu·e » et onglet Téléphone (constats 3, 8).
+  evidence: Scindé de l'audit UI/UX & QA du 03/11/2026 ; traité P1 un par un.
+- source_spec: none
+  summary: Audit 03/11/2026 P1 — Club : sessions passées annoncées « à venir », année absente, statut ignoré (C2).
+  evidence: Scindé de l'audit UI/UX & QA du 03/11/2026 ; traité P1 un par un.
+- source_spec: none
+  summary: Audit 03/11/2026 P1 — journal d'audit côté serveur des actions de la console (A1).
+  evidence: Scindé de l'audit UI/UX & QA du 03/11/2026 ; traité P1 un par un.
+- source_spec: none
+  summary: Audit 03/11/2026 P2/P3 — constats restants (4-7, 9-13, E3-E9, C3-C9, M1-M6, A2, W2-W7, X1-X19).
+  evidence: Scindé de l'audit UI/UX & QA du 03/11/2026 ; à traiter après les P1.
+- source_spec: `_bmad-output/implementation-artifacts/spec-audit-w1-reservation-rdv.md`
+  summary: La règle `appointments` borne `type` à 60 caractères mais ne restreint pas ses valeurs à visio|phone|whatsapp.
+  evidence: Revue Blind Hunter ; resserrer la règle exige un `firebase deploy --only firestore:rules` manuel.
+- source_spec: `_bmad-output/implementation-artifacts/spec-audit-w1-reservation-rdv.md`
+  summary: Le recours de l'erreur de réservation (WhatsApp, e-mail) est en texte dans un toast éphémère, pas en liens cliquables.
+  evidence: Revue Blind Hunter ; afficher l'erreur dans le formulaire avec liens wa.me/mailto.
