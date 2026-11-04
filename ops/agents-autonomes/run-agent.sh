@@ -54,20 +54,22 @@ MOTIFS=( "Bash(node $B/mm-decision.mjs liste *)" )
 # Idées de posts (Fatou, 04/11/2026) : sources en lecture, dépôt en « proposé », cartes à Max.
 IDEES=( "Bash(node scripts/growth/nocodb.mjs create idees-posts *)" "Bash(node $B/mm-idees.mjs *)"
         "Bash(node $B/mm-gsc.mjs requetes *)" "Bash(node $B/mm-meta-verif.mjs *)" "Bash(node $B/mm-firestore.mjs rysmo *)" "${DECIDER[@]}" )
+# Idées retenues par Max, pour les autres canaux (article, lettre, leçon) : lire et noter l'usage.
+IDEES_USAGE=( "Bash(node $B/mm-idees.mjs retenues *)" "Bash(node $B/mm-idees.mjs utiliser *)" )
 DEPOT_POSTS=( "Bash(node scripts/growth/nocodb.mjs create contenus *)" "Bash(node scripts/growth/nayo.mjs brief *)"
               "Bash(node $B/qa-lot.mjs *)" "Bash($B/mm-rendu)" )
 case "$TACHE" in
   veille)          AGENT="🔎 Thierry — veille et Flash du lundi"; TOURS=150; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" ) ;;
-  lot-social)      AGENT="🗓 Mariam & Salimata — lot social";     TOURS=200; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" "${MOTIFS[@]}" "Bash(node $B/mm-idees.mjs *)" ) ;;
+  lot-social)      AGENT="🗓 Mariam, Salimata & Kader — lot social";     TOURS=200; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" "${MOTIFS[@]}" "Bash(node $B/mm-idees.mjs *)" ) ;;
   article)         AGENT="🗞️ Rédaction — article de la quinzaine"; TOURS=250; ECRITURE=( "content/blog/**" )
                    EXTRA=( "${WEB[@]}" "Bash(node scripts/growth/blog-lint.mjs *)" "Bash(node scripts/growth/blog-publish.mjs content/blog/*)"
-                           "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${DECIDER[@]}" ) ;;
+                           "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${DECIDER[@]}" "${IDEES_USAGE[@]}" ) ;;
   diffusion)       AGENT="🚀 Omar — indexation et diffusion des articles"; TOURS=120
                    EXTRA=( "${DEPOT_POSTS[@]}" "${SITE[@]}" "Bash(node $B/mm-gsc.mjs *)" "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" ) ;;
   relecture)       AGENT="🖋️ Béatrice — relecture des cartes"; TOURS=80; SILENCE_RAS=1; PAS_DE_DEBUT=1
                    EXTRA=( "Bash(node scripts/growth/nayo.mjs brief *)" ) ;;
   lecons)          AGENT="🎓 Adjoa — leçons en brouillon"; TOURS=200; ECRITURE=( "content/lecons/**" )
-                   EXTRA=( "Bash(node $B/mm-firestore.mjs formations *)" "Bash(node $B/mm-firestore.mjs formations)" "${SITE[@]}" "${DECIDER[@]}" ) ;;
+                   EXTRA=( "Bash(node $B/mm-firestore.mjs formations *)" "Bash(node $B/mm-firestore.mjs formations)" "${SITE[@]}" "${DECIDER[@]}" "Bash(node $B/mm-idees.mjs retenues *)" ) ;;
   rysmo-faq)       AGENT="🤗 Josiane — questions posées à Rysmo"; TOURS=80
                    EXTRA=( "Bash(node $B/mm-firestore.mjs rysmo *)" ) ;;
   revue-mensuelle) AGENT="🧭 Awa — revue du mois et plan"; TOURS=150
@@ -77,7 +79,7 @@ case "$TACHE" in
   conformite)      AGENT="⚖️ Ndèye — conformité des contenus du mois"; TOURS=120
                    EXTRA=( "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${SITE[@]}" ) ;;
   lettre)          AGENT="💌 Serge — lettre et épreuve"; TOURS=120
-                   EXTRA=( "Bash(node $B/mm-lettre-epreuve.mjs *)" "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${SITE[@]}" ) ;;
+                   EXTRA=( "Bash(node $B/mm-lettre-epreuve.mjs *)" "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${SITE[@]}" "${IDEES_USAGE[@]}" ) ;;
   demandes)        AGENT="🤝 Ibrahima — demandes et relances"; TOURS=120; ECRITURE=( "_bmad-output/commercial/**" )
                    EXTRA=( "Bash(node $B/mm-firestore.mjs collection *)" "${DECIDER[@]}" ) ;;
   prospection)     AGENT="🤝 Ibrahima — prospection"; TOURS=150; ECRITURE=( "_bmad-output/commercial/**" ); EXTRA=( "${WEB[@]}" ) ;;

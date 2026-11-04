@@ -11,6 +11,7 @@ Cette tâche tourne chaque jour mais ne travaille que **5 jours avant une date d
 - `.claude/skills/mm-agent-serge/references/sequence-email.md`
 - `docs/growth-kb/08-emailing.md` (contrat de `POST /marketing/campagne` : `id`, `objet`, `preheader`, `langue`, `segment`, `mode`, `blocs` ; plafonds ; contrôle de voix fait par la route)
 - Le plan du mois (`_bmad-output/growth/plans/AAAA-MM.md`, sinon `2026-10-29-plan-editorial-nov-jan.md` § 4 et notes « La lettre ») : contenu prévu pour cette date (Flash du mois, article, mot du mois, outil à 0 F).
+- Idées retenues par Max pour la lettre : `node /opt/mm-agents/bin/mm-idees.mjs retenues --pour lettre` — l'angle du mot d'ouverture ou d'un bloc peut en venir (garde le sujet, cite la source de Fatou si un fait en dépend). Après l'épreuve : `node /opt/mm-agents/bin/mm-idees.mjs utiliser <IdeeId> --canal lettre:<date de la lettre>`.
 - Articles publiés : `node /opt/mm-agents/bin/mm-firestore.mjs blog` (le lien de l'article doit exister et répondre : WebFetch).
 
 ## Démarche

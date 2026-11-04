@@ -5,8 +5,15 @@
 //
 //   node mm-idees.mjs sync                       réponses de Max (table Decisions) → Statut des idées
 //   node mm-idees.mjs lier <IdeeId> <DecisionId>  rattache la carte Telegram à l'idée
-//   node mm-idees.mjs retenues [--periode S48|2026-12] [--horizon semaine|mois]
-//   node mm-idees.mjs utiliser <IdeeId> --post <PostId>   retenu → utilisé (le post qui la porte)
+//   node mm-idees.mjs retenues [--pour post|carrousel|story|reel|article|lettre|lecon] [--periode S48|2026-12] [--horizon semaine|mois]
+//   node mm-idees.mjs utiliser <IdeeId> --canal <canal>:<ref>   ex. post:212 · article:mon-slug · lettre:2026-11-26
+//                                                  (--post <PostId> reste accepté = --canal post:<PostId>)
+//
+// Idée multi-usages (04/11/2026) : une idée retenue porte des `Declinaisons` (post, carrousel,
+// story, reel, article, lettre, lecon). `utiliser` AJOUTE une ligne à `Utilisations` ; l'idée
+// reste « retenu » tant qu'une déclinaison n'est pas faite, puis passe « utilisé ». Une idée
+// retenue depuis plus de 60 jours passe « utilisé » au `sync` suivant, même incomplète.
+// `retenues --pour <canal>` ne rend que les idées dont cette déclinaison reste à faire.
 //
 // Correspondance des boutons : retenir → retenu · plus_tard → plus_tard · ecarter → écarté.
 // Une carte reste « en_attente » tant que Max n'a pas cliqué : l'idée reste « proposé ».
@@ -19,6 +26,14 @@ import { resolve } from 'node:path';
 const BASE = process.env.NOCODB_BASE || 'ph7ugup4mggzj2y';
 const IDEES = process.env.NOCODB_TABLE_IDEES_POSTS || 'mk2n1mh0z4wx7w2';
 const CHOIX = { retenir: 'retenu', plus_tard: 'plus_tard', ecarter: 'écarté' };
+const CANAUX = ['post', 'carrousel', 'story', 'reel', 'article', 'lettre', 'lecon'];
+const EXPIRATION_JOURS = 60;
+const liste = (v) => (Array.isArray(v) ? v : String(v || '').split(',')).map((x) => String(x).trim()).filter(Boolean);
+const faits = (i) => String(i.Utilisations || '').split(/[;\n]/).map((x) => x.trim().split(':')[0]).filter(Boolean);
+// Sans déclinaison renseignée (idées d'avant le 04/11), l'idée vaut pour son Format.
+const declinaisons = (i) => { const d = liste(i.Declinaisons); return d.length ? d : [i.Format || 'post']; };
+const restantes = (i) => { const f = new Set(faits(i)); return declinaisons(i).filter((d) => !f.has(d)); };
+const aujourdhui = () => new Date().toISOString().slice(0, 10);
 
 const die = (m, c = 1) => { console.error(`✖ ${m}`); process.exit(c); };
 function env() {
@@ -76,8 +91,17 @@ switch (cmd) {
       if (!d) continue;
       const row = { Id: i.Id };
       if (!i.Decision_Id) row.Decision_Id = d.Id;
-      if (d.Status === 'répondu' && CHOIX[d.Choix] && CHOIX[d.Choix] !== i.Statut) row.Statut = CHOIX[d.Choix];
+      if (d.Status === 'répondu' && CHOIX[d.Choix] && CHOIX[d.Choix] !== i.Statut) {
+        row.Statut = CHOIX[d.Choix];
+        if (row.Statut === 'retenu' && !i.Retenue_Le) row.Retenue_Le = aujourdhui();
+      }
       if (Object.keys(row).length > 1) changes.push(row);
+    }
+    // Retenues trop anciennes : on les clôt, même si une déclinaison n'a pas été faite.
+    const limite = new Date(Date.now() - EXPIRATION_JOURS * 864e5).toISOString().slice(0, 10);
+    for (const i of await tout(IDEES, '(Statut,eq,retenu)')) {
+      if (!i.Retenue_Le) changes.push({ Id: i.Id, Retenue_Le: aujourdhui() });
+      else if (String(i.Retenue_Le).slice(0, 10) < limite) changes.push({ Id: i.Id, Statut: 'utilisé', Notes: `${i.Notes ? i.Notes + '\n' : ''}Close le ${aujourdhui()} : retenue depuis plus de ${EXPIRATION_JOURS} jours (restait : ${restantes(i).join(', ') || 'rien'}).` });
     }
     if (changes.length) await maj(changes);
     console.log(JSON.stringify({ examinees: idees.length, mises_a_jour: changes }, null, 2));
@@ -93,24 +117,41 @@ switch (cmd) {
     break;
   }
   case 'retenues': {
+    const pour = opt(a, 'pour');
+    if (pour && !CANAUX.includes(pour)) die(`--pour : ${CANAUX.join(' | ')}`);
     const f = ['(Statut,eq,retenu)'];
     if (opt(a, 'periode')) f.push(`(Periode,eq,${opt(a, 'periode')})`);
     if (opt(a, 'horizon')) f.push(`(Horizon,eq,${opt(a, 'horizon')})`);
-    const rows = await tout(IDEES, f.join('~and'));
-    console.log(JSON.stringify(rows.map(({ Id, Titre, Angle, Serie, Rubrique, Cible, Reseau, Format, Gabarit_Suggere, Periode, Horizon, Sources, Score }) =>
-      ({ Id, Titre, Angle, Serie, Rubrique, Cible, Reseau, Format, Gabarit_Suggere, Periode, Horizon, Sources, Score })), null, 2));
-    console.error(`${rows.length} idée(s) retenue(s)`);
+    const rows = (await tout(IDEES, f.join('~and'))).filter((i) => !pour || restantes(i).includes(pour));
+    console.log(JSON.stringify(rows.map((i) => {
+      const { Id, Titre, Angle, Serie, Rubrique, Cible, Reseau, Format, Gabarit_Suggere, Periode, Horizon, Sources, Score, Utilisations } = i;
+      return { Id, Titre, Angle, Serie, Rubrique, Cible, Reseau, Format, Gabarit_Suggere, Periode, Horizon, Sources, Score,
+        Declinaisons: declinaisons(i), Restantes: restantes(i), Utilisations: Utilisations || '' };
+    }), null, 2));
+    console.error(`${rows.length} idée(s) retenue(s)${pour ? ` pour « ${pour} »` : ''}`);
     break;
   }
   case 'utiliser': {
-    const idee = Number(a[0]); const post = Number(opt(a, 'post'));
-    if (!idee || !post) die('usage : utiliser <IdeeId> --post <PostId>');
+    const idee = Number(a[0]);
+    const brut = opt(a, 'canal') || (opt(a, 'post') ? `post:${opt(a, 'post')}` : '');
+    const m = brut.match(/^([a-z]+):(.+)$/);
+    if (!idee || !m) die('usage : utiliser <IdeeId> --canal <canal>:<ref>   (ex. post:212, article:mon-slug, lettre:2026-11-26)');
+    const [, canal, ref] = m;
+    if (!CANAUX.includes(canal)) die(`canal inconnu « ${canal} » : ${CANAUX.join(' | ')}`);
     const i = await noco(`/api/v2/tables/${IDEES}/records/${idee}`);
-    if (i.Statut !== 'retenu') die(`idée #${idee} en « ${i.Statut} » : seule une idée retenue par Max passe en utilisé`);
-    await maj([{ Id: idee, Statut: 'utilisé', Post_Id: post }]);
-    console.log(JSON.stringify({ idee, post, statut: 'utilisé' }));
+    if (i.Statut !== 'retenu') die(`idée #${idee} en « ${i.Statut} » : seule une idée retenue par Max peut être utilisée`);
+    const ligne = `${canal}:${ref}`;
+    const deja = String(i.Utilisations || '').split(/[;\n]/).map((x) => x.trim()).filter(Boolean);
+    if (deja.includes(ligne)) die(`déjà noté : ${ligne}`);
+    const apres = { ...i, Utilisations: [...deja, ligne].join('; ') };
+    const reste = restantes(apres);
+    const row = { Id: idee, Utilisations: apres.Utilisations };
+    if (canal === 'post' && !i.Post_Id && /^\d+$/.test(ref)) row.Post_Id = Number(ref);
+    if (!reste.length) row.Statut = 'utilisé';
+    await maj([row]);
+    console.log(JSON.stringify({ idee, utilisation: ligne, restantes: reste, statut: row.Statut || 'retenu' }));
     break;
   }
   default:
-    die('usage : mm-idees.mjs sync | lier <IdeeId> <DecisionId> | retenues [--periode P] [--horizon semaine|mois] | utiliser <IdeeId> --post <PostId>');
+    die('usage : mm-idees.mjs sync | lier <IdeeId> <DecisionId> | retenues [--pour <canal>] [--periode P] [--horizon semaine|mois] | utiliser <IdeeId> --canal <canal>:<ref>');
 }

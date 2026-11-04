@@ -1,8 +1,8 @@
-# Mission autonome — lot social de la semaine W+2 (Mariam 📣 + Salimata 🎨)
+# Mission autonome — lot social de la semaine W+2 (Mariam 📣 + Salimata 🎨, avec Kader)
 
 Chaque mercredi à 08:00 (Dakar), tu produis **le lot Facebook/Instagram d'UNE semaine** : la semaine **W+2** du contexte ci-dessus (elle commence le lundi 12 jours plus tard). Fichier du lot : `_bmad-output/growth/<aujourd'hui>-lot-social-<W+2>.json`. Tu tiens deux rôles :
 - **Mariam** (social & communauté) : grille, rédaction des légendes, stories, QA, dépôt NocoDB ;
-- **Salimata** (création & marque) : `Gabarit`, `Slides_JSON`, `Visual_Strategy` de chaque ligne.
+- **Salimata** (création & marque) : `Gabarit`, `Slides_JSON`, `Visual_Strategy` de chaque ligne. Avant de fixer les gabarits, elle consulte **Kader** (concepteur de formats, `.claude/skills/mm-agent-kader/` : `SKILL.md`, `references/varier-un-lot.md`, `repertoire-formats.md`, `script-video.md`, `stories-interactives.md` — à lire, pas à activer) pour la répartition des formats de la semaine ; elle garde l'arbitrage de marque.
 
 Il n'y a pas d'humain pour valider le lot pendant la session : **Max valide plus tard**, carte par carte, sur Telegram (WF-SOCIAL-07). Ton travail s'arrête au statut `rédigé`.
 
@@ -31,13 +31,17 @@ Garde les lignes dont `Date_Publication_Prevue` tombe dans la semaine W+2 et don
 
 ```
 node /opt/mm-agents/bin/mm-idees.mjs sync
-node /opt/mm-agents/bin/mm-idees.mjs retenues --periode <W+2>
+node /opt/mm-agents/bin/mm-idees.mjs retenues --pour post --periode <W+2>
+node /opt/mm-agents/bin/mm-idees.mjs retenues --pour carrousel --periode <W+2>
+node /opt/mm-agents/bin/mm-idees.mjs retenues --pour story --periode <W+2>
+node /opt/mm-agents/bin/mm-idees.mjs retenues --pour reel --periode <W+2>
 ```
+- Une idée sert à plusieurs canaux (`Declinaisons`) : `Restantes` dit ce qui reste à faire. Tu ne prends que les déclinaisons sociales ; l'article, la lettre et la leçon reviennent à la rédaction, à Serge et à Adjoa.
 - Les idées **retenues** de la semaine W+2 passent **en premier** dans la grille : chacune devient un post (ou une story) en gardant son titre, son angle, sa cible et, si possible, son réseau, son format et son gabarit suggérés. Tu peux affiner l'accroche ; tu ne changes pas le sujet.
 - Une idée retenue impossible à tenir (fait introuvable, doublon apparu entre-temps) : tu la sautes et tu le dis dans le compte rendu.
 - Tu complètes ensuite avec les rubriques et le fil rouge comme d'habitude, jusqu'à 8 à 10 posts.
 - **Aucune idée retenue** (Max n'a pas cliqué, ou Fatou n'a pas tourné) : tu fais comme avant, et tu le signales en une demi-ligne.
-- Après le dépôt (étape 6), pour chaque idée reprise : `node /opt/mm-agents/bin/mm-idees.mjs utiliser <IdeeId> --post <Id du post créé>`.
+- Après le dépôt (étape 6), pour chaque idée reprise : `node /opt/mm-agents/bin/mm-idees.mjs utiliser <IdeeId> --canal <post|carrousel|story|reel>:<Id du post créé>` (une ligne par déclinaison faite ; l'idée reste retenue pour les autres canaux).
 
 ## Étape 1 — Charger la matière (lecture, pas d'activation de skill)
 
@@ -68,7 +72,9 @@ Règles de veille de `12-rubriques-editoriales.md` : chaque fait a une URL, une 
 ## Étape 4 — Rédaction (Mariam) et direction artistique (Salimata)
 
 Pour chaque ligne, tous les champs de la fiche `lot-social.md` § 4 : `Titre`, `Thematique`, `Pilier`, `Serie`, `Offre`, `Cible`, `Reseau`, `Format_Post`, `Date_Publication_Prevue`, `Brief` (1re ligne « Rubrique : … » le cas échéant), `Texte`, `Hashtags`, `Visual_Strategy`, **`Gabarit`**, **`Slides_JSON`** (chaîne JSON : tableau d'entrées `{titre, corps?, cta?, …}` ; une seule hors carrousel ; données de la famille : `etapes`, `options`, `chiffre` + `source`, `avant`/`apres`, `prix`…), `Status: "rédigé"`. Pas de champ `Id`.
-- Jamais trois fois la même famille de `Gabarit` d'affilée ; aucun emoji dans `Slides_JSON` ; `[mot]` pour la couleur du territoire dans un titre.
+- Aucun emoji dans `Slides_JSON` ; `[mot]` pour la couleur du territoire dans un titre.
+
+> **Variété des formats (décision de Max, 04/11/2026).** Choisis la famille de chaque post par le geste attendu du lecteur (répertoire : `.claude/skills/mm-agent-kader/references/repertoire-formats.md`) : jamais la même famille deux fois de suite sur un réseau, au plus 25 % de la semaine pour une famille, au moins 6 familles pour 9-10 posts, au moins 3 familles pour les 7 stories. Puise d'abord dans les familles les moins utilisées des deux semaines précédentes (`mythe_realite`, `checklist`, `comparatif`, `erreur`, `glossaire`, `quiz`, `signes`, `conversation`), avec leurs données dans `Slides_JSON` (`docs/growth-kb/11-visuels-nayo.md` § 3 ter). Ajoute un script de Reel par semaine (`Format_Post = reel`, `Status = planifié`, script plan par plan dans `Brief` : `.claude/skills/mm-agent-kader/references/script-video.md`). `qa-lot.mjs --semaine <lundi>` doit passer sans défaut avant tout dépôt.
 - Pas de `studio` (il exige Max dans le studio NAYO) ; pas de `coulisses` avec photo inventée : sans vraie photo, choisis une autre famille.
 
 ## Étape 5 — Contrôles
@@ -82,7 +88,7 @@ Pour chaque ligne, tous les champs de la fiche `lot-social.md` § 4 : `Titre`, `
 
 1. `node scripts/growth/nocodb.mjs create contenus --file <fichier> --apply` — note les `Id` créés.
 2. Contrôle 2 ou 3 charges visuelles : `node scripts/growth/nayo.mjs brief <Id>` (gabarit attendu, aucun avertissement bloquant).
-3. Idées reprises : `node /opt/mm-agents/bin/mm-idees.mjs utiliser <IdeeId> --post <PostId>` pour chacune (étape 0 bis).
+3. Idées reprises : `node /opt/mm-agents/bin/mm-idees.mjs utiliser <IdeeId> --canal <format>:<PostId>` pour chaque déclinaison faite (étape 0 bis).
 4. Déclenche le rendu : `/opt/mm-agents/bin/mm-rendu` (WF-SOCIAL-04 prend 6 lignes par passe ; son cron toutes les 2 h fait le reste — un échec du webhook n'est pas bloquant).
 
 ## Compte rendu final (= ton dernier message, envoyé tel quel sur Telegram à Max)

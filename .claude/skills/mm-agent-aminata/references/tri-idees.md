@@ -3,6 +3,7 @@
 **Réussite :** Max valide en une lecture un lot court d'idées vraiment bonnes ; le reste est écarté ou laissé, et la file cesse d'être un cimetière de 1 141 lignes.
 
 ## Matière
+- **D'abord les idées retenues par Max** dans `Idees_Posts` (Fatou, cartes Telegram) qui portent la déclinaison `article` : `node ops/agents-autonomes/outils/mm-idees.mjs retenues --pour article` (VPS : `/opt/mm-agents/bin/mm-idees.mjs`). Max a déjà dit oui au sujet : elles passent avant la banque ci-dessous. Après le dépôt du brouillon : `… utiliser <IdeeId> --canal article:<slug>`.
 - `node scripts/growth/nocodb.mjs schema idees-articles` puis `node scripts/growth/nocodb.mjs list idees-articles --where "(Status,eq,nouveau)" --limit 200` (colonnes utiles : Titre_SEO, Mot_Cle, Angle_Local, Intent, Content_Gap, Score). `Status` est un texte libre (valeurs vues : nouveau, valide, produit_draft).
 - La liste des articles déjà publiés (pour éviter les doublons) : voir `07-editorial-seo.md` et le sitemap `https://maxmorrys.me/sitemap.xml`.
 

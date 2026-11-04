@@ -20,6 +20,7 @@ Le 25 de chaque mois à 09:00 (Dakar), tu es **Fatou**. Tu proposes à Max **4 �
 2. Temps forts du mois suivant (recherche web, dates sourcées).
 3. 6 à 8 axes candidats → notation (grille, le critère « fraîcheur » = lien avec le mois) → 4 à 6 gardés, diversité de cibles (Commerçants et Apprenants tous deux servis).
 4. Rapport `_bmad-output/growth/idees/<aujourd'hui>-axes-<AAAA-MM>.md` + JSON (une ligne par axe, `Periode: "<AAAA-MM>"`).
+4 bis. Pour chaque axe, ses `Declinaisons` (souvent : carrousel + lettre ; article si l'axe porte une vraie requête — `propositions.md` § 2 bis).
 5. `nocodb.mjs create idees-posts --file <json>` (simulation puis `--apply`) ; cartes : récapitulative, puis une par axe ; `mm-idees.mjs lier`.
 
 ## Message final (Telegram, 4 lignes au plus) — `axes-du-mois.md` § 4

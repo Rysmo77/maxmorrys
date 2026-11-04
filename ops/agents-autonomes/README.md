@@ -137,7 +137,7 @@ Aucun crédit d'API : les agents utilisent ton **abonnement Claude Max**, par le
 | `outils/mm-gsc.mjs` | Search Console : inspection d'URL, pages, requêtes |
 | `outils/mm-meta-verif.mjs` | Meta en lecture : ce que NocoDB dit publié est-il en ligne, avec quelles mesures |
 | `outils/mm-lettre-epreuve.mjs` | épreuve de la lettre ; refuse le mode `reel` |
-| `outils/mm-idees.mjs` | idées de posts de Fatou : `sync` (clics de Max → `Statut`), `lier`, `retenues`, `utiliser <Id> --post <PostId>` ; seul chemin qui change le statut d'une idée |
+| `outils/mm-idees.mjs` | idées de posts de Fatou : `sync` (clics de Max → `Statut`), `lier`, `retenues [--pour <canal>]`, `utiliser <Id> --canal <canal>:<réf>` (une idée sert plusieurs canaux : post, carrousel, story, reel, article, lettre, lecon) ; seul chemin qui change le statut d'une idée |
 | `outils/mm-decision.mjs` | cartes de décision par boutons (lien vers `scripts/growth/decision.mjs`) : `ask`, `liste`, `lire` ; le jeton Telegram reste dans `Config` |
 | `systemd/` | `mm-agent@.service` + 17 minuteries |
 | `install.sh`, `uninstall.sh` | installation et retrait |

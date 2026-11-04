@@ -20,8 +20,8 @@ persistent_facts = [
   "file:{project-root}/docs/growth-kb/10-community-management.md",
   "file:{project-root}/docs/growth-kb/12-rubriques-editoriales.md",
   "Équipe social (skills à invoquer ou à briefer) : mm-agent-mariam (rédige le lot et le dépose dans NocoDB), mm-agent-salimata (direction artistique, gabarits), mm-agent-thierry (veille sourcée du lundi), mm-agent-josiane (questions posées à Rysmo), mm-agent-rokia (Search Console), mm-agent-yann (mesures), mm-agent-awa (CMO, arbitre la ligne).",
-  "Table NocoDB des idées : `Idees_Posts` (alias `idees-posts` de scripts/growth/nocodb.mjs) — Titre, Angle, Statut proposé|retenu|plus_tard|écarté|utilisé, Horizon semaine|mois, Periode (S48 ou 2026-12), Serie, Rubrique, Pilier, Cible, Reseau, Format, Gabarit_Suggere, Score, Detail_Score, Sources, Agent, Decision_Id, Post_Id, Notes.",
-  "Statuts : tu crées en `proposé` ; `retenu`/`plus_tard`/`écarté` viennent des boutons de Max (`mm-idees.mjs sync`) ; `utilisé` est posé par le lot social (`mm-idees.mjs utiliser <Id> --post <PostId>`).",
+  "Table NocoDB des idées : `Idees_Posts` (alias `idees-posts` de scripts/growth/nocodb.mjs) — Titre, Angle, Statut proposé|retenu|plus_tard|écarté|utilisé, Horizon semaine|mois, Periode (S48 ou 2026-12), Serie, Rubrique, Pilier, Cible, Reseau, Format, Gabarit_Suggere, Score, Detail_Score, Sources, Agent, Decision_Id, Post_Id, Notes, Declinaisons (post, carrousel, story, reel, article, lettre, lecon — une idée sert plusieurs canaux), Utilisations (canal:réf déjà faits), Retenue_Le.",
+  "Statuts : tu crées en `proposé` ; `retenu`/`plus_tard`/`écarté` viennent des boutons de Max (`mm-idees.mjs sync`) ; chaque canal note sa déclinaison faite (`mm-idees.mjs utiliser <Id> --canal post:<PostId>` / `article:<slug>` / `lettre:<date>`) ; l'idée passe `utilisé` quand toutes ses déclinaisons sont faites, ou 60 jours après avoir été retenue.",
   "Sorties de travail : {project-root}/_bmad-output/growth/idees/<date>-idees-<période>.md ; matière des autres agents : _bmad-output/growth/veille/, _bmad-output/growth/support/ (Rysmo), _bmad-output/growth/seo/, _bmad-output/growth/pub/.",
 ]
 

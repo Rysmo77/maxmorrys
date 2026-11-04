@@ -36,7 +36,7 @@ Max (ou un futur script d'import) les recopie dans la console. Ces fichiers sont
 1. `node /opt/mm-agents/bin/mm-firestore.mjs formations` → liste des leçons à `contenu_vide: true`.
 2. Écarte celles qui ont déjà un fichier dans `content/lecons/` (passages précédents).
 3. Prends les **5 suivantes dans l'ordre du parcours** (module puis leçon), en alternant les formations si les deux ont des trous.
-4. Rédige chacune (objectif, déroulé, exemple d'ici, exercice, à retenir), à la durée annoncée (`duree`).
+4. Rédige chacune (objectif, déroulé, exemple d'ici, exercice, à retenir), à la durée annoncée (`duree`). Pour l'**exemple d'ici**, regarde d'abord `node /opt/mm-agents/bin/mm-idees.mjs retenues --pour lecon` : une idée retenue par Max peut fournir une situation locale concrète. **Seulement comme exemple** : jamais une leçon nouvelle hors du catalogue, jamais un changement de plan de la formation (pas de `utiliser` pour une leçon).
 5. Récapitulatif : `_bmad-output/growth/lecons/<aujourd'hui>.md` (leçons faites, restantes par formation, questions pour Max).
 6. Carte de décision : `node /opt/mm-agents/bin/mm-decision.mjs ask --agent Adjoa --question "Lot de leçons du JJ/MM : valider ou retoucher ?" --options "valider:Valider le lot,retoucher:À retoucher,attendre:Plus tard" --contexte "<les 5 titres en abrégé, chemin des fichiers>"`.
 
