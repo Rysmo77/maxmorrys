@@ -22,7 +22,7 @@ Une rubrique est un **sous-format** rangé dans une des six séries NocoDB, qui 
 |---|---|---|---|---|
 | **Le Flash du lundi** | 3 actus marketing de la semaine, et ce que ça change pour toi | RADAR | hebdo, lun. 19 h IG | carrousel 5 slides : couverture, 1 actu par slide, « Ce que je ferais cette semaine » |
 | **Nouveau sur…** | une nouveauté Meta, Google, TikTok ou WhatsApp, testée, avec « Dispo chez nous ? » | RADAR | toutes les 2 sem., jeu. 12 h FB | `affiche` ou `etapes` |
-| **Le mot du digital** | un mot du métier expliqué en 3 lignes, avec un exemple d'ici | ATELIER | hebdo, mar. 19 h IG + story du mercredi | `glossaire` (depuis le 04/11/2026) ; parfois un carrousel de 3 mots, un `glossaire` par slide |
+| **Le mot du digital** | un mot du métier expliqué en 3 lignes, avec un exemple d'ici | ATELIER | hebdo, mar. 19 h IG + story du mercredi | `affiche` (le mot en titre, définition et exemple en corps) ; parfois un carrousel de 3 mots, une `affiche` par slide — ⛔ le `glossaire` a été écarté par Max le 04/11/2026 |
 | **Mythe ou réalité ?** | une idée reçue, la vraie réponse, la source | PREUVE | toutes les 2 sem., mar. 12 h FB (sondage en story la veille) | `mythe_realite` (depuis le 04/11/2026) |
 | **Le vrai prix de…** | ce que ça coûte vraiment : FCFA, temps, data | PREUVE | toutes les 2 sem., mar. 12 h FB (alterne avec Mythe ou réalité) | `chiffre` (source obligatoire) |
 | **L'outil à 0 F** | un outil gratuit, un réglage, un gain ; testé sur un Android d'entrée de gamme, sans carte bancaire | ATELIER | hebdo, jeu. 19 h IG | carrousel `etapes`, champ `Outil` rempli |

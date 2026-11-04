@@ -54,10 +54,10 @@ Demande de Max : « pas toujours le même format ». Chaque famille a sa propre 
 | Gabarit | Composition | Données (`Slides_JSON`) | Repli si données absentes |
 |---|---|---|---|
 | `mythe_realite` | titre-question ; bandeau **nuit** « Mythe » au texte barré ; carte du territoire « Réalité » avec coche | `mythe`, `realite` (+ `titre`, `cta?`) | `affiche` + avertissement |
-| `checklist` | **fiche blanche** surélevée, cases vides, signet ; pied « Enregistre-la » (ou `cta`) | `coches: [...]` (2 à 7) — ou `etapes`, ou `corps` « a · b · c » | `affiche` |
+| ~~`checklist`~~ ⛔ Écarté par Max le 04/11/2026 (planche d'essai, « tous sauf 2 et 5 ») : ne plus l'utiliser, `qa-lot` le refuse. | **fiche blanche** surélevée, cases vides, signet ; pied « Enregistre-la » (ou `cta`) | `coches: [...]` (2 à 7) — ou `etapes`, ou `corps` « a · b · c » | `affiche` |
 | `comparatif` | duel : colonne A blanche, colonne B nuit, grandes lettres A / B, pastille **VS** ; verdict fléché | `gauche: [...]`, `droite: [...]` (≤ 4), `gaucheTitre?`, `droiteTitre?`, `verdict?` | `affiche` |
 | `erreur` | l'erreur barrée d'une croix (verre), flèche vers le bas, « Fais plutôt » dans la carte du territoire, « Pourquoi » | `erreur`, `correction`, `pourquoi?` | `affiche` |
-| `glossaire` | **entrée de dictionnaire** : étiquette « Lexique · 04 », le mot en très grand dans la couleur du territoire, nature en mono, filet, définition, carte « Exemple » | `titre` = le mot ; `definition` (ou `corps`), `nature?`, `exemple?`, `numero?` | `affiche` |
+| ~~`glossaire`~~ ⛔ Écarté par Max le 04/11/2026 (planche d'essai, « tous sauf 2 et 5 ») : ne plus l'utiliser, `qa-lot` le refuse. | **entrée de dictionnaire** : étiquette « Lexique · 04 », le mot en très grand dans la couleur du territoire, nature en mono, filet, définition, carte « Exemple » | `titre` = le mot ; `definition` (ou `corps`), `nature?`, `exemple?`, `numero?` | `affiche` |
 | `quiz` | **grille 2 × 2** de tuiles A-D ; avec `reponse`, la bonne tuile passe au territoire et les autres s'effacent, `explication` dessous | `options: [...]` (2 à 4), `reponse?` (A-D), `explication?`, `cta?` (sans réponse) | `affiche` |
 | `signes` | grands chiffres Fraunces en colonne, filet du territoire, texte à droite | `signes: [...]` (2 à 5) — ou `etapes` | `affiche` |
 | `conversation` | **bulles** : client à gauche (blanc), réponse à droite (encre), étiquette de scène ; aucun logo de messagerie ; taille ajustée à la place | `messages: [{de:'client'\|'moi', texte}]` (2 à 5), `scene?`, `corps?` (la leçon) | `affiche` |

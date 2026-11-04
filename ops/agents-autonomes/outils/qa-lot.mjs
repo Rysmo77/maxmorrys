@@ -21,6 +21,9 @@ const SERIES = ['RADAR', 'ATELIER', 'PREUVE', 'COULISSES', 'CERCLE', 'OFFRE'];
 const GABARITS = ['affiche', 'citation', 'chiffre', 'avant_apres', 'question', 'etapes', 'coulisses', 'offre', 'studio',
   // Formats variés (04/11/2026) — docs/growth-kb/11-visuels-nayo.md § 3 ter.
   'mythe_realite', 'checklist', 'comparatif', 'erreur', 'glossaire', 'quiz', 'signes', 'conversation'];
+// Écartées par Max sur la planche d'essai (04/11/2026, « tous sauf 2 et 5 ») : render-card sait
+// encore les rendre, mais aucun nouveau post ne doit les utiliser.
+const RETIRES = { checklist: 'etapes', glossaire: 'affiche ou mythe_realite' };
 // Données exigées par chaque nouvelle famille (sinon render-card retombe sur l'affiche).
 const DONNEES = {
   mythe_realite: (s) => s.mythe && s.realite,
@@ -66,6 +69,7 @@ rows.forEach((r, i) => {
   if (r.Id !== undefined) ko(r, i, 'porte un Id : une création ne doit pas viser une ligne existante');
   if (!SERIES.includes(r.Serie)) ko(r, i, `Serie inconnue « ${r.Serie} »`);
   if (r.Gabarit && !GABARITS.includes(r.Gabarit)) ko(r, i, `Gabarit inconnu « ${r.Gabarit} »`);
+  if (RETIRES[r.Gabarit]) ko(r, i, `Gabarit « ${r.Gabarit} » écarté par Max le 04/11 — prends ${RETIRES[r.Gabarit]}`);
   if (!['fb', 'ig'].includes(r.Reseau)) ko(r, i, `Reseau « ${r.Reseau} » : seuls fb et ig sont câblés`);
   if (r.Offre === 'Formations') ko(r, i, 'Offre Formations : aucune promotion sans accord explicite de Max');
 
@@ -84,6 +88,7 @@ rows.forEach((r, i) => {
     for (const s of slides) {
       if (s && s.gabarit && DONNEES[s.gabarit] && !DONNEES[s.gabarit](s)) ko(r, i, `slide « ${String(s.titre || '').slice(0, 30)} » : famille ${s.gabarit} sans ses données`);
       if (s && s.gabarit && !GABARITS.includes(s.gabarit)) ko(r, i, `slide : gabarit inconnu « ${s.gabarit} »`);
+      if (s && RETIRES[s.gabarit]) ko(r, i, `slide : gabarit « ${s.gabarit} » écarté par Max le 04/11 — prends ${RETIRES[s.gabarit]}`);
       if (!s || !String(s.titre || '').trim()) ko(r, i, 'slide sans titre');
       if (r.Gabarit === 'chiffre' && s && s.chiffre && !s.source) ko(r, i, 'chiffre sans source');
       if (r.Format_Post === 'story' && s && String(s.titre || '').length > 70) ko(r, i, 'titre de story > 70 caractères');
@@ -144,11 +149,11 @@ for (const res of ['fb', 'ig']) {
   for (const [g, k] of Object.entries(compte)) if (n >= 4 && k > plafond) defauts.push(`variété : « ${g} » sur ${k} posts (plafond ${plafond}, soit 25 % de ${n}) — remplace par un format peu utilisé`);
   const requis = n >= 9 ? 6 : n >= 6 ? 5 : Math.ceil(n / 2);
   const distinctes = Object.keys(compte).length;
-  if (lundi && distinctes < requis) defauts.push(`variété : ${distinctes} familles distinctes pour ${n} posts (au moins ${requis}) — puise dans mythe_realite, checklist, comparatif, erreur, glossaire, quiz, signes, conversation`);
+  if (lundi && distinctes < requis) defauts.push(`variété : ${distinctes} familles distinctes pour ${n} posts (au moins ${requis}) — puise dans mythe_realite, comparatif, erreur, quiz, signes, conversation`);
   const stories = rows.filter((r) => r.Format_Post === 'story');
   const cs = {};
   for (const r of stories) cs[r.Gabarit || '(vide)'] = (cs[r.Gabarit || '(vide)'] || 0) + 1;
-  if (lundi && stories.length >= 5 && Object.keys(cs).length < 3) defauts.push(`variété des stories : ${Object.keys(cs).length} famille(s) pour ${stories.length} stories (au moins 3 : quiz, question, glossaire, mythe_realite, signes…)`);
+  if (lundi && stories.length >= 5 && Object.keys(cs).length < 3) defauts.push(`variété des stories : ${Object.keys(cs).length} famille(s) pour ${stories.length} stories (au moins 3 : quiz, question, mythe_realite, signes, erreur…)`);
   for (const [g, k] of Object.entries(cs)) if (stories.length >= 5 && k > 3) defauts.push(`variété des stories : « ${g} » sur ${k} stories (3 au plus)`);
   if (lundi && videos.length < 1) defauts.push('vidéo courte : aucun script de Reel cette semaine (au moins 1, Format_Post « reel », Status « planifié », plan par plan dans Brief)');
 }
@@ -158,6 +163,6 @@ const nOffre = posts.filter(({ r }) => r.Serie === 'OFFRE').length;
 console.log(`${nPosts} post(s), ${nStories} story(ies), ${videos.length} vidéo(s) courte(s), ${nOffre} OFFRE`);
 if (lundi && (nPosts < 8 || nPosts > 10)) defauts.push(`cadence : ${nPosts} posts (attendu 8 à 10)`);
 if (lundi && nStories < 7) defauts.push(`cadence : ${nStories} stories (attendu 7)`);
-if (nOffre > 2) defauts.push(`${nOffre} OFFRE (2 au plus par semaine)`);
+if (nOffre > 1) defauts.push(`${nOffre} OFFRE (1 au plus par semaine, décision du 04/11/2026)`);
 if (defauts.length) { console.log(`✖ ${defauts.length} défaut(s) :`); for (const d of defauts) console.log('  - ' + d); process.exit(1); }
 console.log('✔ aucun défaut mécanique');

@@ -12,7 +12,7 @@
 | Jour | Famille | Mécanique |
 |---|---|---|
 | lun. | `quiz` | question du jour, réponse en message |
-| mar. | `glossaire` | le mot du digital, version story |
+| mar. | `erreur` | l'erreur fréquente du jour et sa correction (le `glossaire` est écarté depuis le 04/11) |
 | mer. | `question` | sondage A/B (avec autocollant si Max publie à la main) |
 | jeu. | `mythe_realite` | « Mythe ou réalité ? » la veille du post du même nom |
 | ven. | `question` | boîte à questions de « Ta question, ma réponse » |

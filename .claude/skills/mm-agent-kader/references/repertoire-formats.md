@@ -9,10 +9,10 @@
 | Format | `Gabarit` | Geste visé | Quand l'utiliser | Structure | Texte maxi à l'image | Rubrique / série qui lui va |
 |---|---|---|---|---|---|---|
 | **Mythe / réalité** | `mythe_realite` | partager, débattre | une idée reçue répandue chez les commerçants ou les apprenants | titre-question ; bandeau nuit « Mythe » barré ; carte du territoire « Réalité » | titre ≤ 8 mots ; mythe ≤ 18 mots ; réalité ≤ 25 mots | « Mythe ou réalité ? » (PREUVE), sondage en story la veille |
-| **Check-list à enregistrer** | `checklist` | enregistrer | une vérification à refaire chez soi (« ta fiche est prête si… ») | fiche blanche, cases vides, signet « Enregistre-la » | titre ≤ 8 mots ; 3 à 7 cases de ≤ 9 mots | ATELIER, « L'outil à 0 F » |
+| ~~**Check-list à enregistrer**~~ ⛔ Écarté par Max le 04/11/2026 (planche d'essai, « tous sauf 2 et 5 ») : ne plus l'utiliser, `qa-lot` le refuse. | `checklist` | enregistrer | une vérification à refaire chez soi (« ta fiche est prête si… ») | fiche blanche, cases vides, signet « Enregistre-la » | titre ≤ 8 mots ; 3 à 7 cases de ≤ 9 mots | ATELIER, « L'outil à 0 F » |
 | **Comparatif « ceci ou cela »** | `comparatif` | commenter (« moi c'est A ») | deux outils, deux canaux, deux façons de faire, sans perdant obligatoire | titre-question ; colonne A blanche, colonne B nuit, pastille VS ; verdict en une phrase | 2 à 4 lignes de ≤ 6 mots par colonne ; verdict ≤ 18 mots | RADAR, ATELIER |
 | **Erreur fréquente → correction** | `erreur` | partager à un ami concerné | une pratique courante qui coûte des clients | l'erreur barrée (verre), flèche, « Fais plutôt » dans la carte du territoire, « Pourquoi » en une ligne | erreur ≤ 14 mots ; correction ≤ 18 mots ; pourquoi ≤ 15 mots | ATELIER, PREUVE |
-| **Glossaire « 1 mot = 1 définition »** | `glossaire` | enregistrer, apprendre | un mot du métier que la cible entend sans le comprendre | entrée de dictionnaire : le mot en très grand, nature en mono, définition, exemple d'ici | mot ≤ 3 mots ; définition ≤ 30 mots ; exemple ≤ 25 mots | « Le mot du digital » (ATELIER), numéroté (`numero`) |
+| ~~**Glossaire « 1 mot = 1 définition »**~~ ⛔ Écarté par Max le 04/11/2026 (planche d'essai, « tous sauf 2 et 5 ») : ne plus l'utiliser, `qa-lot` le refuse. | `glossaire` | enregistrer, apprendre | un mot du métier que la cible entend sans le comprendre | entrée de dictionnaire : le mot en très grand, nature en mono, définition, exemple d'ici | mot ≤ 3 mots ; définition ≤ 30 mots ; exemple ≤ 25 mots | « Le mot du digital » (ATELIER), numéroté (`numero`) |
 | **Quiz** | `quiz` | répondre en commentaire | vérifier un réflexe ; en carrousel : question slide 2, réponse slide 3 (`reponse`) | grille 2 × 2 de tuiles A-D ; avec `reponse`, la bonne tuile passe au territoire, les autres s'effacent, `explication` dessous | question ≤ 12 mots ; 2 à 4 réponses de ≤ 6 mots ; explication ≤ 25 mots | CERCLE ; story (réponse le lendemain) |
 | **« 3 signes que… »** | `signes` | se reconnaître, commenter | un diagnostic simple (« ta page dort », « ton client va partir ») | grands chiffres Fraunces en colonne, filet du territoire | titre ≤ 9 mots ; 3 à 5 signes de ≤ 12 mots | PREUVE, ATELIER |
 | **Conversation** | `conversation` | enregistrer, recopier | le bon message à envoyer (WhatsApp, Messenger), une objection client bien traitée | bulles client à gauche, réponse à droite, étiquette de scène (« Samedi · 11 h ») ; aucun logo de messagerie | 2 à 5 messages de ≤ 25 mots ; légende ≤ 18 mots | ATELIER (commerçants) |
@@ -35,7 +35,7 @@
 |---|---|---|
 | **Capture annotée / tuto pas à pas** | carrousel : slide par écran, titre = l'action (« 2. Touche "Modifier le profil" »), `corps` = où toucher. Capture réelle seulement via `coulisses` + `photo` fournie par Max (jamais de capture d'un client) ; sinon l'écran est décrit | réglage d'une appli (WhatsApp Business, fiche Google, Meta Business Suite) |
 | **Mini-histoire (scène locale en 4 slides)** | carrousel : 1. la scène (« Samedi, marché HLM, 11 h ») ; 2. le problème ; 3. ce que la commerçante change ; 4. la leçon + CTA. Personnages **fictifs**, jamais présentés comme des clients | faire comprendre un conseil sans le dire ; varier le ton |
-| **« Avant de… »** | `checklist` ou `etapes` titré « Avant de lancer ta pub, vérifie… » | geste préventif |
+| **« Avant de… »** | `etapes` titré « Avant de lancer ta pub, vérifie… » | geste préventif |
 | **Chiffre sourcé décrypté** | `chiffre` en slide 1, puis 2 slides « ce que ça veut dire pour toi » | PREUVE, RADAR |
 
 ## 3. Formats vidéo courts (script, pas carte)
@@ -44,10 +44,10 @@ Reel ou story vidéo de **15 à 30 s**, tourné au téléphone par Max. Le scrip
 
 ## 4. Stories interactives
 
-7 stories par semaine, **au moins 3 familles différentes** et jamais plus de 3 fois la même : `quiz`, `question`, `glossaire`, `mythe_realite`, `signes`, `checklist`. ⚠️ L'API Instagram ne pose pas les autocollants interactifs (sondage, quiz, curseur, question) : la carte appelle à répondre en message, ou Max ajoute l'autocollant à la main s'il publie lui-même. Méthode : `stories-interactives.md`.
+7 stories par semaine, **au moins 3 familles différentes** et jamais plus de 3 fois la même : `quiz`, `question`, `mythe_realite`, `signes`, `erreur`, `comparatif`. ⚠️ L'API Instagram ne pose pas les autocollants interactifs (sondage, quiz, curseur, question) : la carte appelle à répondre en message, ou Max ajoute l'autocollant à la main s'il publie lui-même. Méthode : `stories-interactives.md`.
 
 ## 5. Rotation
 
 - Jamais la même famille deux fois de suite sur un réseau ; au plus 25 % de la semaine pour une famille ; **au moins 6 familles** pour 9-10 posts.
 - Un format qui n'obtient ni enregistrement, ni commentaire, ni partage après trois essais sort de la rotation pour un mois (mesure : `mm-agent-yann`).
-- Les rubriques gardent leur format signature (« Le mot du digital » → `glossaire`, « Mythe ou réalité ? » → `mythe_realite`), le reste tourne.
+- Les rubriques gardent leur format signature (« Le mot du digital » → `affiche` : le mot en titre, la définition et l'exemple d'ici en corps — le `glossaire` est écarté depuis le 04/11 ; « Mythe ou réalité ? » → `mythe_realite`), le reste tourne.
