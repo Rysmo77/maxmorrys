@@ -9,10 +9,11 @@
 |---|---|
 | `render-card` (VPS `/opt/render-card`, Satori + resvg) | ✅ gabarits **kit DS** ajoutés (`src/ds.ts`), activés par `kit: 'ds'` dans la charge. Sans ce champ, rendu historique **identique à l'octet** (vérifié sur 3 charges). Sauvegarde : `/opt/render-card.bak-20261029-1814.tgz` et `backups/n8n-corrections-20261029/render-card-avant-ds/`. |
 | `WF-SOCIAL-04` (n8n) | ✅ nœud « Build — URL publique » : un post qui porte un **`Gabarit`** part au kit DS ; un post sans `Gabarit` garde la charge historique. Bascule globale `DS_PAR_DEFAUT = false` en tête du nœud. Sauvegarde : `backups/n8n-corrections-20261029/774G38cqIvZsJUHm-WF-SOCIAL-04-avant-kit-ds.json`. |
-| NocoDB `Contenus` | ✅ champ **`Gabarit`** (SingleSelect) créé : `affiche · citation · chiffre · avant_apres · question · etapes · coulisses · offre · studio`. Vide = ancien rendu. |
+| NocoDB `Contenus` | ✅ champ **`Gabarit`** (SingleSelect) créé : `affiche · citation · chiffre · avant_apres · question · etapes · coulisses · offre · studio` ; **+ 8 valeurs le 04/11/2026** : `mythe_realite · checklist · comparatif · erreur · glossaire · quiz · signes · conversation` (§ 3 ter). Vide = ancien rendu. |
 | Dépôt des PNG sur R2 | ✅ réparé le 29/10 au soir (Worker media `fdf4f22a`, route `/internal/upload`). Historique : ⛔ **EN PANNE** (constaté le 29/10, 18 h 14 Paris) : `POST https://media-api.maxmorrys.me/internal/upload` répond 404. La route n'existe que sur la branche `feat/cloudflare-exit-blaze` (commit `e3a1d7e`) ; le Worker `maxmorrys-media` déployé ne l'a plus. Dernier rendu réussi : 22/08. Tant que ce n'est pas réparé, **chaque carte échoue** (ancien comme nouveau kit) et WF-04 pose `image_needed`. Réparation : redéployer `worker/apps/media` avec `handleInternalUpload` + secret `INTERNAL_UPLOAD_KEY` = `MEDIA_INTERNAL_KEY` du VPS (`/etc/render-card/env`). Décision et déploiement : Max. |
 | NAYO (https://nayo.pro) | ⚠️ en production (`/api/health` → `{"status":"ok"}`), mais **inutilisable par clé d'API pour produire** (§ 4). Réservé au studio, à la main, pour les posts phares. |
 
+| **Formats variés** (04/11/2026) | ✅ 8 familles ajoutées à render-card (`src/ds.ts`), à `construireCharges` (`scripts/growth/nayo.mjs`) et à WF-SOCIAL-04 (`wf04-visuels-ds.mjs --apply`). Non-régression : 6 charges de référence (anciennes familles, couverture, ancien kit) **identiques à l'octet** avant/après. Sauvegardes : `/opt/render-card.bak-20261104-avant-formats-varies/src.tgz` (VPS), `backups/render-card-avant-formats-varies-20261104/` (dépôt), `backups/n8n-corrections-20261029/774G38cqIvZsJUHm-WF-SOCIAL-04-avant-202611041849.json`. § 3 ter. |
 | Famille **`couverture`** (01/11/2026) | ✅ en service sur render-card : couvertures d'**articles** (`blog:publish`) et de **formations** (WF-14). § 3 bis. Sauvegarde : `/opt/render-card.bak-20261101-2103-avant-couverture.tgz`. Non-régression : 7 charges de référence (3 historiques, 4 kit DS) **identiques à l'octet** avant/après (`/root/rc-check/avant.json` = `apres2.json`). |
 | Photo générée (Workers AI) | ⏳ code prêt, **Worker media non déployé** : route `POST /internal/generate-image` (FLUX.2 [dev]) dans `worker/apps/media/src/generate.ts`. Tant qu'elle répond 404, render-card rend la couverture **typographique** et le dit (`fondErreur`). |
 
@@ -27,7 +28,7 @@ Aperçu local d'un post, sans rien écrire : `node scripts/growth/nayo.mjs brief
 
 ## 3. Les familles (`Gabarit`)
 
-Choisir **post par post** selon ce que le post doit faire, pas selon la série. Varier dans un lot : jamais trois fois la même famille d'affilée.
+Choisir **post par post** selon ce que le post doit faire, pas selon la série. Varier dans un lot : règles du 04/11/2026 (§ 3 ter) — jamais deux fois de suite la même famille sur un réseau, ≤ 25 % de la semaine par famille, ≥ 6 familles pour 9-10 posts.
 
 | Gabarit | Quand | Données (`Slides_JSON`, 1re entrée) | Repli si données absentes |
 |---|---|---|---|
@@ -45,6 +46,27 @@ Choisir **post par post** selon ce que le post doit faire, pas selon la série. 
 Communs à toutes : `sourcil?` (remplace « SÉRIE · OUTIL »), `territoire?` (force la couleur), `fond?` (`papier` | `nuit`). **`[mot]`** dans un titre passe le mot dans la couleur du territoire (même convention que les titres du site — crochets porteurs). Aucun emoji dans `Slides_JSON`.
 
 ⛔ Prix : seulement ceux du post et du code (CGV, i18n). Le Club s'écrit `1 658 FCFA / mois` avec « 19 900 F payés une fois pour l'année » dessous (règle des prix cadrés du DS).
+
+## 3 ter. Formats variés (04/11/2026)
+
+Demande de Max : « pas toujours le même format ». Chaque famille a sa propre **composition** (bandeau nuit, fiche, duel, entrée de dictionnaire, grille, bulles), dans les règles du kit DS. Quand l'utiliser, texte maxi, rubrique : répertoire de Kader, `.claude/skills/mm-agent-kader/references/repertoire-formats.md`. Règles de variété d'un lot : `.claude/skills/mm-agent-salimata/references/variete-formats.md` (contrôlées par `qa-lot.mjs`).
+
+| Gabarit | Composition | Données (`Slides_JSON`) | Repli si données absentes |
+|---|---|---|---|
+| `mythe_realite` | titre-question ; bandeau **nuit** « Mythe » au texte barré ; carte du territoire « Réalité » avec coche | `mythe`, `realite` (+ `titre`, `cta?`) | `affiche` + avertissement |
+| `checklist` | **fiche blanche** surélevée, cases vides, signet ; pied « Enregistre-la » (ou `cta`) | `coches: [...]` (2 à 7) — ou `etapes`, ou `corps` « a · b · c » | `affiche` |
+| `comparatif` | duel : colonne A blanche, colonne B nuit, grandes lettres A / B, pastille **VS** ; verdict fléché | `gauche: [...]`, `droite: [...]` (≤ 4), `gaucheTitre?`, `droiteTitre?`, `verdict?` | `affiche` |
+| `erreur` | l'erreur barrée d'une croix (verre), flèche vers le bas, « Fais plutôt » dans la carte du territoire, « Pourquoi » | `erreur`, `correction`, `pourquoi?` | `affiche` |
+| `glossaire` | **entrée de dictionnaire** : étiquette « Lexique · 04 », le mot en très grand dans la couleur du territoire, nature en mono, filet, définition, carte « Exemple » | `titre` = le mot ; `definition` (ou `corps`), `nature?`, `exemple?`, `numero?` | `affiche` |
+| `quiz` | **grille 2 × 2** de tuiles A-D ; avec `reponse`, la bonne tuile passe au territoire et les autres s'effacent, `explication` dessous | `options: [...]` (2 à 4), `reponse?` (A-D), `explication?`, `cta?` (sans réponse) | `affiche` |
+| `signes` | grands chiffres Fraunces en colonne, filet du territoire, texte à droite | `signes: [...]` (2 à 5) — ou `etapes` | `affiche` |
+| `conversation` | **bulles** : client à gauche (blanc), réponse à droite (encre), étiquette de scène ; aucun logo de messagerie ; taille ajustée à la place | `messages: [{de:'client'\|'moi', texte}]` (2 à 5), `scene?`, `corps?` (la leçon) | `affiche` |
+
+- **Carrousel** : une slide qui porte `gabarit` est rendue dans cette famille, avec la progression « 02 / 05 » en en-tête ; sans `gabarit`, c'est une slide classique (couverture, corps, fin). Exemple : quiz en slide 2, même quiz avec `reponse` en slide 3.
+- **Formats** : posts et carrousels 4:5, stories 9:16 (tailles adaptées). Le 1:1 n'est pas utilisé par le circuit Facebook / Instagram ; `checklist`, `erreur`, `comparatif` et `conversation` n'y tiennent pas.
+- **Vidéo courte** : pas une carte. `Format_Post = reel`, `Status = planifié` (WF-SOCIAL-04 ne la rend pas), script plan par plan dans `Brief` ; Max filme, pose l'URL de la vidéo, valide ; WF-SOCIAL-05 publie un vrai Reel (il ne publie en Reel qu'une URL vidéo).
+- **Stories interactives** : l'API Instagram ne pose pas les autocollants (sondage, quiz, curseur) ; la carte appelle à répondre en message, ou Max ajoute l'autocollant en publiant à la main.
+- Planche d'essai du 04/11 : `_bmad-output/growth/formats/`.
 
 ## 3 bis. Famille `couverture` (articles et formations)
 

@@ -39,12 +39,24 @@ import { execFileSync } from 'node:child_process';
  *     etapes?[],                                        — gabarit etapes (sinon corps « a · b · c »)
  *     prix?, prixUnite?, prixNote?, points?[], paiement?, — gabarit offre
  *     auteur?, role?,                                   — gabarit citation
- *     photo? }                                          — gabarit coulisses : URL d'une photo de Max
+ *     photo?,                                           — gabarit coulisses : URL d'une photo de Max
+ *     — formats variés (04/11/2026), voir docs/growth-kb/11-visuels-nayo.md § 3 ter :
+ *     mythe?, realite?,                                 — mythe_realite
+ *     coches?[],                                        — checklist (ou etapes[])
+ *     gaucheTitre?, gauche?[], droiteTitre?, droite?[], verdict?, — comparatif
+ *     erreur?, correction?, pourquoi?,                  — erreur
+ *     nature?, definition?, exemple?, numero?,          — glossaire (titre = le mot)
+ *     options?[], reponse? (A-D), explication?,         — quiz (sans reponse : question ouverte)
+ *     signes?[],                                        — signes (« 3 signes que… »)
+ *     messages?[{de:'client'|'moi', texte}], scene? }   — conversation
+ * Dans un carrousel, une slide qui porte `gabarit` (famille ci-dessus ou historique) est rendue
+ * dans cette famille, avec la progression 02 / 05 ; sans `gabarit`, elle reste une slide.
  * `[mot]` dans un titre le passe dans la couleur du territoire (convention des titres du site).
  */
 export function construireCharges(post, opts) {
   opts = opts || {};
-  const GABARITS = ['affiche', 'citation', 'chiffre', 'avant_apres', 'question', 'etapes', 'coulisses', 'offre'];
+  const GABARITS = ['affiche', 'citation', 'chiffre', 'avant_apres', 'question', 'etapes', 'coulisses', 'offre',
+    'mythe_realite', 'checklist', 'comparatif', 'erreur', 'glossaire', 'quiz', 'signes', 'conversation'];
   const s = (v) => (v == null ? '' : String(v)).trim();
   const liste = (v) => (Array.isArray(v) ? v.map(s).filter(Boolean) : []);
   const fp = s(post.Format_Post).toLowerCase();
@@ -111,14 +123,17 @@ export function construireCharges(post, opts) {
     if (s(c.fond) === 'nuit' || s(c.fond) === 'papier') p.fond = s(c.fond);
 
     if (fp === 'carrousel') {
-      p.template = 'slide';
-      p.gabarit = 'slide';
-      p.slideRole = i === 0 ? 'cover' : i >= total - 1 ? 'outro' : 'body';
       p.slideIndex = i + 1;
       p.slideTotal = total;
-      return p;
+      // Une slide sans famille propre reste une slide (couverture, corps, fin).
+      if (GABARITS.indexOf(s(c.gabarit)) < 0) {
+        p.template = 'slide';
+        p.gabarit = 'slide';
+        p.slideRole = i === 0 ? 'cover' : i >= total - 1 ? 'outro' : 'body';
+        return p;
+      }
     }
-    let g = choisir(c);
+    let g = fp === 'carrousel' ? s(c.gabarit) : choisir(c);
     // Corps « a · b · c » : la forme courte des rédacteurs pour une liste.
     const morceaux = s(c.corps).split(/\s+·\s+/).map(s).filter(Boolean);
     if (g === 'question') {
@@ -149,6 +164,49 @@ export function construireCharges(post, opts) {
     }
     if (g === 'citation') { if (s(c.auteur)) p.auteur = s(c.auteur); if (s(c.role)) p.role = s(c.role); }
     if (g === 'coulisses' && /^https:\/\//.test(s(c.photo))) p.photo = s(c.photo);
+    // ── formats variés (04/11/2026) : sans leurs données, repli sur l'affiche, signalé ──
+    const manque = (quoi) => { avertissements.push(g + ' sans ' + quoi + ' → affiche'); g = 'affiche'; };
+    if (g === 'mythe_realite') {
+      if (s(c.mythe) && s(c.realite)) { p.mythe = s(c.mythe).slice(0, 160); p.realite = s(c.realite).slice(0, 200); delete p.body; }
+      else manque('mythe et realite');
+    }
+    if (g === 'checklist') {
+      let k = liste(c.coches); if (k.length < 2) k = liste(c.etapes); if (k.length < 2) k = morceaux;
+      if (k.length >= 2) { p.coches = k.slice(0, 7); delete p.body; } else manque('coches');
+    }
+    if (g === 'comparatif') {
+      if (liste(c.gauche).length && liste(c.droite).length) {
+        p.gauche = liste(c.gauche).slice(0, 4); p.droite = liste(c.droite).slice(0, 4);
+        for (const k of ['gaucheTitre', 'droiteTitre', 'verdict']) if (s(c[k])) p[k] = s(c[k]);
+      } else manque('gauche et droite');
+    }
+    if (g === 'erreur') {
+      if (s(c.erreur) && s(c.correction)) { p.erreur = s(c.erreur); p.correction = s(c.correction); if (s(c.pourquoi)) p.pourquoi = s(c.pourquoi); }
+      else manque('erreur et correction');
+    }
+    if (g === 'glossaire') {
+      if (s(c.definition) || s(c.corps)) {
+        p.definition = s(c.definition) || s(c.corps); delete p.body;
+        for (const k of ['nature', 'exemple', 'numero']) if (s(c[k])) p[k] = s(c[k]);
+      } else manque('definition');
+    }
+    if (g === 'quiz') {
+      let o = liste(c.options);
+      if (o.length < 2 && morceaux.length >= 2) o = morceaux.map((m) => m.replace(/^[A-D][.)]?\s+/, ''));
+      if (o.length >= 2) {
+        p.options = o.slice(0, 4); delete p.body;
+        if (/^[A-D]$/i.test(s(c.reponse))) { p.reponse = s(c.reponse).toUpperCase(); if (s(c.explication)) p.explication = s(c.explication); }
+      } else manque('options');
+    }
+    if (g === 'signes') {
+      let k = liste(c.signes); if (k.length < 2) k = liste(c.etapes); if (k.length < 2) k = morceaux;
+      if (k.length >= 2) { p.signes = k.slice(0, 5); delete p.body; } else manque('signes');
+    }
+    if (g === 'conversation') {
+      const m = (Array.isArray(c.messages) ? c.messages : [])
+        .filter((x) => x && s(x.texte)).map((x) => ({ de: s(x.de) === 'client' ? 'client' : 'moi', texte: s(x.texte).slice(0, 180) }));
+      if (m.length >= 2) { p.messages = m.slice(0, 5); if (s(c.scene)) p.scene = s(c.scene); } else manque('messages');
+    }
     p.gabarit = g;
     return p;
   });

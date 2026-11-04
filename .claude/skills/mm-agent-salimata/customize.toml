@@ -18,7 +18,7 @@ persistent_facts = [
   "file:{project-root}/docs/growth-kb/10-community-management.md",
   "file:{project-root}/docs/growth-kb/05-identite-visuelle-concurrents.md",
   "file:{project-root}/docs/growth-kb/04-taxonomie-reseaux-qa.md",
-  "Équipe marketing : mm-agent-awa (CMO, priorités), mm-agent-koffi (performance : créas publicitaires), mm-agent-mariam (social : lots à habiller), mm-agent-serge (CRM : gabarits), mm-agent-yann (analytics : tests de créas), mm-agent-ibrahima (B2B : supports commerciaux). Rédaction : mm-agent-aminata (visuels d'articles).",
+  "Équipe marketing : mm-agent-kader (concepteur de formats : fait tourner les familles de chaque lot, tu valides la marque), mm-agent-awa (CMO, priorités), mm-agent-koffi (performance : créas publicitaires), mm-agent-mariam (social : lots à habiller), mm-agent-serge (CRM : gabarits), mm-agent-yann (analytics : tests de créas), mm-agent-ibrahima (B2B : supports commerciaux). Rédaction : mm-agent-aminata (visuels d'articles).",
   "Les livrables se rangent dans {project-root}/_bmad-output/growth/ (nom AAAA-MM-JJ-objet.md). Les visuels sociaux sont rendus par n8n (WF-SOCIAL-04, render-card) à partir de Visual_Strategy et Slides_JSON dans NocoDB Contenus.",
 ]
 
@@ -54,6 +54,11 @@ prompt = "Load and follow {skill-root}/references/concept-video.md"
 code = "MK"
 description = "Cohérence des deux kits (marketing vs produit) et recommandation de système"
 prompt = "Load and follow {skill-root}/references/coherence-kits.md"
+
+[[agent.menu]]
+code = "VF"
+description = "Variété des formats d'un lot (règles du 04/11/2026, contrôle qa-lot, arbitrage avec Kader)"
+prompt = "Load and follow {skill-root}/references/variete-formats.md"
 
 [[agent.menu]]
 code = "AU"

@@ -4,7 +4,7 @@
 id = "comite-growth"
 name = "Comité marketing Max-Morrys"
 scene = "Comité marketing de Max-Morrys, plateforme qui forme et accompagne les entrepreneurs d'Afrique francophone depuis Dakar. Chacun défend son canal ou sa discipline, chiffres et preuves à l'appui ; Awa arbitre et force la décision. Contraintes du monde réel : une seule personne pour valider, data chère, WhatsApp et mobile money, aucune vente réalisée encore. On ne promet que ce qui existe. Base de connaissance : docs/growth-kb/."
-members = ["mm-agent-awa", "mm-agent-koffi", "mm-agent-mariam", "mm-agent-fatou", "mm-agent-serge", "mm-agent-salimata", "mm-agent-yann", "mm-agent-ibrahima"]
+members = ["mm-agent-awa", "mm-agent-koffi", "mm-agent-mariam", "mm-agent-fatou", "mm-agent-kader", "mm-agent-serge", "mm-agent-salimata", "mm-agent-yann", "mm-agent-ibrahima"]
 memory = true
 
 [[workflow.party_groups]]
@@ -18,7 +18,7 @@ memory = true
 id = "contenu-360"
 name = "Comité contenu 360"
 scene = "Réunion d'alignement entre marketing et rédaction : un article doit nourrir le social, la lettre et la vente, et un temps fort marketing doit trouver son contenu de fond. Awa et Aminata co-président."
-members = ["mm-agent-awa", "mm-agent-aminata", "mm-agent-rokia", "mm-agent-mariam", "mm-agent-fatou", "mm-agent-serge", "mm-agent-yann"]
+members = ["mm-agent-awa", "mm-agent-aminata", "mm-agent-rokia", "mm-agent-mariam", "mm-agent-fatou", "mm-agent-kader", "mm-agent-serge", "mm-agent-yann"]
 memory = true
 
 [[workflow.party_groups]]

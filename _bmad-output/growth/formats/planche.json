@@ -1,0 +1,184 @@
+{
+ "charges": {
+  "01-mythe_realite": {
+   "kit": "ds",
+   "template": "poster",
+   "gabarit": "mythe_realite",
+   "format": "4:5",
+   "title": "Faut-il poster [tous les jours] ?",
+   "eyebrow": "MYTHE OU RÉALITÉ",
+   "territoire": "transforme",
+   "mythe": "Pour vendre sur Facebook, il faut publier tous les jours.",
+   "realite": "Mieux vaut trois posts utiles par semaine, au même créneau, que sept posts faits à la va-vite.",
+   "cta": "Garde ce post"
+  },
+  "02-checklist": {
+   "kit": "ds",
+   "template": "poster",
+   "gabarit": "checklist",
+   "format": "4:5",
+   "title": "Ta fiche Google est [prête] si…",
+   "eyebrow": "CHECK-LIST · GOOGLE",
+   "territoire": "digitalise",
+   "coches": [
+    "Le nom est celui de ta devanture",
+    "Les horaires sont à jour, jours fériés compris",
+    "Au moins 5 photos prises de jour",
+    "Ton numéro WhatsApp est dans la fiche",
+    "Tu réponds aux avis, même aux mauvais"
+   ]
+  },
+  "03-comparatif": {
+   "kit": "ds",
+   "template": "poster",
+   "gabarit": "comparatif",
+   "format": "4:5",
+   "title": "Statut WhatsApp ou [story Instagram] ?",
+   "eyebrow": "CECI OU CELA",
+   "territoire": "informe",
+   "gaucheTitre": "Statut WhatsApp",
+   "gauche": [
+    "Tes contacts seulement",
+    "Parfait pour les clients fidèles",
+    "Réponse directe en message"
+   ],
+   "droiteTitre": "Story Instagram",
+   "droite": [
+    "Visible par des inconnus",
+    "Parfait pour te faire découvrir",
+    "Sondages et quiz intégrés"
+   ],
+   "verdict": "Les deux : le statut pour revendre, la story pour te faire connaître."
+  },
+  "04-erreur": {
+   "kit": "ds",
+   "template": "poster",
+   "gabarit": "erreur",
+   "format": "4:5",
+   "title": "L'erreur qui fait [fuir] tes clients",
+   "eyebrow": "ERREUR FRÉQUENTE",
+   "territoire": "digitalise",
+   "erreur": "Répondre « prix en inbox » sous chaque commentaire.",
+   "correction": "Écris le prix, ou une fourchette, directement dans la réponse.",
+   "pourquoi": "un client qui doit demander deux fois achète ailleurs."
+  },
+  "05-glossaire": {
+   "kit": "ds",
+   "template": "poster",
+   "gabarit": "glossaire",
+   "format": "4:5",
+   "title": "Taux d'engagement",
+   "eyebrow": "RÉSEAUX SOCIAUX",
+   "territoire": "forme",
+   "numero": "04",
+   "nature": "nom masculin",
+   "definition": "La part des personnes qui ont réagi à ton post (j'aime, commentaire, partage, enregistrement) parmi celles qui l'ont vu.",
+   "exemple": "1 000 personnes voient ton post, 50 réagissent : ton taux d'engagement est de 5 %."
+  },
+  "06-quiz": {
+   "kit": "ds",
+   "template": "poster",
+   "gabarit": "quiz",
+   "format": "4:5",
+   "title": "Quel post Instagram est le plus souvent [enregistré] ?",
+   "eyebrow": "INSTAGRAM",
+   "territoire": "transforme",
+   "options": [
+    "Une photo de produit",
+    "Un carrousel pratique",
+    "Une citation",
+    "Un selfie"
+   ],
+   "cta": "Réponds en commentaire : A, B, C ou D"
+  },
+  "07-quiz_reponse": {
+   "kit": "ds",
+   "template": "poster",
+   "gabarit": "quiz",
+   "format": "4:5",
+   "title": "Quel post Instagram est le plus souvent [enregistré] ?",
+   "eyebrow": "INSTAGRAM",
+   "territoire": "transforme",
+   "options": [
+    "Une photo de produit",
+    "Un carrousel pratique",
+    "Une citation",
+    "Un selfie"
+   ],
+   "reponse": "B",
+   "explication": "On enregistre ce qu'on veut refaire plus tard : une méthode, une liste, un pas à pas."
+  },
+  "08-signes": {
+   "kit": "ds",
+   "template": "poster",
+   "gabarit": "signes",
+   "format": "4:5",
+   "title": "3 signes que ta page Facebook [dort]",
+   "eyebrow": "DIAGNOSTIC",
+   "territoire": "informe",
+   "signes": [
+    "Ton dernier post date de plus d'un mois",
+    "Tes messages restent sans réponse plus d'un jour",
+    "Ta photo de couverture parle d'une offre finie"
+   ],
+   "cta": "Lequel te concerne ?"
+  },
+  "09-conversation": {
+   "kit": "ds",
+   "template": "poster",
+   "gabarit": "conversation",
+   "format": "4:5",
+   "title": "Le message qui [vend] sans forcer",
+   "eyebrow": "ATELIER · WHATSAPP",
+   "territoire": "digitalise",
+   "scene": "Samedi · 11 h",
+   "messages": [
+    {
+     "de": "client",
+     "texte": "Bonjour, la robe bleue est encore dispo ?"
+    },
+    {
+     "de": "moi",
+     "texte": "Oui ! Il me reste la taille M et la taille L. Tu la veux livrée aujourd'hui ou tu passes la chercher ?"
+    },
+    {
+     "de": "client",
+     "texte": "Livrée, à Ouakam."
+    },
+    {
+     "de": "moi",
+     "texte": "Parfait. Livraison avant 18 h. Je t'envoie le lien : Wave, Orange Money ou carte."
+    }
+   ],
+   "body": "Une question fermée à la fin : le client choisit, il ne réfléchit plus."
+  },
+  "10-quiz-story": {
+   "kit": "ds",
+   "template": "poster",
+   "gabarit": "quiz",
+   "format": "9:16",
+   "title": "Quel post Instagram est le plus souvent [enregistré] ?",
+   "eyebrow": "INSTAGRAM",
+   "territoire": "transforme",
+   "options": [
+    "Une photo de produit",
+    "Un carrousel pratique",
+    "Une citation",
+    "Un selfie"
+   ],
+   "cta": "Réponds en commentaire : A, B, C ou D"
+  }
+ },
+ "urls": {
+  "01-mythe_realite": "https://media.maxmorrys.me/social-cards/11c3ff5f-5b1d-40f4-99b0-f2d08c43ba81.png",
+  "02-checklist": "https://media.maxmorrys.me/social-cards/94b3f260-4f3c-4ed5-bba7-b9d88cd249fa.png",
+  "03-comparatif": "https://media.maxmorrys.me/social-cards/21696b47-a98b-4e54-8eff-4446775e8f92.png",
+  "04-erreur": "https://media.maxmorrys.me/social-cards/a2125315-b85d-4a26-aba7-fdc32691cfae.png",
+  "05-glossaire": "https://media.maxmorrys.me/social-cards/5ae8765b-289f-45c2-848d-5582dad118a7.png",
+  "06-quiz": "https://media.maxmorrys.me/social-cards/432853b5-87a8-4754-82ce-fd847647f512.png",
+  "07-quiz_reponse": "https://media.maxmorrys.me/social-cards/71370e2f-5a74-469b-9166-fcc99c3f64d7.png",
+  "08-signes": "https://media.maxmorrys.me/social-cards/4bc7b674-94ac-4a12-b7ab-e15b3f4dd06b.png",
+  "09-conversation": "https://media.maxmorrys.me/social-cards/61eb3074-c804-4610-8228-1c13abf64da7.png",
+  "10-quiz-story": "https://media.maxmorrys.me/social-cards/bbafb872-6032-4ed0-ad03-71e0c9235fbb.png"
+ }
+}

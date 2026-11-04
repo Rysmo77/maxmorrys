@@ -97,7 +97,9 @@ async function main() {
   fs.writeFileSync(propose, JSON.stringify(neuf, null, 2));
   if (!APPLY) { console.log(`SIMULATION — proposé dans ${path.relative(ROOT, propose)}. --apply pour pousser.`); return; }
 
-  const sauvegarde = path.join(BACKUP_DIR, `${WF_ID}-WF-SOCIAL-04-avant-kit-ds.json`);
+  // Horodatée : une nouvelle poussée n'écrase jamais la sauvegarde d'une poussée précédente.
+  const horo = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+  const sauvegarde = path.join(BACKUP_DIR, `${WF_ID}-WF-SOCIAL-04-avant-${horo}.json`);
   fs.writeFileSync(sauvegarde, JSON.stringify(wf, null, 2));
   const body = { name: wf.name, nodes: neuf.nodes, connections: wf.connections, settings: { executionOrder: wf.settings?.executionOrder || 'v1', errorWorkflow: wf.settings?.errorWorkflow }, staticData: wf.staticData ?? null };
   const res = await api(`/workflows/${WF_ID}`, { method: 'PUT', body: JSON.stringify(body) });
