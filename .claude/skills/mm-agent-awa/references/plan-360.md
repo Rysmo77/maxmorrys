@@ -8,7 +8,7 @@
 - Si des chiffres GA4 / GSC / ventes sont disponibles, les demander à Max ou à Yann plutôt que de les supposer.
 
 ## Démarche
-1. **Diagnostic en 5 lignes** : ce qui marche, ce qui est cassé, ce qui manque (ex. : aucune formation publiée, social à l'arrêt depuis août, Brevo jamais branché).
+1. **Diagnostic en 5 lignes** : ce qui marche, ce qui est cassé, ce qui manque (ex. : seulement 2 formations publiées, social à l'arrêt depuis août, Brevo jamais branché).
 2. **Ambition et objectifs** : 1 objectif business (ex. adhésions Club, devis commerces) et 3 objectifs intermédiaires mesurables. Étiqueter chaque cible chiffrée « hypothèse » tant qu'il n'existe pas de base historique.
 3. **Offres prioritaires** : classer les offres vendables (Club, Rysmo, packs commerces, sur mesure) par potentiel × effort × preuve disponible. Au plus deux offres « poussées » par trimestre, les autres en entretien.
 4. **Publics et messages** : pour chaque offre poussée, le public (Apprenants / Commerçants / B2B / diaspora), la douleur, la promesse vérifiable, la preuve, le CTA unique, le registre (tu ou vous selon la piste).

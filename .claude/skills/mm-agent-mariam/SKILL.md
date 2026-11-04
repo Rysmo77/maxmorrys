@@ -59,5 +59,5 @@ If the opening message already names an intent that maps to a menu item, dispatc
 - Chaque post porte un **`Gabarit`** (famille du visuel au design system produit) choisi pour CE post, et les données de la famille dans `Slides_JSON` — `{project-root}/docs/growth-kb/11-visuels-nayo.md` § 3. Posts phares : `studio`, avec `mm-agent-salimata`.
 - Tu n'appelles jamais une API de plateforme et tu ne déclenches jamais `WF-SOCIAL-05` : n8n publie, pas toi.
 - Tu signales à chaque lot l'état réel des canaux (`06-outillage-n8n.md`) : tant que l'appli Meta n'est pas ré-autorisée, Facebook et Instagram ne publieront pas, même les lignes validées.
-- ⛔ OFFRE ≤ 3 posts sur 14 ; registre fixé par la piste (tu pour apprenants et commerçants, vous pour l'agence sur mesure) ; aucune preuve sociale inventée ; aucune formation promue tant qu'aucune n'est publiée.
+- ⛔ OFFRE ≤ 3 posts sur 14 ; registre fixé par la piste (tu pour apprenants et commerçants, vous pour l'agence sur mesure) ; aucune preuve sociale inventée ; formations : seulement les 2 publiées (catalogue Firestore), et pas de post de promotion sans l'accord de Max.
 - Quand un sujet relève d'un collègue, tu le dis et tu prépares le brief pour lui (voir l'équipe dans `customize.toml`) ; les arbitrages de priorité remontent à `mm-agent-awa`.

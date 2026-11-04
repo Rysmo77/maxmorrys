@@ -4,6 +4,11 @@
 > **corrections appliquées le même jour** (`docs/growth-kb/audits/2026-10-29-corrections-n8n.md`).
 > Revérifier l'état live avant d'agir : il bouge. Copie versionnée des workflows actifs : `n8n/live/`
 > (régénérer avec `node scripts/n8n-export-live.mjs`).
+>
+> **IA des workflows (depuis le 01/11/2026) : Claude, plus Gemini.** Claude Haiku (`claude-haiku-5-5`) par défaut,
+> Claude Sonnet (`claude-sonnet-5-5`) pour la rédaction longue (lettre WF-09, curriculum WF-11, leçons WF-12).
+> Nœud natif n8n « Anthropic » (Message a Model), credential **« Anthropic Max-Morrys »** (`4nUPn9Qdj3NuCRYS`).
+> Plus aucune exception depuis le 01/11 au soir : la couverture de WF-14 ne passe plus par Gemini Image mais par render-card (famille `couverture`, voir `11-visuels-nayo.md` § 3 bis). Chaîne `IMG2 — Lire Config Render` → `IMG3 — Build couverture` → `IMG4 — render-card couverture` → `IMG7 — Build URL` (même sortie `public_url`), générée par `scripts/growth/wf14-couverture.mjs`. Sauvegarde : `backups/n8n-corrections-20261029/OJMyvQPywIdhaVAj-WF-14-…-avant-couverture.json`.
 
 ## Répartition des rôles (décision du 29/10/2026)
 
@@ -15,7 +20,7 @@
 | **Données** | NocoDB (https://noco.maxmorrys.me, base « Max-Morrys ») | file `Contenus`, banque d'idées d'articles, SEO, logs |
 | ~~Agents autonomes~~ | Paperclip « Maxmorrys Growth » | **à mettre en veille pour le marketing** (≈ 5 700 réveils sur le quota Claude Max pour un rendement nul depuis août) |
 
-Pourquoi n8n reste : crons fiables (aucun raté en 14 jours), appels Meta et X déjà codés, boucle Telegram saine, rendu des visuels local. Ce qui casse, c'est la **création** confiée à une clé Gemini gratuite (erreurs 503) et un seul appel hebdomadaire : c'est ce maillon que les agents BMad remplacent.
+Pourquoi n8n reste : crons fiables (aucun raté en 14 jours), appels Meta et X déjà codés, boucle Telegram saine, rendu des visuels local. Ce qui cassait, c'est la **création** confiée à une clé Gemini gratuite (erreurs 503 ; remplacée par Claude le 01/11) et un seul appel hebdomadaire : c'est ce maillon que les agents BMad remplacent.
 
 ## Circuit d'un post (social)
 
@@ -79,28 +84,37 @@ Tables utiles : `contenus` (file sociale), `idees-articles` (banque d'idées éd
 | WF-TG-ROUTER | n0hquvVeQ7my7orT | webhook Telegram | ✅ → `validé`, ❌ → `rejeté`, commandes |
 | **WF-HEALTH** (nouveau) | 6qGXtUTtR7XXAhSW | 9 h Dakar | alerte « file affamée » (voir circuit, étape 5) |
 | WF-ERR | MMERRALERT0001 | errorTrigger | toute exception → Telegram |
-| WF-07 Veille idées articles | 3kpXjWE4azageRz1 | lundi 5 h | RSS + messages/FAQ → **un** appel Gemini → banque d'idées (pas de rédaction) |
-| WF-09 Lettre | i5EvGUGhVvzKIM2U | jeudi 8 h | `rss.xml` (articles publiés) → brouillon Gemini → **aperçu Telegram uniquement** (pas d'envoi) |
-| WF-10 à WF-14 (LMS) | sqQM…, 2wR0…, 3pJ2…, HJIp…, OJMy… | lundi/dimanche | production de cours (hors marketing) |
+| WF-07 Veille idées articles | 3kpXjWE4azageRz1 | lundi 5 h | RSS + messages/FAQ → **un** appel Claude Haiku → banque d'idées (pas de rédaction) |
+| WF-09 Lettre | i5EvGUGhVvzKIM2U | jeudi 8 h | `rss.xml` (articles publiés) → brouillon Claude Sonnet → **aperçu Telegram uniquement** (pas d'envoi) |
+| WF-10 à WF-14 (LMS) | sqQM…, 2wR0…, 3pJ2…, HJIp…, OJMy… | lundi/dimanche | production de cours (hors marketing) — WF-10, WF-13 : Claude Haiku ; WF-11, WF-12 : Claude Sonnet ; WF-14 : couverture render-card (photo Workers AI quand le Worker media sera déployé, sinon typographique) |
 
 **Désactivés, conservés** : WF-08 Rédaction d'articles (la rédaction passe aux agents BMad), WF-THEMES et WF-PICKS-RELANCE (la production sociale passe aux agents BMad), WF-WHATSAPP-NOTIFY (`NRZUUYjpvJzOSktj`) et WF-WHATSAPP-SEND (`6gusFWI5B5bzH6AC`) gardés pour le futur jeton Meta système.
 
 **Archivés le 29/10** (19, export JSON dans `backups/n8n-corrections-20261029/archives/`, restaurables depuis l'interface n8n) : DIGEST ×2, EMAIL-NOTIFY ×2, EMAIL-SEND ×2 (Brevo abandonné au profit de Cloudflare Email), GOV-07 ×2, anciennes versions de SOCIAL-03/04/05/07 et TG-ROUTER, SOCIAL-01/02/06, WF-18, et le doublon le plus ancien de chaque WHATSAPP-*.
 
-Réglages communs : tous les nœuds Gemini ont `retryOnFail` (4 essais, 5 s d'écart : **n8n plafonne l'attente à 5 000 ms**, les 30 s demandées sont impossibles en natif). Les nœuds « Airtable — … » s'appellent désormais « NocoDB — … » (lecture) ou « Aplatir — … » (code d'aplatissement), « Gemini Pro » est devenu « Gemini Flash », et les crons « quotidien » qui tournaient le lundi portent leur vrai libellé.
+Réglages communs : tous les nœuds Claude (comme avant les nœuds Gemini) ont `retryOnFail` (4 essais, 5 s d'écart : **n8n plafonne l'attente à 5 000 ms**, les 30 s demandées sont impossibles en natif). Les nœuds « Airtable — … » s'appellent désormais « NocoDB — … » (lecture) ou « Aplatir — … » (code d'aplatissement), les nœuds d'IA s'appellent « Claude Haiku — … » / « Claude Sonnet — … » (01/11), et les crons « quotidien » qui tournaient le lundi portent leur vrai libellé.
+
+### Claude dans n8n (01/11/2026) — ce qu'il faut savoir
+
+- **Pas de `temperature`** : Haiku 5.5 et Sonnet 5.5 la refusent (400 « deprecated for this model ») ; les températures Gemini (0,5–0,8) ne sont pas reportées.
+- **Pas de mode JSON natif** : l'ancien `jsonOutput` Gemini est remplacé par un message système « Réponds uniquement avec le JSON demandé… » ; les parseurs gardent leurs replis (retrait des ```` ``` ````, extraction du premier objet).
+- **Forme de sortie** : nœud en `simplify: false` + `includeMergedResponse: true` → le texte est dans **`merged_response`** (les blocs `thinking` en tête de `content` sont exclus) ; `usage` et `stop_reason` restent lisibles dans l'exécution. Tous les parseurs lisent `merged_response` en premier, puis l'ancienne forme Gemini (`content.parts`, `candidates`).
+- **La réflexion adaptative compte dans `max_tokens`** (le nœud natif ne permet pas de la régler) : 4 096 a coupé WF-07 au premier essai (3 434 tokens de réflexion). Plafonds retenus : 16 000 partout, 48 000 pour le curriculum WF-11 (29 000 tokens de sortie mesurés), 4 096 pour l'enrichissement de prompt WF-14.
+- **Coût mesuré par exécution (01/11)** : WF-07 ≈ 12 400 in / 4 700 out (~0,004 $) ; WF-09 ≈ 3 750 / 3 200 (~0,04 $) ; WF-10 ≈ 23 500 / 6 600 (~0,006 $) ; WF-11 ≈ 3 700 / 29 200 **par cours** (~0,30 $, ~3 min) ; WF-12 ≈ 2 600 / 9 500 **par leçon** (~0,10 $) ; WF-13 ≈ 3 000 / 4 100 par module (~0,002 $) ; WF-14 prompt ≈ 120 / 370 ; TG-ROUTER (outils, tendances, déclinaison) ≈ 0,7–1,7 k / 1,8–3,8 k (~0,001–0,002 $ chacun).
+- Sauvegardes avant bascule : `backups/n8n-corrections-20261029/*-avant-claude.json`.
 
 ## Hors n8n (VPS / Mac)
 
 - `gsc-pull` : tourne sur le VPS (`maxmorrys-gsc-pull.timer`, 07:15 Africa/Dakar ; script `/opt/maxmorrys-stack/gsc-pull.py`, clé `/opt/maxmorrys-stack/gsc-sa.json` en 600) et écrit dans NocoDB `SEO`. Idempotent par date. Le LaunchAgent Mac est renommé `.disabled`.
 - Tunnel cloudflared `paperclip` du Mac : coupé (`com.maxmorrys.cloudflared.plist.disabled`) ; `paperclip.maxmorrys.me` est servi par Caddy sur le VPS (enregistrement A).
 - Sauvegardes : `maxmorrys-backup.timer` (03:30) dump Postgres **n8n + NocoDB + Paperclip** → `/var/backups/maxmorrys/` (14 j) **et** R2 `maxmorrys-lms/backups/{n8n,nocodb,paperclip}/` (30 j). Aucun test de restauration fait.
-- NocoDB `Config` : clés mortes purgées (`AIRTABLE_TABLE_*`, `BLOTATO_ACCOUNTS`, `GEMINI_MODEL_TEXT`), 40 clés restantes ; sauvegarde avant purge : `/root/nocodb-config-backup-20261029.json` (600, VPS).
+- NocoDB `Config` : clés mortes purgées (`AIRTABLE_TABLE_*`, `BLOTATO_ACCOUNTS`, `GEMINI_MODEL_TEXT`), 40 clés restantes ; sauvegarde avant purge : `/root/nocodb-config-backup-20261029.json` (600, VPS). Au 01/11 : `GEMINI_MODEL_IMAGE` est obsolète (lue par aucun workflow) mais **conservée**.
 
 ## Ce qui reste à faire
 
 **Humain**
 1. ✅ Jeton d'utilisateur système posé le 29/10 (FB/IG prouvés sans publication). Reste à observer le premier vrai post FB et IG : c'est le seul moyen de voir si le nouveau contrôle `id`/permalien de WF-SOCIAL-05 fonctionne en conditions réelles.
-2. Clé Gemini payante (ticket MAX-14) : les relances natives (4 × 5 s) ne suffiront pas contre un 503 prolongé.
+2. ~~Clé Gemini payante (ticket MAX-14)~~ — sans objet depuis le passage à Claude (01/11), sauf pour la génération d'image de WF-14 (`IMG4`), qui dépend encore de la clé Gemini.
 3. Conserver `N8N_ENCRYPTION_KEY` hors du VPS (gestionnaire de mots de passe) : les dumps R2 sont inutilisables pour les credentials sans elle, et `/opt/maxmorrys-stack/.env` n'est pas sauvegardé hors site.
 4. Faire un test de restauration d'un dump R2 (n8n et NocoDB) sur une base jetable.
 

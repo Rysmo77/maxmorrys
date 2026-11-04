@@ -12,7 +12,7 @@
 > 3. Lettre / Cloudflare : **pas encore tranché**.
 > 4. Black Friday : **aucune remise** sur nos offres.
 > 5. Rythme allégé pendant les fêtes + une story neutre le 24/12 et le 31/12 : **oui**.
-> 6. Formations : **on n'en parle pas pour l'instant** (décision révisée par Max le 29/10 : pas de fiche « bientôt », aucune mention des formations dans les contenus).
+> 6. Formations : ⚠️ CORRIGÉ le 01/11 : **2 formations publiées et réelles** (Community Manager Freelance, Automatisation WhatsApp). La décision « on n'en parle pas pour l'instant » datait d'avant cette information : leur promotion reste à confirmer par Max. Ancienne mention : **on n'en parle pas pour l'instant** (décision révisée par Max le 29/10 : pas de fiche « bientôt », aucune mention des formations dans les contenus).
 
 ## 1. Décisions d'abord (la page à lire)
 

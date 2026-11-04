@@ -3,6 +3,8 @@
 > Décision de Max (29/10/2026) : les posts doivent **sonner community management** — courts, vivants, avec emojis et hashtags, écrits pour être lus au pouce et poussés par l'algorithme. Ce fichier **prime** sur les règles de longueur de `04-taxonomie-reseaux-qa.md` pour Facebook et Instagram.
 > ⚠️ La règle « aucun emoji » de la charte vaut pour le **site, l'appli et le texte des visuels/slides**, pas pour les légendes sociales.
 
+> ⭐ **Ligne éditoriale d'abord éducative (décision de Max, 04/11/2026).** Max ne validait pas les posts parce qu'ils étaient « trop orientés business et pas très éducatifs ». Désormais : **au moins 80 % des posts enseignent quelque chose de concret et immédiatement utile** (une notion expliquée simplement, un réglage pas à pas, une astuce testable ce soir, une actu décryptée avec ce qu'elle change, une erreur fréquente et comment l'éviter, un exemple local avant/après). **Au plus 1 post d'offre par semaine**, et lui aussi apprend quelque chose avant de citer l'offre. CTA d'engagement (enregistre, partage, commente, essaie et dis-moi) plutôt que de vente ; pas de « Trouve ton pack » / « Rejoins le Club » au bout d'un post éducatif. Commerçants : des tutoriels, pas des arguments de vente. Stories : quiz, sondages, astuces express, « le saviez-tu » sourcé — pas de rappels d'offre.
+
 ## 1. Ce que les algorithmes récompensent (FB et IG, pratiques 2026 — à confirmer par nos mesures)
 
 | Signal | Poids | Comment le provoquer |
@@ -63,7 +65,7 @@ Pas de hashtag générique géant (`#love`, `#business`), pas de hashtag invent�
 - Tutoiement, « je », phrases de 5 à 15 mots, une idée par ligne, beaucoup d'air.
 - Parler comme au téléphone à un ami commerçant : « Franchement… », « On se dit la vérité ? », « Dis-moi en commentaire », « Je te réponds. » — sans argot ni wolof écrit.
 - Bannir le ton site : listes à « · », points-virgules, « en sus », « Aucun prélèvement automatique » en milieu de post, « offre », « solution », « n'hésitez pas ».
-- Les prix restent exacts et sourcés (HT pour l'agence) ; les interdits de `00-essentiel.md` restent valables (aucun remboursement, aucune preuve sociale inventée, aucune formation promue).
+- Les prix restent exacts et sourcés (HT pour l'agence) ; les interdits de `00-essentiel.md` restent valables (aucun remboursement, aucune preuve sociale inventée, aucune formation hors catalogue publié).
 
 ## 7. Exemple — avant / après (post Club)
 

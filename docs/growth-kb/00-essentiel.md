@@ -24,7 +24,7 @@ Social : même principe (apprenants et commerçants en tu ; B2B corporate en vou
 - **Commerces et TPE** (HT, TVA 18 % en sus) : Présence Locale 250 000 · Commerce Visible 495 000 · Boutique Digitale 895 000 · accompagnements 175 000 et 225 000/mois. Acompte 60 %.
 - **Projets sur mesure** : sur devis, aucun montant public, vouvoiement strict.
 - **Gratuit** : blog, podcast, vidéos, leçons libres, certificat, lettre, appel de 30 min.
-- ⛔ **Aucune formation n'est publiée** (catalogue Firestore vide) : ne promouvoir aucun titre ni prix de formation ; parler de liste d'attente / « le catalogue ouvre bientôt » tant que l'humain n'a pas fourni les données.
+- ⚠️ **2 formations publiées et réelles** (confirmé par Max le 01/11/2026) : « Community Manager Freelance » et « Automatisation WhatsApp » — titre, prix et lien se lisent dans le catalogue Firestore (`formations`, statut publié), jamais de mémoire ; −20 % pour les membres du Club. ⚠️ Leur **promotion marketing** attend la décision de Max ; aucune autre formation n'existe (ne jamais en inventer, ex. « formation SEO »).
 - ⛔ N'existent pas : coaching/mentorat payant, consulting payant, certificats payants, accès « toutes les formations par abonnement », appli Rysmo sur les stores (non publiée).
 
 ## Interdits transverses (non négociables)
@@ -42,12 +42,14 @@ Social : même principe (apprenants et commerçants en tu ; B2B corporate en vou
 ## Marchés et contraintes
 Cœur Dakar ; puis Abidjan, Cotonou ; diaspora (solvable, sans persona). Mobile d'abord, data chère (frugalité), WhatsApp au centre des deux tunnels, mobile money. Français standard (« la diaspora doit suivre »), pas de wolof dans la copie. ⚠️ Aucune règle encore écrite pour Ramadan, Korité, Tabaski, Magal : les proposer, ne pas les inventer comme acquises.
 
+> ⭐ **Ligne éditoriale d'abord éducative (décision de Max, 04/11/2026).** Max ne validait pas les posts parce qu'ils étaient « trop orientés business et pas très éducatifs ». Désormais : **au moins 80 % des posts enseignent quelque chose de concret et immédiatement utile** (une notion expliquée simplement, un réglage pas à pas, une astuce testable ce soir, une actu décryptée avec ce qu'elle change, une erreur fréquente et comment l'éviter, un exemple local avant/après). **Au plus 1 post d'offre par semaine**, et lui aussi apprend quelque chose avant de citer l'offre. CTA d'engagement (enregistre, partage, commente, essaie et dis-moi) plutôt que de vente ; pas de « Trouve ton pack » / « Rejoins le Club » au bout d'un post éducatif. Commerçants : des tutoriels, pas des arguments de vente. Stories : quiz, sondages, astuces express, « le saviez-tu » sourcé — pas de rappels d'offre.
+
 ## Ton
 Inspirant, clair, jamais racoleur. Phrases courtes, un seul CTA par contenu, résultats concrets, 1 à 3 touches locales. Pas de gourou traduit, pas de hustle toxique, pas de « oups ». Aucun emoji sur le web, l'appli et le texte des visuels/slides.
 **Réseaux sociaux : écrire en community manager, pas en page de site** — accroche d'une ligne, lignes courtes, 1 à 3 emojis (jamais un par ligne), hashtags (4-6 IG, 2-3 FB), une action qui provoque commentaire/enregistrement/partage, 30 à 90 mots. Guide qui fait autorité : `10-community-management.md`.
 
 ## Taxonomie des contenus (NocoDB `Contenus`, valeurs exactes)
-`Pilier` Autorité · Éducation · Inspiration · Produit · Communauté · Autre — `Serie` RADAR · ATELIER · PREUVE · COULISSES · CERCLE · OFFRE — `Offre` Formations · Club Digitos · Rysmo · Agence · Accompagnement · Non-produit — `Cible` Apprenants · Commerçants · Mixte — `Status` idée → planifié → rédigé → image_needed → prêt_à_valider → validé → en_publication → publié (+ échec, rejeté). ⛔ Cadence décidée le 29/10/2026 : **8 à 10 posts par semaine + 7 stories**, OFFRE ≤ 2 par semaine. Aucune remise Black Friday.
+`Pilier` Autorité · Éducation · Inspiration · Produit · Communauté · Autre — `Serie` RADAR · ATELIER · PREUVE · COULISSES · CERCLE · OFFRE — `Offre` Formations · Club Digitos · Rysmo · Agence · Accompagnement · Non-produit — `Cible` Apprenants · Commerçants · Mixte — `Status` idée → planifié → rédigé → image_needed → prêt_à_valider → validé → en_publication → publié (+ échec, rejeté). ⛔ Cadence décidée le 29/10/2026 : **8 à 10 posts par semaine + 7 stories**, OFFRE ≤ 1 par semaine (décision du 04/11 : d'abord éducatif). Aucune remise Black Friday.
 
 ## Outillage (état au 29/10/2026 — voir `06-outillage-n8n.md`)
 n8n (VPS, https://n8n.maxmorrys.me) reste la **couche d'exécution** : rendu visuel, notification Telegram, publication native FB/IG après ✅, alertes. Les agents BMad sont la **couche stratégie et production** : ils écrivent des brouillons, l'humain valide.

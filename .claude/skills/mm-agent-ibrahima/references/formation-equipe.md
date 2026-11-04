@@ -4,7 +4,7 @@
 
 ## Matière à charger
 - `src/i18n/locales/fr/formations.json` (carte « Former toute ton équipe ? »), `src/components/edu/g2/TeamQuoteCard.tsx` (lead `agency_leads` de type `training`) ; ⚠️ la copie « Max-Morrys Business » est orpheline : ne pas s'en servir comme offre en ligne.
-- ⛔ Aucune formation n'est publiée : on vend un programme construit sur mesure, pas un catalogue.
+- Le catalogue compte 2 formations réelles (Community Manager Freelance, Automatisation WhatsApp ; prix dans Firestore) : une formation d'équipe peut s'appuyer dessus, ou sur un programme sur mesure.
 
 ## Démarche
 1. **Besoin** : public (commerciaux, communication, dirigeants), niveau, objectifs mesurables, contraintes (présentiel, distanciel, data, horaires).

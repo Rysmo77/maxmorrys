@@ -10,8 +10,11 @@
 | `render-card` (VPS `/opt/render-card`, Satori + resvg) | ✅ gabarits **kit DS** ajoutés (`src/ds.ts`), activés par `kit: 'ds'` dans la charge. Sans ce champ, rendu historique **identique à l'octet** (vérifié sur 3 charges). Sauvegarde : `/opt/render-card.bak-20261029-1814.tgz` et `backups/n8n-corrections-20261029/render-card-avant-ds/`. |
 | `WF-SOCIAL-04` (n8n) | ✅ nœud « Build — URL publique » : un post qui porte un **`Gabarit`** part au kit DS ; un post sans `Gabarit` garde la charge historique. Bascule globale `DS_PAR_DEFAUT = false` en tête du nœud. Sauvegarde : `backups/n8n-corrections-20261029/774G38cqIvZsJUHm-WF-SOCIAL-04-avant-kit-ds.json`. |
 | NocoDB `Contenus` | ✅ champ **`Gabarit`** (SingleSelect) créé : `affiche · citation · chiffre · avant_apres · question · etapes · coulisses · offre · studio`. Vide = ancien rendu. |
-| Dépôt des PNG sur R2 | ⛔ **EN PANNE** (constaté le 29/10, 18 h 14 Paris) : `POST https://media-api.maxmorrys.me/internal/upload` répond 404. La route n'existe que sur la branche `feat/cloudflare-exit-blaze` (commit `e3a1d7e`) ; le Worker `maxmorrys-media` déployé ne l'a plus. Dernier rendu réussi : 22/08. Tant que ce n'est pas réparé, **chaque carte échoue** (ancien comme nouveau kit) et WF-04 pose `image_needed`. Réparation : redéployer `worker/apps/media` avec `handleInternalUpload` + secret `INTERNAL_UPLOAD_KEY` = `MEDIA_INTERNAL_KEY` du VPS (`/etc/render-card/env`). Décision et déploiement : Max. |
+| Dépôt des PNG sur R2 | ✅ réparé le 29/10 au soir (Worker media `fdf4f22a`, route `/internal/upload`). Historique : ⛔ **EN PANNE** (constaté le 29/10, 18 h 14 Paris) : `POST https://media-api.maxmorrys.me/internal/upload` répond 404. La route n'existe que sur la branche `feat/cloudflare-exit-blaze` (commit `e3a1d7e`) ; le Worker `maxmorrys-media` déployé ne l'a plus. Dernier rendu réussi : 22/08. Tant que ce n'est pas réparé, **chaque carte échoue** (ancien comme nouveau kit) et WF-04 pose `image_needed`. Réparation : redéployer `worker/apps/media` avec `handleInternalUpload` + secret `INTERNAL_UPLOAD_KEY` = `MEDIA_INTERNAL_KEY` du VPS (`/etc/render-card/env`). Décision et déploiement : Max. |
 | NAYO (https://nayo.pro) | ⚠️ en production (`/api/health` → `{"status":"ok"}`), mais **inutilisable par clé d'API pour produire** (§ 4). Réservé au studio, à la main, pour les posts phares. |
+
+| Famille **`couverture`** (01/11/2026) | ✅ en service sur render-card : couvertures d'**articles** (`blog:publish`) et de **formations** (WF-14). § 3 bis. Sauvegarde : `/opt/render-card.bak-20261101-2103-avant-couverture.tgz`. Non-régression : 7 charges de référence (3 historiques, 4 kit DS) **identiques à l'octet** avant/après (`/root/rc-check/avant.json` = `apres2.json`). |
+| Photo générée (Workers AI) | ⏳ code prêt, **Worker media non déployé** : route `POST /internal/generate-image` (FLUX.2 [dev]) dans `worker/apps/media/src/generate.ts`. Tant qu'elle répond 404, render-card rend la couverture **typographique** et le dit (`fondErreur`). |
 
 ## 2. Circuit d'un visuel
 
@@ -42,6 +45,22 @@ Choisir **post par post** selon ce que le post doit faire, pas selon la série. 
 Communs à toutes : `sourcil?` (remplace « SÉRIE · OUTIL »), `territoire?` (force la couleur), `fond?` (`papier` | `nuit`). **`[mot]`** dans un titre passe le mot dans la couleur du territoire (même convention que les titres du site — crochets porteurs). Aucun emoji dans `Slides_JSON`.
 
 ⛔ Prix : seulement ceux du post et du code (CGV, i18n). Le Club s'écrit `1 658 FCFA / mois` avec « 19 900 F payés une fois pour l'année » dessous (règle des prix cadrés du DS).
+
+## 3 bis. Famille `couverture` (articles et formations)
+
+Décision de Max du 01/11/2026 : les couvertures du blog et des formations sortent de render-card, plus de Gemini Image.
+
+**Charge** : `{ kit:'ds', template:'couverture', variante:'article'|'formation', format:'1200x630', title, eyebrow?, territoire?, fond?, fondPrompt? }`. Source unique de la charge : `scripts/growth/couverture.mjs` (`chargeArticle`, `chargeFormation`).
+
+- **Format 1200×630** pour `coverImage` ET `ogImage` : c'est l'image de partage et du JSON-LD, et le site la recadre (16:9 dans `CoverImage` et `FormationCard`, jusqu'à ~1,5:1 sur les vignettes de l'index du blog, `object-cover`). Le gabarit garde tout son texte dans une marge latérale de 10,5 %, qui survit à ces recadrages. `16:9` (1280×720) existe aussi dans le moteur, mais rien ne l'utilise.
+- **Contenu** : en-tête (lockup + étiquette du territoire), sourcil (pôle de l'article, ou « Formation »), titre Fraunces 900 avec `[surlignage]`, pied `MAXMORRYS.ME` · « Le blog » / « Max-Morrys Edu ». Le titre est **ajusté par mesure réelle** (chasses de Fraunces 900 relevées dans la police servie à Satori), jamais rogné. Un titre « Sujet : promesse » sans crochets voit son sujet surligné automatiquement (`coverTitle` dans l'en-tête de l'article pour imposer autre chose).
+- **Territoire** : formation → `forme`. Article, selon le pôle : SEO & Visibilité, E-commerce → `digitalise` ; IA & Automatisation → `forme` ; Réseaux sociaux & Influence → `transforme` ; Publicité en ligne, Business & Gestion → `informe` (`coverTerritoire` dans l'en-tête pour forcer).
+- **Deux modes** :
+  - *hybride* : `fond` = URL https d'une photo, ou `fondPrompt` = description (anglais) d'une photo que render-card fait générer par le Worker media (Workers AI `@cf/black-forest-labs/flux-2-dev`, 1024×832, dépôt R2 `ai-covers/<uuid>.jpg`). La photo occupe les 64 % de droite, avec un aplat nuit à gauche, une lueur du territoire et les étiquettes en pastilles de verre. Le texte est en versions nuit. La réponse de render-card ajoute `fond` (URL de la photo, à réutiliser) ou `fondErreur`.
+  - *typographique* : maillage du territoire en paysage et voile clair à gauche. C'est le repli de **tout** échec de photo.
+- ⛔ **Règle éditoriale des photos** : des personnes **fictives**, jamais présentées comme un client, un élève ou Max. Aucun texte, aucune lettre, aucun logo ni enseigne dans la photo : le Worker ajoute de force « No text, no letters, no logos, no signs, no watermark ». Demander un sujet **centré** (le cadre photo recadre au centre). Les 46 anciennes couvertures (Gemini, 1408×768) portent parfois des enseignes lisibles : ne pas les réutiliser comme `fond` sans les regarder.
+- Poids : ~0,3 Mo en typographique et ~0,85 Mo en hybride (PNG : resvg ne sort rien d'autre). Le site les sert tels quels.
+- Démos du 01/11 : `_bmad-output/growth/couvertures/`.
 
 ## 4. Couleur et règles du kit DS
 

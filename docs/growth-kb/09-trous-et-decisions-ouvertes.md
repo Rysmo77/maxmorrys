@@ -5,7 +5,7 @@
 ## 8. Contradictions et trous (ce qui manque à des agents seniors)
 
 ### Bloquants
-1. **Aucune formation publiée.** On ne connaît ni les titres, ni les prix, ni les durées (tout est dans Firestore, vide). Les agents ne peuvent pas promouvoir une formation précise. Utiliser l'état « annoncé » ou la liste d'attente, ou attendre les données de l'humain.
+1. ~~**Aucune formation publiée.**~~ CORRIGÉ le 01/11/2026 : 2 formations publiées et réelles (voir `00-essentiel.md`). Ancien constat : On ne connaît ni les titres, ni les prix, ni les durées (tout est dans Firestore, vide). Les agents ne peuvent pas promouvoir une formation précise. Utiliser l'état « annoncé » ou la liste d'attente, ou attendre les données de l'humain.
 2. **Promesses fausses en ligne, à corriger avant toute campagne :**
    - « garantie 7 jours » et « coaching/consulting » dans le chatbot (`rysmo-knowledge.ts:21`) ;
    - pop-up « Toutes les formations… pour un seul abonnement », « Sans risque », « La formation la plus suivie » (`fr/shared.json:80,88,92`) ;

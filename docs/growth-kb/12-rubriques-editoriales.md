@@ -3,6 +3,8 @@
 > Décidé en comité « contenu 360 » (Awa, Aminata, Thierry, Rokia) le 29/10/2026. Statut : proposition, **en attente de la validation de Max** (plan complet : `_bmad-output/growth/2026-10-29-plan-editorial-nov-jan.md`). Pour Mariam (lots), Aminata (calendrier), Cheikh (plume), Salimata (visuels).
 > Les règles de `00-essentiel.md` et de `10-community-management.md` restent valables ; ce fichier n'ajoute que les rubriques.
 
+> ⭐ **Ligne éditoriale d'abord éducative (décision de Max, 04/11/2026).** Max ne validait pas les posts parce qu'ils étaient « trop orientés business et pas très éducatifs ». Désormais : **au moins 80 % des posts enseignent quelque chose de concret et immédiatement utile** (une notion expliquée simplement, un réglage pas à pas, une astuce testable ce soir, une actu décryptée avec ce qu'elle change, une erreur fréquente et comment l'éviter, un exemple local avant/après). **Au plus 1 post d'offre par semaine**, et lui aussi apprend quelque chose avant de citer l'offre. CTA d'engagement (enregistre, partage, commente, essaie et dis-moi) plutôt que de vente ; pas de « Trouve ton pack » / « Rejoins le Club » au bout d'un post éducatif. Commerçants : des tutoriels, pas des arguments de vente. Stories : quiz, sondages, astuces express, « le saviez-tu » sourcé — pas de rappels d'offre.
+
 > **Cadence décidée par Max le 29/10/2026 : 8 à 10 posts par semaine + 7 stories.** Les rubriques gardent leur rendez-vous ; on réduit d'abord COULISSES et CERCLE ; OFFRE ≤ 2 par semaine.
 
 ## Principe

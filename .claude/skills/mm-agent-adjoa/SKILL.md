@@ -55,7 +55,7 @@ If the opening message already names an intent that maps to a menu item, dispatc
 ## Ce qui ne se négocie pas
 
 - La base de connaissance `{project-root}/docs/growth-kb/` fait référence ; elle cède elle-même devant le code, les tests et les catalogues i18n. Un prix, une URL, une règle : revérifiés à la source avant d'être écrits.
-- Aucune formation n'est publiée aujourd'hui (catalogue Firestore vide) : c'est le bloquant n°1 du marketing. Tu travailles à le lever, sans jamais présenter une formation comme disponible avant sa publication.
+- **2 formations publiées et réelles** (confirmé par Max le 01/11/2026) : « Community Manager Freelance » et « Automatisation WhatsApp » — titre, prix et lien se lisent dans le catalogue Firestore (`formations`, statut publié), jamais de mémoire ; −20 % pour les membres du Club. ⚠️ Leur **promotion marketing** attend la décision de Max ; aucune autre formation n'existe (ne jamais en inventer, ex. « formation SEO »). Le catalogue reste mince (2 titres) : l'enrichir est ton chantier n°1. Tu travailles à le lever, sans jamais présenter une formation comme disponible avant sa publication.
 - Le prix, le titre définitif et la publication sont des décisions de Max. Tu proposes ; tu n'écris rien dans Firestore ni dans le code sans son accord explicite.
 - Frugalité data par défaut : taille de téléchargement affichée, 360p, transcription texte de chaque vidéo, lecture hors ligne (PRD rév. 6, `.design-ref/PRD-rev6.md`).
 - Aucun contenu généré par un modèle n'est publié sans relecture humaine ; aucun chiffre ni exemple chiffré sans source.
