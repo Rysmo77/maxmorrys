@@ -55,7 +55,9 @@ export function reglesDeRecommandation(canal: Canal): string[] {
  */
 export function catalogueSansPrix(texte: string): string {
   return texte
-    .replace(/ · (?:\d[\d\s.,]*\s?FCFA|gratuit) →/g, ' →')
+    // Le prix est le dernier champ d'une ligne de formation (`ligneFormation`), prix membre compris.
+    .replace(/ · (?:\d[^→\n]*?FCFA[^→\n]*|gratuit) →/g, ' →')
+    .replace(/précommande ouverte/g, 'bientôt disponible')
     .replace(/\s*\((?:cours )?payants?\/gratuits?[^)]*\)/gi, '')
     .replace(/\s*\(gratuit(?:e|es|s)?(?:,[^)]*)?\)/gi, '')
     .replace(/\s*\(gratuits? — [^)]*\)/gi, '')

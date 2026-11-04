@@ -90,10 +90,16 @@ interface SpeechRecognitionAlternative {
 import {
   loadConversation, persistConversation, clearConversation,
   RYSMO_OPEN_EVENT, type RysmoMessage, type RysmoOpenDetail,
+  lireLeconOuverte, type RysmoLecon,
 } from '../../lib/rysmo/conversation';
 
 const rysmoCallable = httpsCallable<
-  { message: string; conversationHistory: Message[]; language?: 'fr' | 'en'; userContext?: { displayName?: string; enrolledCourses?: string[] } },
+  {
+    message: string; conversationHistory: Message[]; language?: 'fr' | 'en';
+    userContext?: { displayName?: string; enrolledCourses?: string[] };
+    /** La leçon ouverte : deux identifiants, le serveur relit le texte lui-même. */
+    lecon?: RysmoLecon;
+  },
   RysmoResponse
 >(functions, 'rysmo');
 
@@ -246,6 +252,7 @@ export default function RysmoWidget() {
           displayName,
           enrolledCourses: [],
         },
+        lecon: lireLeconOuverte() ?? undefined,
       });
 
       const assistantMessage: Message = {

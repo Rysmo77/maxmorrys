@@ -12,7 +12,8 @@ export async function cached<T>(
   env: Env,
   ctx: ExecutionContext,
   key: string,
-  ttlSeconds: number,
+  /** Un nombre, ou une fonction de la valeur produite : un résultat dégradé vit moins longtemps. */
+  ttlSeconds: number | ((value: T) => number),
   produce: () => Promise<T>,
 ): Promise<T> {
   try {
@@ -23,10 +24,11 @@ export async function cached<T>(
   }
 
   const value = await produce();
+  const ttl = typeof ttlSeconds === 'function' ? ttlSeconds(value) : ttlSeconds;
 
   // L'écriture ne doit pas retarder la réponse.
   ctx.waitUntil(
-    env.SEO.put(key, JSON.stringify(value), { expirationTtl: Math.max(60, ttlSeconds) }).catch(
+    env.SEO.put(key, JSON.stringify(value), { expirationTtl: Math.max(60, ttl) }).catch(
       () => undefined,
     ),
   );

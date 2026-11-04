@@ -46,6 +46,11 @@
     // Remplacer par l'URL AI Gateway pour obtenir cache, budgets et traces.
     "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com",
 
+    // Qui répond dans Rysmo : `claude` (Claude Haiku, Gemini en secours automatique) ou
+    // `gemini` (Gemini seul — le retour arrière sans code). Voir `src/lib/rysmo-fournisseur.ts`.
+    // La clé Claude est le secret `ANTHROPIC_API_KEY` (posé en production le 01/11/2026).
+    "RYSMO_PROVIDER": "claude",
+
     // Sous-domaine d'envoi, activé par `wrangler email sending enable mail.maxmorrys.me`.
     // Jamais la racine : un incident de réputation transactionnelle n'entame alors pas la
     // délivrabilité de maxmorrys.me, d'où partent les échanges personnels.
@@ -92,6 +97,7 @@
   //   npx wrangler secret put SPOTIFY_CLIENT_ID
   //   npx wrangler secret put SPOTIFY_CLIENT_SECRET
   //   npx wrangler secret put YOUTUBE_API_KEY
+  //   npx wrangler secret put ANTHROPIC_API_KEY   (Rysmo, Claude Haiku)
 
   "r2_buckets": [{ "binding": "EXPORTS", "bucket_name": "maxmorrys-lms" }],
 
@@ -119,6 +125,7 @@
         "API_BASE_URL": "https://maxmorrys-api-preview.rysmo.workers.dev",
         "PUBLIC_MEDIA_BASE": "https://media.maxmorrys.me",
         "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com",
+        "RYSMO_PROVIDER": "claude",
         "EMAIL_FROM": "facture@mail.maxmorrys.me",
         "EMAIL_FROM_NAME": "Max-Morrys",
     /* ── Le courrier MARKETING — BREVO, jamais le binding `EMAIL` ─────────────────

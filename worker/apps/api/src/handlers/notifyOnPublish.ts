@@ -1,3 +1,4 @@
+import type { Firestore } from '@mm/firestore-rest';
 import { HttpsError } from '@mm/shared';
 
 import { type CallContext, requireAdmin } from '../context';
@@ -57,7 +58,7 @@ interface Requete {
   id?: unknown;
 }
 
-export async function notifyOnPublish(data: unknown, context: CallContext): Promise<unknown> {
+export async function notifyOnPublish(data: unknown, context: CallContext): Promise<BilanNotification> {
   await requireAdmin(context);
 
   const { kind, id } = (data ?? {}) as Requete;
@@ -67,9 +68,26 @@ export async function notifyOnPublish(data: unknown, context: CallContext): Prom
   if (typeof id !== 'string' || !id.trim()) {
     throw new HttpsError('invalid-argument', 'id est obligatoire.');
   }
+  return notifierAbonnes(context.db, kind, id);
+}
+
+export interface BilanNotification {
+  ok: true;
+  notified: number;
+  alreadyNotified: boolean;
+}
+
+/**
+ * Le cœur de l'envoi, SANS le contrôle d'administrateur.
+ *
+ * ⚠️ Deux appelants seulement, chacun avec SA garde : la callable ci-dessus (jeton Firebase
+ * d'un administrateur) et la route `blog/validation` (secret partagé avec n8n, clic ✅ de Max
+ * dans Telegram). Ne jamais l'exposer ailleurs sans garde équivalente.
+ */
+export async function notifierAbonnes(db: Firestore, kind: Kind, id: string): Promise<BilanNotification> {
   const spec = KINDS[kind];
 
-  const doc = await context.db.get(`${spec.collection}/${id}`);
+  const doc = await db.get(`${spec.collection}/${id}`);
   if (!doc) throw new HttpsError('not-found', 'Document introuvable.');
 
   /*
@@ -95,7 +113,7 @@ export async function notifyOnPublish(data: unknown, context: CallContext): Prom
     return { ok: true, notified: 0, alreadyNotified: true };
   }
 
-  const abonnes = await context.db.query({
+  const abonnes = await db.query({
     collection: 'users',
     where: [{ field: 'preferences.notifyOnPublish', op: '==', value: true }],
   });
@@ -114,13 +132,13 @@ export async function notifyOnPublish(data: unknown, context: CallContext): Prom
    * doublera pas ceux qui ont déjà reçu — on préfère une notification manquante à une
    * notification en double, qui est la seule des deux que le destinataire remarque.
    */
-  await context.db.update(`${spec.collection}/${id}`, { publishNotifiedAt: maintenant });
+  await db.update(`${spec.collection}/${id}`, { publishNotifiedAt: maintenant });
 
   await Promise.all(
     abonnes.map((abonne) => {
       const prefs = abonne.data.preferences as { language?: unknown } | undefined;
       const langue: 'fr' | 'en' = prefs?.language === 'en' ? 'en' : 'fr';
-      return context.db.add(`notifications/${abonne.id}/items`, {
+      return db.add(`notifications/${abonne.id}/items`, {
         userId: abonne.id,
         type: spec.type,
         title: TITRE[kind][langue],

@@ -22,6 +22,18 @@ routes = [
 binding = "BUCKET"
 bucket_name = "maxmorrys-lms"
 
+# Workers AI — photo de fond des couvertures d'articles et de formations (01/11/2026),
+# appelée par render-card via `POST /internal/generate-image` (secret INTERNAL_UPLOAD_KEY).
+# Modèle : @cf/black-forest-labs/flux-2-dev. Facturé au compte Cloudflare (neurones Workers AI).
+[ai]
+binding = "AI"
+
+# Limite de débit de /internal/generate-image : 10 images par minute (par emplacement).
+[[ratelimits]]
+name = "GENERATE_LIMITER"
+namespace_id = "1101"
+simple = { limit = 10, period = 60 }
+
 [vars]
 # ⚠️ À confirmer : l'ID du projet Firebase (= `aud` des ID tokens). Le bucket est
 # `max-morrys.firebasestorage.app`, le project_id est donc très probablement "max-morrys".

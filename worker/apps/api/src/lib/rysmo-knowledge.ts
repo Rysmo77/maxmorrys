@@ -12,6 +12,8 @@ import { BASE_DAILY_QUOTA, CLUB_BONUS_QUOTA, SUBSCRIPTION_QUOTAS } from './rysmo
  * une fois l'accès activé, et cet accompagnement n'existe pas : le chatbot fabriquait des
  * litiges. Elle citait aussi un slogan périmé, des chiffres de résultat non sourcés, un
  * compte YouTube en 404, des pages qui ont déménagé, et des formations qui ne sont pas ouvertes.
+ * Le 01/11/2026, la ligne des formations a été réécrite : c'est le catalogue Firestore qui fait
+ * foi (voir `FORMATIONS_SITE`).
  *
  * ── D'OÙ VIENNENT LES PRIX ────────────────────────────────────────────────────────────────
  * Les prix vendus par le Worker sont LUS dans ses constantes (`bictorys.ts`, `rysmo-quota.ts`,
@@ -66,8 +68,26 @@ const PLATEFORME = [
   '- Deux pistes de poids égal : Apprendre (edu.maxmorrys.me et club.maxmorrys.me, on se tutoie) et Conception (maxmorrys.me/conception, des sites et des plateformes faits pour le client).',
 ];
 
-const FORMATIONS = [
-  "- Formations : AUCUNE n'est ouverte aujourd'hui. Si on te pose la question, dis simplement que les formations ne sont pas encore ouvertes. N'en promets aucune : ni titre, ni programme, ni prix, ni date d'ouverture — sauf une formation qui figure dans le CATALOGUE ci-dessous.",
+/**
+ * Les formations : le CATALOGUE fait foi (01/11/2026, décision de Max).
+ *
+ * L'ancienne ligne affirmait qu'aucune formation n'était ouverte, alors que Firestore en
+ * publiait deux — « sauf celles du catalogue », disait-elle aussi. Ce mélange a nourri une
+ * invention au test à l'aveugle : une formation SEO « disponible » au prix d'une autre. La
+ * règle ne cite donc plus aucun état : elle renvoie au catalogue injecté (`getCatalog`, lu
+ * dans Firestore, statut et prix compris) et interdit tout le reste.
+ */
+const FORMATIONS_SITE = [
+  "- Formations : les formations disponibles sont UNIQUEMENT celles du CATALOGUE ci-dessous (section FORMATIONS), avec leur titre, leur statut, leur prix et leur lien exacts. Présente-les normalement quand elles répondent au besoin de l'élève.",
+  "- N'en invente AUCUNE autre (par exemple, s'il n'y a pas de formation SEO dans le catalogue, il n'y en a pas : propose plutôt une formation réelle du catalogue ou un article du blog sur le sujet). Ni titre, ni programme, ni prix, ni date en dehors du catalogue.",
+  "- Une formation marquée « à venir » ne s'achète pas encore : dis-le, propose sa liste d'attente sur sa page, et n'invente aucune date d'ouverture.",
+  '- Si le catalogue ne contient aucune formation, dis simplement que les formations ne sont pas encore ouvertes.',
+];
+
+const FORMATIONS_APP = [
+  "- Formations : les formations qui existent sont UNIQUEMENT celles du CATALOGUE ci-dessous (section FORMATIONS), avec leur titre, leur statut et leur lien exacts. N'en invente AUCUNE autre (par exemple, s'il n'y a pas de formation SEO dans le catalogue, il n'y en a pas : propose plutôt un article du blog sur le sujet), ni programme ni date.",
+  "- Une formation marquée « à venir » n'est pas encore ouverte : dis-le, sans inventer de date.",
+  '- Si le catalogue ne contient aucune formation, dis simplement que les formations ne sont pas encore ouvertes.',
 ];
 
 const CONTACT = [
@@ -97,8 +117,8 @@ export const PLATFORM_KNOWLEDGE = [
   '',
   'PISTE APPRENDRE :',
   '- Gratuit et sans compte : le blog, le podcast et les vidéos.',
-  ...FORMATIONS,
-  `- Club des Digitos (club.maxmorrys.me) : ${montant(CLUB_PRICE)} FCFA par an, payés une fois. Inclus : le fil, les messages privés, l'agenda, ${CLUB_LIVES_PAR_MOIS} sessions en direct par mois, les opportunités, l'annuaire des membres, ${BASE_DAILY_QUOTA + CLUB_BONUS_QUOTA} questions Rysmo par jour au lieu de ${BASE_DAILY_QUOTA}, et −${pourcent(CLUB_MEMBER_FORMATION_DISCOUNT)} sur les formations quand elles ouvriront. Encore en construction (présente-les comme tels) : les replays, le digest, les cercles. Adhésion : club.maxmorrys.me/adhesion.`,
+  ...FORMATIONS_SITE,
+  `- Club des Digitos (club.maxmorrys.me) : ${montant(CLUB_PRICE)} FCFA par an, payés une fois. Inclus : le fil, les messages privés, l'agenda, ${CLUB_LIVES_PAR_MOIS} sessions en direct par mois, les opportunités, l'annuaire des membres, ${BASE_DAILY_QUOTA + CLUB_BONUS_QUOTA} questions Rysmo par jour au lieu de ${BASE_DAILY_QUOTA}, et −${pourcent(CLUB_MEMBER_FORMATION_DISCOUNT)} sur les formations (le prix membre est indiqué dans le catalogue). Encore en construction (présente-les comme tels) : les replays, le digest, les cercles. Adhésion : club.maxmorrys.me/adhesion.`,
   `- Renouvellement du Club : rien n'est débité automatiquement. Si le membre l'a accepté, il reçoit un lien de paiement ${LIEN_JOURS_AVANT} jours avant la fin de son année ; il renouvelle en payant ce lien, sinon l'accès s'arrête.`,
   `- Rysmo (toi), sur edu.maxmorrys.me/assistant : ${BASE_DAILY_QUOTA} questions offertes par jour (${BASE_DAILY_QUOTA + CLUB_BONUS_QUOTA} pour un membre du Club). Packs sans date d'expiration : ${packs}. Rysmo+ Lite : ${SUBSCRIPTION_QUOTAS.lite} questions par jour, ${montant(lite.price)} FCFA par mois. Rysmo+ Pro : ${SUBSCRIPTION_QUOTAS.pro} questions par jour, ${montant(pro.price)} FCFA par mois.`,
   '',
@@ -129,7 +149,7 @@ export const PLATFORM_KNOWLEDGE_APP = [
   '',
   ...PLATEFORME,
   '- On y trouve le blog, le podcast, les vidéos, le Club des Digitos (la communauté) et toi, Rysmo.',
-  ...FORMATIONS,
+  ...FORMATIONS_APP,
   "- Sur les questions de tarif ou d'accès, dis simplement que tu ne peux pas en parler ici.",
   '',
   ...CONTACT,

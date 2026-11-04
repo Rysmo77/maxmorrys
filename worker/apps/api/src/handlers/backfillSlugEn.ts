@@ -36,6 +36,7 @@ export async function backfillSlugEn(_data: unknown, context: CallContext): Prom
   const config = {
     baseUrl: context.env.GEMINI_BASE_URL,
     apiKey: context.env.GOOGLE_AI_API_KEY,
+    anthropicApiKey: context.env.ANTHROPIC_API_KEY,
   };
 
   const report: Record<string, number> = {};

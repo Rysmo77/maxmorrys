@@ -10,6 +10,7 @@
  */
 import { jwtVerify, createRemoteJWKSet } from 'jose';
 
+import { handleGenerateImage, type GenerateEnv } from './generate';
 import { handleRead } from './read';
 
 export interface Env {
@@ -36,6 +37,10 @@ export interface Env {
   INTERNAL_UPLOAD_KEY?: string;
   /** Secret de signature des liens de lecture protégée. */
   MEDIA_SIGNING_KEY?: string;
+  /** Workers AI — photos de fond des couvertures (`/internal/generate-image`). */
+  AI?: GenerateEnv['AI'];
+  /** Limite de débit de `/internal/generate-image` (binding `[[ratelimits]]`). */
+  GENERATE_LIMITER?: GenerateEnv['GENERATE_LIMITER'];
 }
 
 interface VerifiedUser {
@@ -266,6 +271,10 @@ export default {
 
     if (req.method === 'POST' && url.pathname === '/internal/upload') {
       return handleInternalUpload(req, env, cors);
+    }
+
+    if (req.method === 'POST' && url.pathname === '/internal/generate-image') {
+      return handleGenerateImage(req, env, cors);
     }
 
     if (req.method !== 'POST' || url.pathname !== '/upload') {

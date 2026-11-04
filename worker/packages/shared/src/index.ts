@@ -11,5 +11,12 @@ export { constantTimeEqual, hmacSha256, sha256Hex, verifyHmacSha256 } from './cr
 export { json, text } from './http';
 export { callableError, callableResult, httpStatusFor, HttpsError, readCallableBody } from './oncall';
 export type { HttpsErrorCode } from './oncall';
-export { translateBatch, translateCached, translateMetaToEn } from './translate';
+export {
+  translateBatch,
+  translateBatchDetaille,
+  translateCached,
+  translateCachedDetaille,
+  translateMetaToEn,
+  translateMetaToEnDetaille,
+} from './translate';
 export type { TranslatableMeta, TranslateConfig } from './translate';

@@ -32,6 +32,7 @@ import type { Env } from './env';
 import { handleExportDownload } from './exportDownload';
 import { handleUnsubscribe } from './unsubscribeRoute';
 import { handleMarketing } from './marketingRoute';
+import { handleBlogValidation } from './blogValidationRoute';
 import { estRouteTransfert, handleSessionTransfer } from './sessionTransfer';
 import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
@@ -87,6 +88,12 @@ export default {
      * avant le contrôle des callables, qui refuse tout nom contenant un `/`.
      */
     if (name === 'marketing/campagne') return handleMarketing(request, env);
+
+    /*
+     * La validation d'un article depuis Telegram (clic ✅ / ❌ de Max, relayé par n8n) : JSON
+     * simple, secret en en-tête `X-Blog-Key`. Voir `blogValidationRoute.ts`.
+     */
+    if (name === 'blog/validation') return handleBlogValidation(request, env);
 
     /* Le transfert de session entre les trois hôtes : JSON simple, origine contrôlée. */
     if (estRouteTransfert(name)) return handleSessionTransfer(request, env);

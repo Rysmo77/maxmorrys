@@ -78,6 +78,13 @@ export interface Env {
   SPOTIFY_CLIENT_SECRET?: string;
   YOUTUBE_API_KEY?: string;
   GOOGLE_AI_API_KEY?: string;
+  /** Clé de l'API Claude (secret) — Rysmo sur Claude Haiku. Absente : Gemini répond seul. */
+  ANTHROPIC_API_KEY?: string;
+  /**
+   * Fournisseur de Rysmo : `claude` (défaut, Gemini en secours) ou `gemini` (Gemini seul,
+   * le retour arrière sans code). Voir `lib/rysmo-fournisseur.ts`.
+   */
+  RYSMO_PROVIDER?: string;
   TYPESENSE_URL?: string;
   TYPESENSE_ADMIN_KEY?: string;
   /** Clé PUBLIQUE : la seule que la doc Bictorys prescrit pour l'API `charges`. */
@@ -111,6 +118,10 @@ export interface Env {
   /** Secret partagé avec n8n et les agents, lu dans `X-Marketing-Key`.
    *  `npx wrangler secret put MARKETING_API_KEY`. Absent ⇒ la route répond 503. */
   MARKETING_API_KEY?: string;
+  /** Secret partagé avec n8n (WF-TG-ROUTER), lu dans `X-Blog-Key` par `blog/validation` :
+   *  la publication d'un article sur clic ✅ Telegram. `npx wrangler secret put BLOG_VALIDATION_KEY`.
+   *  Absent ⇒ la route répond 503. */
+  BLOG_VALIDATION_KEY?: string;
   /** L'ACCORD : `oui` ouvre l'envoi marketing réel (campagnes, bienvenue n°2/n°3). Toute autre
    *  valeur le ferme ; le mode test reste ouvert. */
   MARKETING_ENVOI_REEL?: string;

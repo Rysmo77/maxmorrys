@@ -13,6 +13,7 @@ import { useLocalizedPath } from '../../contexts/LanguageContext';
 import { markdownToHtml } from '../../lib/markdown';
 import type { Formation, Lesson } from '../../types';
 import { useCoursePlayer } from './hooks/useCoursePlayer';
+import { declarerLeconOuverte } from '../../lib/rysmo/conversation';
 import { estAVenir, ouverture } from '../../types/formationRelease';
 import { useFormat } from '../../hooks/useFormat';
 import QuizCard from '../../components/edu/g3/QuizCard';
@@ -164,6 +165,15 @@ export default function CoursePlayer() {
   }, [wanted, formation, setActiveLesson]);
 
   useEffect(() => { setTab('lesson'); }, [activeLesson?.id]);
+
+  /* Rysmo lit la leçon affichée (côté serveur, à partir de ces deux identifiants). */
+  const formationId = formation?.id;
+  const lessonId = activeLesson?.id;
+  useEffect(() => {
+    if (!formationId || !lessonId) return;
+    declarerLeconOuverte({ formationId, leconId: lessonId });
+    return () => declarerLeconOuverte(null);
+  }, [formationId, lessonId]);
 
   if (loading) {
     return (

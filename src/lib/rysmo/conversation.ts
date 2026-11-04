@@ -80,3 +80,30 @@ export function openRysmo(question?: string): void {
     new CustomEvent<RysmoOpenDetail>(RYSMO_OPEN_EVENT, { detail: { question } }),
   );
 }
+
+/**
+ * ── LA LEÇON OUVERTE À L'ÉCRAN ──────────────────────────────────────────────────
+ *
+ * Le lecteur de cours (`CoursePlayer`) déclare la leçon affichée ; `RysmoWidget` l'envoie
+ * avec chaque question. Ce ne sont que DEUX IDENTIFIANTS : le serveur relit le texte de la
+ * leçon lui-même, avec la règle d'accès des leçons (`worker/apps/api/src/lib/rysmo-lecon.ts`).
+ * Envoyer le texte d'ici serait une porte vers le contenu payant.
+ *
+ * Une variable de module, pas un contexte React : même raison que l'événement ci-dessus —
+ * le widget est monté une fois au-dessus du routeur, et rien n'a à se re-rendre quand la
+ * leçon change. La valeur n'est lue qu'au moment d'envoyer.
+ */
+export interface RysmoLecon {
+  formationId: string;
+  leconId: string;
+}
+
+let leconOuverte: RysmoLecon | null = null;
+
+export function declarerLeconOuverte(lecon: RysmoLecon | null): void {
+  leconOuverte = lecon;
+}
+
+export function lireLeconOuverte(): RysmoLecon | null {
+  return leconOuverte;
+}

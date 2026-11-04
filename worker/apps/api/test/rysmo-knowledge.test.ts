@@ -59,8 +59,12 @@ describe('la base de connaissance de Rysmo', () => {
     expect(PLATFORM_KNOWLEDGE_APP).not.toMatch(/FCFA|\d\s?000|\bHT\b|achat|acheter|payer|paiement|abonnement|offre|gratuit/i);
   });
 
-  it('dit que les formations ne sont pas ouvertes, et parle des trois moyens de paiement', () => {
-    expect(PLATFORM_KNOWLEDGE).toMatch(/formations ne sont pas encore ouvertes/);
+  it('renvoie au catalogue pour les formations (01/11/2026), et parle des trois moyens de paiement', () => {
+    // Les formations : celles du catalogue Firestore, et aucune autre. « Pas encore ouvertes »
+    // ne vaut plus que pour un catalogue vide.
+    expect(PLATFORM_KNOWLEDGE).toMatch(/UNIQUEMENT celles du CATALOGUE/);
+    expect(PLATFORM_KNOWLEDGE).toMatch(/aucune formation, dis simplement que les formations ne sont pas encore ouvertes/);
+    expect(PLATFORM_KNOWLEDGE).not.toMatch(/AUCUNE n'est ouverte/);
     expect(PLATFORM_KNOWLEDGE).toMatch(/Wave, Orange Money ou carte/);
     expect(PLATFORM_KNOWLEDGE).toMatch(/Jamais de prélèvement automatique/);
   });

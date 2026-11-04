@@ -2,7 +2,7 @@ import type { Firestore } from '@mm/firestore-rest';
 
 import type { Env } from '../env';
 import { generateContent } from './gemini';
-import { CLUB_PRICE } from './bictorys';
+import { CLUB_MEMBER_FORMATION_DISCOUNT, CLUB_PRICE } from './bictorys';
 import { asText, toNumber } from './values';
 
 /**
@@ -46,6 +46,40 @@ function normPath(path: string): string {
   return path.trim().toLowerCase().split(/[?#]/)[0].replace(/\/+$/, '');
 }
 
+/**
+ * Une formation du catalogue, telle que Rysmo la lit.
+ *
+ * LE STATUT EST DIT, PAS DEVINÉ. Une formation publiée peut être « à venir » (`comingSoon`) :
+ * sa page existe, mais elle ne s'achète pas — `lib/checkout.ts` refuse le paiement tant que
+ * la précommande n'est pas ouverte POUR ELLE. Sans cette mention, Rysmo invitait à acheter ce
+ * que le serveur refuse de vendre. Mêmes règles que `src/types/formationRelease.ts`.
+ *
+ * Le prix membre est calculé comme au débit (`lib/checkout.ts`) : −20 % sur le prix payé
+ * (promotion comprise), arrondi. Le prix reste le DERNIER champ avant `→` : c'est ce que
+ * `catalogueSansPrix` retire pour l'application, qui ne vend rien.
+ */
+export function ligneFormation(data: Record<string, unknown>): string {
+  const slug = asText(data.slug) ?? '';
+  const prix = toNumber(data.promoPrice) || toNumber(data.price);
+  const prixLabel =
+    prix > 0
+      ? `${prix} FCFA, ${prix - Math.round(prix * CLUB_MEMBER_FORMATION_DISCOUNT)} FCFA pour un membre du Club`
+      : 'gratuit';
+
+  let statut = 'ouverte';
+  if (data.comingSoon === true) {
+    const date = asText(data.launchAt)?.trim();
+    const libelle = asText(data.launchLabel)?.trim();
+    const quand = date ? `ouverture annoncée : ${date}` : libelle ? `ouverture annoncée : ${libelle}` : 'aucune date annoncée';
+    statut =
+      data.preorderEnabled === true
+        ? `à venir, précommande ouverte (${quand})`
+        : `à venir, pas encore ouverte (${quand}) — liste d'attente sur sa page`;
+  }
+
+  return `- "${asText(data.title) ?? ''}" — ${asText(data.category) ?? ''} · ${asText(data.level) ?? ''} · ${statut} · ${prixLabel} → /formations/${slug}`;
+}
+
 export async function getCatalog(db: Firestore): Promise<{ text: string; paths: Set<string> }> {
   if (catalogCache && catalogCache.expiresAt > Date.now()) {
     return { text: catalogCache.text, paths: new Set(catalogCache.paths) };
@@ -74,13 +108,11 @@ export async function getCatalog(db: Firestore): Promise<{ text: string; paths: 
       const lines = formations.map(({ data }) => {
         const slug = asText(data.slug);
         if (slug) paths.add(normPath(`/formations/${slug}`));
-        const price = toNumber(data.promoPrice) || toNumber(data.price);
-        const priceLabel = price > 0 ? `${price} FCFA` : 'gratuit';
-        return `- "${asText(data.title)}" — ${asText(data.category) ?? ''} · ${asText(data.level) ?? ''} · ${priceLabel} → /formations/${slug}`;
+        return ligneFormation(data);
       });
       sections.push(
         [
-          'FORMATIONS (cours payants/gratuits — à recommander pour aller plus loin) :',
+          'FORMATIONS (cours payants/gratuits — les SEULES formations qui existent ; à recommander pour aller plus loin) :',
           ...lines,
         ].join('\n'),
       );
@@ -133,28 +165,6 @@ export async function getCatalog(db: Firestore): Promise<{ text: string; paths: 
     console.warn('getCatalog a échoué (non bloquant) :', error);
     return { text: catalogCache?.text ?? '', paths: new Set(catalogCache?.paths ?? []) };
   }
-}
-
-const INTERNAL_LINK_TYPES = '(?:blog|podcasts|videos|formations)';
-
-/**
- * Retire les liens internes non vérifiés.
- *
- * Anti-hallucination : un contenu inventé ou non publié ne doit jamais rester
- * cliquable. Le label est conservé, seul le lien saute.
- */
-export function sanitizeInternalLinks(reply: string, validPaths: Set<string>): string {
-  let out = reply.replace(
-    new RegExp(`\\[([^\\]]+)\\]\\((\\/${INTERNAL_LINK_TYPES}\\/[^)\\s]+)\\)`, 'g'),
-    (_match, label: string, url: string) =>
-      validPaths.has(normPath(url)) ? `[${label}](${url})` : label,
-  );
-  // URLs brutes hors markdown ; le lookbehind évite de retoucher les `(/...)`.
-  out = out.replace(
-    new RegExp(`(?<!\\()\\/${INTERNAL_LINK_TYPES}\\/[a-z0-9\\-]+`, 'gi'),
-    (match: string) => (validPaths.has(normPath(match)) ? match : ''),
-  );
-  return out;
 }
 
 function daysSince(iso: string | undefined): number | null {

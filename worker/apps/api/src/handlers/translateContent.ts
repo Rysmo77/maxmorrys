@@ -30,7 +30,12 @@ export async function translateContent(data: unknown, context: CallContext): Pro
 
   const translations = await translateCached(
     context.db,
-    { baseUrl: context.env.GEMINI_BASE_URL, apiKey: context.env.GOOGLE_AI_API_KEY },
+    {
+      baseUrl: context.env.GEMINI_BASE_URL,
+      apiKey: context.env.GOOGLE_AI_API_KEY,
+      // Secours quand Gemini échoue ; un repli en français n'entre pas dans le cache.
+      anthropicApiKey: context.env.ANTHROPIC_API_KEY,
+    },
     texts as string[],
   );
 
