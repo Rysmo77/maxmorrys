@@ -21,7 +21,11 @@ RACINE="$(cd "$ICI/.." && pwd)"
 KIT="$ICI/agents-autonomes"
 SEC="$KIT/secrets"
 H=root@158.220.124.185
-SSH=(ssh -i "$HOME/.ssh/maxmorrys_vps" -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$H")
+# Une seule connexion réutilisée : une rafale de connexions SSH déclenche le blocage
+# anti-intrusion du VPS (vécu le 04/11/2026, adresse du Mac bannie en pleine installation).
+CTL="/tmp/mm-vps-%C"   # court : macOS limite un chemin de socket à 104 caractères
+SSH=(ssh -i "$HOME/.ssh/maxmorrys_vps" -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new
+     -o ControlMaster=auto -o ControlPath="$CTL" -o ControlPersist=10m -o ServerAliveInterval=30 "$H")
 ESSAI=1; [ "${1:-}" = "--sans-essai" ] && ESSAI=0
 
 etape() { printf '\n\033[1m▶ %s\033[0m\n' "$*"; }
@@ -30,10 +34,16 @@ ko() { printf '  ✖ %s\n' "$*"; }
 
 # ── 1. Attendre le VPS ───────────────────────────────────────────────────────────
 etape "Attente du VPS (SSH)"
-for i in $(seq 1 120); do
-  "${SSH[@]}" true 2>/dev/null && { ok "joignable"; break; }
-  [ "$i" = 120 ] && { ko "toujours injoignable après 30 min : vérifie le renouvellement chez Contabo"; exit 1; }
-  sleep 15
+for i in $(seq 1 60); do
+  nc -z -G 5 158.220.124.185 22 2>/dev/null && "${SSH[@]}" true 2>/dev/null && { ok "joignable"; break; }
+  if [ "$i" = 60 ]; then
+    if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://n8n.maxmorrys.me/healthz)" = 200 ]; then
+      ko "n8n répond mais SSH reste fermé : l'adresse du Mac est bannie par fail2ban."
+      ko "Console Contabo (VNC), en root : fail2ban-client set sshd unbanip $(curl -s --max-time 8 https://api.ipify.org)"
+    else ko "VPS injoignable après 30 min : vérifie le renouvellement chez Contabo"; fi
+    exit 1
+  fi
+  sleep 30
 done
 "${SSH[@]}" 'echo "  · $(hostname) — démarré depuis $(uptime -p | sed "s/up //")"; df -h / | awk "NR==2{print \"  · disque : \"\$5\" utilisé\"}"; free -h | awk "/Mem/{print \"  · mémoire : \"\$3\" / \"\$2}"'
 
@@ -66,7 +76,7 @@ NKEY="$(grep -E '^(export )?N8N_API_KEY=' "$RACINE/.env.local" | tail -1 | sed -
 if [ -n "$NKEY" ]; then
   n=$(curl -s --max-time 15 -H "X-N8N-API-KEY: $NKEY" 'https://n8n.maxmorrys.me/api/v1/workflows?active=true&limit=250' \
       | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["data"]))' 2>/dev/null)
-  [ -n "$n" ] && ok "n8n : $n workflows actifs (13 attendus)" || ko "n8n : API muette"
+  [ -n "$n" ] && ok "n8n : $n workflows actifs (14 attendus au 04/11)" || ko "n8n : API muette"
 fi
 
 # ── 4. Agents autonomes ──────────────────────────────────────────────────────────
@@ -80,7 +90,9 @@ done
 "${SSH[@]}" 'cat > /home/maxmorrys/.ssh/mm_agents_deploy.pub' < "$SEC/mm_agents_deploy.pub"
 "${SSH[@]}" 'chown maxmorrys:maxmorrys /home/maxmorrys/.ssh/mm_agents_deploy*; chmod 600 /home/maxmorrys/.ssh/mm_agents_deploy; chmod 644 /home/maxmorrys/.ssh/mm_agents_deploy.pub'
 COPYFILE_DISABLE=1 tar -C "$KIT" -chf - --exclude 'secrets/mm_agents_deploy*' --exclude '.DS_Store' . \
-  | "${SSH[@]}" 'tar -C /root/agents-autonomes -xf - && chmod 700 /root/agents-autonomes/secrets && chmod 600 /root/agents-autonomes/secrets/*'
+  | "${SSH[@]}" 'tar -C /root/agents-autonomes -xf - && chmod 700 /root/agents-autonomes/secrets && chmod 600 /root/agents-autonomes/secrets/*' \
+  || { ko "copie du kit interrompue"; exit 1; }
+"${SSH[@]}" 'test -s /home/maxmorrys/.ssh/mm_agents_deploy && test -s /root/agents-autonomes/install.sh' || { ko "kit incomplet sur le VPS"; exit 1; }
 ok "kit copié"
 "${SSH[@]}" 'bash /root/agents-autonomes/install.sh' || { ko "install.sh a échoué (voir ci-dessus)"; exit 1; }
 "${SSH[@]}" 'ls /root/agents-autonomes/secrets 2>/dev/null | grep -q . && { shred -u /root/agents-autonomes/secrets/* 2>/dev/null; echo "  ✔ restes de secrets effacés"; } || echo "  ✔ aucun secret laissé dans /root"'
