@@ -1,0 +1,11 @@
+[Unit]
+Description=Fatou : axes et temps forts du mois suivant, le 25 à 09:00 Dakar
+
+[Timer]
+OnCalendar=*-*-25 09:00:00 Africa/Dakar
+# Une exécution manquée (VPS éteint) n'est PAS rattrapée : on la lance à la main.
+Persistent=false
+Unit=mm-agent@idees-mois.service
+
+[Install]
+WantedBy=timers.target

@@ -51,11 +51,14 @@ SITE=( "WebFetch(domain:maxmorrys.me)" "WebFetch(domain:edu.maxmorrys.me)" "WebF
 # Décisions par boutons (decision.mjs, 04/11/2026) : poser une question fermée à Max, lire ses réponses.
 DECIDER=( "Bash(node $B/mm-decision.mjs ask *)" "Bash(node $B/mm-decision.mjs liste *)" "Bash(node $B/mm-decision.mjs liste)" "Bash(node $B/mm-decision.mjs lire *)" )
 MOTIFS=( "Bash(node $B/mm-decision.mjs liste *)" )
+# Idées de posts (Fatou, 04/11/2026) : sources en lecture, dépôt en « proposé », cartes à Max.
+IDEES=( "Bash(node scripts/growth/nocodb.mjs create idees-posts *)" "Bash(node $B/mm-idees.mjs *)"
+        "Bash(node $B/mm-gsc.mjs requetes *)" "Bash(node $B/mm-meta-verif.mjs *)" "Bash(node $B/mm-firestore.mjs rysmo *)" "${DECIDER[@]}" )
 DEPOT_POSTS=( "Bash(node scripts/growth/nocodb.mjs create contenus *)" "Bash(node scripts/growth/nayo.mjs brief *)"
               "Bash(node $B/qa-lot.mjs *)" "Bash($B/mm-rendu)" )
 case "$TACHE" in
   veille)          AGENT="🔎 Thierry — veille et Flash du lundi"; TOURS=150; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" ) ;;
-  lot-social)      AGENT="🗓 Mariam & Salimata — lot social";     TOURS=200; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" "${MOTIFS[@]}" ) ;;
+  lot-social)      AGENT="🗓 Mariam & Salimata — lot social";     TOURS=200; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" "${MOTIFS[@]}" "Bash(node $B/mm-idees.mjs *)" ) ;;
   article)         AGENT="🗞️ Rédaction — article de la quinzaine"; TOURS=250; ECRITURE=( "content/blog/**" )
                    EXTRA=( "${WEB[@]}" "Bash(node scripts/growth/blog-lint.mjs *)" "Bash(node scripts/growth/blog-publish.mjs content/blog/*)"
                            "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${DECIDER[@]}" ) ;;
@@ -80,8 +83,10 @@ case "$TACHE" in
   prospection)     AGENT="🤝 Ibrahima — prospection"; TOURS=150; ECRITURE=( "_bmad-output/commercial/**" ); EXTRA=( "${WEB[@]}" ) ;;
   booster)         AGENT="🎯 Koffi — post à booster"; TOURS=80; EXTRA=( "Bash(node $B/mm-meta-verif.mjs *)" "${DECIDER[@]}" ) ;;
   revenus)         AGENT="💹 Aboubacar — revenus du mois"; TOURS=120; EXTRA=( "Bash(node $B/mm-firestore.mjs collection *)" "${SITE[@]}" ) ;;
+  idees)           AGENT="💡 Fatou — idées de posts de la semaine"; TOURS=150; EXTRA=( "${IDEES[@]}" "${WEB[@]}" ) ;;
+  idees-mois)      AGENT="💡 Fatou — axes et temps forts du mois suivant"; TOURS=120; EXTRA=( "${IDEES[@]}" "${WEB[@]}" ) ;;
   bilan)           AGENT="📈 Yann — bilan de la semaine"; TOURS=80; EXTRA=( "Bash(node $B/mm-meta-verif.mjs *)" ) ;;
-  *) echo "usage : run-agent.sh <veille|lot-social|article|diffusion|relecture|lecons|rysmo-faq|revue-mensuelle|seo-mensuel|conformite|lettre|demandes|prospection|booster|revenus|bilan>[-force] [--dry-run]" >&2; exit 2 ;;
+  *) echo "usage : run-agent.sh <veille|lot-social|article|diffusion|relecture|lecons|rysmo-faq|revue-mensuelle|seo-mensuel|conformite|lettre|demandes|prospection|booster|revenus|idees|idees-mois|bilan>[-force] [--dry-run]" >&2; exit 2 ;;
 esac
 TOURS="${MM_MAX_TURNS:-$TOURS}"
 export MM_TACHE="$TACHE"   # lu par mm-firestore.mjs : chaque tâche n'ouvre que ses collections

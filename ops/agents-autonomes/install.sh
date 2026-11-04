@@ -57,7 +57,7 @@ for b in claude node git flock timeout curl ssh-keygen systemctl; do command -v 
 for f in "$JETON_NOCO" "$CLAUDE_ENV"; do [ -s "$f" ] || die "$f absent ou vide"; done
 grep -q '^CLAUDE_CODE_OAUTH_TOKEN=.' "$CLAUDE_ENV" || die "CLAUDE_CODE_OAUTH_TOKEN absent de $CLAUDE_ENV"
 # mm-decision.mjs est un lien vers scripts/growth/decision.mjs (scp -r et install copient la cible).
-OUTILS="mm-rendu mm-meta-verif.mjs qa-lot.mjs mm-firestore.mjs mm-gsc.mjs mm-lettre-epreuve.mjs mm-decision.mjs"
+OUTILS="mm-rendu mm-meta-verif.mjs qa-lot.mjs mm-firestore.mjs mm-gsc.mjs mm-lettre-epreuve.mjs mm-decision.mjs mm-idees.mjs"
 for f in run-agent.sh lib.sh calendrier-lettres.txt systemd/mm-agent@.service $(for o in $OUTILS; do echo "outils/$o"; done); do
   [ -f "$ICI/$f" ] || die "fichier manquant dans $ICI : $f"
 done

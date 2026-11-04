@@ -1,0 +1,11 @@
+[Unit]
+Description=Fatou : idées de posts de la semaine W+2, lundi 11:30 Dakar (après veille, Rysmo, demandes)
+
+[Timer]
+OnCalendar=Mon *-*-* 11:30:00 Africa/Dakar
+# Une exécution manquée (VPS éteint) n'est PAS rattrapée : on la lance à la main.
+Persistent=false
+Unit=mm-agent@idees.service
+
+[Install]
+WantedBy=timers.target

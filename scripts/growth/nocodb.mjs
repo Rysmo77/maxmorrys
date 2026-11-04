@@ -26,6 +26,7 @@ import { resolve } from 'node:path';
 const TABLES = {
   contenus: 'm3wim4coagaoot7',
   'idees-articles': 'mp8tvctpl38ufmo',
+  'idees-posts': 'mk2n1mh0z4wx7w2',   // Fatou (04/11/2026) : idées de posts proposées à Max
   'idees-cours': 'moz0ikbdwhdryvj',
   'cours-production': 'md9smxss10apci7',
   logs: 'm460m48wd0qnzsu',
@@ -105,6 +106,13 @@ function readRows(file) {
 }
 
 function guardStatus(table, rows, args) {
+  // Idées de posts : « retenu » vient du bouton de Max (sync par mm-idees.mjs), jamais de l'agent.
+  if (table === 'idees-posts') {
+    const g = rows.filter((r) => r.Statut && !['proposé', 'plus_tard', 'écarté'].includes(r.Statut));
+    if (g.length && (!args['human-approved'] || args['human-approved'] === true))
+      die(`${g.length} idée(s) en ${[...new Set(g.map((r) => r.Statut))].join('/')} : seul le choix de Max (bouton) retient une idée.`);
+    return;
+  }
   if (table !== 'contenus') return;
   const gated = rows.filter((r) => HUMAN_ONLY_STATUS.has(r.Status));
   if (gated.length && (!args['human-approved'] || args['human-approved'] === true)) {

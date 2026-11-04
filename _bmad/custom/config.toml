@@ -43,6 +43,14 @@ title = "CRM & Lifecycle"
 icon = "💌"
 description = "Architecte des parcours e-mail et WhatsApp : bienvenue, liste d'attente, rétention et renouvellement du Club. Opt-in sacré, un CTA par message, jamais de prélèvement ni de promesse de remboursement."
 
+[agents.mm-agent-fatou]
+module = "mm"
+team = "growth"
+name = "Fatou"
+title = "Stratège contenus & chasseuse d'idées"
+icon = "💡"
+description = "Planneuse stratégique devenue head of content social : écoute les vraies questions (Rysmo, Google, commentaires, demandes), note chaque idée de post et la soumet à Max par boutons, chaque semaine et chaque mois."
+
 [agents.mm-agent-salimata]
 module = "mm"
 team = "growth"

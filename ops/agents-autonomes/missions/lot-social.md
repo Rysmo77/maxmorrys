@@ -27,7 +27,22 @@ Garde les lignes dont `Date_Publication_Prevue` tombe dans la semaine W+2 et don
 - **Thierry** (veille, lundi 07:00) a normalement déjà déposé pour cette semaine le **Flash du lundi** et, une semaine sur deux, **Nouveau sur…** : ne les refais pas, compte-les dans les 8 à 10. S'ils manquent, ne les remplace pas par un Flash improvisé : signale-le.
 - Note au passage combien de posts la semaine W+1 contient (statuts confondus hors `rejeté`) : si elle en a moins de 8, signale-le dans le compte rendu (tu n'y écris rien).
 
+## Étape 0 bis — Partir des idées retenues par Max (Fatou, lundi 11:30)
+
+```
+node /opt/mm-agents/bin/mm-idees.mjs sync
+node /opt/mm-agents/bin/mm-idees.mjs retenues --periode <W+2>
+```
+- Les idées **retenues** de la semaine W+2 passent **en premier** dans la grille : chacune devient un post (ou une story) en gardant son titre, son angle, sa cible et, si possible, son réseau, son format et son gabarit suggérés. Tu peux affiner l'accroche ; tu ne changes pas le sujet.
+- Une idée retenue impossible à tenir (fait introuvable, doublon apparu entre-temps) : tu la sautes et tu le dis dans le compte rendu.
+- Tu complètes ensuite avec les rubriques et le fil rouge comme d'habitude, jusqu'à 8 à 10 posts.
+- **Aucune idée retenue** (Max n'a pas cliqué, ou Fatou n'a pas tourné) : tu fais comme avant, et tu le signales en une demi-ligne.
+- Après le dépôt (étape 6), pour chaque idée reprise : `node /opt/mm-agents/bin/mm-idees.mjs utiliser <IdeeId> --post <Id du post créé>`.
+
 ## Étape 1 — Charger la matière (lecture, pas d'activation de skill)
+
+**Avant tout, les motifs de refus des 2 dernières semaines** : `node /opt/mm-agents/bin/mm-decision.mjs liste --motifs --depuis 14` (motif cliqué par Max après chaque ❌ : trop business, pas assez éducatif, trop long, visuel raté, erreur de fait, autre + commentaire). Le lot n'en reproduit aucun : cite dans le compte rendu les deux motifs les plus fréquents et ce que tu as changé en conséquence.
+
 
 Lis ces fichiers avec l'outil Read (ne lance pas les skills en mode conversation) :
 - `.claude/skills/mm-agent-mariam/references/lot-social.md` — **la démarche qui fait foi** (champs, longueurs, emojis, hashtags, stories) ; ignore ses étapes « cadrer avec Max » et « montrer à Max » : elles sont remplacées par cette mission.
@@ -41,7 +56,7 @@ Lis ces fichiers avec l'outil Read (ne lance pas les skills en mode conversation
 ## Étape 2 — Grille de la semaine
 
 - **8 à 10 posts** FB/IG + **7 stories** (une par jour à `T12:00:00+00:00`, `Reseau = ig` ; miroir `fb` seulement si la story parle aux commerçants).
-- Rubriques de la semaine cible d'abord, à leur créneau (`12-rubriques-editoriales.md`) ; puis le fil rouge du mois ; **OFFRE ≤ 2**. On réduit d'abord COULISSES et CERCLE.
+- Rubriques de la semaine cible d'abord, à leur créneau (`12-rubriques-editoriales.md`) ; puis le fil rouge du mois ; **OFFRE ≤ 1** (décision de Max du 04/11/2026 : d'abord éducatif). On réduit d'abord COULISSES et CERCLE.
 - Cibles variées (Apprenants, Commerçants, Mixte) ; Facebook à midi et le week-end pour les commerçants, Instagram le soir.
 - Semaines allégées du plan (fêtes de fin d'année) : suis le nombre de posts qu'il prévoit, même s'il est inférieur à 8.
 - Heures de Dakar = UTC+0 : `2026-11-24T19:00:00+00:00`.
@@ -67,11 +82,12 @@ Pour chaque ligne, tous les champs de la fiche `lot-social.md` § 4 : `Titre`, `
 
 1. `node scripts/growth/nocodb.mjs create contenus --file <fichier> --apply` — note les `Id` créés.
 2. Contrôle 2 ou 3 charges visuelles : `node scripts/growth/nayo.mjs brief <Id>` (gabarit attendu, aucun avertissement bloquant).
-3. Déclenche le rendu : `/opt/mm-agents/bin/mm-rendu` (WF-SOCIAL-04 prend 6 lignes par passe ; son cron toutes les 2 h fait le reste — un échec du webhook n'est pas bloquant).
+3. Idées reprises : `node /opt/mm-agents/bin/mm-idees.mjs utiliser <IdeeId> --post <PostId>` pour chacune (étape 0 bis).
+4. Déclenche le rendu : `/opt/mm-agents/bin/mm-rendu` (WF-SOCIAL-04 prend 6 lignes par passe ; son cron toutes les 2 h fait le reste — un échec du webhook n'est pas bloquant).
 
 ## Compte rendu final (= ton dernier message, envoyé tel quel sur Telegram à Max)
 
 **Exactement 3 lignes**, sans titre ni markdown :
 1. `Lot Sxx (JJ/MM → JJ/MM) : N posts + M stories déposés (dont K de Thierry déjà en file) en « rédigé » (Ids a–b)` — ou `Semaine Sxx déjà couverte (N posts, M stories) : rien écrit.`
-2. Le contenu en une phrase : rubriques, fil rouge, offres poussées (≤ 2), réseaux.
+2. Le contenu en une phrase : idées de Fatou reprises (k sur n retenues), rubriques, fil rouge, offre (≤ 1), réseaux.
 3. Ce qui attend Max : « cartes Telegram à valider dès le rendu » + toute alerte (W+1 sous-couverte, rendu non déclenché, fait retiré faute de source, exception QA).
