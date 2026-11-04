@@ -11,6 +11,7 @@
 # Temps 2 : vérifie que n8n et les fichiers portent le nouveau, puis supprime le n°1.
 set -euo pipefail
 umask 077
+trap 'echo "✖ arrêt à la ligne $LINENO du script (aucun secret affiché) : copie ce message à Claude"' ERR
 PG=maxmorrys-postgres; N8N=maxmorrys-n8n; CRED=MMNOCODBCRED001
 FICHIER=/opt/maxmorrys-stack/.nocodb-api-token; ENVF=/etc/mm-agents/env
 sql() { printf '%s\n' "$1" > /tmp/rot.sql; docker cp /tmp/rot.sql $PG:/tmp/rot.sql; shred -u /tmp/rot.sql
@@ -34,7 +35,7 @@ if [ "${1:-}" = retirer ]; then
   exit 0
 fi
 
-T2=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 40)
+T2=$(openssl rand -hex 20)   # pas de « tr < /dev/urandom | head » : sous pipefail, le SIGPIPE de tr arrêtait le script en silence
 sql "insert into nc_api_tokens (description, token, enabled, fk_user_id, created_at, updated_at)
      select 'n8n-maxmorrys-2026-11-04', '$T2', true, fk_user_id, now(), now() from nc_api_tokens where id = 1;"
 c=$(teste "$T2"); echo "nouveau jeton accepté par NocoDB : HTTP $c"
