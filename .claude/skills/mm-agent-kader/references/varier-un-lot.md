@@ -11,7 +11,7 @@
 1. Pour chaque post, écrire en une ligne le **geste visé** (enregistrer, répondre, partager, se reconnaître, apprendre un mot, cliquer).
 2. Choisir la famille qui sert ce geste dans le répertoire ; à geste égal, prendre celle qui a le moins servi depuis deux semaines.
 3. Remplir `Gabarit` et les données de la famille dans `Slides_JSON` (première entrée hors carrousel ; une entrée par slide en carrousel, `gabarit` par slide si besoin). Textes à l'image dans les limites du répertoire, sans emoji.
-4. Ajouter le script de Reel de la semaine (`script-video.md`) et répartir les 7 stories sur au moins 3 familles (`stories-interactives.md`).
+4. répartir les 3 stories sur au moins 2 familles (`stories-interactives.md`).
 5. Contrôler : `node ops/agents-autonomes/outils/qa-lot.mjs <lot.json> --semaine <lundi>` jusqu'à zéro défaut ; aperçu d'une charge : `node scripts/growth/nayo.mjs brief <Id> --slides <fichier>`.
 6. Sur des lignes déjà déposées : préparer `{Id, Gabarit, Slides_JSON, Visual_Strategy}`, simuler (`update contenus --file …`), montrer à Salimata et à Max, puis `--apply` **sans toucher au `Status`**.
 

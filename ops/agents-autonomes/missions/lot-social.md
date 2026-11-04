@@ -23,7 +23,7 @@ node scripts/growth/nocodb.mjs list contenus --fields Id,Titre,Status,Reseau,For
 ```
 Garde les lignes dont `Date_Publication_Prevue` tombe dans la semaine W+2 et dont le statut n'est **pas** `rejeté` ni `échec`.
 - **≥ 8 posts (hors story) déjà présents** → la semaine est couverte : **n'écris rien**, passe directement au compte rendu (« semaine déjà couverte : N posts, M stories »).
-- Sinon, ne produis que **ce qui manque** pour atteindre 8 à 10 posts et 7 stories, sans reprendre un créneau ni une rubrique déjà occupés.
+- Sinon, ne produis que **ce qui manque** pour atteindre 8 à 10 posts et 3 stories au plus, sans reprendre un créneau ni une rubrique déjà occupés.
 - **Thierry** (veille, lundi 07:00) a normalement déjà déposé pour cette semaine le **Flash du lundi** et, une semaine sur deux, **Nouveau sur…** : ne les refais pas, compte-les dans les 8 à 10. S'ils manquent, ne les remplace pas par un Flash improvisé : signale-le.
 - Note au passage combien de posts la semaine W+1 contient (statuts confondus hors `rejeté`) : si elle en a moins de 8, signale-le dans le compte rendu (tu n'y écris rien).
 
@@ -59,7 +59,7 @@ Lis ces fichiers avec l'outil Read (ne lance pas les skills en mode conversation
 
 ## Étape 2 — Grille de la semaine
 
-- **8 à 10 posts** FB/IG + **7 stories** (une par jour à `T12:00:00+00:00`, `Reseau = ig` ; miroir `fb` seulement si la story parle aux commerçants).
+- **8 à 10 posts** FB/IG + **3 stories au plus** (décision du 04/11/2026 ; lundi, mercredi, vendredi à `T12:00:00+00:00`, `Reseau = ig` ; miroir `fb` seulement si la story parle aux commerçants).
 - Rubriques de la semaine cible d'abord, à leur créneau (`12-rubriques-editoriales.md`) ; puis le fil rouge du mois ; **OFFRE ≤ 1** (décision de Max du 04/11/2026 : d'abord éducatif). On réduit d'abord COULISSES et CERCLE.
 - Cibles variées (Apprenants, Commerçants, Mixte) ; Facebook à midi et le week-end pour les commerçants, Instagram le soir.
 - Semaines allégées du plan (fêtes de fin d'année) : suis le nombre de posts qu'il prévoit, même s'il est inférieur à 8.
@@ -74,7 +74,7 @@ Règles de veille de `12-rubriques-editoriales.md` : chaque fait a une URL, une 
 Pour chaque ligne, tous les champs de la fiche `lot-social.md` § 4 : `Titre`, `Thematique`, `Pilier`, `Serie`, `Offre`, `Cible`, `Reseau`, `Format_Post`, `Date_Publication_Prevue`, `Brief` (1re ligne « Rubrique : … » le cas échéant), `Texte`, `Hashtags`, `Visual_Strategy`, **`Gabarit`**, **`Slides_JSON`** (chaîne JSON : tableau d'entrées `{titre, corps?, cta?, …}` ; une seule hors carrousel ; données de la famille : `etapes`, `options`, `chiffre` + `source`, `avant`/`apres`, `prix`…), `Status: "rédigé"`. Pas de champ `Id`.
 - Aucun emoji dans `Slides_JSON` ; `[mot]` pour la couleur du territoire dans un titre.
 
-> **Variété des formats (décision de Max, 04/11/2026).** Choisis la famille de chaque post par le geste attendu du lecteur (répertoire : `.claude/skills/mm-agent-kader/references/repertoire-formats.md`) : jamais la même famille deux fois de suite sur un réseau, au plus 25 % de la semaine pour une famille, au moins 6 familles pour 9-10 posts, au moins 3 familles pour les 7 stories. Puise d'abord dans les familles les moins utilisées des deux semaines précédentes (`mythe_realite`, `comparatif`, `erreur`, `quiz`, `signes`, `conversation` — ⛔ `checklist` et `glossaire` écartés par Max le 04/11), avec leurs données dans `Slides_JSON` (`docs/growth-kb/11-visuels-nayo.md` § 3 ter). Ajoute un script de Reel par semaine (`Format_Post = reel`, `Status = planifié`, script plan par plan dans `Brief` : `.claude/skills/mm-agent-kader/references/script-video.md`). `qa-lot.mjs --semaine <lundi>` doit passer sans défaut avant tout dépôt.
+> **Variété des formats (décision de Max, 04/11/2026).** Choisis la famille de chaque post par le geste attendu du lecteur (répertoire : `.claude/skills/mm-agent-kader/references/repertoire-formats.md`) : jamais la même famille deux fois de suite sur un réseau, au plus 25 % de la semaine pour une famille, au moins 6 familles pour 9-10 posts, au moins 2 familles pour les 3 stories (au plus) de la semaine. Puise d'abord dans les familles les moins utilisées des deux semaines précédentes (`mythe_realite`, `comparatif`, `erreur`, `quiz`, `signes`, `conversation` — ⛔ `checklist` et `glossaire` écartés par Max le 04/11), avec leurs données dans `Slides_JSON` (`docs/growth-kb/11-visuels-nayo.md` § 3 ter). ⛔ Pas de Reel : Max n'a pas le temps de tourner (04/11/2026). `qa-lot.mjs --semaine <lundi>` doit passer sans défaut avant tout dépôt.
 - Pas de `studio` (il exige Max dans le studio NAYO) ; pas de `coulisses` avec photo inventée : sans vraie photo, choisis une autre famille.
 
 ## Étape 5 — Contrôles

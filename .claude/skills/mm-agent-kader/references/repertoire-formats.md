@@ -44,7 +44,7 @@ Reel ou story vidéo de **15 à 30 s**, tourné au téléphone par Max. Le scrip
 
 ## 4. Stories interactives
 
-7 stories par semaine, **au moins 3 familles différentes** et jamais plus de 3 fois la même : `quiz`, `question`, `mythe_realite`, `signes`, `erreur`, `comparatif`. ⚠️ L'API Instagram ne pose pas les autocollants interactifs (sondage, quiz, curseur, question) : la carte appelle à répondre en message, ou Max ajoute l'autocollant à la main s'il publie lui-même. Méthode : `stories-interactives.md`.
+3 stories par semaine au plus (décision du 04/11/2026), **au moins 2 familles différentes** : `quiz`, `question`, `mythe_realite`, `signes`, `erreur`, `comparatif`. ⚠️ L'API Instagram ne pose pas les autocollants interactifs (sondage, quiz, curseur, question) : la carte appelle à répondre en message, ou Max ajoute l'autocollant à la main s'il publie lui-même. Méthode : `stories-interactives.md`.
 
 ## 5. Rotation
 

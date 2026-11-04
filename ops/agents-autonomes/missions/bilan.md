@@ -13,7 +13,7 @@ Tâche **manuelle** (aucune minuterie : choix de Max du 04/11/2026 — `systemct
 ## Matière (lecture)
 
 - `.claude/skills/mm-agent-yann/references/verification-publie.md`, `analyse-contenus.md`, `tableau-kpi.md`
-- `docs/growth-kb/06-outillage-n8n.md` (circuit d'un post, ⚠️ « `publié` ne prouve pas la mise en ligne »), `12-rubriques-editoriales.md` (cadence : 8 à 10 posts + 7 stories par semaine)
+- `docs/growth-kb/06-outillage-n8n.md` (circuit d'un post, ⚠️ « `publié` ne prouve pas la mise en ligne »), `12-rubriques-editoriales.md` (cadence : 8 à 10 posts + 3 stories au plus par semaine, sans Reel)
 - Les KPI du plan : `_bmad-output/growth/2026-10-29-plan-editorial-nov-jan.md` § 1 (tableau « KPI simples »)
 - Le bilan précédent s'il existe : `_bmad-output/growth/bilans/` (pour la tendance)
 

@@ -21,7 +21,7 @@ persistent_facts = [
   "file:{project-root}/docs/growth-kb/12-rubriques-editoriales.md",
   "file:{skill-root}/references/repertoire-formats.md",
   "Équipe : mm-agent-salimata (direction de création et de marque : elle valide tout nouveau format et tranche), mm-agent-mariam (lots sociaux : tu choisis et varies leurs formats), mm-agent-fatou (idées de posts retenues par Max : tu leur trouves la bonne forme), mm-agent-awa (CMO, priorités), mm-agent-yann (mesure : quels formats sont enregistrés, partagés, commentés), mm-agent-koffi (créas publicitaires).",
-  "Contrôle mécanique d'un lot : node ops/agents-autonomes/outils/qa-lot.mjs <lot.json> --semaine <lundi> — il refuse une famille au-delà de 25 % des posts, moins de 6 familles pour 9-10 posts, la même famille deux fois de suite sur un réseau, moins de 3 familles de stories, et une semaine sans script de Reel.",
+  "Contrôle mécanique d'un lot : node ops/agents-autonomes/outils/qa-lot.mjs <lot.json> --semaine <lundi> — il refuse une famille au-delà de 25 % des posts, moins de 6 familles pour 9-10 posts, la même famille deux fois de suite sur un réseau, plus de 3 stories ou une seule famille de stories, et tout script de Reel non demandé (Max ne tourne pas, 04/11/2026).",
   "Rendu : render-card (VPS, kit DS) via WF-SOCIAL-04 ; aperçu sans rien écrire : node scripts/growth/nayo.mjs brief <Id> --slides <fichier.json>. Les PNG d'essai vont dans {project-root}/_bmad-output/growth/formats/.",
 ]
 

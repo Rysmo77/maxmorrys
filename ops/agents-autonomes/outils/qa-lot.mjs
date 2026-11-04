@@ -153,16 +153,17 @@ for (const res of ['fb', 'ig']) {
   const stories = rows.filter((r) => r.Format_Post === 'story');
   const cs = {};
   for (const r of stories) cs[r.Gabarit || '(vide)'] = (cs[r.Gabarit || '(vide)'] || 0) + 1;
-  if (lundi && stories.length >= 5 && Object.keys(cs).length < 3) defauts.push(`variété des stories : ${Object.keys(cs).length} famille(s) pour ${stories.length} stories (au moins 3 : quiz, question, mythe_realite, signes, erreur…)`);
-  for (const [g, k] of Object.entries(cs)) if (stories.length >= 5 && k > 3) defauts.push(`variété des stories : « ${g} » sur ${k} stories (3 au plus)`);
-  if (lundi && videos.length < 1) defauts.push('vidéo courte : aucun script de Reel cette semaine (au moins 1, Format_Post « reel », Status « planifié », plan par plan dans Brief)');
+  // Stories : 3 au plus par semaine, réponses « en message » (décision de Max, 04/11/2026).
+  if (lundi && stories.length >= 2 && Object.keys(cs).length < 2) defauts.push(`variété des stories : une seule famille pour ${stories.length} stories (au moins 2 : quiz, question, mythe_realite, signes, erreur…)`);
+  // Pas de Reel obligatoire : Max n'a pas le temps de tourner (04/11/2026). Un script reste accepté s'il est demandé.
+  if (lundi && videos.length > 0) defauts.push(`vidéo courte : ${videos.length} script(s) de Reel alors que Max ne tourne pas (04/11/2026) — retire-les sauf demande explicite`);
 }
 
 const nPosts = posts.length, nStories = rows.filter((r) => r.Format_Post === 'story').length;
 const nOffre = posts.filter(({ r }) => r.Serie === 'OFFRE').length;
 console.log(`${nPosts} post(s), ${nStories} story(ies), ${videos.length} vidéo(s) courte(s), ${nOffre} OFFRE`);
 if (lundi && (nPosts < 8 || nPosts > 10)) defauts.push(`cadence : ${nPosts} posts (attendu 8 à 10)`);
-if (lundi && nStories < 7) defauts.push(`cadence : ${nStories} stories (attendu 7)`);
+if (nStories > 3) defauts.push(`cadence : ${nStories} stories (3 au plus par semaine, décision du 04/11/2026)`);
 if (nOffre > 1) defauts.push(`${nOffre} OFFRE (1 au plus par semaine, décision du 04/11/2026)`);
 if (defauts.length) { console.log(`✖ ${defauts.length} défaut(s) :`); for (const d of defauts) console.log('  - ' + d); process.exit(1); }
 console.log('✔ aucun défaut mécanique');

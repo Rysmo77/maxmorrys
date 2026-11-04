@@ -16,7 +16,7 @@
   - Les cinq offres doivent être couvertes sur 3 semaines glissantes.
   - Créneaux OFFRE : Facebook mercredi 9 h = agence ; Instagram samedi 11 h = la plateforme en rotation (`:156-164`).
   - Équilibre : ≈ 5 Apprenants, 3,5 Commerçants, 5,5 Mixte (`:169-171`).
-- **Grille de 21 créneaux** (14 posts et 7 stories à 12 h) : `content-strategy:75-106`. Pas de vidéo ni de TikTok depuis le 06/08/2026.
+- ⚠️ Cadence actuelle (04/11/2026) : 8 à 10 posts + **3 stories au plus**, pas de Reel. Ancienne **grille de 21 créneaux** (14 posts et 7 stories à 12 h) : `content-strategy:75-106`. Pas de vidéo ni de TikTok depuis le 06/08/2026.
 - ⚠️ Le mix 60/30/10 (`soc-brand-kit:47-48`, Playbook `:42-45`) et les piliers « Formations / Contenus / Communauté / IA / Accompagnement » (`soc-brand-kit:18`, Charte `:27-33`) sont **périmés**.
 - **Accent couleur par pilier** (social, kit marketing) : Éducation turquoise, Inspiration violet, Produit orange, Autorité corail, Communauté vert (`STRATEGIE:529-540`).
 - **Matrice des angles** (accroche → preuve → CTA) : Gain de temps, Croissance, IA pratique, Communauté, Accompagnement. Sources : `skills/soc-brand-kit/SKILL.md:55-60`, `Max-Morrys_BrandKit_Complet/07_Templates_Marketing/matrice_angles_creatifs.csv`, Playbook `04_…/Max-Morrys_Playbook_Equipes_Marketing.md:89-91`.

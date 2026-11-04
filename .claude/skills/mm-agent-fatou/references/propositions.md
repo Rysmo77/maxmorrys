@@ -21,7 +21,8 @@ Justifie chaque déclinaison en une demi-ligne dans `Notes`. Critères :
 - **article** — seulement si l'idée a une **intention de recherche réelle** (une requête Search Console, une question qu'on tape à Google : « comment… », « pourquoi… », « … Dakar ») **et** la profondeur d'un article de **900 à 1 600 mots** (étapes, exemples locaux, FAQ de 3 à 5 vraies questions). Vérifie qu'aucun article publié ne couvre déjà le sujet (`mm-firestore.mjs blog`) : sinon, propose de compléter l'existant plutôt que de le doubler. Au plus 2 idées « article » par semaine (la rédaction en écrit un tous les quinze jours).
 - **lettre** — utile à tous les abonnés ou lié à un temps fort ; une alerte (arnaque, changement d'outil) ou une coulisse s'y prête bien.
 - **lecon** — une situation locale concrète qui illustrerait une leçon d'une formation **publiée** ; jamais une leçon nouvelle.
-- **reel** / **story** — le sujet se montre (un geste, un avant/après) ou se joue (sondage, quiz).
+- **story** — le sujet se joue (question A/B, quiz, mythe ou réalité) avec une réponse **en message** ; 3 stories au plus par semaine.
+- ⛔ **reel** : ne plus le proposer (Max ne tourne pas, 04/11/2026).
 - Par défaut : le format principal de l'idée seulement. Mieux vaut deux déclinaisons justes que sept forcées.
 ⛔ Jamais `Statut: "retenu"` : l'outil le refuse, c'est le bouton de Max qui retient.
 

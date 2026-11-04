@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-04T18:46:56.553Z",
+  "updatedAt": "2026-11-04T19:09:40.435Z",
   "id": "n0hquvVeQ7my7orT",
   "name": "WF-TG-ROUTER — Telegram (posts + gouvernance + commandes)",
   "active": true,
@@ -208,11 +208,11 @@
         "resource": "row",
         "operation": "update",
         "dataToSend": "mapWithFields",
-        "id": "={{ $json.id }}",
+        "id": "={{ $('Parse — Update').item.json.id }}",
         "fieldsMapper": {
           "mappingMode": "defineBelow",
           "value": {
-            "Status": "={{ $json.newStatus }}"
+            "Status": "={{ $('Parse — Update').item.json.newStatus }}"
           },
           "matchingColumns": [],
           "schema": []
@@ -2167,6 +2167,94 @@
         1680,
         -1050
       ]
+    },
+    {
+      "name": "NocoDB — Lire post",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        800,
+        -320
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "get",
+        "id": "={{ $('Parse — Update').item.json.id }}",
+        "options": {}
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "82c1ce04-a3f2-4ffa-95cf-14005fb5f1e6"
+    },
+    {
+      "id": "2bd97057-f063-492a-8497-6ba10b8fc47e",
+      "name": "IF post modifiable",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        920,
+        -320
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cbdfccee-9901-4e5b-ac73-dbff1dffe223",
+              "leftValue": "={{ $('Parse — Update').item.json.newStatus === 'rejeté' ? !['publié','en_publication'].includes($json.Status) : $json.Status === 'prêt_à_valider' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "42a63157-9aa6-46d6-aec8-d30b6fe7c2a9",
+      "name": "TG — post non modifiable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        -160
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('Parse — Update').item.json.token }}/answerCallbackQuery",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({callback_query_id:$('Parse — Update').item.json.callbackQueryId, show_alert:true, text:'Rien fait : ce post n\\'attend plus ta validation (statut : ' + ($json.Status || 'introuvable') + ').'}) }}",
+        "options": {}
+      }
     }
   ],
   "connections": {
@@ -2257,7 +2345,7 @@
       "main": [
         [
           {
-            "node": "NocoDB — MAJ Status",
+            "node": "NocoDB — Lire post",
             "type": "main",
             "index": 0
           }
@@ -2922,6 +3010,35 @@
         [
           {
             "node": "MOTIF — Noter le message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB — Lire post": {
+      "main": [
+        [
+          {
+            "node": "IF post modifiable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF post modifiable": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — MAJ Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "TG — post non modifiable",
             "type": "main",
             "index": 0
           }

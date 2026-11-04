@@ -25,7 +25,7 @@ Une idée = **un problème réel + une réponse utilisable ce soir + une forme**
 - **Titre** : l'accroche telle que le post pourrait l'ouvrir (≤ 90 caractères, tutoiement, sans emoji).
 - **Angle** : 1-2 phrases : ce qu'on apprend, à qui, pourquoi maintenant.
 - **Serie / Rubrique** : une des 6 séries et, si elle colle, une des 8 rubriques de `12-rubriques-editoriales.md`.
-- **Pilier**, **Cible** (Apprenants / Commerçants / Mixte), **Reseau** (fb, ig, fb+ig, story), **Format** (post, carrousel, story, reel).
+- **Pilier**, **Cible** (Apprenants / Commerçants / Mixte), **Reseau** (fb, ig, fb+ig, story), **Format** (post, carrousel, story — ⛔ plus de reel depuis le 04/11/2026).
 - **Gabarit_Suggere** : famille de visuel conseillée (catalogue de Salimata, `docs/growth-kb/11-visuels-nayo.md`) ; varier d'une idée à l'autre.
 - **Sources** : URL + date, ou chemin du rapport interne + thème (« support/2026-11-02-rysmo.md, thème « avis Google », 3 questions »).
 
