@@ -1,0 +1,11 @@
+[Unit]
+Description=Josiane : questions posées à Rysmo, lundi 09:00 Dakar
+
+[Timer]
+OnCalendar=Mon *-*-* 09:00:00 Africa/Dakar
+# Une exécution manquée (VPS éteint) n'est PAS rattrapée : on la lance à la main.
+Persistent=false
+Unit=mm-agent@rysmo-faq.service
+
+[Install]
+WantedBy=timers.target

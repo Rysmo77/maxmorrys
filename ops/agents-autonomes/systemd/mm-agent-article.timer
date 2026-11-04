@@ -1,0 +1,11 @@
+[Unit]
+Description=Rédaction : article (semaines paires seulement, porte dans le lanceur), jeudi 08:00 Dakar
+
+[Timer]
+OnCalendar=Thu *-*-* 08:00:00 Africa/Dakar
+# Une exécution manquée (VPS éteint) n'est PAS rattrapée : on la lance à la main.
+Persistent=false
+Unit=mm-agent@article.service
+
+[Install]
+WantedBy=timers.target

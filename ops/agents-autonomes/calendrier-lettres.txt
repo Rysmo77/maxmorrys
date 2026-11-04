@@ -1,0 +1,9 @@
+# Dates d'envoi prévues de la lettre (une par ligne, AAAA-MM-JJ). Source : plan éditorial
+# _bmad-output/growth/2026-10-29-plan-editorial-nov-jan.md § 4 (« jeudi qui suit un article »).
+# La tâche `lettre` (Serge) tourne chaque jour à 08:00 et ne travaille que si AUJOURD'HUI + 5 jours
+# figure ici : elle rédige la lettre et envoie l'ÉPREUVE (mode test), jamais le réel.
+# Ajouter les dates suivantes au fil des plans (Awa les propose dans _bmad-output/growth/plans/).
+2026-11-26
+2026-12-17
+2027-01-14
+2027-02-11

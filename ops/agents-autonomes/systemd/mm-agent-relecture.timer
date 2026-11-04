@@ -1,0 +1,11 @@
+[Unit]
+Description=Béatrice : relecture des cartes prêt_à_valider, chaque jour 07:30 Dakar (silence si RAS)
+
+[Timer]
+OnCalendar=*-*-* 07:30:00 Africa/Dakar
+# Une exécution manquée (VPS éteint) n'est PAS rattrapée : on la lance à la main.
+Persistent=false
+Unit=mm-agent@relecture.service
+
+[Install]
+WantedBy=timers.target

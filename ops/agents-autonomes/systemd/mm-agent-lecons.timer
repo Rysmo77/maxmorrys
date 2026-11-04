@@ -1,0 +1,11 @@
+[Unit]
+Description=Adjoa : 5 leçons en brouillon, jeudi 08:00 Dakar
+
+[Timer]
+OnCalendar=Thu *-*-* 08:00:00 Africa/Dakar
+# Une exécution manquée (VPS éteint) n'est PAS rattrapée : on la lance à la main.
+Persistent=false
+Unit=mm-agent@lecons.service
+
+[Install]
+WantedBy=timers.target

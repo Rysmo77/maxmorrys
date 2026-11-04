@@ -52,3 +52,8 @@ max-morrys-*.json
 
 # Aperçus des e-mails (worker/apps/api/scripts/apercu-emails.mjs) — générés, jamais suivis
 worker/apps/api/.email-preview/
+
+# Agents autonomes : données de prospects (noms, numéros) — jamais dans git
+_bmad-output/commercial/
+# Secrets déposés pour install.sh (compte de service Firebase, clé marketing) — jamais dans git
+ops/agents-autonomes/secrets/

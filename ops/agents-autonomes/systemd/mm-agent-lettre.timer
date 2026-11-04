@@ -1,0 +1,11 @@
+[Unit]
+Description=Serge : lettre et épreuve à J-5 (porte calendrier-lettres.txt), chaque jour 08:00 Dakar
+
+[Timer]
+OnCalendar=*-*-* 08:00:00 Africa/Dakar
+# Une exécution manquée (VPS éteint) n'est PAS rattrapée : on la lance à la main.
+Persistent=false
+Unit=mm-agent@lettre.service
+
+[Install]
+WantedBy=timers.target

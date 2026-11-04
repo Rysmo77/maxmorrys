@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-29T16:09:05.993Z",
+  "updatedAt": "2026-11-01T20:19:54.198Z",
   "id": "OJMyvQPywIdhaVAj",
   "name": "WF-14 — Publication de Cours sous Validation",
   "active": true,
@@ -147,144 +147,6 @@
       "typeVersion": 2,
       "position": [
         1120,
-        304
-      ]
-    },
-    {
-      "parameters": {
-        "modelId": {
-          "__rl": true,
-          "value": "models/gemini-2.5-flash",
-          "mode": "list",
-          "cachedResultName": "models/gemini-2.5-flash"
-        },
-        "messages": {
-          "values": [
-            {
-              "content": "=Enrichis ce prompt pour generer une image professionnelle pour un cours en ligne, contexte Afrique francophone. Reponds en JSON: {\"enhanced_prompt\": \"prompt en anglais\"}\n\nPROMPT: {{ $json.prompt }}"
-            }
-          ]
-        },
-        "builtInTools": {},
-        "options": {
-          "maxOutputTokens": 2048,
-          "temperature": 0.7,
-          "thinkingBudget": 0
-        }
-      },
-      "id": "wf14-img-enhance",
-      "name": "IMG2 — Enrichir prompt",
-      "type": "@n8n/n8n-nodes-langchain.googleGemini",
-      "typeVersion": 1.1,
-      "position": [
-        1344,
-        304
-      ],
-      "credentials": {
-        "googlePalmApi": {
-          "id": "wQPLkug1dt6DGOt4",
-          "name": "Google AI Max-Morrys LMS"
-        }
-      },
-      "onError": "continueRegularOutput",
-      "retryOnFail": true,
-      "maxTries": 4,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "// runOnceForEachItem\nconst input = $input.item.json;\nconst orig = $('IMG1 — Normaliser').item.json;\nlet prompt = orig.prompt;\ntry {\n  let text = input.content?.parts ? input.content.parts.map(p=>p.text||'').join('') : typeof input === 'string' ? input : '';\n  if (text) { const m = text.match(/\\{[\\s\\S]*\\}/); if (m) { const p = JSON.parse(m[0]); if (p.enhanced_prompt) prompt = p.enhanced_prompt; } }\n} catch(e) {}\nif (!prompt) prompt = orig.prompt;\nreturn { json: { ...orig, prompt, original_prompt: orig.prompt } };"
-      },
-      "id": "wf14-img-parse",
-      "name": "IMG3 — Parse prompt",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1696,
-        304
-      ]
-    },
-    {
-      "parameters": {
-        "resource": "image",
-        "modelId": {
-          "__rl": true,
-          "value": "models/gemini-2.5-flash-image-preview",
-          "mode": "list",
-          "cachedResultName": "models/gemini-2.5-flash-image-preview"
-        },
-        "prompt": "={{ $json.prompt }}",
-        "options": {}
-      },
-      "id": "wf14-img-gen",
-      "name": "IMG4 — Generer image",
-      "type": "@n8n/n8n-nodes-langchain.googleGemini",
-      "typeVersion": 1.1,
-      "position": [
-        1920,
-        304
-      ],
-      "credentials": {
-        "googlePalmApi": {
-          "id": "wQPLkug1dt6DGOt4",
-          "name": "Google AI Max-Morrys LMS"
-        }
-      },
-      "retryOnFail": true,
-      "maxTries": 4,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "// runOnceForEachItem\nconst input = $input.item;\nconst p = $('IMG3 — Parse prompt').item.json;\nconst now = new Date().toISOString().replace(/[:.]/g,'-').substring(0,19);\nconst slug = (p.slug||'formation').substring(0,60);\nconst r2_key = 'formations/' + slug + '-' + now + '.png';\nconst result = { json: { ...p, filename: slug+'-'+now+'.png', r2_key, r2_bucket: 'maxmorrys-lms', generated_at: new Date().toISOString() } };\nif (input.binary) result.binary = input.binary;\nreturn result;"
-      },
-      "id": "wf14-img-prepare",
-      "name": "IMG5 — Preparer R2",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2144,
-        304
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "upload",
-        "bucketName": "maxmorrys-lms",
-        "fileName": "={{ $json.r2_key }}",
-        "additionalFields": {
-          "acl": "publicRead"
-        }
-      },
-      "id": "wf14-img-upload",
-      "name": "IMG6 — R2 Upload",
-      "type": "n8n-nodes-base.s3",
-      "typeVersion": 1,
-      "position": [
-        2368,
-        304
-      ],
-      "credentials": {
-        "s3": {
-          "id": "1jkvWRlxegNgpKto",
-          "name": "Cloudflare R2 Max-Morrys"
-        }
-      },
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "// runOnceForEachItem\nconst meta = $('IMG5 — Preparer R2').item.json;\nconst url = 'https://pub-98fc057dc71948c7bd129a674b4bcec8.r2.dev/' + meta.r2_key;\nreturn { json: { public_url: url, formation_passthrough: meta.formation_passthrough, ids: meta.ids, slug: meta.slug, total_modules: meta.total_modules, total_lessons: meta.total_lessons, estimated_hours: meta.estimated_hours } };"
-      },
-      "id": "wf14-img-result",
-      "name": "IMG7 — Build URL",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2592,
         304
       ]
     },
@@ -441,6 +303,108 @@
         }
       },
       "onError": "continueRegularOutput"
+    },
+    {
+      "id": "wf14-couv-config",
+      "name": "IMG2 — Lire Config Render",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1344,
+        304
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,RENDER_CARD_URL)~or(Cle,eq,RENDER_KEY)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "wf14-couv-build",
+      "name": "IMG3 — Build couverture",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        304
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Couverture de formation au kit DS (render-card, famille `couverture`) — 01/11/2026.\n// Source : scripts/growth/couverture.mjs (regénérer avec scripts/growth/wf14-couverture.mjs).\n// Photo : générée par Workers AI à partir de `fondPrompt` ; personnes FICTIVES, aucun texte.\nconst s = (v) => (v == null ? '' : String(v)).trim();\nconst sansCrochets = (t) => s(t).replace(/[[\\]]/g, '');\nfunction promptFormation(title) {\n  return [\n    'Realistic editorial photograph for an online course.',\n    `Theme, never written in the image: ${sansCrochets(title)}.`,\n    'Scene: a fictional West African learner practicing on a laptop and a smartphone at a bright desk in a modern space in Dakar, focused and confident.',\n    'Subject centered in the frame, shallow depth of field, soft natural daylight, warm tones, uncluttered, 35mm lens.',\n    'Screens show only abstract shapes.',\n  ].join(' ');\n}\nfunction chargeFormation(title, opts = {}) {\n  const p = {\n    kit: 'ds', template: 'couverture', gabarit: 'couverture', variante: 'formation', format: '1200x630',\n    title: s(title).slice(0, 140), eyebrow: 'Formation', territoire: 'forme',\n  };\n  if (/^https:\\/\\//.test(s(opts.fond))) p.fond = s(opts.fond);\n  else if (opts.photo !== false) p.fondPrompt = promptFormation(title);\n  return p;\n}\n\nlet RENDER_CARD_URL = '', RENDER_KEY = '';\ntry {\n  const rc = $input.all().map((i) => i.json.fields || i.json);\n  const g = (k) => { const r = rc.find((x) => x.Cle === k); return r ? r.Valeur : ''; };\n  RENDER_CARD_URL = g('RENDER_CARD_URL'); RENDER_KEY = g('RENDER_KEY');\n} catch (e) {}\n\nreturn $('IMG1 — Normaliser').all().map((it) => {\n  const f = it.json.formation_passthrough || {};\n  return { json: { ...it.json, render_url: RENDER_CARD_URL, render_key: RENDER_KEY, payload: chargeFormation(f.title || '') } };\n});\n"
+      }
+    },
+    {
+      "id": "wf14-couv-http",
+      "name": "IMG4 — render-card couverture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        304
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.render_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Render-Key",
+              "value": "={{ $json.render_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "timeout": 170000
+        }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "wf14-couv-url",
+      "name": "IMG7 — Build URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2592,
+        304
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Sortie identique à l'ancien IMG7 : `public_url` alimente coverImage et ogImage (« Merge — Image + Formation »).\n// Rendu en échec → public_url vide : la formation part sans image (couverture typographique du site).\nconst src = $('IMG3 — Build couverture').all();\nreturn $input.all().map((it, i) => {\n  const m = (src[i] || {}).json || {};\n  const j = it.json || {};\n  const url = typeof j.url === 'string' && /^https:\\/\\//.test(j.url) ? j.url : '';\n  const erreur = url ? (j.fondErreur || '') : String((j.error && (j.error.message || j.error)) || 'render-card sans url');\n  return { json: { public_url: url, cover_fond: j.fond || '', cover_erreur: erreur,\n    formation_passthrough: m.formation_passthrough, ids: m.ids, slug: m.slug,\n    total_modules: m.total_modules, total_lessons: m.total_lessons, estimated_hours: m.estimated_hours } };\n});\n"
+      }
     }
   ],
   "connections": {
@@ -503,73 +467,7 @@
       "main": [
         [
           {
-            "node": "IMG2 — Enrichir prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IMG2 — Enrichir prompt": {
-      "main": [
-        [
-          {
-            "node": "IMG3 — Parse prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IMG3 — Parse prompt": {
-      "main": [
-        [
-          {
-            "node": "IMG4 — Generer image",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IMG4 — Generer image": {
-      "main": [
-        [
-          {
-            "node": "IMG5 — Preparer R2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IMG5 — Preparer R2": {
-      "main": [
-        [
-          {
-            "node": "IMG6 — R2 Upload",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IMG6 — R2 Upload": {
-      "main": [
-        [
-          {
-            "node": "IMG7 — Build URL",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IMG7 — Build URL": {
-      "main": [
-        [
-          {
-            "node": "Merge — Image + Formation",
+            "node": "IMG2 — Lire Config Render",
             "type": "main",
             "index": 0
           }
@@ -630,6 +528,50 @@
         [
           {
             "node": "Aplatir — Lire Cours en Production",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMG2 — Lire Config Render": {
+      "main": [
+        [
+          {
+            "node": "IMG3 — Build couverture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMG3 — Build couverture": {
+      "main": [
+        [
+          {
+            "node": "IMG4 — render-card couverture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMG4 — render-card couverture": {
+      "main": [
+        [
+          {
+            "node": "IMG7 — Build URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMG7 — Build URL": {
+      "main": [
+        [
+          {
+            "node": "Merge — Image + Formation",
             "type": "main",
             "index": 0
           }

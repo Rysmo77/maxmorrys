@@ -16,6 +16,9 @@
  * - Garde anti-secret : chaque JSON est scanné (jetons Meta EAA…, clés Google AIza…, Brevo xkeysib-,
  *   jetons de bot Telegram, clés sk-…, PAT Airtable, en-têtes Bearer en dur). Un seul motif trouvé
  *   ⇒ RIEN n'est écrit et le script sort en erreur.
+ * - Garde des références : un nœud qui en appelle un autre par un nom qui n'existe plus
+ *   (`$('Nom')`, `$node["Nom"]`…) ⇒ RIEN n'est écrit, sortie 3 (contournable par
+ *   `--ignorer-references`). Un renommage de nœud casse sinon le workflow en silence.
  * - Les `.json` de n8n/live/ qui ne correspondent plus à un workflow actif sont supprimés
  *   (l'historique git fait foi ; les exports d'archivage vivent dans backups/).
  */
@@ -61,15 +64,50 @@ export const SECRET_PATTERNS = [
 
 const fileName = (name) => name.split(' — ')[0].trim().replace(/[^A-Za-z0-9._-]+/g, '-') + '.json';
 
+/**
+ * Garde des références entre nœuds : `$('Nom')`, `$("Nom")`, `$node["Nom"]`, `$items("Nom")`.
+ * Un nœud renommé sans mettre à jour le code qui l'appelle fait planter le workflow au
+ * prochain passage, sans autre signe (vécu le 01/11/2026 : WF-10 cherchait encore
+ * « Airtable — Cours existants », renommé le 29/10). Les commentaires sont retirés avant la
+ * recherche, sinon un exemple écrit en commentaire (« $('<nom>') ») déclenche l'alerte.
+ */
+export function referencesCassees(workflow) {
+  const noms = new Set(workflow.nodes.map((n) => n.name));
+  const cassees = [];
+  const textes = [];
+  const collecte = (v) => {
+    if (typeof v === 'string') textes.push(v);
+    else if (Array.isArray(v)) v.forEach(collecte);
+    else if (v && typeof v === 'object') Object.values(v).forEach(collecte);
+  };
+  for (const n of workflow.nodes) {
+    textes.length = 0;
+    collecte(n.parameters);
+    for (const brut of textes) {
+      const sansCommentaires = brut.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\])\/\/[^\n]*/g, '$1');
+      const decode = sansCommentaires.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+      const re = /\$(?:\(\s*|node\[\s*|items\(\s*)(['"`])((?:\\.|(?!\1).)+)\1/g;
+      for (const m of decode.matchAll(re)) {
+        const cible = m[2].replace(/\\(['"`])/g, '$1');
+        if (cible.includes('${')) continue; // nom construit dynamiquement : invérifiable ici
+        if (!noms.has(cible)) cassees.push(`${n.name} → « ${cible} »`);
+      }
+    }
+  }
+  return [...new Set(cassees)];
+}
+
 const list = await api('/workflows?limit=250&active=true');
 const active = list.data.filter((w) => w.active && !w.isArchived);
 const out = new Map();
 const leaks = [];
+const refs = [];
 for (const s of active) {
   const w = await api(`/workflows/${s.id}`);
   for (const k of SERVER_META) delete w[k];
   const txt = JSON.stringify(w, null, 2) + '\n';
   for (const [label, re] of SECRET_PATTERNS) if (re.test(txt)) leaks.push(`${s.name} : ${label}`);
+  for (const c of referencesCassees(w)) refs.push(`${s.name} : ${c}`);
   const f = fileName(w.name);
   if (out.has(f)) throw new Error(`deux workflows actifs donnent le même fichier ${f}`);
   out.set(f, txt);
@@ -77,6 +115,11 @@ for (const s of active) {
 if (leaks.length) {
   console.error('⛔ Secret(s) détecté(s), aucun fichier écrit :\n  ' + leaks.join('\n  '));
   process.exit(2);
+}
+if (refs.length && !process.argv.includes('--ignorer-references')) {
+  console.error('⛔ Référence(s) vers un nœud inexistant — ces workflows planteront à leur prochain passage.\n' +
+    'Aucun fichier écrit (relancer avec --ignorer-references pour exporter quand même) :\n  ' + refs.join('\n  '));
+  process.exit(3);
 }
 if (!DRY) fs.mkdirSync(OUT, { recursive: true });
 for (const [f, txt] of out) {

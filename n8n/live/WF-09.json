@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-29T16:04:18.153Z",
+  "updatedAt": "2026-11-01T19:24:58.298Z",
   "id": "i5EvGUGhVvzKIM2U",
   "name": "WF-09 — Production de Newsletters",
   "active": true,
@@ -39,37 +39,40 @@
     },
     {
       "parameters": {
+        "resource": "text",
+        "operation": "message",
         "modelId": {
           "__rl": true,
-          "value": "models/gemini-2.5-flash",
-          "mode": "list",
-          "cachedResultName": "models/gemini-2.5-flash"
+          "mode": "id",
+          "value": "claude-sonnet-5-5"
         },
         "messages": {
           "values": [
             {
-              "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points (un seul CTA, voir REGLE CTA)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : REDIGER LA LETTRE\n\nRedige une lettre d'information de Max-Morrys a partir des articles REELLEMENT PUBLIES sur maxmorrys.me (ci-dessous). Ne promets aucune cadence ni frequence d'envoi : jamais \"chaque semaine\", \"hebdomadaire\", \"chaque mois\", \"a la semaine prochaine\", \"rendez-vous jeudi\".\n\nARTICLE PRINCIPAL (publie) : {{ JSON.stringify($json.article_principal) }}\nAUTRES ARTICLES PUBLIES RECENTS (pour contexte uniquement, ne pas les lier) : {{ JSON.stringify($json.recent_articles.slice(1)) }}\n\nREGLE CTA (OBLIGATOIRE) : la lettre contient UN SEUL appel a l'action : \"Lis l'article complet\", qui pointe vers l'URL exacte de l'article principal ({{ $json.article_principal.url }}). Aucun autre bouton, aucun autre lien, aucune invitation a une formation, au Club, a WhatsApp ou a un contact.\nN'invente aucun chiffre, aucune statistique, aucun temoignage, aucune question de lecteur.\n\nSTRUCTURE OBLIGATOIRE :\n\n1. **Objet d'email** (45 chars max, accrocheur, tutoiement, sans emoji)\n2. **Preview text** (100 chars, complete l'objet)\n3. **Salutation** personnelle : \"Salut [Prenom],\" ou \"Hey toi,\" — ton amical\n4. **Edito** (80-120 mots) : un apprentissage concret lie au sujet de l'article principal, ton direct et authentique. Pas d'anecdote inventee presentee comme vecue.\n5. **L'article a lire** : titre de l'article principal + 3 lignes de teasing fideles a son resume + le CTA unique \"Lis l'article complet\" (lien : {{ $json.article_principal.url }})\n6. **L'astuce** : une astuce actionnable en 4-5 lignes, applicable aujourd'hui, sans lien\n7. **Cloture** : \"A bientot\" + signature \"— Max-Morrys, Dakar\"\n\nREPONSE JSON STRICT :\n{\n  \"subject\": \"45 chars max\",\n  \"preview_text\": \"100 chars\",\n  \"html_body\": \"HTML complet avec mise en forme (headings, paragraphes, boutons CTA inline styles)\",\n  \"plain_text\": \"version texte brut\",\n  \"main_cta\": { \"text\": \"Lis l'article complet\", \"url\": \"{{ $json.article_principal.url }}\" },\n  \"highlights\": [\"point cle 1\", \"point cle 2\"]\n}"
+              "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points (un seul CTA, voir REGLE CTA)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : REDIGER LA LETTRE\n\nRedige une lettre d'information de Max-Morrys a partir des articles REELLEMENT PUBLIES sur maxmorrys.me (ci-dessous). Ne promets aucune cadence ni frequence d'envoi : jamais \"chaque semaine\", \"hebdomadaire\", \"chaque mois\", \"a la semaine prochaine\", \"rendez-vous jeudi\".\n\nARTICLE PRINCIPAL (publie) : {{ JSON.stringify($json.article_principal) }}\nAUTRES ARTICLES PUBLIES RECENTS (pour contexte uniquement, ne pas les lier) : {{ JSON.stringify($json.recent_articles.slice(1)) }}\n\nREGLE CTA (OBLIGATOIRE) : la lettre contient UN SEUL appel a l'action : \"Lis l'article complet\", qui pointe vers l'URL exacte de l'article principal ({{ $json.article_principal.url }}). Aucun autre bouton, aucun autre lien, aucune invitation a une formation, au Club, a WhatsApp ou a un contact.\nN'invente aucun chiffre, aucune statistique, aucun temoignage, aucune question de lecteur.\n\nSTRUCTURE OBLIGATOIRE :\n\n1. **Objet d'email** (45 chars max, accrocheur, tutoiement, sans emoji)\n2. **Preview text** (100 chars, complete l'objet)\n3. **Salutation** personnelle : \"Salut [Prenom],\" ou \"Hey toi,\" — ton amical\n4. **Edito** (80-120 mots) : un apprentissage concret lie au sujet de l'article principal, ton direct et authentique. Pas d'anecdote inventee presentee comme vecue.\n5. **L'article a lire** : titre de l'article principal + 3 lignes de teasing fideles a son resume + le CTA unique \"Lis l'article complet\" (lien : {{ $json.article_principal.url }})\n6. **L'astuce** : une astuce actionnable en 4-5 lignes, applicable aujourd'hui, sans lien\n7. **Cloture** : \"A bientot\" + signature \"— Max-Morrys, Dakar\"\n\nREPONSE JSON STRICT :\n{\n  \"subject\": \"45 chars max\",\n  \"preview_text\": \"100 chars\",\n  \"html_body\": \"HTML complet avec mise en forme (headings, paragraphes, boutons CTA inline styles)\",\n  \"plain_text\": \"version texte brut\",\n  \"main_cta\": { \"text\": \"Lis l'article complet\", \"url\": \"{{ $json.article_principal.url }}\" },\n  \"highlights\": [\"point cle 1\", \"point cle 2\"]\n}",
+              "role": "user"
             }
           ]
         },
+        "simplify": false,
         "options": {
-          "maxOutputTokens": 8192,
-          "temperature": 0.7
-        },
-        "jsonOutput": true
+          "maxTokens": 16000,
+          "includeMergedResponse": true,
+          "system": "Réponds uniquement avec le JSON demandé : aucun texte avant ou après, pas de bloc de code Markdown (```)."
+        }
       },
       "id": "wf09-gemini",
-      "name": "Gemini Flash — Rédiger newsletter",
-      "type": "@n8n/n8n-nodes-langchain.googleGemini",
-      "typeVersion": 1.1,
+      "name": "Claude Sonnet — Rédiger newsletter",
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
       "position": [
         900,
         300
       ],
       "credentials": {
-        "googlePalmApi": {
-          "id": "wQPLkug1dt6DGOt4",
-          "name": "Google AI Max-Morrys LMS"
+        "anthropicApi": {
+          "id": "4nUPn9Qdj3NuCRYS",
+          "name": "Anthropic Max-Morrys"
         }
       },
       "retryOnFail": true,
@@ -78,7 +81,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Correction 2026-10-29 : le noeud Gemini v1.1 renvoie {content:{parts:[{text}]}}, pas {candidates:[...]}.\nconst r = $input.first().json;\nconst text = r.content?.parts?.map(p => p.text || \"\").join(\"\") || r.candidates?.[0]?.content?.parts?.[0]?.text || r.text || \"\";\nconst clean = String(text).replace(/^\\s*```(?:json)?\\s*/i, \"\").replace(/\\s*```\\s*$/, \"\");\nlet newsletter;\ntry { newsletter = JSON.parse(clean); }\ncatch (e) { throw new Error(\"Erreur parsing newsletter (finishReason=\" + (r.finishReason || \"?\") + \"): \" + e.message); }\nreturn [{ json: {\n  subject: newsletter.subject || \"Newsletter Max-Morrys\",\n  preview_text: newsletter.preview_text || \"\",\n  html_body: newsletter.html_body || \"\",\n  plain_text: newsletter.plain_text || \"\",\n  main_cta: newsletter.main_cta || {},\n  article_url: $(\"Préparer — Contenu newsletter\").first().json.article_principal.url,\n  generated_at: new Date().toISOString(),\n  status: \"draft\"\n} }];"
+        "jsCode": "// Correction 2026-10-29 : le noeud Gemini v1.1 renvoie {content:{parts:[{text}]}}, pas {candidates:[...]}.\nconst r = $input.first().json;\n// 2026-11-01 : Claude (nœud Anthropic, simplify=false) rend le texte dans merged_response.\nconst text = r.merged_response || r.content?.parts?.map(p => p.text || \"\").join(\"\") || r.candidates?.[0]?.content?.parts?.[0]?.text || r.text || \"\";\nconst clean = String(text).replace(/^\\s*```(?:json)?\\s*/i, \"\").replace(/\\s*```\\s*$/, \"\");\nlet newsletter;\ntry { newsletter = JSON.parse(clean); }\ncatch (e) { throw new Error(\"Erreur parsing newsletter (finishReason=\" + (r.stop_reason || r.finishReason || \"?\") + \"): \" + e.message); }\nreturn [{ json: {\n  subject: newsletter.subject || \"Newsletter Max-Morrys\",\n  preview_text: newsletter.preview_text || \"\",\n  html_body: newsletter.html_body || \"\",\n  plain_text: newsletter.plain_text || \"\",\n  main_cta: newsletter.main_cta || {},\n  article_url: $(\"Préparer — Contenu newsletter\").first().json.article_principal.url,\n  generated_at: new Date().toISOString(),\n  status: \"draft\"\n} }];"
       },
       "id": "wf09-parse",
       "name": "Parse — Newsletter",
@@ -146,18 +149,7 @@
       "main": [
         [
           {
-            "node": "Gemini Flash — Rédiger newsletter",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Gemini Flash — Rédiger newsletter": {
-      "main": [
-        [
-          {
-            "node": "Parse — Newsletter",
+            "node": "Claude Sonnet — Rédiger newsletter",
             "type": "main",
             "index": 0
           }
@@ -202,6 +194,17 @@
         [
           {
             "node": "Préparer — Contenu newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Sonnet — Rédiger newsletter": {
+      "main": [
+        [
+          {
+            "node": "Parse — Newsletter",
             "type": "main",
             "index": 0
           }

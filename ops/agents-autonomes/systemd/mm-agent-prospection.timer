@@ -1,0 +1,11 @@
+[Unit]
+Description=Ibrahima : prospection (et partenariats la 1re semaine), jeudi 10:00 Dakar
+
+[Timer]
+OnCalendar=Thu *-*-* 10:00:00 Africa/Dakar
+# Une exécution manquée (VPS éteint) n'est PAS rattrapée : on la lance à la main.
+Persistent=false
+Unit=mm-agent@prospection.service
+
+[Install]
+WantedBy=timers.target

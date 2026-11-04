@@ -1,0 +1,11 @@
+[Unit]
+Description=Awa : revue du mois et plan, le 1er à 08:00 Dakar
+
+[Timer]
+OnCalendar=*-*-01 08:00:00 Africa/Dakar
+# Une exécution manquée (VPS éteint) n'est PAS rattrapée : on la lance à la main.
+Persistent=false
+Unit=mm-agent@revue-mensuelle.service
+
+[Install]
+WantedBy=timers.target

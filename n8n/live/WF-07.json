@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-29T16:09:08.610Z",
+  "updatedAt": "2026-11-01T19:24:55.000Z",
   "id": "3kpXjWE4azageRz1",
   "name": "WF-07 — Recherche d'Idées Articles (Géolocalisé)",
   "active": true,
@@ -221,31 +221,32 @@
     },
     {
       "parameters": {
+        "resource": "text",
+        "operation": "message",
         "modelId": {
           "__rl": true,
-          "value": "models/gemini-2.5-flash",
-          "mode": "list",
-          "cachedResultName": "models/gemini-2.5-flash"
+          "mode": "id",
+          "value": "claude-haiku-5-5"
         },
         "messages": {
           "values": [
             {
-              "content": "=═══════════════════════════════════════════════\nRÈGLE DE PRIORISATION (lire en premier)\n═══════════════════════════════════════════════\nSi les sources RSS contiennent une actualité RÉCENTE (≤7 jours) parmi ces signaux :\n  • Rebrand / acquisition d'un outil marketing (ex : Freepik → Magnific)\n  • Lancement d'un nouveau modèle IA (image, vidéo, texte) ou d'une feature majeure\n  • Update d'algorithme sur Meta / Instagram / TikTok / LinkedIn / YouTube / X\n  • Nouveau format de publication (Reels, Threads, Shorts, Live, etc.)\n  • Prix / tarification / accessibilité d'un outil grand public marketing\n\n→ **PRIORISE ces sujets** dans tes 10 idées. Au moins 3-4 des 10 idées doivent être directement liées à ces actus brûlantes.\n→ Le titre SEO doit mentionner le nom de l'outil/plateforme et l'angle \"ce que ça change pour TON marketing en 2026\".\n→ Cible : entrepreneurs AFW qui veulent capitaliser sur le buzz pour rester pertinents.\n\n## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : RECHERCHE D'IDEES D'ARTICLES SEO\n\nPropose **5 sujets d'articles de blog** pour Max-Morrys, en analysant les sources ci-dessous et la base d'articles deja publies pour eviter les doublons.\n\nSOURCES ANALYSEES :\nLocal : {{ JSON.stringify($json.local_search_results) }}\nInternational : {{ JSON.stringify($json.international_results) }}\nGoogle News Afrique : {{ JSON.stringify($json.google_news) }}\nBlogs SEO/marketing : {{ JSON.stringify($json.rss_blogs) }}\nQuestions des visiteurs : {{ JSON.stringify($json.user_questions) }}\nFAQ existante : {{ JSON.stringify($json.faq_questions) }}\nPeople Also Ask : {{ JSON.stringify($json.people_also_ask) }}\n\nDEJA PUBLIE (ne pas reproposer) : {{ JSON.stringify($json.existing_articles) }}\n\nCRITERES :\n- Sujets concrets, actionnables — pas des reflexions philosophiques\n- Angles ancres dans la realite de l'Afrique francophone (Ouest ET Centrale)\n- Reponds a un besoin reel d'un entrepreneur africain debutant/intermediaire\n- Varies les categories : SEO, reseaux sociaux, email marketing, e-commerce, personal branding, IA pour marketing, Mobile Money, WhatsApp Business, growth hacking\n- Titres accrocheurs au tutoiement ou sous forme de question\n\nREPONSE JSON STRICT :\n{\n  \"articles\": [{\n    \"title_seo\": \"titre 60 chars max, mot-cle en debut\",\n    \"meta_description\": \"155 chars, incitative, tutoiement\",\n    \"main_keyword\": \"mot-cle principal\",\n    \"secondary_keywords\": [\"kw1\",\"kw2\",\"kw3\",\"kw4\",\"kw5\"],\n    \"search_intent\": \"informationnel|transactionnel|navigationnel\",\n    \"local_angle\": \"pourquoi c'est pertinent pour l'Afrique francophone\",\n    \"suggested_structure\": [\"H2: verbe d'action ou chiffre...\",\"H2: ...\"],\n    \"recommended_length\": 1200,\n    \"seo_potential_score\": 8,\n    \"competition_level\": \"faible|moyen|eleve\",\n    \"content_gap\": \"ce que les articles existants ne couvrent pas\"\n  }]\n}"
+              "content": "=═══════════════════════════════════════════════\nRÈGLE DE PRIORISATION (lire en premier)\n═══════════════════════════════════════════════\nSi les sources RSS contiennent une actualité RÉCENTE (≤7 jours) parmi ces signaux :\n  • Rebrand / acquisition d'un outil marketing (ex : Freepik → Magnific)\n  • Lancement d'un nouveau modèle IA (image, vidéo, texte) ou d'une feature majeure\n  • Update d'algorithme sur Meta / Instagram / TikTok / LinkedIn / YouTube / X\n  • Nouveau format de publication (Reels, Threads, Shorts, Live, etc.)\n  • Prix / tarification / accessibilité d'un outil grand public marketing\n\n→ **PRIORISE ces sujets** dans tes 10 idées. Au moins 3-4 des 10 idées doivent être directement liées à ces actus brûlantes.\n→ Le titre SEO doit mentionner le nom de l'outil/plateforme et l'angle \"ce que ça change pour TON marketing en 2026\".\n→ Cible : entrepreneurs AFW qui veulent capitaliser sur le buzz pour rester pertinents.\n\n## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : RECHERCHE D'IDEES D'ARTICLES SEO\n\nPropose **5 sujets d'articles de blog** pour Max-Morrys, en analysant les sources ci-dessous et la base d'articles deja publies pour eviter les doublons.\n\nSOURCES ANALYSEES :\nLocal : {{ JSON.stringify($json.local_search_results) }}\nInternational : {{ JSON.stringify($json.international_results) }}\nGoogle News Afrique : {{ JSON.stringify($json.google_news) }}\nBlogs SEO/marketing : {{ JSON.stringify($json.rss_blogs) }}\nQuestions des visiteurs : {{ JSON.stringify($json.user_questions) }}\nFAQ existante : {{ JSON.stringify($json.faq_questions) }}\nPeople Also Ask : {{ JSON.stringify($json.people_also_ask) }}\n\nDEJA PUBLIE (ne pas reproposer) : {{ JSON.stringify($json.existing_articles) }}\n\nCRITERES :\n- Sujets concrets, actionnables — pas des reflexions philosophiques\n- Angles ancres dans la realite de l'Afrique francophone (Ouest ET Centrale)\n- Reponds a un besoin reel d'un entrepreneur africain debutant/intermediaire\n- Varies les categories : SEO, reseaux sociaux, email marketing, e-commerce, personal branding, IA pour marketing, Mobile Money, WhatsApp Business, growth hacking\n- Titres accrocheurs au tutoiement ou sous forme de question\n\nREPONSE JSON STRICT :\n{\n  \"articles\": [{\n    \"title_seo\": \"titre 60 chars max, mot-cle en debut\",\n    \"meta_description\": \"155 chars, incitative, tutoiement\",\n    \"main_keyword\": \"mot-cle principal\",\n    \"secondary_keywords\": [\"kw1\",\"kw2\",\"kw3\",\"kw4\",\"kw5\"],\n    \"search_intent\": \"informationnel|transactionnel|navigationnel\",\n    \"local_angle\": \"pourquoi c'est pertinent pour l'Afrique francophone\",\n    \"suggested_structure\": [\"H2: verbe d'action ou chiffre...\",\"H2: ...\"],\n    \"recommended_length\": 1200,\n    \"seo_potential_score\": 8,\n    \"competition_level\": \"faible|moyen|eleve\",\n    \"content_gap\": \"ce que les articles existants ne couvrent pas\"\n  }]\n}",
+              "role": "user"
             }
           ]
         },
-        "jsonOutput": true,
-        "builtInTools": {},
+        "simplify": false,
         "options": {
-          "maxOutputTokens": 8192,
-          "temperature": 0.6,
-          "thinkingBudget": 0
+          "maxTokens": 16000,
+          "includeMergedResponse": true,
+          "system": "Réponds uniquement avec le JSON demandé : aucun texte avant ou après, pas de bloc de code Markdown (```)."
         }
       },
       "id": "wf07-gemini-native",
-      "name": "Gemini Flash — Proposer des sujets",
-      "type": "@n8n/n8n-nodes-langchain.googleGemini",
-      "typeVersion": 1.1,
+      "name": "Claude Haiku — Proposer des sujets",
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
       "position": [
         624,
         2528
@@ -254,15 +255,15 @@
       "maxTries": 4,
       "waitBetweenTries": 5000,
       "credentials": {
-        "googlePalmApi": {
-          "id": "wQPLkug1dt6DGOt4",
-          "name": "Google AI Max-Morrys LMS"
+        "anthropicApi": {
+          "id": "4nUPn9Qdj3NuCRYS",
+          "name": "Anthropic Max-Morrys"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\n// Robust extraction: handle markdown code fences, truncation, nested .content.parts\nfunction extractText(inp) {\n  if (inp.content?.parts) return inp.content.parts.map(p => p.text || '').join('');\n  if (inp.candidates?.[0]?.content?.parts) return inp.candidates[0].content.parts.map(p => p.text || '').join('');\n  if (typeof inp === 'string') return inp;\n  if (inp.text) return inp.text;\n  return '';\n}\nfunction cleanupJson(txt) {\n  let s = String(txt || '').trim();\n  s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/i, '').trim();\n  const last = s.lastIndexOf('}');\n  if (last !== -1 && last < s.length - 1) s = s.slice(0, last + 1);\n  return s;\n}\n\nlet parsed;\ntry {\n  if (input.articles) { parsed = input; }\n  else {\n    const txt = extractText(input);\n    if (!txt) { parsed = input; }\n    else parsed = JSON.parse(cleanupJson(txt));\n  }\n} catch (e) {\n  return [];\n}\n\nconst articles = (parsed.articles || []).map(a => ({\n  Date: today, Titre_SEO: a.title_seo, Mot_Cle: a.main_keyword,\n  Angle_Local: a.local_angle, Volume_Estime: a.competition_level,\n  Score: a.seo_potential_score, Status: 'nouveau',\n  Meta_Description: a.meta_description,\n  Keywords_Secondaires: (a.secondary_keywords || []).join(', '),\n  Structure: (a.suggested_structure || []).join(' | '),\n  Longueur_Recommandee: a.recommended_length,\n  Intent: a.search_intent, Content_Gap: a.content_gap,\n  Inspiration: a.inspiration_source || ''\n}));\n\nreturn articles.map(a => ({ json: a }));\n"
+        "jsCode": "const input = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\n// Robust extraction: handle markdown code fences, truncation, nested .content.parts\nfunction extractText(inp) {\n  if (typeof inp.merged_response === 'string') return inp.merged_response; // Claude\n  if (inp.content?.parts) return inp.content.parts.map(p => p.text || '').join('');\n  if (inp.candidates?.[0]?.content?.parts) return inp.candidates[0].content.parts.map(p => p.text || '').join('');\n  if (typeof inp === 'string') return inp;\n  if (inp.text) return inp.text;\n  return '';\n}\nfunction cleanupJson(txt) {\n  let s = String(txt || '').trim();\n  s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/i, '').trim();\n  const last = s.lastIndexOf('}');\n  if (last !== -1 && last < s.length - 1) s = s.slice(0, last + 1);\n  return s;\n}\n\nlet parsed;\ntry {\n  if (input.articles) { parsed = input; }\n  else {\n    const txt = extractText(input);\n    if (!txt) { parsed = input; }\n    else parsed = JSON.parse(cleanupJson(txt));\n  }\n} catch (e) {\n  return [];\n}\n\nconst articles = (parsed.articles || []).map(a => ({\n  Date: today, Titre_SEO: a.title_seo, Mot_Cle: a.main_keyword,\n  Angle_Local: a.local_angle, Volume_Estime: a.competition_level,\n  Score: a.seo_potential_score, Status: 'nouveau',\n  Meta_Description: a.meta_description,\n  Keywords_Secondaires: (a.secondary_keywords || []).join(', '),\n  Structure: (a.suggested_structure || []).join(' | '),\n  Longueur_Recommandee: a.recommended_length,\n  Intent: a.search_intent, Content_Gap: a.content_gap,\n  Inspiration: a.inspiration_source || ''\n}));\n\nreturn articles.map(a => ({ json: a }));\n"
       },
       "id": "wf07-parse",
       "name": "Parse — Structurer les sujets",
@@ -873,18 +874,7 @@
       "main": [
         [
           {
-            "node": "Gemini Flash — Proposer des sujets",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Gemini Flash — Proposer des sujets": {
-      "main": [
-        [
-          {
-            "node": "Parse — Structurer les sujets",
+            "node": "Claude Haiku — Proposer des sujets",
             "type": "main",
             "index": 0
           }
@@ -1463,6 +1453,17 @@
           },
           {
             "node": "RSS — The Rundown AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Haiku — Proposer des sujets": {
+      "main": [
+        [
+          {
+            "node": "Parse — Structurer les sujets",
             "type": "main",
             "index": 0
           }

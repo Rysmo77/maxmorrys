@@ -1,0 +1,32 @@
+# Agent BMad autonome : une exécution de la tâche %i (voir ops/agents-autonomes/README.md).
+# Lancé par mm-agent-%i.timer, ou à la main : sudo systemctl start mm-agent@%i.service
+# (%i = tâche ; suffixe -force pour ignorer la porte de calendrier, ex. mm-agent@article-force)
+[Unit]
+Description=Agent BMad autonome Max-Morrys : %i
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+User=maxmorrys
+Group=maxmorrys
+WorkingDirectory=/home/maxmorrys/agents
+# Lus par systemd (root) puis transmis au processus : maxmorrys n'a pas à lire ces fichiers.
+#  - jeton Claude (abonnement Max) : CLAUDE_CODE_OAUTH_TOKEN
+#  - NocoDB local, branche, mode de rendu local
+EnvironmentFile=/etc/paperclip/maxmorrys.env
+EnvironmentFile=/etc/mm-agents/env
+Environment=HOME=/home/maxmorrys TZ=Africa/Dakar DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+ExecStart=/opt/mm-agents/bin/run-agent.sh %i
+# 45 min pour claude + jusqu’à 90 min d’attente du verrou (un agent à la fois) + marge.
+TimeoutStartSec=150min
+Nice=10
+# Durcissement : rien d'écrivable hors du domicile de maxmorrys et du journal.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/home/maxmorrys /var/log/mm-agents
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes

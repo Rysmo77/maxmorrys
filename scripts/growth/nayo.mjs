@@ -16,7 +16,8 @@
 //   node scripts/growth/nayo.mjs estimate                       # ce que NAYO accepte aujourd'hui (sondage, sans clé)
 //   node scripts/growth/nayo.mjs brief <Id> [--gabarit g] [--slides f.json]   # le brief et les charges, rien d'autre
 //   node scripts/growth/nayo.mjs render <Id> --out <dossier> [--gabarit g] [--slides f.json]
-//        → rend via render-card (SSH vers le VPS), télécharge les PNG ; n'écrit RIEN dans NocoDB
+//        → rend via render-card (SSH vers le VPS, ou en local sur le VPS si NAYO_RENDER_LOCAL=1),
+//          télécharge les PNG ; n'écrit RIEN dans NocoDB
 //   node scripts/growth/nayo.mjs render <Id> --apply            # idem + écrit Visuels_URLs (jamais Status)
 //
 // Garde-fous : ne touche jamais `Status` ; ne lit jamais la table Config ; la clé render-card
@@ -193,11 +194,30 @@ async function noco(path, init = {}) {
 }
 const CONTENUS = 'm3wim4coagaoot7';
 
-/** Rend une charge via render-card sur le VPS. La clé est lue SUR le VPS, jamais ici. */
-function renderVps(payload) {
-  const cmd = 'K=$(grep ^RENDER_KEY= /etc/render-card/env | cut -d= -f2-); ' +
-    'curl -sS -m 170 -X POST http://127.0.0.1:8787/render -H "Content-Type: application/json" -H "X-Render-Key: $K" --data-binary @-';
-  const out = execFileSync('ssh', ['-i', SSH_KEY, '-o', 'ConnectTimeout=15', VPS, cmd], { input: JSON.stringify(payload), encoding: 'utf8', maxBuffer: 1 << 20 });
+/**
+ * Rend une charge via render-card. Deux chemins, même réponse :
+ *  - Mac (défaut) : SSH vers le VPS ; la clé est lue SUR le VPS, jamais rapatriée ;
+ *  - VPS (`NAYO_RENDER_LOCAL=1`, posé par ops/agents-autonomes/install.sh) : appel direct de
+ *    render-card sur la boucle locale (`NAYO_RENDER_URL`, défaut http://127.0.0.1:8787/render),
+ *    clé prise dans `RENDER_KEY` ou, à défaut, dans /etc/render-card/env si lisible.
+ *    La clé passe par un descripteur (`-H @<(…)`), jamais en argument visible dans `ps`.
+ */
+export function renderVps(payload) {
+  const input = JSON.stringify(payload);
+  let out;
+  if (process.env.NAYO_RENDER_LOCAL === '1') {
+    const cmd = 'K="${RENDER_KEY:-$(grep ^RENDER_KEY= /etc/render-card/env 2>/dev/null | cut -d= -f2-)}"; ' +
+      '[ -n "$K" ] || { echo \'{"error":"RENDER_KEY introuvable (env ou /etc/render-card/env)"}\'; exit 0; }; ' +
+      'curl -sS -m 170 -X POST "$NAYO_RENDER_URL" -H "Content-Type: application/json" -H @<(printf "X-Render-Key: %s\\n" "$K") --data-binary @-';
+    out = execFileSync('bash', ['-c', cmd], {
+      input, encoding: 'utf8', maxBuffer: 1 << 20,
+      env: { ...process.env, NAYO_RENDER_URL: process.env.NAYO_RENDER_URL || 'http://127.0.0.1:8787/render' },
+    });
+  } else {
+    const cmd = 'K=$(grep ^RENDER_KEY= /etc/render-card/env | cut -d= -f2-); ' +
+      'curl -sS -m 170 -X POST http://127.0.0.1:8787/render -H "Content-Type: application/json" -H "X-Render-Key: $K" --data-binary @-';
+    out = execFileSync('ssh', ['-i', SSH_KEY, '-o', 'ConnectTimeout=15', VPS, cmd], { input, encoding: 'utf8', maxBuffer: 1 << 20 });
+  }
   let r; try { r = JSON.parse(out); } catch { throw new Error('réponse render-card illisible : ' + out.slice(0, 200)); }
   if (!r.url) throw new Error('render-card : ' + (r.error || 'sans url') + (r.detail ? ' — ' + r.detail : ''));
   return r;

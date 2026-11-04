@@ -1,0 +1,11 @@
+[Unit]
+Description=Mariam + Salimata : lot social W+2, mercredi 08:00 Dakar
+
+[Timer]
+OnCalendar=Wed *-*-* 08:00:00 Africa/Dakar
+# Une exécution manquée (VPS éteint) n'est PAS rattrapée : on la lance à la main.
+Persistent=false
+Unit=mm-agent@lot-social.service
+
+[Install]
+WantedBy=timers.target

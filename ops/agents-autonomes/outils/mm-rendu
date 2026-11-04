@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Déclenche une passe de rendu des visuels (WF-SOCIAL-04, webhook n8n `mm-run-visuel`).
+# WF-04 prend 6 lignes `rédigé` par passe ; son cron (toutes les 2 h, 8-20 h UTC) fait le reste.
+#
+# Installé dans /opt/mm-agents/bin/mm-rendu (root, lecture seule pour l'agent). Le jeton
+# `N8N_TRIGGER_TOKEN` est lu dans Config et ne sort jamais de ce script. Ce webhook ne publie
+# rien : WF-SOCIAL-05 (publication) n'a volontairement aucun webhook.
+#
+# Usage : mm-rendu            → affiche « rendu déclenché (HTTP 200) » ou l'erreur
+set -euo pipefail
+MM_HOME="${MM_HOME:-/opt/mm-agents}"
+# shellcheck source=../lib.sh
+. "$MM_HOME/lib.sh"
+[ -n "${NOCODB_TOKEN:-}" ] || { [ -r /etc/mm-agents/env ] && set -a && . /etc/mm-agents/env && set +a; }
+
+URL="${MM_N8N_LOCAL:-http://127.0.0.1:5680}/webhook/mm-run-visuel"
+if [ "${MM_DRY_RUN:-0}" = 1 ]; then echo "[dry-run] POST $URL (non envoyé)"; exit 0; fi
+
+jeton=$(cfg_get N8N_TRIGGER_TOKEN) || { echo "✖ Config NocoDB injoignable"; exit 1; }
+[ -n "$jeton" ] || { echo "✖ N8N_TRIGGER_TOKEN absent de Config"; exit 1; }
+code=$(curl -sS -m 30 -o /dev/null -w '%{http_code}' -X POST "$URL" \
+  -H @<(printf 'X-MM-Trigger: %s\n' "$jeton") -H 'Content-Type: application/json' --data '{"source":"mm-agents"}') || code=000
+if [ "$code" = 200 ]; then echo "✔ rendu déclenché (HTTP 200) — WF-SOCIAL-04 traite 6 lignes par passe, le cron fait le reste"
+else echo "✖ webhook mm-run-visuel : HTTP $code (le cron de WF-04 rendra quand même, toutes les 2 h)"; exit 1; fi

@@ -1,0 +1,11 @@
+[Unit]
+Description=Thierry : veille et Flash du lundi (W+2), lundi 07:00 Dakar
+
+[Timer]
+OnCalendar=Mon *-*-* 07:00:00 Africa/Dakar
+# Une exécution manquée (VPS éteint) n'est PAS rattrapée : on la lance à la main.
+Persistent=false
+Unit=mm-agent@veille.service
+
+[Install]
+WantedBy=timers.target
