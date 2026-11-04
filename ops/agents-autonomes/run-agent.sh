@@ -48,24 +48,27 @@ B="$MM_HOME/bin"
 SILENCE_RAS=0; PAS_DE_DEBUT=0; ECRITURE=(); EXTRA=()
 WEB=( "WebSearch" "WebFetch" )
 SITE=( "WebFetch(domain:maxmorrys.me)" "WebFetch(domain:edu.maxmorrys.me)" "WebFetch(domain:club.maxmorrys.me)" )
+# Décisions par boutons (decision.mjs, 04/11/2026) : poser une question fermée à Max, lire ses réponses.
+DECIDER=( "Bash(node $B/mm-decision.mjs ask *)" "Bash(node $B/mm-decision.mjs liste *)" "Bash(node $B/mm-decision.mjs liste)" "Bash(node $B/mm-decision.mjs lire *)" )
+MOTIFS=( "Bash(node $B/mm-decision.mjs liste *)" )
 DEPOT_POSTS=( "Bash(node scripts/growth/nocodb.mjs create contenus *)" "Bash(node scripts/growth/nayo.mjs brief *)"
               "Bash(node $B/qa-lot.mjs *)" "Bash($B/mm-rendu)" )
 case "$TACHE" in
   veille)          AGENT="🔎 Thierry — veille et Flash du lundi"; TOURS=150; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" ) ;;
-  lot-social)      AGENT="🗓 Mariam & Salimata — lot social";     TOURS=200; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" ) ;;
+  lot-social)      AGENT="🗓 Mariam & Salimata — lot social";     TOURS=200; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" "${MOTIFS[@]}" ) ;;
   article)         AGENT="🗞️ Rédaction — article de la quinzaine"; TOURS=250; ECRITURE=( "content/blog/**" )
                    EXTRA=( "${WEB[@]}" "Bash(node scripts/growth/blog-lint.mjs *)" "Bash(node scripts/growth/blog-publish.mjs content/blog/*)"
-                           "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" ) ;;
+                           "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${DECIDER[@]}" ) ;;
   diffusion)       AGENT="🚀 Omar — indexation et diffusion des articles"; TOURS=120
                    EXTRA=( "${DEPOT_POSTS[@]}" "${SITE[@]}" "Bash(node $B/mm-gsc.mjs *)" "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" ) ;;
   relecture)       AGENT="🖋️ Béatrice — relecture des cartes"; TOURS=80; SILENCE_RAS=1; PAS_DE_DEBUT=1
                    EXTRA=( "Bash(node scripts/growth/nayo.mjs brief *)" ) ;;
   lecons)          AGENT="🎓 Adjoa — leçons en brouillon"; TOURS=200; ECRITURE=( "content/lecons/**" )
-                   EXTRA=( "Bash(node $B/mm-firestore.mjs formations *)" "Bash(node $B/mm-firestore.mjs formations)" "${SITE[@]}" ) ;;
+                   EXTRA=( "Bash(node $B/mm-firestore.mjs formations *)" "Bash(node $B/mm-firestore.mjs formations)" "${SITE[@]}" "${DECIDER[@]}" ) ;;
   rysmo-faq)       AGENT="🤗 Josiane — questions posées à Rysmo"; TOURS=80
                    EXTRA=( "Bash(node $B/mm-firestore.mjs rysmo *)" ) ;;
   revue-mensuelle) AGENT="🧭 Awa — revue du mois et plan"; TOURS=150
-                   EXTRA=( "Bash(node $B/mm-meta-verif.mjs *)" "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" ) ;;
+                   EXTRA=( "Bash(node $B/mm-meta-verif.mjs *)" "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${DECIDER[@]}" ) ;;
   seo-mensuel)     AGENT="🧩 Rokia — bilan Search Console"; TOURS=120
                    EXTRA=( "Bash(node $B/mm-gsc.mjs *)" "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${SITE[@]}" ) ;;
   conformite)      AGENT="⚖️ Ndèye — conformité des contenus du mois"; TOURS=120
@@ -73,9 +76,9 @@ case "$TACHE" in
   lettre)          AGENT="💌 Serge — lettre et épreuve"; TOURS=120
                    EXTRA=( "Bash(node $B/mm-lettre-epreuve.mjs *)" "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${SITE[@]}" ) ;;
   demandes)        AGENT="🤝 Ibrahima — demandes et relances"; TOURS=120; ECRITURE=( "_bmad-output/commercial/**" )
-                   EXTRA=( "Bash(node $B/mm-firestore.mjs collection *)" ) ;;
+                   EXTRA=( "Bash(node $B/mm-firestore.mjs collection *)" "${DECIDER[@]}" ) ;;
   prospection)     AGENT="🤝 Ibrahima — prospection"; TOURS=150; ECRITURE=( "_bmad-output/commercial/**" ); EXTRA=( "${WEB[@]}" ) ;;
-  booster)         AGENT="🎯 Koffi — post à booster"; TOURS=80; EXTRA=( "Bash(node $B/mm-meta-verif.mjs *)" ) ;;
+  booster)         AGENT="🎯 Koffi — post à booster"; TOURS=80; EXTRA=( "Bash(node $B/mm-meta-verif.mjs *)" "${DECIDER[@]}" ) ;;
   revenus)         AGENT="💹 Aboubacar — revenus du mois"; TOURS=120; EXTRA=( "Bash(node $B/mm-firestore.mjs collection *)" "${SITE[@]}" ) ;;
   bilan)           AGENT="📈 Yann — bilan de la semaine"; TOURS=80; EXTRA=( "Bash(node $B/mm-meta-verif.mjs *)" ) ;;
   *) echo "usage : run-agent.sh <veille|lot-social|article|diffusion|relecture|lecons|rysmo-faq|revue-mensuelle|seo-mensuel|conformite|lettre|demandes|prospection|booster|revenus|bilan>[-force] [--dry-run]" >&2; exit 2 ;;
@@ -87,7 +90,9 @@ export MM_TACHE="$TACHE"   # lu par mm-firestore.mjs : chaque tâche n'ouvre que
 
 STAMP="$(date +%Y-%m-%d_%H%M)"
 mkdir -p "$MM_LOG_DIR"
-LOG="$MM_LOG_DIR/${STAMP}-${TACHE}$([ "$MM_DRY_RUN" = 1 ] && echo -dry).log"
+# `|| true` : sous `set -e`, une affectation dont la substitution échoue arrête le script
+# (toutes les vraies exécutions mouraient ici sans un mot, le 04/11/2026).
+LOG="$MM_LOG_DIR/${STAMP}-${TACHE}$([ "$MM_DRY_RUN" = 1 ] && echo -dry || true).log"
 exec > >(tee -a "$LOG") 2>&1
 log() { printf '%s  %s\n' "$(date '+%F %T')" "$*"; }
 log "▶ tâche=$TACHE force=$FORCE branche=$MM_BRANCH dry-run=$MM_DRY_RUN utilisateur=$(id -un)"
@@ -185,7 +190,7 @@ CONTEXTE="- Date et heure d'exécution (Dakar, UTC+0) : $D_MAINTENANT
 - Aujourd'hui : $D_AUJ ($D_JOUR, semaine $D_SEM) · semaine en cours : $D_LUNDI → $D_DIMANCHE
 - Semaine W+1 : $D_W1_LUNDI → $D_W1_DIM · semaine W+2 : $D_W2_SEM, $D_W2_LUNDI → $D_W2_DIM
 - Mois en cours : $D_MOIS · mois écoulé : $D_MOIS_PREC ($D_MOIS_PREC_DEBUT → $D_MOIS_PREC_FIN)
-- Quantième : $D_QUANTIEME$([ "$D_QUANTIEME" -le 7 ] && echo " → c'est la PREMIÈRE semaine du mois")
+- Quantième : $D_QUANTIEME$([ "$D_QUANTIEME" -le 7 ] && echo " → c'est la PREMIÈRE semaine du mois" || true)
 - Il y a 7 jours : $D_MOINS7 · il y a 21 jours : $D_MOINS21 · dans 14 jours : $D_PLUS14 · J+5 : $D_J5
 - Secrets disponibles : Firestore (compte de service) = $(dispo "${GOOGLE_APPLICATION_CREDENTIALS:-}") · Search Console = $(dispo "${MM_GSC_SA:-}") · clé marketing (épreuve de lettre) = $(dispo "${MM_MARKETING_KEY_FILE:-}")
 - Outils maison : $B/ (mm-rendu, qa-lot.mjs, mm-firestore.mjs, mm-gsc.mjs, mm-meta-verif.mjs, mm-lettre-epreuve.mjs)"
@@ -297,5 +302,5 @@ if [ "$SILENCE_RAS" = 1 ] && printf '%s' "$TEXTE" | head -n 1 | grep -q '^RAS'; 
 fi
 tg_send "${TEXTE:-« $TACHE » terminé sans compte rendu.}
 
-— ${DUREE} min, $INFO$([ "$N" -gt 0 ] && echo " · sorties : $DEST")"
+— ${DUREE} min, $INFO$([ "$N" -gt 0 ] && echo " · sorties : $DEST" || true)"
 log "✔ terminé — journal : $LOG"

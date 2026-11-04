@@ -13,6 +13,9 @@ tags: [Google Business Profile, commerce local, Dakar]
 focusKeyword: "fiche google"
 # 110 à 155 caractères, avec le mot-clé.
 metaDescription: "Ta fiche Google est souvent le premier contact entre ton commerce et un client. Voici comment la remplir pour qu'elle travaille pour toi."
+# Couverture : laisser vide = couverture automatique (render-card, kit DS, 1200×630, couleur du pôle),
+# produite par `npm run blog:publish -- <fichier> --cover-only`, qui écrit ici `coverImage` (et `coverFond`).
+# Facultatifs : coverTitle (autre surlignage du titre, `[mot]`), coverTerritoire (forme|informe|transforme|digitalise).
 coverImage: ""
 featured: false
 ---

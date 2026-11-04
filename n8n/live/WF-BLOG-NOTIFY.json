@@ -1,0 +1,322 @@
+{
+  "updatedAt": "2026-11-04T09:59:01.711Z",
+  "id": "i9mbCAIeBg2aMsek",
+  "name": "WF-BLOG-NOTIFY — Article à valider (Telegram)",
+  "active": true,
+  "nodes": [
+    {
+      "id": "ce18af04-788d-4914-aaf9-c2841afa631b",
+      "name": "Cron — 30 min 6-22h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/30 6-22 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "1c7b0c5e-5081-414c-a781-c961d594d780",
+      "name": "Webhook — mm-run-article",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        180
+      ],
+      "webhookId": "mm-run-article",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mm-run-article",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "h2JKwNW7i0C7nHhd",
+          "name": "MM Blog Trigger"
+        }
+      }
+    },
+    {
+      "name": "NocoDB — Lire Config",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        260,
+        80
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,TELEGRAM_BOT_TOKEN)~or(Cle,eq,TELEGRAM_CHAT_ID)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "60f238f5-a2ec-4616-a744-59838b2b7508"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "1b2f166e-8bcc-4990-b5e3-d4bdaafc10f0",
+      "name": "Aplatir — Lire Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        80
+      ]
+    },
+    {
+      "id": "2581d9a8-a4c0-42a7-9a73-163319ab6b04",
+      "name": "API — Brouillons à valider",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        80
+      ],
+      "executeOnce": true,
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.maxmorrys.me/blog/validation",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"decision\": \"lister\"}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "7PeNDEbydKNcyvlH",
+          "name": "MM Blog Validation"
+        }
+      }
+    },
+    {
+      "id": "478f15a9-069f-465f-bd38-c56a0b9ab8be",
+      "name": "Build — Carte article",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        80
+      ],
+      "parameters": {
+        "jsCode": "// Carte « article à valider » (04/11/2026). Entrée : les brouillons `blog/` soumis\n// (`pretAValider: true`), encore brouillons, et dont la carte n'est pas partie\n// (`telegramNotifiedAt` vide) — filtrés par le Worker api.\n// Sortie, par article : la pièce jointe HTML (binaire `data`, envoyée par sendDocument) et le\n// corps de la carte (sendMessage, couverture en grand par l'aperçu de lien, boutons ✅/❌).\n// ⛔ Ce workflow n'écrit JAMAIS `status` : la publication n'a lieu que sur le clic ✅\n// (WF-TG-ROUTER → Worker api `blog/validation`).\nconst cfg = {};\nfor (const r of $('Aplatir — Lire Config').all()) { if (r.json.Cle) cfg[r.json.Cle] = r.json.Valeur; }\nconst token = cfg.TELEGRAM_BOT_TOKEN, chatId = cfg.TELEGRAM_CHAT_ID;\nif (!token || !chatId) throw new Error('TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID absents de la Config NocoDB');\n\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst attr = (s) => esc(s).replace(/\"/g, '&quot;');\n\n// ── Entrée : la réponse de `POST api.maxmorrys.me/blog/validation {decision:'lister'}` ──\n// (le Worker lit Firestore avec son compte de service ; le credential Google de n8n n'y a pas droit)\nconst rep = $input.first().json || {};\nif (rep.ok !== true || !Array.isArray(rep.articles)) throw new Error('blog/validation lister : réponse inattendue — ' + JSON.stringify(rep).slice(0, 300));\nconst lignes = rep.articles;\n\n// ── Markdown → HTML (sous-ensemble du blog : titres, listes, citations, tableaux, code, liens) ──\nconst inline = (t) => {\n  const codes = [];\n  let s = String(t).replace(/`([^`]+)`/g, (_, c) => { codes.push(c); return '\\u0000' + (codes.length - 1) + '\\u0000'; });\n  s = esc(s);\n  s = s.replace(/!\\[([^\\]]*)\\]\\(([^)\\s]+)(?:\\s+\"[^\"]*\")?\\)/g, (_, a, u) => '<img alt=\"' + a + '\" src=\"' + u + '\">');\n  s = s.replace(/\\[([^\\]]+)\\]\\(([^)\\s]+)(?:\\s+\"[^\"]*\")?\\)/g, (_, a, u) => {\n    const href = /^\\//.test(u) ? 'https://maxmorrys.me' + u : u;\n    return '<a href=\"' + href + '\">' + a + '</a>';\n  });\n  s = s.replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>').replace(/__([^_]+)__/g, '<strong>$1</strong>');\n  s = s.replace(/(^|[^*])\\*([^*\\s][^*]*)\\*/g, '$1<em>$2</em>').replace(/(^|[\\s(])_([^_\\s][^_]*)_/g, '$1<em>$2</em>');\n  return s.replace(/\\u0000(\\d+)\\u0000/g, (_, i) => '<code>' + esc(codes[+i]) + '</code>');\n};\nconst md2html = (md) => {\n  const L = String(md || '').replace(/\\r\\n?/g, '\\n').split('\\n');\n  const out = [];\n  let i = 0;\n  const isTableSep = (l) => /^\\s*\\|?\\s*:?-{3,}:?\\s*(\\|\\s*:?-{3,}:?\\s*)*\\|?\\s*$/.test(l);\n  const cells = (l) => l.trim().replace(/^\\|/, '').replace(/\\|$/, '').split('|').map((c) => c.trim());\n  while (i < L.length) {\n    const l = L[i];\n    if (!l.trim()) { i++; continue; }\n    if (/^```/.test(l)) {\n      const buf = []; i++;\n      while (i < L.length && !/^```/.test(L[i])) buf.push(L[i++]);\n      i++; out.push('<pre><code>' + esc(buf.join('\\n')) + '</code></pre>'); continue;\n    }\n    const h = l.match(/^(#{1,6})\\s+(.*)$/);\n    if (h) { const n = Math.min(6, h[1].length + 1); out.push('<h' + n + '>' + inline(h[2]) + '</h' + n + '>'); i++; continue; }\n    if (/^\\s*([-*_])(\\s*\\1){2,}\\s*$/.test(l)) { out.push('<hr>'); i++; continue; }\n    if (/^\\s*\\|/.test(l) && i + 1 < L.length && isTableSep(L[i + 1])) {\n      const head = cells(l); i += 2;\n      const body = [];\n      while (i < L.length && /^\\s*\\|/.test(L[i])) body.push(cells(L[i++]));\n      out.push('<div class=\"t\"><table><thead><tr>' + head.map((c) => '<th>' + inline(c) + '</th>').join('') + '</tr></thead><tbody>' +\n        body.map((r) => '<tr>' + r.map((c) => '<td>' + inline(c) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>');\n      continue;\n    }\n    if (/^\\s*>/.test(l)) {\n      const buf = [];\n      while (i < L.length && /^\\s*>/.test(L[i])) buf.push(L[i++].replace(/^\\s*>\\s?/, ''));\n      out.push('<blockquote>' + md2html(buf.join('\\n')) + '</blockquote>'); continue;\n    }\n    const ul = /^\\s*[-*+]\\s+/, ol = /^\\s*\\d+[.)]\\s+/;\n    if (ul.test(l) || ol.test(l)) {\n      const ordered = ol.test(l), re = ordered ? ol : ul, items = [];\n      while (i < L.length && (re.test(L[i]) || (/^\\s{2,}\\S/.test(L[i]) && items.length))) {\n        if (re.test(L[i])) items.push(L[i].replace(re, '')); else items[items.length - 1] += ' ' + L[i].trim();\n        i++;\n      }\n      const tag = ordered ? 'ol' : 'ul';\n      out.push('<' + tag + '>' + items.map((x) => '<li>' + inline(x) + '</li>').join('') + '</' + tag + '>'); continue;\n    }\n    const buf = [];\n    while (i < L.length && L[i].trim() && !/^(#{1,6}\\s|```|\\s*>|\\s*[-*+]\\s+|\\s*\\d+[.)]\\s+)/.test(L[i]) &&\n      !(/^\\s*\\|/.test(L[i]) && i + 1 < L.length && isTableSep(L[i + 1]))) buf.push(L[i++].trim());\n    out.push('<p>' + inline(buf.join(' ')) + '</p>');\n  }\n  return out.join('\\n');\n};\nconst texteBrut = (md) => String(md || '')\n  .replace(/```[\\s\\S]*?```/g, ' ')\n  .replace(/!\\[[^\\]]*\\]\\([^)]*\\)/g, ' ')\n  .replace(/\\[([^\\]]+)\\]\\([^)]*\\)/g, '$1')\n  .replace(/^#{1,6}\\s+/gm, '').replace(/^\\s*>\\s?/gm, '').replace(/^\\s*[-*+]\\s+/gm, '• ')\n  .replace(/[*_`|]/g, '').replace(/[ \\t]+/g, ' ');\nconst couper = (s, n) => {\n  s = String(s || '').trim();\n  if (s.length <= n) return s;\n  const t = s.slice(0, n); const k = t.lastIndexOf(' ');\n  return (k > n * 0.6 ? t.slice(0, k) : t).replace(/[\\s,;:.]+$/, '') + '…';\n};\n\nconst out = [];\nfor (const f of lignes) {\n  // Le Worker ne renvoie que des brouillons soumis dont la carte n'est pas partie.\n  const docId = String(f.id || '');\n  if (!/^[A-Za-z0-9_-]+$/.test(docId)) continue;\n\n  const contenu = String(f.content || '');\n  const brut = texteBrut(contenu);\n  const mots = brut.split(/\\s+/).filter((w) => /[\\p{L}\\p{N}]/u.test(w)).length;\n  // Introduction = ce qui précède le premier intertitre.\n  const avantTitre = contenu.split(/\\n(?=#{1,6}\\s)/)[0];\n  const intro = couper(texteBrut(avantTitre).replace(/\\s*\\n\\s*/g, '\\n').replace(/\\n{2,}/g, '\\n\\n'), 600);\n  const titreSeo = f.metaTitle || f.title || '';\n  const test = f.test === true;\n  const cover = /^https:\\/\\//.test(f.coverImage || '') ? f.coverImage : '';\n\n  // ── Pièce jointe : l'article complet, lisible sur téléphone ──\n  const html = '<!doctype html><html lang=\"fr\"><head><meta charset=\"utf-8\">' +\n    '<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex\">' +\n    '<title>' + esc(f.title) + '</title><style>' +\n    ':root{color-scheme:light dark}body{margin:0;font:17px/1.65 -apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,sans-serif;background:#fff;color:#1a1a1a}' +\n    '@media (prefers-color-scheme:dark){body{background:#141414;color:#eaeaea}.meta,.badge{background:#222!important;border-color:#333!important}a{color:#8ab4ff}}' +\n    'main{max-width:720px;margin:0 auto;padding:16px}img{max-width:100%;height:auto;border-radius:12px}' +\n    'h1{font-size:1.6em;line-height:1.25;margin:.6em 0 .3em}h2{font-size:1.3em;margin:1.6em 0 .4em}h3{font-size:1.1em;margin:1.3em 0 .3em}' +\n    '.meta{background:#f4f4f4;border:1px solid #e3e3e3;border-radius:12px;padding:12px 14px;font-size:.88em;line-height:1.5}' +\n    '.badge{display:inline-block;background:#fff3cd;border:1px solid #f0d27a;border-radius:8px;padding:6px 10px;font-weight:600;margin:8px 0}' +\n    'blockquote{margin:1em 0;padding:.2em 1em;border-left:4px solid #c9c9c9}pre{overflow:auto;padding:12px;border-radius:8px;background:rgba(127,127,127,.12)}' +\n    'code{font-size:.9em}.t{overflow-x:auto}table{border-collapse:collapse;margin:1em 0;font-size:.92em}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top}' +\n    '</style></head><body><main>' +\n    (test ? '<div class=\"badge\">🧪 ARTICLE DE TEST — ne pas publier</div>' : '<div class=\"badge\">Brouillon — à valider dans Telegram</div>') +\n    (cover ? '<p><img src=\"' + attr(cover) + '\" alt=\"\"></p>' : '') +\n    '<h1>' + esc(f.title) + '</h1>' +\n    '<div class=\"meta\"><b>Catégorie</b> : ' + esc(f.category || '—') + '<br><b>Mot-clé</b> : ' + esc(f.focusKeyword || '—') +\n    '<br><b>Titre SEO</b> : ' + esc(titreSeo) + ' (' + titreSeo.length + ' car.)' +\n    '<br><b>Méta-description</b> : ' + esc(f.metaDescription || '') + ' (' + String(f.metaDescription || '').length + ' car.)' +\n    '<br><b>Adresse</b> : https://maxmorrys.me/blog/' + esc(f.slug) + '<br><b>Longueur</b> : ' + mots + ' mots · ' + esc(f.readTime || '?') + ' min' +\n    (f.excerpt ? '<br><b>Chapô</b> : ' + esc(f.excerpt) : '') + '</div>' +\n    md2html(contenu) + '</main></body></html>';\n  const fichier = (String(f.slug || docId).replace(/[^a-z0-9-]/gi, '-').slice(0, 80) || 'article') + '.html';\n\n  // ── La carte ──\n  const tete = [\n    (test ? '🧪 <b>TEST — article à valider</b> (rien ne sera publié)' : '📝 <b>Article à valider</b>'),\n    '🏷 ' + esc(f.category || '—') + '  ·  🔑 ' + esc(f.focusKeyword || '—'),\n    '📏 ' + mots + ' mots · ' + esc(f.readTime || '?') + ' min de lecture',\n    '', '<b>' + esc(f.title) + '</b>',\n    '<i>' + esc(f.metaDescription || f.excerpt || '') + '</i>', '', '',\n  ].join('\\n');\n  const pied = '\\n\\n🔗 maxmorrys.me/blog/' + esc(f.slug) + '\\n📎 Article complet : la pièce jointe juste au-dessus.' +\n    '\\n\\n<i>Id ' + esc(docId) + '</i>';\n  const max = 4096 - tete.length - pied.length - 2;\n  let corps = intro;\n  while (esc(corps).length > max) corps = corps.slice(0, -20) + '…';\n  const reply_markup = { inline_keyboard: [[\n    { text: '✅ Publier', callback_data: 'approve:article:' + docId },\n    { text: '❌ Refuser', callback_data: 'reject:article:' + docId },\n  ]] };\n  const carte = {\n    chat_id: chatId, text: tete + esc(corps) + pied, parse_mode: 'HTML', reply_markup,\n    link_preview_options: cover ? { url: cover, prefer_large_media: true, show_above_text: true } : { is_disabled: true },\n  };\n  out.push({\n    json: {\n      docId, token, chatId, titre: f.title, carte,\n      legende: (test ? '🧪 TEST — ' : '📎 ') + String(f.title || '').slice(0, 200) + ' — article complet (' + mots + ' mots)',\n    },\n    binary: { data: { data: Buffer.from(html, 'utf8').toString('base64'), mimeType: 'text/html', fileName: fichier, fileExtension: 'html' } },\n  });\n}\nreturn out;\n"
+      }
+    },
+    {
+      "id": "04e95ef8-27b7-4619-ab45-223bec26c4a4",
+      "name": "Envoi — Pièce jointe (sendDocument)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        80
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/sendDocument",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.chatId }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $json.legende }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "document",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      }
+    },
+    {
+      "id": "beef8c90-d94d-4009-aea0-b7f24eb119cc",
+      "name": "Envoi — Carte (boutons)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        80
+      ],
+      "parameters": {
+        "jsCode": "// La carte part APRÈS la pièce jointe, en réponse à elle : les boutons restent le dernier\n// message de la conversation. Entrée = réponses de sendDocument, dans l'ordre du Build\n// (appariées par index). Si la pièce jointe a échoué, la carte part quand même et le dit.\n// Sortie = uniquement les cartes envoyées (elles seules seront marquées notifiées : une\n// carte en échec sera retentée au passage suivant). Aucune carte partie alors qu'il y en\n// avait à envoyer ⇒ erreur (alerte WF-ERR), jamais un échec muet.\nconst http = this.helpers.httpRequest.bind(this);\nconst msgErr = (e) => String((e && e.response && e.response.body && e.response.body.description) || (e && e.description) || (e && e.message) || e).slice(0, 300);\nconst builds = $('Build — Carte article').all();\nconst reps = $input.all();\nconst out = [], erreurs = [];\nfor (let i = 0; i < builds.length; i++) {\n  const b = builds[i].json;\n  const r = (reps[i] && reps[i].json) || {};\n  const docMsg = r.result && r.result.message_id;\n  const carte = JSON.parse(JSON.stringify(b.carte));\n  if (docMsg) carte.reply_parameters = { message_id: docMsg, allow_sending_without_reply: true };\n  else carte.text = carte.text.replace('📎 Article complet : la pièce jointe juste au-dessus.',\n    '⚠️ Pièce jointe non envoyée (' + String(r.error && (r.error.message || r.error) || r.description || 'erreur inconnue').slice(0, 120).replace(/[<>&]/g, ' ') + ') : relire le brouillon dans /admin/articles.');\n  try {\n    const res = await http({ method: 'POST', url: 'https://api.telegram.org/bot' + b.token + '/sendMessage', body: carte, json: true });\n    const mid = res && res.result && res.result.message_id;\n    if (!mid) throw new Error('sendMessage sans message_id');\n    out.push({ json: { docId: b.docId, message_id: String(mid), document_message_id: docMsg ? String(docMsg) : '', notifiedAt: new Date().toISOString() } });\n  } catch (e) {\n    erreurs.push(b.docId + ' : ' + msgErr(e));\n  }\n}\nif (erreurs.length) console.log('Cartes article en échec — ' + erreurs.join(' | '));\nif (erreurs.length && !out.length) throw new Error('Aucune carte article envoyée — ' + erreurs.join(' | '));\nreturn out;\n"
+      }
+    },
+    {
+      "id": "71dcaa70-1eef-45a4-9069-550b230fe13a",
+      "name": "API — Marquer notifié",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        80
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.maxmorrys.me/blog/validation",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({decision:'marquer',id:$json.docId,messageId:$json.message_id,documentMessageId:$json.document_message_id}) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "7PeNDEbydKNcyvlH",
+          "name": "MM Blog Validation"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron — 30 min 6-22h": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook — mm-run-article": {
+      "main": [
+        [
+          {
+            "node": "NocoDB — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Aplatir — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplatir — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "API — Brouillons à valider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API — Brouillons à valider": {
+      "main": [
+        [
+          {
+            "node": "Build — Carte article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build — Carte article": {
+      "main": [
+        [
+          {
+            "node": "Envoi — Pièce jointe (sendDocument)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envoi — Pièce jointe (sendDocument)": {
+      "main": [
+        [
+          {
+            "node": "Envoi — Carte (boutons)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envoi — Carte (boutons)": {
+      "main": [
+        [
+          {
+            "node": "API — Marquer notifié",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Dakar",
+    "errorWorkflow": "MMERRALERT0001"
+  },
+  "nodeGroups": [],
+  "tags": []
+}

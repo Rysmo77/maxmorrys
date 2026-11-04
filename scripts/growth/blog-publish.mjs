@@ -1,14 +1,37 @@
 #!/usr/bin/env node
-// Dépose un article versionné (content/blog/<slug>.md) dans Firestore `blog/`, EN BROUILLON.
+// Dépose un article versionné (content/blog/<slug>.md) dans Firestore `blog/`, EN BROUILLON,
+// et le SOUMET à la validation de Max dans Telegram (depuis le 04/11/2026).
 //
-// La mise en ligne reste un geste humain dans l'admin (/admin/articles → Publier) : c'est là
-// que vivent les règles Firestore et l'envoi `notifyOnPublish` aux abonnés. Ce script ne pose
-// jamais `status: 'published'`.
+// La mise en ligne reste un geste humain : le clic « ✅ Publier » sous la carte Telegram
+// (WF-BLOG-NOTIFY envoie la carte, WF-TG-ROUTER relaie le clic au Worker api `blog/validation`,
+// qui publie et prévient les abonnés), ou l'admin (/admin/articles → Publier). Ce script ne pose
+// JAMAIS `status: 'published'`.
+//
+// Soumission : le brouillon porte `pretAValider: true` et `telegramNotifiedAt: ''` ; après
+// l'écriture, le script réveille WF-BLOG-NOTIFY (webhook n8n `mm-run-article`, clé
+// `N8N_BLOG_TRIGGER_KEY` de .env.local). Sans clé ou si l'appel échoue, la carte part quand même
+// au passage suivant du workflow (toutes les 30 min, 6 h-22 h 30, heure de Dakar).
+// `--sans-carte` dépose un brouillon de travail sans le soumettre (`pretAValider: false`).
+// Un article dont l'en-tête porte `test: true` reçoit une carte « 🧪 TEST » : le Worker refuse
+// de le publier quoi qu'on clique (il simule et n'écrit rien).
 //
 //   node scripts/growth/blog-publish.mjs content/blog/<slug>.md            (simulation)
-//   node scripts/growth/blog-publish.mjs content/blog/<slug>.md --apply    (crée le brouillon)
+//   node scripts/growth/blog-publish.mjs content/blog/<slug>.md --apply    (crée le brouillon + carte Telegram)
 //   node scripts/growth/blog-publish.mjs content/blog/<slug>.md --apply --update <docId>
-//        (met à jour un BROUILLON existant ; refuse un article déjà publié)
+//        (met à jour un BROUILLON existant et renvoie une carte ; refuse un article déjà publié)
+//   … --apply --sans-carte   (brouillon de travail, sans carte Telegram)
+//   node scripts/growth/blog-publish.mjs content/blog/<slug>.md --cover-only [--force]
+//        (rend SEULEMENT la couverture et écrit `coverImage` dans l'en-tête du fichier)
+//
+// Couverture (décision de Max du 01/11/2026) : si l'en-tête n'a pas de `coverImage`, elle est
+// rendue par render-card (famille `couverture`, kit DS, 1200×630) via le VPS — la clé reste
+// là-bas — et déposée sur R2 (`https://media.maxmorrys.me/social-cards/…`). Elle remplit
+// `coverImage` ET `ogImage`. Mode hybride par défaut : photo générée par Workers AI depuis le
+// titre et le pôle ; `--fond <url>` impose une photo ; `--sans-photo` rend la version
+// typographique. Si la génération échoue, la couverture sort typographique (et le script le dit).
+// En simulation, la couverture est rendue (URL affichée, `--out <dossier>` pour le PNG) mais
+// rien n'est écrit. Conseil : `--cover-only` d'abord, la simulation et `--apply` réutilisent
+// alors la couverture écrite dans l'en-tête (une seule génération payante).
 //
 // Avant d'écrire : le contrôle de charte (blog-lint) doit passer sans erreur, et le slug
 // (fr comme en) ne doit appartenir à aucun autre document.
@@ -16,10 +39,13 @@
 // Identifiants : compte de service Firebase (fichier JSON, jamais commité) pris dans
 // GOOGLE_APPLICATION_CREDENTIALS, sinon le premier `max-morrys-*.json` à la racine.
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { createSign } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { readArticle, readTime } from './article.mjs';
+import { chargeArticle } from './couverture.mjs';
+import { renderVps } from './nayo.mjs';
 
 function die(msg) { console.error(`✖ ${msg}`); process.exit(1); }
 
@@ -33,6 +59,36 @@ function parseArgs(argv) {
     } else a._.push(argv[i]);
   }
   return a;
+}
+
+/** Lit une variable dans l'environnement, sinon dans .env.local (dernière occurrence). */
+function envLocal(nom) {
+  if (process.env[nom]) return process.env[nom];
+  let v = '';
+  try {
+    for (const l of readFileSync('.env.local', 'utf8').split('\n')) {
+      const m = l.match(new RegExp(`^(?:export\\s+)?${nom}=(.*)$`));
+      if (m) v = m[1].trim().replace(/^["']|["']$/g, '');
+    }
+  } catch { /* pas de .env.local */ }
+  return v;
+}
+
+/** Réveille WF-BLOG-NOTIFY pour que la carte parte tout de suite. Ne lève jamais. */
+async function reveillerCarte(id) {
+  const cle = envLocal('N8N_BLOG_TRIGGER_KEY');
+  if (!cle) return 'N8N_BLOG_TRIGGER_KEY absente de .env.local';
+  try {
+    const r = await fetch('https://n8n.maxmorrys.me/webhook/mm-run-article', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'X-MM-Blog-Trigger': cle },
+      body: JSON.stringify({ id, source: 'blog-publish' }),
+      signal: AbortSignal.timeout(15000),
+    });
+    return r.ok ? '' : `webhook n8n HTTP ${r.status}`;
+  } catch (e) {
+    return `webhook n8n injoignable (${e.message})`;
+  }
 }
 
 function serviceAccount() {
@@ -68,17 +124,66 @@ const toValue = (v) => {
 };
 const fromValue = (v) => v.stringValue ?? v.booleanValue ?? v.integerValue ?? v.doubleValue ?? null;
 
+/** Rend la couverture via render-card (VPS). Renvoie l'URL R2 et, si une photo a été générée, son URL. */
+async function rendreCouverture(meta, args) {
+  // Photo : `--fond` d'abord, sinon celle déjà générée pour cet article (`coverFond`, réutilisée
+  // quand on refait la couverture après un changement de titre : pas de seconde génération).
+  const fond = typeof args.fond === 'string' ? args.fond : (args['sans-photo'] ? '' : (meta.coverFond || ''));
+  if (args.fond !== undefined && !/^https:\/\//.test(fond)) die('--fond attend une URL https.');
+  const charge = chargeArticle(meta, { fond, photo: !args['sans-photo'] });
+  const mode = charge.fond ? 'hybride (photo fournie)' : charge.fondPrompt ? 'hybride (photo générée par Workers AI)' : 'typographique';
+  console.error(`… couverture ${mode} — territoire ${charge.territoire}, titre « ${charge.title} »`);
+  const r = renderVps(charge);
+  if (r.fondErreur) console.error(`⚠ photo non générée (${r.fondErreur}) : couverture typographique.`);
+  if (args.out && args.out !== true) {
+    const dir = resolve(args.out);
+    mkdirSync(dir, { recursive: true });
+    const f = join(dir, `${meta.slug || 'article'}-couverture.png`);
+    writeFileSync(f, Buffer.from(await (await fetch(r.url)).arrayBuffer()));
+    console.error(`✔ ${f}`);
+  }
+  return { url: r.url, fond: r.fond || charge.fond || '' };
+}
+
+/** Écrit `cle: "valeur"` dans l'en-tête du fichier (remplace la ligne existante, sinon l'ajoute). */
+function ecrireEnTete(file, cle, valeur) {
+  const texte = readFileSync(file, 'utf8');
+  const m = texte.match(/^(---\r?\n)([\s\S]*?)(\r?\n---)/);
+  if (!m) die(`${file} : en-tête introuvable.`);
+  const lignes = m[2].split(/\r?\n/);
+  const i = lignes.findIndex((l) => new RegExp(`^${cle}\\s*:`).test(l));
+  const ligne = `${cle}: "${valeur}"`;
+  if (i >= 0) lignes[i] = ligne; else lignes.push(ligne);
+  writeFileSync(file, m[1] + lignes.join('\n') + texte.slice(m[1].length + m[2].length));
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const file = args._[0];
-  if (!file) die('usage : blog-publish.mjs content/blog/<slug>.md [--apply] [--update <docId>]');
+  if (!file) die('usage : blog-publish.mjs content/blog/<slug>.md [--apply] [--update <docId>] [--cover-only [--force]] [--fond <url> | --sans-photo] [--out <dossier>]');
+
+  // 0. Couverture seule : rien d'autre n'est lu ni écrit.
+  if (args['cover-only']) {
+    const { meta } = readArticle(file);
+    if (meta.coverImage && !args.force) die(`coverImage déjà rempli (${meta.coverImage}) : --force pour la refaire.`);
+    const c = await rendreCouverture(meta, args);
+    ecrireEnTete(file, 'coverImage', c.url);
+    if (c.fond) ecrireEnTete(file, 'coverFond', c.fond);
+    console.log(JSON.stringify({ coverImage: c.url, coverFond: c.fond || undefined, ecrit: file }, null, 2));
+    return;
+  }
 
   // 1. Charte
   const lint = spawnSync(process.execPath, ['scripts/growth/blog-lint.mjs', file], { stdio: 'inherit' });
   if (lint.status !== 0) die('le contrôle de charte a relevé des erreurs : corriger avant de déposer.');
 
-  // 2. Document
+  // 2. Document (+ couverture automatique si l'en-tête n'en a pas)
   const { meta, body } = readArticle(file);
+  let couverture = null;
+  if (!meta.coverImage) {
+    couverture = await rendreCouverture(meta, args);
+    meta.coverImage = couverture.url;
+  }
   const doc = {
     title: meta.title,
     slug: meta.slug,
@@ -102,15 +207,22 @@ async function main() {
     ogDescription: meta.ogDescription || '',
     ogImage: meta.ogImage || meta.coverImage || '',
     twitterTitle: '', twitterDescription: '', twitterImage: '',
-    noIndex: meta.noIndex === true,
+    noIndex: meta.noIndex === true || meta.test === true,
     canonicalUrl: '',
+    // Validation Telegram : soumis (sauf --sans-carte), carte pas encore partie.
+    pretAValider: !args['sans-carte'],
+    telegramNotifiedAt: '',
+    telegramMessageId: '',
+    // Article de test : le Worker refuse de le publier (simulation), quel que soit le clic.
+    test: meta.test === true,
   };
 
   if (!args.apply) {
     const { content, ...apercu } = doc;
     console.log('\nSIMULATION — brouillon qui serait déposé dans Firestore `blog/` :');
     console.log(JSON.stringify({ ...apercu, content: `(${content.length} caractères)` }, null, 2));
-    console.log('\nRelance avec --apply pour déposer le brouillon (accord de Max requis).');
+    if (couverture) console.log(`\nCouverture rendue (non écrite dans le fichier) : ${couverture.url}\n  → --cover-only pour l'écrire dans l'en-tête et ne pas la regénérer à l'--apply.`);
+    console.log(`\nRelance avec --apply pour déposer le brouillon${doc.pretAValider ? ' et envoyer la carte de validation Telegram' : ''} (accord de Max requis).`);
     return;
   }
 
@@ -144,8 +256,23 @@ async function main() {
   const out = await res.json();
   if (out.error) die(`Firestore a refusé l'écriture : ${out.error.message}`);
   const id = out.name.split('/').pop();
-  console.log(`\n✔ Brouillon ${args.update ? 'mis à jour' : 'créé'} : blog/${id}`);
-  console.log('  Mise en ligne : /admin/articles → ouvrir le brouillon → Publier (déclenche la notification des abonnés).');
+  // Le fichier versionné garde la couverture déposée.
+  if (couverture) {
+    ecrireEnTete(file, 'coverImage', couverture.url);
+    if (couverture.fond) ecrireEnTete(file, 'coverFond', couverture.fond);
+  }
+  console.log(`\n✔ Brouillon ${args.update ? 'mis à jour' : 'créé'} : blog/${id}${doc.test ? '  (🧪 article de TEST : jamais publiable)' : ''}`);
+  if (doc.pretAValider) {
+    const echec = await reveillerCarte(id);
+    console.log(echec
+      ? `  ⚠ Carte Telegram non déclenchée tout de suite (${echec}) : elle partira au prochain passage de WF-BLOG-NOTIFY (≤ 30 min, 6 h-22 h 30).`
+      : '  📨 Carte de validation envoyée à Max dans Telegram (couverture, résumé, article complet en pièce jointe, boutons ✅ Publier / ❌ Refuser).');
+    console.log('  Mise en ligne : clic « ✅ Publier » sous la carte (publie, prévient les abonnés, vérifie la page 6 min après),');
+    console.log('  ou /admin/articles → ouvrir le brouillon → Publier.');
+  } else {
+    console.log('  Brouillon de travail (--sans-carte) : aucune carte Telegram. Mise en ligne : /admin/articles → Publier,');
+    console.log('  ou redéposer sans --sans-carte (`--apply --update ' + id + '`) pour soumettre à validation.');
+  }
   console.log(`  Ensuite : https://maxmorrys.me/blog/${doc.slug} (prérendu sous 5 min, sitemap et RSS sous 1 h).`);
 }
 

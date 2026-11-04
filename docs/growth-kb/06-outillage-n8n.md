@@ -73,7 +73,7 @@ Tables utiles : `contenus` (file sociale), `idees-articles` (banque d'idées éd
 
 ## Inventaire n8n (29/10/2026, après corrections)
 
-**14 actifs** (n8n `2.28.6` épinglé, rétention des exécutions 30 jours) :
+**15 actifs** (WF-BLOG-NOTIFY ajouté le 04/11 ; n8n `2.28.6` épinglé, rétention des exécutions 30 jours) :
 
 | Workflow | id | Déclencheur | Rôle |
 |---|---|---|---|
@@ -81,7 +81,8 @@ Tables utiles : `contenus` (file sociale), `idees-articles` (banque d'idées éd
 | WF-SOCIAL-04 Visuels | 774G38cqIvZsJUHm | toutes les 2 h 8-20 h + webhook `mm-run-visuel` | `rédigé` → rendu render-card → `prêt_à_valider` |
 | WF-SOCIAL-05 Publication | wrRa0I7tYAsPJSOA | */15 min 7-22 h | `validé` échu → API natives (posts, carrousels, **stories IG/FB**) → `publié` (id réel) / `échec` |
 | WF-SOCIAL-07 Notif validation | rKNtJULQL40QpgTn | */10 min 7-22 h + webhook | carte Telegram ✅/❌ pour `prêt_à_valider` ; carrousel = album complet puis carte en réponse |
-| WF-TG-ROUTER | n0hquvVeQ7my7orT | webhook Telegram | ✅ → `validé`, ❌ → `rejeté`, commandes |
+| WF-TG-ROUTER | n0hquvVeQ7my7orT | webhook Telegram | ✅ → `validé`, ❌ → `rejeté` (+ carte « Pourquoi ? »), commandes ; **articles** (✅ Publier / ❌ Refuser → Worker api `blog/validation`) et **décisions** (`choix:<Id>:<code>`), depuis le 04/11 |
+| **WF-BLOG-NOTIFY** (04/11) | i9mbCAIeBg2aMsek | */30 min 6-22 h + webhook `mm-run-article` | carte « article à valider » : couverture, résumé, article complet en pièce jointe HTML, ✅ Publier / ❌ Refuser (voir `07-editorial-seo.md` § Validation Telegram) |
 | **WF-HEALTH** (nouveau) | 6qGXtUTtR7XXAhSW | 9 h Dakar | alerte « file affamée » (voir circuit, étape 5) |
 | WF-ERR | MMERRALERT0001 | errorTrigger | toute exception → Telegram |
 | WF-07 Veille idées articles | 3kpXjWE4azageRz1 | lundi 5 h | RSS + messages/FAQ → **un** appel Claude Haiku → banque d'idées (pas de rédaction) |
@@ -102,6 +103,18 @@ Réglages communs : tous les nœuds Claude (comme avant les nœuds Gemini) ont `
 - **La réflexion adaptative compte dans `max_tokens`** (le nœud natif ne permet pas de la régler) : 4 096 a coupé WF-07 au premier essai (3 434 tokens de réflexion). Plafonds retenus : 16 000 partout, 48 000 pour le curriculum WF-11 (29 000 tokens de sortie mesurés), 4 096 pour l'enrichissement de prompt WF-14.
 - **Coût mesuré par exécution (01/11)** : WF-07 ≈ 12 400 in / 4 700 out (~0,004 $) ; WF-09 ≈ 3 750 / 3 200 (~0,04 $) ; WF-10 ≈ 23 500 / 6 600 (~0,006 $) ; WF-11 ≈ 3 700 / 29 200 **par cours** (~0,30 $, ~3 min) ; WF-12 ≈ 2 600 / 9 500 **par leçon** (~0,10 $) ; WF-13 ≈ 3 000 / 4 100 par module (~0,002 $) ; WF-14 prompt ≈ 120 / 370 ; TG-ROUTER (outils, tendances, déclinaison) ≈ 0,7–1,7 k / 1,8–3,8 k (~0,001–0,002 $ chacun).
 - Sauvegardes avant bascule : `backups/n8n-corrections-20261029/*-avant-claude.json`.
+
+## Décisions par boutons (04/11/2026)
+
+Quand un agent a besoin d'un **choix fermé** de Max, il ne l'écrit plus en prose dans son message : il pose une carte Telegram où Max clique.
+
+- **Outil** : `node scripts/growth/decision.mjs ask --agent <nom> --question "…" --options "code1:Libellé 1,code2:Libellé 2" [--contexte "…"] [--lien URL] [--objet type:id]` (2 à 6 options ; séparer par `|` si un libellé contient une virgule ; `--dry-run` montre la carte sans rien écrire). Lecture : `decision.mjs lire <Id>`, `decision.mjs liste [--en-attente] [--agent <nom>] [--motifs] [--depuis <jours>]`. Ménage : `decision.mjs expirer [--jours 14]` (les `en_attente` trop vieilles passent `expiré`, boutons retirés).
+- **Sur le VPS** : le même fichier est installé par `ops/agents-autonomes/install.sh` en `/opt/mm-agents/bin/mm-decision.mjs` (root, lecture seule pour l'agent ; `outils/mm-decision.mjs` est un lien vers `scripts/growth/decision.mjs`). Permis à Koffi (booster), Ibrahima (demandes), la rédaction / Aminata (article), Awa (revue mensuelle), Adjoa (leçons) ; Mariam (lot social) n'a que `liste` (motifs de refus).
+- **Stockage** : table NocoDB `Decisions` — `Question`, `Contexte`, `Options` (JSON `[{code, libelle}]`), `Agent`, `Choix`, `ChoixLibelle`, `Commentaire`, `Status` (`en_attente` · `répondu` · `expiré`), `TG_MsgId`, `RepondueAt`, `Lien`, `Objet`.
+- **Carte** : HTML échappé, boutons `callback_data = choix:<Id>:<code>` (≤ 64 octets), « Décision #Id » en pied. **Clic** → WF-TG-ROUTER branche `choix` : `Choix` + `ChoixLibelle` + `Status = répondu` + `RepondueAt`, boutons retirés, « ✅ Noté : <libellé> ». Un second clic répond « déjà répondu ». **Répondre en texte** à la carte (ou au « ✅ Noté ») écrit `Commentaire` (et vaut « Autre » si la carte attendait encore).
+- ⛔ **Un clic ne déclenche rien** : il est relu par l'agent au passage suivant, qui agit dans ses propres garde-fous (Koffi ne lance aucune pub, Ibrahima n'écrit à personne).
+- **Motif de refus en un clic** : après un ❌ sur une carte de post, de story ou d'article, le routeur envoie aussitôt « ❓ Pourquoi ? » en réponse à la carte : Trop business · Pas assez éducatif · Trop long · Visuel raté · Erreur de fait · Autre. C'est une décision (`Agent = motif-refus`, `Objet = post:<Id>` ou `article:<docId>`) ; pour un article, le motif est aussi écrit sur le brouillon (`refusReason`, Worker `blog/validation`). Mariam (lot social) et Aminata (article) lisent `decision.mjs liste --motifs --depuis 14` avant de produire.
+- ⚠️ Les emails et WhatsApp (branches `email` / `wa`) n'ont pas de carte « Pourquoi ? ».
 
 ## Hors n8n (VPS / Mac)
 

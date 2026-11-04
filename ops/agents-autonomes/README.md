@@ -13,7 +13,7 @@ Quatorze tâches tournent seules sur le VPS (`158.220.124.185`), à heure fixe, 
 | **Lundi 10:00** | 🤝 Ibrahima | Demandes de la semaine classées chaud/tiède/froid, brouillon de réponse pour chacune, devis à relancer | 4 lignes, sans données personnelles |
 | **Mardi 08:00** | 🚀 Omar | Indexation Google des articles récents + leurs posts de diffusion en `rédigé` | 3 lignes |
 | **Mercredi 08:00** | 📣 Mariam + 🎨 Salimata | Le reste du lot W+2 (8-10 posts + 7 stories au total, Thierry compris), `Gabarit` et `Slides_JSON`, en `rédigé`, puis le rendu. Rien si la semaine est déjà couverte | 3 lignes, puis les cartes ✅/❌ au fil du rendu |
-| **Jeudi 08:00** (semaines paires) | 🗞️ Aminata → Thierry → Rokia → Cheikh → Béatrice → Omar | L'article du jeudi suivant, `blog-lint` sans erreur, déposé en **brouillon** Firestore avec sa couverture | « brouillon id=… » : la carte « article à valider » (✅ Publier / ❌ Refuser) est construite à part |
+| **Jeudi 08:00** (semaines paires) | 🗞️ Aminata → Thierry → Rokia → Cheikh → Béatrice → Omar | L'article du jeudi suivant, `blog-lint` sans erreur, déposé en **brouillon** Firestore avec sa couverture | « brouillon id=… », puis (≤ 30 min) la carte « article à valider » : couverture, résumé, article complet en pièce jointe, ✅ Publier / ❌ Refuser |
 | **Jeudi 08:00** | 🎓 Adjoa | 5 leçons vides des formations publiées, rédigées en brouillon dans `content/lecons/…` (57 leçons vides au 04/11) | 3 lignes |
 | **Jeudi 10:00** | 🤝 Ibrahima | 10 commerces de Dakar ou d'Abidjan sans fiche Google (ou avec une fiche faible) + message « Fais le test Google Maps » ; la 1re semaine du mois, 3 à 5 pistes de partenariat | 4 lignes. Aucun contact n'est pris |
 | **Vendredi 10:00** | 🎯 Koffi | Le post de la semaine à sponsoriser (budget FCFA, durée, ciblage) ; la 1re semaine du mois, le plan pub de l'offre du mois | 4 lignes. Rien n'est lancé |
@@ -26,6 +26,21 @@ Quatorze tâches tournent seules sur le VPS (`158.220.124.185`), à heure fixe, 
 Un seul agent tourne à la fois. Si deux tâches tombent à la même heure (jeudi 08:00), la seconde attend son tour (90 minutes au plus). Une exécution manquée parce que le VPS était éteint **n'est pas rattrapée** : tu la lances à la main.
 
 Les fichiers produits sont gardés d'un passage à l'autre (**état partagé**, `/home/maxmorrys/agents/etat/`) : le plan d'Awa, la veille de Thierry, les leçons d'Adjoa et les lettres de Serge sont relus par les tâches suivantes. Ils sont aussi archivés à chaque passage (`/home/maxmorrys/agents/sorties/`).
+
+## Décisions par boutons (04/11/2026)
+
+Quand une mission a besoin d'un **choix** de ta part, elle ne te le demande plus en prose : elle t'envoie une carte Telegram avec les réponses en boutons, et relit ton clic **au passage suivant**. Rien ne part de ton clic tout seul.
+
+| Qui | La question | Les boutons |
+|---|---|---|
+| 🎯 Koffi (vendredi) | « Booster ce post ? » | 5 000 F · 3 j / 10 000 F · 5 j / Non (budgets ajustés à sa proposition) — tu lances toi-même dans Meta |
+| 🤝 Ibrahima (lundi) | « Que fait-on de cette demande ? » (3 demandes chaudes au plus, prénom + initiale) | Je réponds / Rappelle-moi demain / Ignorer |
+| 🗞️ Aminata (article) | « Sujet du prochain article ? » | 3 sujets |
+| 🧭 Awa (le 1er) | les arbitrages du plan du mois (3 au plus) | 2 à 4 options |
+| 🎓 Adjoa (jeudi) | « Lot de leçons : valider ou retoucher ? » | Valider le lot / À retoucher / Plus tard |
+| *(routeur)* après chaque ❌ sur un post, une story ou un article | « Pourquoi ? » | Trop business · Pas assez éducatif · Trop long · Visuel raté · Erreur de fait · Autre — Mariam et Aminata les relisent avant de produire |
+
+Répondre en texte à une carte y ajoute un commentaire. Outil : `/opt/mm-agents/bin/mm-decision.mjs` (= `scripts/growth/decision.mjs`, table NocoDB `Decisions`) ; détails dans `docs/growth-kb/06-outillage-n8n.md` § Décisions par boutons. Les cartes sans réponse ne bloquent rien ; `node scripts/growth/decision.mjs expirer` les range.
 
 ## Garde-fous
 
@@ -120,6 +135,7 @@ Aucun crédit d'API : les agents utilisent ton **abonnement Claude Max**, par le
 | `outils/mm-gsc.mjs` | Search Console : inspection d'URL, pages, requêtes |
 | `outils/mm-meta-verif.mjs` | Meta en lecture : ce que NocoDB dit publié est-il en ligne, avec quelles mesures |
 | `outils/mm-lettre-epreuve.mjs` | épreuve de la lettre ; refuse le mode `reel` |
+| `outils/mm-decision.mjs` | cartes de décision par boutons (lien vers `scripts/growth/decision.mjs`) : `ask`, `liste`, `lire` ; le jeton Telegram reste dans `Config` |
 | `systemd/` | `mm-agent@.service` + 15 minuteries |
 | `install.sh`, `uninstall.sh` | installation et retrait |
 
