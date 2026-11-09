@@ -38,8 +38,8 @@ for i in $(seq 1 60); do
   nc -z -G 5 158.220.124.185 22 2>/dev/null && "${SSH[@]}" true 2>/dev/null && { ok "joignable"; break; }
   if [ "$i" = 60 ]; then
     if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://n8n.maxmorrys.me/healthz)" = 200 ]; then
-      ko "n8n répond mais SSH reste fermé : l'adresse du Mac est bannie par fail2ban."
-      ko "Console Contabo (VNC), en root : fail2ban-client set sshd unbanip $(curl -s --max-time 8 https://api.ipify.org)"
+      ko "n8n répond mais SSH reste fermé depuis cette connexion. La box de Max est sur liste blanche"
+      ko "fail2ban : c'est le port 22 du FAI qui est intermittent. Passe sur le partage de connexion du téléphone et relance."
     else ko "VPS injoignable après 30 min : vérifie le renouvellement chez Contabo"; fi
     exit 1
   fi

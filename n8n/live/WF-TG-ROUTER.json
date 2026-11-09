@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-04T19:09:40.435Z",
+  "updatedAt": "2026-11-09T12:58:43.119Z",
   "id": "n0hquvVeQ7my7orT",
   "name": "WF-TG-ROUTER — Telegram (posts + gouvernance + commandes)",
   "active": true,
@@ -2225,7 +2225,7 @@
           "conditions": [
             {
               "id": "cbdfccee-9901-4e5b-ac73-dbff1dffe223",
-              "leftValue": "={{ $('Parse — Update').item.json.newStatus === 'rejeté' ? !['publié','en_publication'].includes($json.Status) : $json.Status === 'prêt_à_valider' }}",
+              "leftValue": "={{ $('Parse — Update').item.json.newStatus === 'rejeté' ? !['publié','en_publication'].includes(($json.fields ? $json.fields.Status : $json.Status)) : ($json.fields ? $json.fields.Status : $json.Status) === 'prêt_à_valider' }}",
               "rightValue": true,
               "operator": {
                 "type": "boolean",
@@ -2252,7 +2252,7 @@
         "url": "=https://api.telegram.org/bot{{ $('Parse — Update').item.json.token }}/answerCallbackQuery",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({callback_query_id:$('Parse — Update').item.json.callbackQueryId, show_alert:true, text:'Rien fait : ce post n\\'attend plus ta validation (statut : ' + ($json.Status || 'introuvable') + ').'}) }}",
+        "jsonBody": "={{ JSON.stringify({callback_query_id:$('Parse — Update').item.json.callbackQueryId, show_alert:true, text:'Rien fait : ce post n\\'attend plus ta validation (statut : ' + (($json.fields ? $json.fields.Status : $json.Status) || 'introuvable') + ').'}) }}",
         "options": {}
       }
     }
