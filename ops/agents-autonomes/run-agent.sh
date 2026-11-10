@@ -59,11 +59,13 @@ IDEES_USAGE=( "Bash(node $B/mm-idees.mjs retenues *)" "Bash(node $B/mm-idees.mjs
 DEPOT_POSTS=( "Bash(node scripts/growth/nocodb.mjs create contenus *)" "Bash(node scripts/growth/nayo.mjs brief *)"
               "Bash(node $B/qa-lot.mjs *)" "Bash($B/mm-rendu)" )
 case "$TACHE" in
-  veille)          AGENT="🔎 Thierry — veille et Flash du lundi"; TOURS=150; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" ) ;;
+  veille)          AGENT="🔎 Thierry — veille et Flash du lundi"; TOURS=150; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}"
+                           "Bash(node scripts/growth/nocodb.mjs create idees-posts *)" "${DECIDER[@]}" "Bash(node $B/mm-idees.mjs lier *)" ) ;;
   lot-social)      AGENT="🗓 Mariam, Salimata & Kader — lot social";     TOURS=200; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" "${MOTIFS[@]}" "Bash(node $B/mm-idees.mjs *)" ) ;;
   article)         AGENT="🗞️ Rédaction — article (jeudi et dimanche)"; TOURS=250; ECRITURE=( "content/blog/**" )
                    EXTRA=( "${WEB[@]}" "Bash(node scripts/growth/blog-lint.mjs *)" "Bash(node scripts/growth/blog-publish.mjs content/blog/*)"
-                           "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${DECIDER[@]}" "${IDEES_USAGE[@]}" ) ;;
+                           "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${DECIDER[@]}" "${IDEES_USAGE[@]}"
+                           "Bash(node $B/mm-gsc.mjs *)" ) ;;
   diffusion)       AGENT="🚀 Omar — indexation et diffusion des articles"; TOURS=120
                    EXTRA=( "${DEPOT_POSTS[@]}" "${SITE[@]}" "Bash(node $B/mm-gsc.mjs *)" "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" ) ;;
   relecture)       AGENT="🖋️ Béatrice — relecture des cartes"; TOURS=80; SILENCE_RAS=1; PAS_DE_DEBUT=1

@@ -10,8 +10,9 @@
 1. Pour chaque public (Apprenants, Commerçants, B2B/diaspora en lecture secondaire), écrire la question qu'il se pose et ce qu'il doit savoir faire après lecture.
 2. Croiser publics × six pôles : garder les cases où l'on a une compétence démontrable et une offre en aval (Club, Rysmo, packs commerces, liste d'attente formations). Écarter le reste.
 3. Fixer pour chaque case gardée : angle type, niveau (débutant / confirmé), page de destination naturelle (maillage), registre (tutoiement partout sur le blog).
-4. Écrire la liste de ce qu'on refuse : actualité sans analyse, listes « 15 astuces », chiffres non sourcés, sujets qu'aucune offre ne prolonge, promesses de cadence.
-5. Faire valider par Max.
+4. **Ligne « Décryptage » (décision de Max, 10/11/2026)** : un article d'actualité par semaine (le dimanche) — un fait récent du digital, du paiement mobile, des plateformes ou de la régulation, expliqué par ce qu'il change pour nos cibles. Le Décryptage est une analyse, jamais une dépêche recopiée : source primaire, date, « ce que ça change pour toi », lien vers un article de fond. Le jeudi reste un article de fond.
+5. Écrire la liste de ce qu'on refuse : actualité sans analyse, listes « 15 astuces », chiffres non sourcés, sujets qu'aucune offre ne prolonge, promesses de cadence.
+6. Faire valider par Max.
 
 ## Livrable
 `_bmad-output/editorial/ligne-editoriale.md` (page 1 = règles, puis la grille publics × pôles).

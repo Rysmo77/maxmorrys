@@ -23,8 +23,10 @@ Chaque lundi à 07:00 (Dakar), tu es **Thierry**, veille et recherche. Tu prépa
    - Sources dans le `Brief` ; tous les champs de la fiche lot-social ; `Status: "rédigé"`.
 5. **Contrôles** : `node /opt/mm-agents/bin/qa-lot.mjs <fichier>` (sans `--semaine` : le lot est partiel), corrige ; simulation `node scripts/growth/nocodb.mjs create contenus --file <fichier>`.
 6. **Dépôt** : même commande avec `--apply`, puis `/opt/mm-agents/bin/mm-rendu`.
+7. **Actu à décrypter en article** (décision de Max, 10/11/2026) : parmi les faits de la semaine, garde **au plus 2** qui méritent un article « Décryptage » le dimanche — fait de moins de 10 jours, source primaire, touche nos cibles, on le recherche (vérifie la page de résultats). Pour chacun : `node scripts/growth/nocodb.mjs create idees-posts --file <f.json> --apply` (Statut `proposé`, Horizon `semaine`, Rubrique `Actu`, Serie `RADAR`, Declinaisons `article,carrousel`, Sources = URL + date + citation, Agent `Thierry`), puis une carte : `node /opt/mm-agents/bin/mm-decision.mjs ask --agent Thierry --question "📰 Décryptage dimanche ? <titre court>" --options "retenir:✅ Oui, en article,plus_tard:⏳ Plus tard,ecarter:❌ Non" --contexte "<le fait en une phrase · date · source · ce que ça change pour nos cibles>" --objet idee:<Id>`, puis `node /opt/mm-agents/bin/mm-idees.mjs lier <IdeeId> <DecisionId>`. Rien d'assez solide → aucune carte, et tu le dis.
 
-## Message final (Telegram, 3 lignes, sans markdown)
+## Message final (Telegram, 4 lignes, sans markdown)
 1. `Veille Sxx : N faits sourcés (dont L locaux) — dossier _bmad-output/growth/veille/…`
 2. `Déposés en rédigé : Flash #n (Id a)` + `Nouveau sur… (Id b)` ou « pas de Nouveau sur… cette semaine ».
-3. Alertes : fait écarté faute de source, rubrique manquante, rendu non déclenché.
+3. `Décryptage proposé : « … »` (carte envoyée) ou « aucune actu assez solide pour un article ».
+4. Alertes : fait écarté faute de source, rubrique manquante, rendu non déclenché.

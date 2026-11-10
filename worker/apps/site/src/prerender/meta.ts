@@ -30,6 +30,11 @@ export function buildMetaInjection(meta: PageMeta): string {
   }
   if (meta.noIndex) {
     lines.push('<meta name="robots" content="noindex, nofollow" />');
+  } else {
+    // Sans cette directive, Google Discover (premier canal des articles d'actualité) n'affiche
+    // qu'une vignette ; avec elle, la grande image — nos couvertures font 1408 de large, au-dessus
+    // du minimum de 1200 exigé. Ajouté le 10/11/2026 avec la ligne « actualité » du blog.
+    lines.push('<meta name="robots" content="max-image-preview:large" />');
   }
 
   lines.push(`<meta property="og:title" content="${t}" />`);

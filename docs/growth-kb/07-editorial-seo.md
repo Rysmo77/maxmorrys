@@ -44,6 +44,13 @@ Briefs, dossiers de sources et rapports de relecture : `_bmad-output/editorial/<
 - Catégorie = un des six pôles (`src/lib/blogCategories.ts`) : SEO & Visibilité · Publicité en ligne · Réseaux sociaux & Influence · E-commerce & Vente en ligne · IA & Automatisation · Business & Gestion.
 - La page porte son propre CTA de fin (« Tu veux qu'on le fasse pour toi ? / Voir les packs ») : le texte n'en ajoute pas.
 
+## Deux articles par semaine : le fond et l'actualité (décision de Max, 10/11/2026)
+
+- **Jeudi 08:00 : article de fond** (plan, idées retenues). **Dimanche 08:00 : « Décryptage »**, un fait d'actualité du digital, du paiement mobile, des plateformes ou de la régulation (ex. PI-SPI, Wave, Orange Money, Meta, WhatsApp, Google), de 10 jours au plus, expliqué par ce qu'il change pour nos cibles.
+- **Pourquoi pour le SEO** : une actu fraîche attire des recherches au moment où elles montent, gagne des liens et passe par Google Discover. Depuis le 10/11/2026, le Worker `site` émet `<meta name="robots" content="max-image-preview:large">` sur toutes les pages indexables (sans elle, Discover n'affiche qu'une vignette ; nos couvertures font 1408 px de large, au-dessus du minimum de 1200).
+- **Règles d'un Décryptage** : source primaire (communiqué de l'émetteur, texte officiel, aide de la plateforme) ; date du fait dans le premier paragraphe ; nom de l'acteur dans le titre (≤ 47 caractères) ; slug sans année ; « ce que ça change pour toi » concret ; lien vers un article de fond et vers la page utile du site ; aucune rumeur, rien de politique ; 700 à 1 200 mots. Pas d'actu solide → article de fond à la place.
+- **Alimentation** : Thierry propose chaque lundi au plus 2 actus « Décryptage » en cartes Telegram (✅ Oui, en article / ⏳ / ❌) ; la rédaction du dimanche prend d'abord celle que Max a retenue, sinon fait sa propre veille.
+
 ## Couverture (depuis le 01/11/2026)
 
 - Rendue par **render-card** (famille `couverture`, kit DS, 1200×630), plus par Gemini Image. Elle remplit `coverImage` **et** `ogImage`. Détails du gabarit : `11-visuels-nayo.md` § 3 bis.
