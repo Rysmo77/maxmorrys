@@ -147,3 +147,12 @@ Aucun crédit d'API : les agents utilisent ton **abonnement Claude Max**, par le
 ## Pas automatisés (choix du 04/11/2026)
 
 Yann (bilan hebdomadaire : sa mission reste disponible à la main) et Landry (application mobile). Koffi, Ibrahima et Aboubacar ne tournent que dans les tâches ci-dessus.
+
+## Consigne ponctuelle pour un passage (10/11/2026)
+
+Pour orienter UN passage (un sujet précis, une urgence), sans toucher aux missions :
+```
+echo "Écris un Décryptage sur …" | ssh maxmorrys-vps 'install -o maxmorrys -g maxmorrys -m 640 /dev/stdin /home/maxmorrys/agents/consignes/article.txt'
+ssh maxmorrys-vps systemctl start --no-block mm-agent@article-force.service
+```
+Le lanceur lit `/home/maxmorrys/agents/consignes/<tâche>.txt`, l'ajoute au contexte (elle prime sur le calendrier et l'ordre de choix du sujet, jamais sur les garde-fous), puis l'efface.

@@ -202,6 +202,14 @@ CONTEXTE="- Date et heure d'exécution (Dakar, UTC+0) : $D_MAINTENANT
 - Outils maison : $B/ (mm-rendu, qa-lot.mjs, mm-firestore.mjs, mm-gsc.mjs, mm-meta-verif.mjs, mm-lettre-epreuve.mjs)"
 [ "$FORCE" = 1 ] && CONTEXTE="$CONTEXTE
 - Lancement forcé à la main (porte de calendrier ignorée)."
+# Consigne ponctuelle de Max pour UN passage (10/11/2026) : /home/maxmorrys/agents/consignes/<tâche>.txt,
+# lue puis effacée. Elle prime sur le calendrier de la mission, pas sur ses garde-fous.
+CONSIGNE_F="${MM_CONSIGNES_DIR:-/home/maxmorrys/agents/consignes}/${TACHE}.txt"
+if [ -s "$CONSIGNE_F" ]; then
+  CONTEXTE="$CONTEXTE
+- ⭐ CONSIGNE DE MAX POUR CE PASSAGE (prime sur le calendrier et l'ordre de choix du sujet, jamais sur les garde-fous) : $(head -c 1500 "$CONSIGNE_F" | tr '\n' ' ')"
+  [ "$MM_DRY_RUN" = 1 ] || rm -f "$CONSIGNE_F"
+fi
 log "contexte :"; printf '%s\n' "$CONTEXTE" | sed 's/^/    /'
 
 PROMPT_FILE="$(mktemp)"
