@@ -8,7 +8,7 @@
 - Banque d'idées NocoDB : `node scripts/growth/nocodb.mjs list idees-articles --where "(Status,eq,valide)"`.
 
 ## Démarche
-1. Fixer la cadence avec Max (par défaut : 1 article toutes les deux semaines tant que la chaîne n'a pas fait ses preuves). Ne jamais l'annoncer publiquement.
+1. Cadence décidée par Max le 10/11/2026 : **deux articles par semaine** (jeudi et dimanche) ; deux sujets différents de pôle ou de cible dans la même semaine, jamais deux fois le même mot-clé. Ne jamais l'annoncer publiquement.
 2. Commencer par le travail de réparation planifié (`remise-a-niveau`), qui compte dans la capacité.
 3. Pour chaque créneau : sujet, angle, public, pôle, mot-clé (à confirmer par Rokia), offre en aval, date de remise à Béatrice, date de dépôt.
 4. Vérifier l'équilibre : publics, pôles, et au moins un article par trimestre qui sert chaque offre vendable.

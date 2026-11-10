@@ -61,7 +61,7 @@ DEPOT_POSTS=( "Bash(node scripts/growth/nocodb.mjs create contenus *)" "Bash(nod
 case "$TACHE" in
   veille)          AGENT="🔎 Thierry — veille et Flash du lundi"; TOURS=150; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" ) ;;
   lot-social)      AGENT="🗓 Mariam, Salimata & Kader — lot social";     TOURS=200; EXTRA=( "${DEPOT_POSTS[@]}" "${WEB[@]}" "${MOTIFS[@]}" "Bash(node $B/mm-idees.mjs *)" ) ;;
-  article)         AGENT="🗞️ Rédaction — article de la quinzaine"; TOURS=250; ECRITURE=( "content/blog/**" )
+  article)         AGENT="🗞️ Rédaction — article (jeudi et dimanche)"; TOURS=250; ECRITURE=( "content/blog/**" )
                    EXTRA=( "${WEB[@]}" "Bash(node scripts/growth/blog-lint.mjs *)" "Bash(node scripts/growth/blog-publish.mjs content/blog/*)"
                            "Bash(node $B/mm-firestore.mjs blog *)" "Bash(node $B/mm-firestore.mjs blog)" "${DECIDER[@]}" "${IDEES_USAGE[@]}" ) ;;
   diffusion)       AGENT="🚀 Omar — indexation et diffusion des articles"; TOURS=120
@@ -132,9 +132,6 @@ eval "$(node -e '
 # ── 0. Porte de calendrier (silencieuse : un jour « sans » n'est pas un événement) ─
 calendrier() { local f="$MM_REPO_DIR/ops/agents-autonomes/calendrier-lettres.txt"; [ -f "$f" ] || f="$MM_HOME/calendrier-lettres.txt"; echo "$f"; }
 if [ "$FORCE" = 0 ]; then
-  if [ "$TACHE" = article ] && [ $((D_SEM_NUM % 2)) = 1 ]; then
-    log "⏭ $D_SEM est impaire : l'article se prépare les jeudis des semaines paires (pour le jeudi suivant)"; exit 0
-  fi
   if [ "$TACHE" = lettre ] && ! grep -qx "$D_J5" "$(calendrier)" 2>/dev/null; then
     log "⏭ aucune lettre prévue le $D_J5 (J+5) dans $(calendrier)"; exit 0
   fi
